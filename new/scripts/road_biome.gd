@@ -48,8 +48,8 @@ func boxes(material: Material, poses: Array[Transform3D], shadows: bool = true) 
 func terrain_point(d: float, lane: float) -> Vector3:
 	var p: Vector3 = track.point(d,lane)
 	var road_y: float = track.point(d).y
-	if theme in ["hawaii", "jeju"] and lane < -10:
-		p.y = lerpf(0.12,road_y - 0.3,clampf((lane + 19) / 9,0,1))
+	if theme in ["hawaii", "jeju"] and lane < -(track.half_width(d)+1):
+		p.y = lerpf(0.12,road_y - 0.3,clampf((lane+track.half_width(d)+10)/9,0,1))
 	else:
 		var rise := pow(clampf((absf(lane) - 18) / 140,0,1),1.5)
 		p.y = road_y - 0.3 + rise * (10 if theme in ["desert","pyramid"] else 5) * sin(d * 0.012 + lane * 0.035)
@@ -82,6 +82,9 @@ func _ready() -> void:
 	if theme == "seoul": make_seoul()
 	make_cover()
 
+func ground_lane(d: float, lane: float) -> float:
+	return lane+signf(lane)*(track.half_width(d)-9) if absf(lane) <= 19 else lane
+
 func ground_band(left: float, right: float, material: Material) -> void:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -89,7 +92,7 @@ func ground_band(left: float, right: float, material: Material) -> void:
 	for i in range(segments):
 		var a: float = track.length * i / segments
 		var b: float = track.length * (i + 1) / segments
-		var points := [terrain_point(a,left),terrain_point(a,right),terrain_point(b,left),terrain_point(b,right)]
+		var points := [terrain_point(a,ground_lane(a,left)),terrain_point(a,ground_lane(a,right)),terrain_point(b,ground_lane(b,left)),terrain_point(b,ground_lane(b,right))]
 		for index in [0,2,1,1,2,3]: surface.add_vertex(points[index])
 	surface.generate_normals()
 	var node := MeshInstance3D.new()
@@ -108,7 +111,7 @@ func make_water() -> void:
 	for i in range(180):
 		var a: float = track.length * i / 180
 		var b: float = track.length * (i + 1) / 180
-		var points := [track.point(a,-900),track.point(a,-19),track.point(b,-900),track.point(b,-19)]
+		var points := [track.point(a,-900),track.point(a,ground_lane(a,-19)),track.point(b,-900),track.point(b,ground_lane(b,-19))]
 		for index in [0,2,1,1,2,3]:
 			var p: Vector3 = points[index]
 			p.y = 0
@@ -166,45 +169,73 @@ func make_trees() -> void:
 		batch(crown,mat(Color("3f8248")),crowns)
 
 func make_city() -> void:
-	var buildings: Array[Transform3D] = []
-	var dimensions: Array[Color] = []
+	var groups: Array[Dictionary] = []
+	for i in range(6): groups.append({"poses":[],"dimensions":[]})
 	var plinths: Array[Transform3D] = []
+	var roof_details: Array[Transform3D] = []
 	var rubble: Array[Transform3D] = []
-	for i in range(42):
-		var d: float = 230 + i*(track.length-300)/42
-		var side := -1.0 if i % 2 == 0 else 1.0
+	var count := int(track.length/42)
+	for i in range(count):
+		var d: float = 250+i*(track.length-430)/count
+		var side := -1.0 if i%2 == 0 else 1.0
 		if theme == "seoul" and side > 0 and d > 450 and d < 1050: continue
-		var lane := side * rng.randf_range(23,66)
-		var height := rng.randf_range(20,75 if theme != "ruins" else 34)
-		var width := rng.randf_range(10,21)
-		var depth := rng.randf_range(13,28)
-		buildings.append(transform_at(d,lane,height / 2,Vector3(width,height,depth)))
-		dimensions.append(Color(width,height,depth,rng.randf()))
-		plinths.append(transform_at(d,lane,2,Vector3(width*1.15,4,depth*1.15)))
+		if track.entry_side != 0 and d < 600: side = float(track.entry_side)
+		var lane: float = side*(track.half_width(d)+rng.randf_range(18,56))
+		var style: int = (i*5+track.route_node)%6
+		var height: float = rng.randf_range(10,23) if style in [0,5] else rng.randf_range(35,95)
+		if style == 4: height = rng.randf_range(20,38)
+		if theme == "ruins": height *= 0.65
+		var width := rng.randf_range(12,24)
+		var depth := rng.randf_range(14,32)
+		var variant := rng.randf()
+		var tiers := 3 if style == 2 else 1
+		var base := 0.0
+		for tier in range(tiers):
+			var h := height*(0.50 if tier == 0 else 0.25) if tiers > 1 else height
+			var scale_x := 1.0-tier*0.22
+			var size := Vector3(width*scale_x,h,depth*scale_x)
+			groups[style].poses.append(transform_at(d,lane,base+h/2,size))
+			groups[style].dimensions.append(Color(size.x,size.y,size.z,variant))
+			base += h
+		plinths.append(transform_at(d,lane,1,Vector3(width*1.1,2,depth*1.1)))
+		if style in [0,1,4]:
+			roof_details.append(transform_at(d,lane,height+1.2,Vector3(width*0.32,2.4,depth*0.25)))
+		if style == 5:
+			roof_details.append(transform_at(d-side*2,lane-side*depth*0.3,height*0.62,Vector3(width*1.05,0.35,depth*0.4)))
 		if theme == "ruins":
-			for piece in range(3):
-				var pose := transform_at(d + piece * 4,lane - side * 6,2 + piece * 2,Vector3(width * 0.7,2,3),rng.randf_range(-1,1))
-				pose.basis = pose.basis.rotated(Vector3.FORWARD,rng.randf_range(-0.4,0.4))
-				rubble.append(pose)
-	var material := ShaderMaterial.new()
-	material.shader = preload("res://shaders/building_facade.gdshader")
-	material.set_shader_parameter("ruined",theme == "ruins")
-	var multi := MultiMesh.new()
-	multi.transform_format = MultiMesh.TRANSFORM_3D
-	multi.use_custom_data = true
-	var cube := BoxMesh.new()
-	cube.size = Vector3.ONE
-	multi.mesh = cube
-	multi.instance_count = buildings.size()
-	for i in range(buildings.size()):
-		multi.set_instance_transform(i,buildings[i])
-		multi.set_instance_custom_data(i,dimensions[i])
-	var node := MultiMeshInstance3D.new()
-	node.multimesh = multi
-	node.material_override = material
-	add_child(node)
-	batches.append(node)
+			for piece in range(3): rubble.append(transform_at(d+piece*4,lane-side*5,2+piece*2,Vector3(width*0.6,2,3),rng.randf_range(-0.5,0.5)))
+	for style in range(6):
+		var multi := MultiMesh.new()
+		multi.transform_format = MultiMesh.TRANSFORM_3D
+		multi.use_custom_data = true
+		var mesh: Mesh
+		if style == 3:
+			var tower := CylinderMesh.new()
+			tower.top_radius = 0.5
+			tower.bottom_radius = 0.5
+			tower.height = 1
+			tower.radial_segments = 16
+			mesh = tower
+		else:
+			var cube := BoxMesh.new()
+			cube.size = Vector3.ONE
+			mesh = cube
+		multi.mesh = mesh
+		multi.instance_count = groups[style].poses.size()
+		for i in range(multi.instance_count):
+			multi.set_instance_transform(i,groups[style].poses[i])
+			multi.set_instance_custom_data(i,groups[style].dimensions[i])
+		var material := ShaderMaterial.new()
+		material.shader = preload("res://shaders/building_facade.gdshader")
+		material.set_shader_parameter("ruined",theme == "ruins")
+		material.set_shader_parameter("facade_style",style)
+		var node := MultiMeshInstance3D.new()
+		node.multimesh = multi
+		node.material_override = material
+		add_child(node)
+		batches.append(node)
 	boxes(mat(Color("5d666b")),plinths)
+	boxes(mat(Color("78868a"),0.3),roof_details)
 	if not rubble.is_empty(): boxes(mat(Color("6d695a")),rubble)
 
 func make_desert() -> void:
@@ -312,53 +343,77 @@ func make_park() -> void:
 	batch(roof,mat(Color("df5b87")),tents)
 
 func make_cover() -> void:
+	var canopy := Library.canopy_span(track.stage,track.route_node)
+	if canopy.y > canopy.x: make_canopy(canopy)
+	var tunnel := Library.tunnel_span(track.stage,track.route_node)
+	if tunnel.y > tunnel.x: make_tunnel(tunnel)
+
+func make_canopy(span: Vector2) -> void:
 	var pillars: Array[Transform3D] = []
 	var glass: Array[Transform3D] = []
 	var frames: Array[Transform3D] = []
-	for i in range(8):
-		var d := 420.0 + i * 20
+	for i in range(int(ceil((span.y-span.x)/16))):
+		var d := span.x+8+i*16
 		var f: Vector3 = (track.point(d+2)-track.point(d)).normalized()
 		var basis := Basis(Vector3.UP,track.heading(d)).rotated(Vector3(-f.z,0,f.x).normalized(),asin(f.y))
-		for side in [-1,1]: pillars.append(Transform3D(basis.scaled_local(Vector3(0.24,6.8,0.24)),track.point(d,side * 11.5) + Vector3.UP * 3.4))
-		glass.append(Transform3D(basis.scaled_local(Vector3(23,0.08,21)),track.point(d) + Vector3.UP * 6.8))
-		frames.append(Transform3D(basis.scaled_local(Vector3(23,0.15,0.25)),track.point(d) + Vector3.UP * 6.75))
+		var w: float = track.half_width(d)+2.5
+		for side in [-1,1]: pillars.append(Transform3D(basis.scaled_local(Vector3(0.24,6.8,0.24)),track.point(d,side*w)+Vector3.UP*3.4))
+		glass.append(Transform3D(basis.scaled_local(Vector3(w*2,0.08,17)),track.point(d)+Vector3.UP*6.8))
+		frames.append(Transform3D(basis.scaled_local(Vector3(w*2,0.15,0.25)),track.point(d)+Vector3.UP*6.75))
 	boxes(mat(Color("a8c0cf"),0.6),pillars)
 	boxes(mat(Color("b7d7df"),0.6),frames)
 	var transparent := mat(Color(0.35,0.73,0.83,0.23),0.25)
 	transparent.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	transparent.cull_mode = BaseMaterial3D.CULL_DISABLED
 	boxes(transparent,glass,false)
-	var walls: Array[Transform3D] = []
-	var ceilings: Array[Transform3D] = []
+
+func tunnel_profile(d: float) -> Array[Vector3]:
+	var w: float = track.half_width(d)+2.4
+	var points: Array[Vector3] = [track.point(d,-w)]
+	for i in range(17):
+		var a := PI*i/16
+		points.append(track.point(d,-cos(a)*w)+Vector3.UP*(3.2+sin(a)*5))
+	points.append(track.point(d,w))
+	return points
+
+func make_tunnel(span: Vector2) -> void:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var segments := int(ceil((span.y-span.x)/8))
+	for i in range(segments):
+		var a := tunnel_profile(lerpf(span.x,span.y,float(i)/segments))
+		var b := tunnel_profile(lerpf(span.x,span.y,float(i+1)/segments))
+		for j in range(a.size()-1):
+			var corners := [a[j],b[j],a[j+1],b[j+1]]
+			for index in [0,1,2,1,3,2]: surface.add_vertex(corners[index])
+	surface.generate_normals()
+	var shell := MeshInstance3D.new()
+	shell.mesh = surface.commit()
+	var material := mat(Color("37434c") if theme in ["city","seoul"] else Color("635e55"))
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	shell.material_override = material
+	add_child(shell)
 	var lamps: Array[Transform3D] = []
-	for i in range(8):
-		var d := 1040.0 + i * 20
+	for i in range(int((span.y-span.x)/32)):
+		var d := span.x+16+i*32
 		var f: Vector3 = (track.point(d+2)-track.point(d)).normalized()
 		var basis := Basis(Vector3.UP,track.heading(d)).rotated(Vector3(-f.z,0,f.x).normalized(),asin(f.y))
-		for side in [-1,1]:
-			walls.append(Transform3D(basis.scaled_local(Vector3(1.0,3.4,22)),track.point(d,side * 11.8) + Vector3.UP * 1.7))
-			lamps.append(Transform3D(basis.scaled_local(Vector3(0.18,0.08,14)),track.point(d,side * 8.8) + Vector3.UP * 6.3))
-		ceilings.append(Transform3D(basis,track.point(d)))
-	boxes(mat(Color("7a7770") if theme not in ["city","seoul"] else Color("34495c")),walls)
-	var arch := SurfaceTool.new()
-	arch.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for i in range(16):
-		var a := PI*i/16
-		var b := PI*(i+1)/16
-		var points := [Vector3(cos(a)*11.4,3.2+sin(a)*5,-11),Vector3(cos(a)*11.4,3.2+sin(a)*5,11),Vector3(cos(b)*11.4,3.2+sin(b)*5,-11),Vector3(cos(b)*11.4,3.2+sin(b)*5,11)]
-		for index in [0,2,1,1,2,3]: arch.add_vertex(points[index])
-	arch.generate_normals()
-	var shell := mat(Color("86847b"))
-	shell.cull_mode = BaseMaterial3D.CULL_DISABLED
-	batch(arch.commit(),shell,ceilings)
-	boxes(mat(Color("a7dce9"),0,1.2),lamps,false)
-	for d in [1080.0,1150.0]:
+		for side in [-1,1]: lamps.append(Transform3D(basis.scaled_local(Vector3(0.16,0.08,24)),track.point(d,side*(track.half_width(d)-0.4))+Vector3.UP*5.8))
+	boxes(mat(Color("b9def1"),0,1.5),lamps,false)
+	for ratio in [0.08,0.5,0.92]:
 		var light := OmniLight3D.new()
-		light.position = track.point(d) + Vector3.UP * 6
+		light.position = track.point(lerpf(span.x,span.y,ratio))+Vector3.UP*5
 		light.light_color = Color("c9e7f3")
-		light.light_energy = 1.1
-		light.omni_range = 45
+		light.light_energy = 0.7
+		light.omni_range = 65
 		add_child(light)
+	var sign := Label3D.new()
+	sign.text = "TUNNEL / %d m" % int(span.y-span.x)
+	sign.font_size = 72
+	sign.pixel_size = 0.009
+	sign.position = track.point(span.x)+Vector3.UP*9
+	sign.rotation.y = track.heading(span.x)
+	add_child(sign)
 
 func _process(delta: float) -> void:
 	for node in rotating: node.rotate_object_local(Vector3.FORWARD,delta * 0.16)

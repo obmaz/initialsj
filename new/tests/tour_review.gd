@@ -14,18 +14,19 @@ func run() -> void:
 		var checkpoint := 0
 		var peak_speed := 0.0
 		var drift_seconds := 0.0
-		for frame in range(18000):
+		for frame in range(36000):
 			var curve: float = race.track.curvature(race.distance)
 			var brake := false
 			var axis := 0.0
 			var slide := false
+			var nitro_input := false
 			if strategy != "gas_only":
 				if frame % 18 == 0:
 					var best := INF
-					for candidate in [-6.0,-2.0,2.0,6.0]:
+					for candidate in race.track.lane_centers(race.distance):
 						var cost: float = absf(candidate-race.lane)*0.1
 						for r in race.rivals:
-							if r.detached != null: continue
+							if not r.active or r.detached != null: continue
 							var gap: float = r.distance-race.distance
 							if absf(candidate-r.lane) < 3 and gap > -8 and gap < 65: cost += 65-gap
 							if absf(gap) < 8 and r.lane > minf(candidate,race.lane)-2.5 and r.lane < maxf(candidate,race.lane)+2.5: cost += 150
@@ -35,7 +36,7 @@ func run() -> void:
 				if race.stage_index < 4 and race.distance > race.track.length-220:
 					var choose_right: bool = strategy.ends_with("right") or (strategy.ends_with("mixed") and race.stage_index % 2 == 1)
 					desired_lane = 4.0 if choose_right else -4.0
-				var allowed := 80.0
+				var allowed := 96.0
 				for look in [0.0,25.0,55.0,90.0,135.0]:
 					var k: float = absf(race.track.curvature(race.distance+look))
 					var corner_speed := sqrt(24.0/maxf(k,0.0001))
@@ -50,14 +51,15 @@ func run() -> void:
 				var desired: float = clampf((desired_lane-race.lane)*2.1-race.lane_velocity*0.45,-8,8)
 				axis = clampf((desired-outward)/((10.8 if race.drifting else 8.0)*authority*maxf(0.2,minf(race.speed/20,1))),-1,1)
 				if slide and not race.drifting and absf(axis) < 0.25: axis = -signf(curve)*0.35
-			race.step(1.0/60,axis,slide,true,brake)
+				nitro_input = not slide and not brake and allowed > 90 and race.nitro > (2 if race.nitro_active else 20)
+			race.step(1.0/60,axis,slide,true,brake,nitro_input)
 			peak_speed = maxf(peak_speed,race.speed)
 			if race.drifting: drift_seconds += 1.0/60
 			if race.checkpoints != checkpoint:
 				checkpoint = race.checkpoints
 				await process_frame
 			if race.state in ["finished","failed"]: break
-		report[strategy] = {"state":race.state,"stage":race.stage_index+1,"seconds":snappedf(race.elapsed,0.01),"remaining":snappedf(race.time_left,0.01),"distance_m":snappedf(race.journey_distance,1),"peak_kmh":snappedf(peak_speed*3.6,0.1),"wall_hits":race.wall_hits,"traffic_hits":race.traffic_hits,"drift_seconds":snappedf(drift_seconds,0.1),"route":race.track.history.duplicate()}
+		report[strategy] = {"state":race.state,"stage":race.stage_index+1,"seconds":snappedf(race.elapsed,0.01),"remaining":snappedf(race.time_left,0.01),"distance_m":snappedf(race.journey_distance,1),"peak_kmh":snappedf(peak_speed*3.6,0.1),"wall_hits":race.wall_hits,"traffic_hits":race.traffic_hits,"drift_seconds":snappedf(drift_seconds,0.1),"nitro_seconds":snappedf(race.nitro_seconds,0.1),"route":race.track.history.duplicate()}
 		print(strategy," ",JSON.stringify(report[strategy]))
 		await process_frame
 	if report.gas_only.state != "failed":

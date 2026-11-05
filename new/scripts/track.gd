@@ -86,8 +86,17 @@ func traffic_point(distance: float, lane: float, side: int = 0) -> Vector3:
 	if distance > active.length and previews.size() == 2: return previews[clampi(side,0,1)].point(distance-active.length,lane)
 	return point(distance,lane)
 
+func half_width(distance: float) -> float:
+	if distance < 0 and is_instance_valid(previous): return previous.half_width(previous.length+distance)
+	return active.half_width(distance)
+
+func lane_centers(distance: float) -> Array[float]:
+	var w := half_width(distance)
+	return [-w*0.72,-w*0.24,w*0.24,w*0.72]
+
 func lane_limits(distance: float) -> Vector2:
-	var limits := Vector2(-9.2,9.2)
+	var edge := half_width(distance)+0.2
+	var limits := Vector2(-edge,edge)
 	var f := (point(distance+2)-point(distance)).normalized()
 	var right := Vector3(-f.z,0,f.x).normalized()
 	if distance > active.length and previews.size() == 2:

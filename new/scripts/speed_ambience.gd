@@ -1,46 +1,38 @@
 extends Node3D
+# Celebration bursts only. Driving has no continuous pollen, petals or dust emitter.
 var petals := CPUParticles3D.new()
-var material := ShaderMaterial.new()
-var last_theme := ""
+var last_checkpoint := 0
+var last_state := "ready"
 func _ready() -> void:
-	petals.amount = 36
-	petals.lifetime = 1.1
+	petals.amount = 24
+	petals.lifetime = 0.7
+	petals.one_shot = true
+	petals.explosiveness = 1
 	petals.emitting = false
 	petals.local_coords = false
 	petals.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
-	petals.emission_box_extents = Vector3(10, 3, 18)
-	petals.direction = Vector3(0, -0.2, 1)
-	petals.spread = 25
+	petals.emission_box_extents = Vector3(6,1,3)
+	petals.direction = Vector3.UP
+	petals.spread = 80
 	petals.initial_velocity_min = 1
 	petals.initial_velocity_max = 4
-	petals.gravity = Vector3(-0.4, -0.4, 0.5)
-	petals.scale_amount_min = 0.6
-	petals.scale_amount_max = 1.8
-	petals.draw_order = CPUParticles3D.DRAW_ORDER_VIEW_DEPTH
+	petals.gravity = Vector3(0,-5,0)
 	var mesh := QuadMesh.new()
-	mesh.size = Vector2(0.18, 0.18)
+	mesh.size = Vector2(0.12,0.18)
 	petals.mesh = mesh
+	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/sakura_petal.gdshader")
+	material.set_shader_parameter("confetti",1.0)
 	petals.material_override = material
-	var fade := Gradient.new()
-	fade.set_color(0, Color(1, 1, 1, 0))
-	fade.set_color(1, Color(1, 1, 1, 0))
-	fade.add_point(0.15, Color(1, 1, 1, 0.9))
-	fade.add_point(0.7, Color(1, 1, 1, 0.9))
-	petals.color_ramp = fade
 	add_child(petals)
 func update(race: Node3D) -> void:
-	var theme: String = race.track.active.scenery.theme
-	if theme != last_theme:
-		last_theme = theme
-		var start := Color("ffe9c8") if theme in ["desert","pyramid","ruins"] else Color("f4f4ff")
-		var end := Color("c7a77e") if theme in ["desert","pyramid","ruins"] else Color("d4ebed")
-		if theme == "jeju": end = Color("ffb5ce")
-		material.set_shader_parameter("petal_start",start)
-		material.set_shader_parameter("petal_end",end)
-		material.set_shader_parameter("confetti",1.0 if theme == "amusement" else 0.0)
-		petals.amount = 20 if theme in ["city","seoul"] else 36
-	petals.emitting = race.state == "racing" and not race.motion_reduced
-	petals.visible = not race.motion_reduced
-	petals.position = race.track.point(race.distance + 18) + Vector3.UP * 3
-	petals.rotation.y = race.player.rotation.y
+	var celebrate: bool = race.checkpoints > last_checkpoint or (race.state == "finished" and last_state != "finished")
+	last_checkpoint = race.checkpoints
+	last_state = race.state
+	petals.visible = not race.motion_reduced and race.state in ["racing","finished"]
+	if celebrate and petals.visible:
+		petals.position = race.track.point(race.distance+12)+Vector3.UP*4
+		petals.restart()
+		petals.emitting = true
+	elif race.state not in ["racing","finished"] or race.motion_reduced:
+		petals.emitting = false

@@ -6,6 +6,7 @@ var wheel_radius := 0.43
 var road_speed := 0.0
 var traffic := false
 var material_cache := {}
+var headlight: SpotLight3D
 var traffic_wheels: MultiMeshInstance3D
 var nitro_flames: Array[MeshInstance3D] = []
 var wheels: Array[MeshInstance3D] = []

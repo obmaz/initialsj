@@ -1,8 +1,8 @@
 extends RefCounted
 const STAGES := 5
 const FORK_COMMIT := 80.0
-const CHECKPOINT_BONUS := 22.0
-const START_TIME := 38.0
+const CHECKPOINT_BONUS := 60.0
+const START_TIME := 70.0
 const THEMES := [
 	["hawaii"],
 	["desert", "city"],
@@ -20,3 +20,21 @@ static func next_titles(stage: int, node: int) -> Array[String]:
 	if stage >= STAGES - 1:
 		return ["GOAL", "GOAL"]
 	return [title(stage + 1,node), title(stage + 1,node + 1)]
+
+# The node is the number of right forks taken: each right choice adds lasting risk.
+static func section_length(stage: int, node: int) -> float:
+	return 3000.0 + stage * 180.0 + node * 160.0
+static func checkpoint_bonus(node: int) -> float:
+	return CHECKPOINT_BONUS - node * 2.0
+static func canopy_span(stage: int, node: int) -> Vector2:
+	if stage == 2 and node == 1: return Vector2(760,856)
+	if stage == 4 and node == 1: return Vector2(1180,1264)
+	return Vector2.ZERO
+static func tunnel_span(stage: int, node: int) -> Vector2:
+	match theme(stage,node):
+		"city": return Vector2(1420,2370)
+		"seoul": return Vector2(1500,2600)
+		"ruins": return Vector2(1750,2210)
+		"jeju": return Vector2(1850,2250)
+		"pyramid": return Vector2(1980,2240)
+	return Vector2.ZERO
