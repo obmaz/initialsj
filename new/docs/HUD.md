@@ -1,3 +1,5 @@
+> Historical circuit/Fuji prototype documentation. The current open-road tour is documented in [TOUR.md](TOUR.md); current measurements are in `tour-metrics.json`.
+
 # 레퍼런스 기반 레이싱 HUD
 
 `hud-comparison.html`에서 첨부 이미지와 실제 Godot 렌더링을 나란히 확인할 수 있습니다. `preview_hud.gd`가 설정하는 수치는 비교용이며, 실제 게임 데이터에 영향을 주지 않습니다.

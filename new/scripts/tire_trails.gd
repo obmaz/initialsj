@@ -25,7 +25,7 @@ func reset() -> void:
 	previous.clear()
 	cursor = 0
 	for i in range(CAPACITY):
-		instances.set_instance_transform(i, Transform3D(Basis.IDENTITY.scaled(Vector3.ZERO), Vector3.ZERO))
+		instances.set_instance_transform(i, Transform3D(Basis.IDENTITY.scaled_local(Vector3.ZERO), Vector3.ZERO))
 		instances.set_instance_custom_data(i, Color(-1000, 0, 0, 0))
 
 func update(race: Node3D) -> void:
@@ -47,7 +47,7 @@ func update(race: Node3D) -> void:
 	if traveled < 7:
 		for i in range(2):
 			var direction := points[i] - previous[i]
-			var basis := Basis.looking_at(direction.normalized(), Vector3.UP).scaled(Vector3(1, 1, direction.length()))
+			var basis := Basis.looking_at(direction.normalized(), Vector3.UP).scaled_local(Vector3(1, 1, direction.length()))
 			instances.set_instance_transform(cursor, Transform3D(basis, (points[i] + previous[i]) / 2))
 			instances.set_instance_custom_data(cursor, Color(race.elapsed, 0, 0, 1))
 			cursor = (cursor + 1) % CAPACITY

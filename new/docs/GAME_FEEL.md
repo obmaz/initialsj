@@ -1,3 +1,5 @@
+> Historical circuit/Fuji prototype documentation. The current open-road tour is documented in [TOUR.md](TOUR.md); current measurements are in `tour-metrics.json`.
+
 # Game feel review — iteration 1–7
 
 ## Measured in deterministic headless simulation

@@ -1,90 +1,121 @@
 extends Node3D
-
 const Track = preload("res://scripts/track.gd")
 const Car = preload("res://scripts/car.gd")
 const HUD = preload("res://scripts/hud.gd")
-const LAPS := 3
+const Library = preload("res://scripts/route_library.gd")
+const Contact = preload("res://scripts/car_contact.gd")
 const Brain = preload("res://scripts/rival_brain.gd")
 var brain := Brain.new()
-var lane_velocity := 0.0
-var mini_turbo := 0.0
-var drift_charge := 0.0
-var draft_charge := 0.0
-var drafting := false
-var near_misses := 0
-var near_miss_flash := 0.0
-var overtake_flash := 0.0
-var overtakes := 0
-var lap_flash := 0.0
-var impact := 0.0
-var boost_kick := 0.0
-var motion_reduced := false
-var sound_enabled := true
-var launch_flash := 0.0
-var camera_time := 0.0
-var camera_offset := Vector3.ZERO
 var track: Track
 var player: Car
 var camera: Camera3D
+var hud: HUD
 var speed_effect: ColorRect
 var tire_trails: Node3D
 var speed_ambience: Node3D
-var hud: HUD
+var impacts: Node3D
 var rivals: Array[Dictionary] = []
-var distance := 0.0
+var state := "ready"
+var distance := 80.0
+var completed_distance := 0.0
 var lane := -3.2
 var speed := 0.0
-var nitro := 100.0
-var score := 0.0
+var lane_velocity := 0.0
+var steer := 0.0
+var slip_angle := 0.0
 var elapsed := 0.0
 var countdown := 3.0
-var state := "ready"
+var time_left := Library.START_TIME
+var score := 0.0
+var throttling := false
+var braking := false
 var drifting := false
 var boosting := false
-var steer := 0.0
+var drift_latched := false
+var drift_sign := 0.0
+var drift_straight := 0.0
+var drift_charge := 0.0
+var drifts_completed := 0
+var brake_armed := 0.0
+var previous_brake := false
+var draft_charge := 0.0
+var drafting := false
+var recommended_speed := 80.0
+var corner_warning := 0.0
+var near_misses := 0
+var near_miss_flash := 0.0
+var overtakes := 0
+var overtake_flash := 0.0
+var checkpoint_flash := 0.0
+var checkpoints := 0
+var wall_hits := 0
+var traffic_hits := 0
+var impact := 0.0
+var boost_kick := 0.0
 var bump_cooldown := 0.0
+var launch_flash := 0.0
+var motion_reduced := false
+var sound_enabled := true
+var camera_time := 0.0
+var camera_offset := Vector3.ZERO
 var best_time := 0.0
 var save_records := true
+var stage_index: int:
+	get: return track.active.stage
+var route_node: int:
+	get: return track.active.route_node
+var journey_distance: float:
+	get: return completed_distance + distance - 80
 
 func _ready() -> void:
 	track = Track.new()
 	add_child(track)
 	var world := WorldEnvironment.new()
 	var env := Environment.new()
+	var sky := Sky.new()
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color("438cce")
+	sky_material.sky_horizon_color = Color("cce5e9")
+	sky_material.ground_bottom_color = Color("688370")
+	sky_material.ground_horizon_color = Color("c3d9db")
+	sky.sky_material = sky_material
+	sky.radiance_size = Sky.RADIANCE_SIZE_128
 	env.background_mode = Environment.BG_SKY
-	env.sky = track.scenery.make_sky()
+	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("e4eceb")
-	env.ambient_light_energy = 0.40
+	env.ambient_light_color = Color("d9e6ea")
+	env.ambient_light_energy = 0.35
 	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	env.fog_enabled = true
-	env.fog_light_color = Color("a3c9d7")
-	env.fog_density = 0.0003
-	env.fog_sky_affect = 0.0
+	env.fog_light_color = Color("b3d3df")
+	env.fog_density = 0.00065
+	env.fog_sky_affect = 0
 	world.environment = env
 	add_child(world)
 	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-42, -32, 0)
-	sun.light_color = Color("fff1d5")
-	sun.light_energy = 0.85
+	sun.rotation_degrees = Vector3(-42,-32,0)
+	sun.light_color = Color("fff0d4")
+	sun.light_energy = 0.95
 	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = 160
+	sun.directional_shadow_max_distance = 220
 	add_child(sun)
 	tire_trails = preload("res://scripts/tire_trails.gd").new()
 	add_child(tire_trails)
 	speed_ambience = preload("res://scripts/speed_ambience.gd").new()
 	add_child(speed_ambience)
+	impacts = preload("res://scripts/impact_effect.gd").new()
+	add_child(impacts)
 	player = Car.new()
 	add_child(player)
-	var colors := ["ffc94d", "438aef", "a58aeb", "eee6db", "44bea9", "ee843f", "6c92a1"]
-	for i in range(7):
+	var colors := ["e7c456","91aabe","aaa3b7","e8e5dc","4c9c97","ad6f55","62798c"]
+	for i in range(12):
 		var car := Car.new()
-		car.paint = Color(colors[i])
+		car.paint = Color(colors[i % colors.size()])
 		add_child(car)
-		rivals.append({"car": car, "distance": 10.0 + i * 9.0, "lane": 3.0 if i % 2 == 0 else -3.0, "pace": 47.0 + i * 0.85})
+		rivals.append({"car":car})
 	brain.initialize(rivals)
 	camera = Camera3D.new()
-	camera.far = 2400
+	camera.far = 1800
 	camera.fov = 68
 	add_child(camera)
 	camera.current = true
@@ -94,9 +125,9 @@ func _ready() -> void:
 	speed_effect.visible = false
 	speed_effect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	speed_effect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var effect_material := ShaderMaterial.new()
-	effect_material.shader = preload("res://shaders/speed_blur.gdshader")
-	speed_effect.material = effect_material
+	var effect := ShaderMaterial.new()
+	effect.shader = preload("res://shaders/speed_blur.gdshader")
+	speed_effect.material = effect
 	canvas.add_child(speed_effect)
 	hud = HUD.new()
 	hud.race = self
@@ -107,69 +138,69 @@ func _ready() -> void:
 		add_child(audio)
 		if OS.has_feature("web"):
 			motion_reduced = bool(JavaScriptBridge.eval("window.matchMedia('(prefers-reduced-motion: reduce)').matches"))
-	var save := ConfigFile.new()
-	if save.load("user://records.cfg") == OK:
-		best_time = float(save.get_value("race", "best_time", 0.0))
+	var saved := ConfigFile.new()
+	if saved.load("user://records.cfg") == OK: best_time = float(saved.get_value("tour","best_time",0))
 	place_cars()
-	update_camera(1.0)
+	update_camera(1)
 
 func restart() -> void:
-	distance = 0
+	if state != "ready": track.reset()
+	distance = 80
+	completed_distance = 0
 	lane = -3.2
 	speed = 0
-	nitro = 100
-	score = 0
+	lane_velocity = 0
+	steer = 0
+	slip_angle = 0
 	elapsed = 0
 	countdown = 3
-	launch_flash = 0
-	bump_cooldown = 0
-	state = "countdown"
-	lane_velocity = 0
-	mini_turbo = 0
-	drift_charge = 0
-	draft_charge = 0
-	impact = 0
-	boost_kick = 0
-	steer = 0
-	camera_offset = Vector3.ZERO
+	time_left = Library.START_TIME
+	score = 0
+	throttling = false
+	braking = false
 	drifting = false
 	boosting = false
+	drift_latched = false
+	drift_sign = 0
+	drift_straight = 0
+	drift_charge = 0
+	drifts_completed = 0
+	brake_armed = 0
+	previous_brake = false
+	draft_charge = 0
 	drafting = false
 	near_misses = 0
 	near_miss_flash = 0
-	overtake_flash = 0
 	overtakes = 0
-	lap_flash = 0
-	tire_trails.reset()
+	overtake_flash = 0
+	checkpoint_flash = 0
+	checkpoints = 0
+	wall_hits = 0
+	traffic_hits = 0
+	impact = 0
+	boost_kick = 0
+	bump_cooldown = 0
+	launch_flash = 0
+	camera_offset = Vector3.ZERO
+	state = "countdown"
 	brain.initialize(rivals)
-	for i in range(rivals.size()):
-		rivals[i].distance = 10.0 + i * 9.0
+	tire_trails.reset()
 	place_cars()
 	update_camera(1)
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION:
-		return
+	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION: return
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_ENTER and state in ["ready", "finished"]:
-			restart()
-		elif event.keycode == KEY_V:
-			sound_enabled = not sound_enabled
-		elif event.keycode == KEY_M:
-			motion_reduced = not motion_reduced
-		elif event.keycode == KEY_R:
-			restart()
-		elif event.keycode in [KEY_ESCAPE, KEY_P]:
-			if state == "racing":
-				state = "paused"
-			elif state == "paused":
-				state = "racing"
-	if event is InputEventScreenTouch or event is InputEventMouseButton:
-		hud.handle_pointer(event)
-	if event is InputEventScreenDrag:
-		hud.move_pointer(event.index, event.position)
-	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		hud.move_pointer(-1, event.position)
+		if event.keycode == KEY_ENTER and state in ["ready","finished","failed"]: restart()
+		elif event.keycode == KEY_V: sound_enabled = not sound_enabled
+		elif event.keycode == KEY_M: motion_reduced = not motion_reduced
+		elif event.keycode == KEY_R: restart()
+		elif event.keycode in [KEY_ESCAPE,KEY_P]:
+			if state == "racing": state = "paused"
+			elif state == "paused": state = "racing"
+	if event is InputEventScreenTouch or event is InputEventMouseButton: hud.handle_pointer(event)
+	if event is InputEventScreenDrag: hud.move_pointer(event.index,event.position)
+	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT): hud.move_pointer(-1,event.position)
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and state == "racing":
@@ -184,147 +215,252 @@ func _physics_process(delta: float) -> void:
 			launch_flash = 0.7
 	if state == "racing":
 		var axis := float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
-		axis = clampf(axis + hud.touch_axis(), -1, 1)
-		step(delta, axis, Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift"), Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("boost"), Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake"))
-	place_cars()
+		axis = clampf(axis + hud.touch_axis(),-1,1)
+		var gas := Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP) or Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("gas")
+		var brake := Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake")
+		step(delta,axis,Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift"),gas,brake)
+	place_cars(delta)
 	tire_trails.update(self)
 	speed_ambience.update(self)
 	speed_effect.visible = state == "racing" and not motion_reduced and speed > 35
-	speed_effect.material.set_shader_parameter("strength", clampf((speed - 35) / 53, 0, 1))
+	speed_effect.material.set_shader_parameter("strength",clampf((speed-35)/53,0,1))
 	update_camera(delta)
 	player.road_speed = speed if state == "racing" else 0.0
-	player.animate(steer, drifting and state == "racing", (boosting or mini_turbo > 0) and state == "racing", delta)
-	for rival in rivals:
-		rival.car.road_speed = rival.speed if state == "racing" else 0.0
-		rival.car.animate(clampf((float(rival.target_lane) - float(rival.lane)) / 2, -1, 1), false, rival.boosting and state == "racing", delta)
+	player.animate(steer,drifting and state == "racing",false,delta,slip_angle,braking and state == "racing",impact)
+	for r in rivals:
+		r.car.road_speed = r.speed if state == "racing" else 0.0
+		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),false,false,delta,r.visual_yaw)
 	hud.queue_redraw()
 
-func step(delta: float, axis: float, drift_input: bool, boost_input: bool, brake: bool) -> void:
-	var old_rank := rank_position()
-	var old_lap := int(distance / track.length)
-	overtake_flash = maxf(0, overtake_flash - delta)
-	lap_flash = maxf(0, lap_flash - delta)
+func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool) -> void:
 	elapsed += delta
-	launch_flash = maxf(0, launch_flash - delta)
-	near_miss_flash = maxf(0, near_miss_flash - delta)
-	var old_gaps: Array[float] = []
-	for rival in rivals:
-		old_gaps.append(wrapf(float(rival.distance) - distance, -track.length / 2, track.length / 2))
-	impact = maxf(0, impact - delta * 2.8)
-	boost_kick = maxf(0, boost_kick - delta * 2)
-	mini_turbo = maxf(0, mini_turbo - delta)
-	steer = move_toward(steer, axis, delta * 7)
+	time_left = maxf(0,time_left-delta)
+	for field in ["near_miss_flash","overtake_flash","checkpoint_flash","launch_flash"]:
+		set(field,maxf(0,float(get(field))-delta))
+	impact = maxf(0,impact-delta*3.5)
+	boost_kick = maxf(0,boost_kick-delta*2)
+	bump_cooldown = maxf(0,bump_cooldown-delta)
+	brake_armed = maxf(0,brake_armed-delta)
+	throttling = gas and not brake
+	braking = brake
+	steer = move_toward(steer,axis,delta*6.5)
+	if brake and not previous_brake and speed > 25: brake_armed = 0.45
 	var was_drifting := drifting
-	var was_boosting := boosting
-	drifting = drift_input and absf(steer) > 0.1 and speed > 22
-	boosting = boost_input and nitro > (0 if was_boosting else 8) and not brake
-	if boosting and not was_boosting:
-		boost_kick = 1
-	if drifting and absf(lane) < 7.2:
-		drift_charge = minf(2.5, drift_charge + delta)
+	if not brake and speed > 25 and absf(steer) > 0.2 and (drift_input or (previous_brake and brake_armed > 0 and gas)):
+		if not drift_latched: drift_sign = signf(steer)
+		drift_latched = true
+	if brake or speed < 22: drift_latched = false
+	var curve := track.curvature(distance)
+	if drift_latched and absf(curve) < 0.0008 and absf(steer) < 0.14:
+		drift_straight += delta
+		if drift_straight > 0.4: drift_latched = false
+	else: drift_straight = 0
+	drifting = drift_latched
+	previous_brake = brake
+	if drifting: drift_charge = minf(3,drift_charge+delta)
 	elif was_drifting:
-		if drift_charge > 0.55 and not brake and absf(lane) < 7.4:
-			mini_turbo = minf(1.35, drift_charge * 0.5)
-			speed = minf(88, speed + 3)
-			boost_kick = 0.7
+		if drift_charge > 0.55 and absf(lane) < 8:
+			drifts_completed += 1
 		drift_charge = 0
+	var desired_yaw := (-drift_sign*0.30-steer*0.30) if drifting else -steer*0.07
+	slip_angle = lerp_angle(slip_angle,desired_yaw,1-exp(-delta*6))
+	var old_gaps: Array[float] = []
 	drafting = false
-	for rival in rivals:
-		var gap: float = wrapf(float(rival.distance) - distance, -track.length / 2, track.length / 2)
-		if gap > 6 and gap < 32 and absf(float(rival.lane) - lane) < 1.8:
-			drafting = true
-	draft_charge = move_toward(draft_charge, 1.0 if drafting else 0.0, delta * (0.65 if drafting else 1.3))
-	var target := 88.0 if boosting else (77.0 if mini_turbo > 0 else 68.0 + draft_charge * 4)
-	if brake:
-		target = 18
-	elif drifting:
-		target = 61 if not boosting else 76
-	speed = move_toward(speed, target, (34.0 if brake else (26.0 if boosting else 20.0)) * delta)
-	var bend_rate := wrapf(track.heading(distance + 16) - track.heading(distance), -PI, PI) / 16
-	var target_lateral := steer * (10.5 if drifting else 7.6) * minf(speed / 20, 1) + bend_rate * speed * speed * 0.04
-	lane_velocity = move_toward(lane_velocity, target_lateral, delta * (17 if drifting else 33))
-	lane += lane_velocity * delta
-	if absf(lane) > 7.4:
-		speed = move_toward(speed, 24, delta * 65)
-		if absf(lane) > 7.75 and bump_cooldown <= 0:
-			impact = 0.65
-			bump_cooldown = 0.4
-			lane_velocity *= -0.25
-	lane = clampf(lane, -7.8, 7.8)
-	if boosting:
-		nitro = maxf(0, nitro - delta * 24)
-	else:
-		nitro = minf(100, nitro + delta * (13 if drifting else 3 + draft_charge * 3))
-	if drifting and absf(lane) < 7.2:
-		score += delta * speed * (2.5 + drift_charge)
-	distance += speed * delta
-	bump_cooldown = maxf(0, bump_cooldown - delta)
-	brain.tick(self, delta)
+	for r in rivals:
+		var gap: float = r.distance-distance
+		old_gaps.append(gap)
+		if r.detached == null and gap > 8 and gap < 75 and absf(r.lane-lane) < 2.1: drafting = true
+	draft_charge = move_toward(draft_charge,1.0 if drafting else 0.0,delta*(1.0 if drafting else 1.2))
+	var was_boosting := boosting
+	boosting = draft_charge > 0.65 and throttling and not drifting
+	if boosting and not was_boosting: boost_kick = 0.35
+	if brake: speed = move_toward(speed,0,delta*44)
+	elif not gas: speed = move_toward(speed,0,delta*5)
+	elif drifting: speed = maxf(0,speed-delta*0.35)
+	else: speed = move_toward(speed,80+draft_charge*8,delta*22)
+	var grip := 24.0 if drifting else 11.5
+	var demand := absf(curve) * speed * speed
+	var excess := maxf(0,demand-grip)
+	var authority := clampf(1-excess/(grip*2),0.38,1)
+	var outward := signf(curve) * (demand * 0.055 + excess * 1.6)
+	var lateral := steer * (10.8 if drifting else 8.0) * minf(speed/20,1) * authority + outward
+	lane_velocity = move_toward(lane_velocity,lateral,delta*(17 if drifting else 34))
+	lane += lane_velocity*delta
+	var limits := track.lane_limits(distance)
+	var radius := Contact.HALF_WIDTH * absf(cos(slip_angle)) + Contact.HALF_LENGTH * absf(sin(slip_angle))
+	limits += Vector2(radius-Contact.HALF_WIDTH,-radius+Contact.HALF_WIDTH)
+	var margin := minf(lane-limits.x,limits.y-lane)
+	if margin < 1.0: speed = move_toward(speed,minf(speed,38),delta*32)
+	if lane < limits.x or lane > limits.y:
+		var side := -1.0 if lane < limits.x else 1.0
+		lane = clampf(lane,limits.x,limits.y)
+		lane_velocity *= -0.28
+		if bump_cooldown <= 0:
+			wall_hits += 1
+			speed *= 0.72
+			register_impact(0.8,Vector2(-side,0))
+	distance += speed*delta
+	brain.tick(self,delta)
 	for i in range(rivals.size()):
-		var rival: Dictionary = rivals[i]
-		var gap: float = wrapf(float(rival.distance) - distance, -track.length / 2, track.length / 2)
-		var lateral_gap: float = absf(float(rival.lane) - lane)
-		if old_gaps[i] > 0 and old_gaps[i] < 8 and gap <= 0 and lateral_gap > 1.95 and lateral_gap < 3.6:
-			near_misses += 1
-			near_miss_flash = 1.1
-			nitro = minf(100, nitro + 7)
+		var r: Dictionary = rivals[i]
+		if r.detached != null: continue
+		var gap: float = r.distance-distance
+		if absf(gap) > 8: continue
+		var forward := (track.point(distance+2)-track.point(distance)).normalized()
+		var right := Vector3(-forward.z,0,forward.x).normalized()
+		var other_world := track.traffic_point(r.distance,r.lane,r.route_side)
+		var relative_world := other_world-track.point(distance,lane)
+		var lateral_gap := relative_world.dot(right)
+		var other_forward := track.traffic_point(r.distance+2,r.lane,r.route_side)-other_world
+		var other_yaw := wrapf(atan2(-other_forward.x,-other_forward.z)-track.heading(distance),-PI,PI)
+		other_yaw += r.visual_yaw
+		var contact := Contact.overlap(relative_world.dot(forward),lateral_gap,slip_angle,other_yaw)
+		if old_gaps[i] > 0 and gap <= 0:
+			overtakes += 1
+			overtake_flash = 1
 			score += 100
-	for rival in rivals:
-		var separation := wrapf(float(rival.distance) - distance, -track.length / 2, track.length / 2)
-		if absf(separation) < 4.1 and absf(float(rival.lane) - lane) < 1.9 and bump_cooldown <= 0:
-			speed *= 0.74
-			rival.speed *= 0.88
-			lane_velocity += -3.0 if lane < float(rival.lane) else 3.0
-			impact = 1
-			bump_cooldown = 0.65
-	var new_rank := rank_position()
-	if new_rank < old_rank:
-		overtakes += old_rank - new_rank
-		overtake_flash = 1.0
-	if int(distance / track.length) > old_lap and distance < track.length * LAPS:
-		lap_flash = 1.8
-	if distance >= track.length * LAPS:
-		state = "finished"
+			if contact.is_empty() and absf(lateral_gap) < 3.8:
+				near_misses += 1
+				near_miss_flash = 1.1
+				score += 150
+		if not contact.is_empty(): resolve_contact(r,contact)
+	if drifting and margin > 1 and impact < 0.1:
+		score += delta * speed * (2.0+drift_charge)
+	recommended_speed = 80
+	for look in [15.0,45.0,85.0]:
+		var k: float = absf(track.curvature(distance+look))
+		recommended_speed = minf(recommended_speed,sqrt(15.0/maxf(k,0.0001)))
+	corner_warning = move_toward(corner_warning,clampf((speed-recommended_speed-4)/15,0,1),delta*3)
+	var reconsidered := track.reconsider(distance,lane)
+	if not reconsidered.is_empty():
+		var old_section = track.sibling
+		distance = reconsidered.distance
+		lane = reconsidered.lane
+		for r in rivals:
+			if r.detached == track.active: r.detached = null
+			elif r.detached == null and r.distance > 0: r.detached = old_section
+	track.maintain(distance)
+	if stage_index == Library.STAGES-1 and distance >= track.length:
+		finish()
+	elif stage_index < Library.STAGES-1 and distance >= track.length+Library.FORK_COMMIT:
+		advance_route()
+	if time_left <= 0 and state != "finished":
+		state = "failed"
+		drifting = false
 		boosting = false
-		if best_time == 0 or elapsed < best_time:
-			best_time = elapsed
-			var save := ConfigFile.new()
-			save.set_value("race", "best_time", best_time)
-			if save_records:
-				save.save("user://records.cfg")
 
-func place_cars() -> void:
-	player.position = track.point(distance, lane) + Vector3.UP * 0.12
-	player.rotation.y = track.heading(distance)
-	for rival in rivals:
-		var car: Node3D = rival.car
-		car.position = track.point(float(rival.distance), float(rival.lane)) + Vector3.UP * 0.12
-		car.rotation.y = track.heading(float(rival.distance))
+func advance_route() -> void:
+	var choice := 0 if lane < 0 else 1
+	var result := track.advance(choice,distance,lane)
+	completed_distance += result.old_length
+	distance = result.distance
+	lane = result.lane
+	for r in rivals:
+		if r.detached != null: continue
+		r.distance -= result.old_length
+		if r.distance > 20 and r.route_side != choice: r.detached = result.sibling
+	checkpoints += 1
+	checkpoint_flash = 2
+	time_left += Library.CHECKPOINT_BONUS
+
+func finish() -> void:
+	state = "finished"
+	drifting = false
+	boosting = false
+	score += int(time_left)*100
+	if best_time == 0 or elapsed < best_time:
+		best_time = elapsed
+		if save_records:
+			var saved := ConfigFile.new()
+			saved.load("user://records.cfg")
+			saved.set_value("tour","best_time",best_time)
+			saved.save("user://records.cfg")
+
+func contact_with(r: Dictionary) -> Dictionary:
+	var forward := (track.point(distance+2)-track.point(distance)).normalized()
+	var right := Vector3(-forward.z,0,forward.x).normalized()
+	var other := track.traffic_point(r.distance,r.lane,r.route_side)
+	var delta := other-track.point(distance,lane)
+	var direction := track.traffic_point(r.distance+2,r.lane,r.route_side)-other
+	var yaw := wrapf(atan2(-direction.x,-direction.z)-track.heading(distance),-PI,PI)+float(r.visual_yaw)
+	return Contact.overlap(delta.dot(forward),delta.dot(right),slip_angle,yaw)
+
+func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
+	var normal: Vector2 = contact.normal
+	for iteration in range(5):
+		var depth: float = contact.depth + 0.02
+		var n: Vector2 = contact.normal
+		var old_lane := lane
+		var radius := Contact.HALF_WIDTH*absf(cos(slip_angle))+Contact.HALF_LENGTH*absf(sin(slip_angle))
+		var limits := track.lane_limits(distance)+Vector2(radius-Contact.HALF_WIDTH,-radius+Contact.HALF_WIDTH)
+		lane = clampf(lane-n.x*depth*0.6,limits.x,limits.y)
+		distance += n.y*depth*0.6
+		r.lane = clampf(r.lane+n.x*depth+(lane-old_lane),-9.0,9.0)
+		r.distance -= n.y*depth*0.4
+		contact = contact_with(r)
+		if contact.is_empty(): break
+	if bump_cooldown > 0: return
+	var relative := speed-float(r.speed)
+	if absf(normal.x) > 0.65:
+		speed *= 0.87
+		r.speed *= 0.91
+	else:
+		var impulse := absf(relative) * 0.6
+		if normal.y < 0:
+			speed = maxf(0,speed-impulse-4)
+			r.speed = minf(70,r.speed+impulse*0.35)
+		else:
+			speed = minf(88,speed+minf(5,impulse*0.3))
+			r.speed = maxf(0,r.speed-impulse)
+	lane_velocity -= normal.x*(3+absf(relative)*0.12)
+	traffic_hits += 1
+	register_impact(clampf(absf(relative)/35+absf(lane_velocity)/15,0.3,1),-normal)
+
+func register_impact(strength: float, normal: Vector2) -> void:
+	impact = maxf(impact,strength)
+	drift_charge = 0
+	drift_latched = false
+	bump_cooldown = 0.45
+	if DisplayServer.get_name() != "headless":
+		var f := (track.point(distance+2)-track.point(distance)).normalized()
+		var right := Vector3(-f.z,0,f.x)
+		impacts.burst(track.point(distance,lane) + Vector3.UP*0.65 - right*normal.x*1.25 + f*normal.y*2.0, right*normal.x-f*normal.y,motion_reduced)
+
+func place_cars(delta: float = 1.0) -> void:
+	set_car_frame(player,track.point(distance,lane),track.point(distance+2,lane)-track.point(distance-2,lane),delta)
+	player.body.rotation.y = slip_angle
+	for r in rivals:
+		var p: Vector3
+		var f: Vector3
+		if r.detached != null and is_instance_valid(r.detached):
+			p = r.detached.point(r.distance,r.lane)
+			f = r.detached.point(r.distance+2,r.lane)-r.detached.point(r.distance-2,r.lane)
+		else:
+			p = track.traffic_point(r.distance,r.lane,r.route_side)
+			f = track.traffic_point(r.distance+2,r.lane,r.route_side)-track.traffic_point(r.distance-2,r.lane,r.route_side)
+		set_car_frame(r.car,p,f,delta)
+		r.car.body.rotation.y = r.visual_yaw
+		r.car.visible = p.distance_to(player.position) < 460
+
+func set_car_frame(car: Node3D, p: Vector3, forward: Vector3, delta: float) -> void:
+	car.position = p + Vector3.UP*0.12
+	var f := forward.normalized()
+	car.rotation.y = lerp_angle(car.rotation.y,atan2(-f.x,-f.z),1-exp(-delta*13))
+	car.rotation.x = lerp_angle(car.rotation.x,asin(clampf(f.y,-1,1)),1-exp(-delta*10))
 
 func update_camera(delta: float) -> void:
-	var forward := (track.point(distance + 3) - track.point(distance)).normalized()
-	var right := Vector3(-forward.z, 0, forward.x)
-	var pace := clampf(speed / 88, 0, 1)
+	var forward := (track.point(distance+3)-track.point(distance)).normalized()
+	var right := Vector3(-forward.z,0,forward.x)
+	var pace := clampf(speed/88,0,1)
 	var active := state == "racing"
-	camera_time += delta if active else 0.0
-	var turbo := boosting or mini_turbo > 0
-	var shake := (0.012 * pace * pace + impact * 0.14) if active and not motion_reduced else 0.0
-	var vibration := right * sin(camera_time * 53) * shake + Vector3.UP * cos(camera_time * 67) * shake * 0.55
-	var desired_offset := -forward * (5.3 + pace * 0.25 + (boost_kick * 0.55 if not motion_reduced else 0.0)) + Vector3.UP * (2.75 - pace * 0.30) + vibration
-	if drifting and not motion_reduced:
-		desired_offset += right * steer * 0.9
-	# Smooth the relative chase offset, not world position: speed must not add 10 m of camera lag.
-	camera_offset = camera_offset.lerp(desired_offset, 1.0 - exp(-delta * 9.0))
-	camera.position = player.position + camera_offset
-	camera.look_at(player.position + forward * (2.5 + pace * 0.8) + right * steer * (0 if motion_reduced else 0.7) + Vector3.UP * 0.7)
-	if not motion_reduced:
-		camera.rotate_object_local(Vector3.FORWARD, -steer * pace * (0.022 if drifting else 0.01))
-	var target_fov := (68.0 if motion_reduced else 64.0 + pace * 17.0) + (9 if turbo and active and not motion_reduced else 0)
-	camera.fov = lerpf(camera.fov, target_fov, 1.0 - exp(-delta * (8 if turbo else 4)))
-
-func rank_position() -> int:
-	var rank := 1
-	for rival in rivals:
-		if float(rival.distance) > distance:
-			rank += 1
-	return rank
+	camera_time += delta if active else 0
+	var shake := (0.012*pace*pace + impact*0.24) if active and not motion_reduced else 0.0
+	var vibration := right*sin(camera_time*53)*shake + Vector3.UP*cos(camera_time*67)*shake*0.55
+	var desired := -forward*(5.3+pace*0.25+(boost_kick*0.55 if not motion_reduced else 0.0)-(0.25 if braking else 0.0)) + Vector3.UP*(2.75-pace*0.30) + vibration
+	if drifting and not motion_reduced: desired += right*steer*0.9
+	camera_offset = camera_offset.lerp(desired,1-exp(-delta*9))
+	camera.position = player.position+camera_offset
+	camera.look_at(player.position+forward*(2.5+pace*0.8)+right*steer*(0 if motion_reduced else 0.7)+Vector3.UP*0.7)
+	if not motion_reduced: camera.rotate_object_local(Vector3.FORWARD,-steer*pace*(0.024 if drifting else 0.01))
+	var target_fov := (68.0 if motion_reduced else 64+pace*17) + (6 if boosting and active and not motion_reduced else 0)
+	camera.fov = lerpf(camera.fov,target_fov,1-exp(-delta*(8 if boosting else 4)))

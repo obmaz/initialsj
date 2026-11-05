@@ -10,7 +10,7 @@ void fragment() {
 	if (edge * strength < 0.01) {
 		COLOR = sharp;
 	} else {
-		vec2 offset = ray * edge * strength * 0.026;
+		vec2 offset = ray * edge * strength * 0.042;
 		vec4 blur = sharp * 0.30;
 		blur += texture(scene, uv - offset * 0.25) * 0.25;
 		blur += texture(scene, uv - offset * 0.50) * 0.20;

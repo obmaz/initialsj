@@ -1,3 +1,5 @@
+> Historical circuit/Fuji prototype documentation. The current open-road tour is documented in [TOUR.md](TOUR.md); current measurements are in `tour-metrics.json`.
+
 # Fuji Lakeside — 배경과 도로
 
 ![실제 주행 화면](fuji-view-0.png)
