@@ -30,21 +30,15 @@ func _ready() -> void:
 	var world := WorldEnvironment.new()
 	var env := Environment.new()
 	env.background_mode = Environment.BG_SKY
-	var sky := Sky.new()
-	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color("407fab")
-	sky_mat.sky_horizon_color = Color("b6dbe2")
-	sky_mat.ground_horizon_color = Color("b6dbe2")
-	sky_mat.ground_bottom_color = Color("57765d")
-	sky.sky_material = sky_mat
-	env.sky = sky
+	env.sky = track.scenery.make_sky()
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("c3e1f1")
-	env.ambient_light_energy = 0.32
+	env.ambient_light_color = Color("e4eceb")
+	env.ambient_light_energy = 0.40
 	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	env.fog_enabled = true
 	env.fog_light_color = Color("a3c9d7")
-	env.fog_density = 0.00065
+	env.fog_density = 0.0003
+	env.fog_sky_affect = 0.0
 	world.environment = env
 	add_child(world)
 	var sun := DirectionalLight3D.new()
