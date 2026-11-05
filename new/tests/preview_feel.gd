@@ -29,6 +29,25 @@ func run() -> void:
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://docs/feel-%d.png" % stage)
 		print("Feel stage ",stage," / speed ",snappedf(race.speed * 3.6,0.1)," / rank ",race.rank_position())
+	# Controlled milestone states make temporary UI cues reviewable without racing three laps.
+	for milestone in ["overtake", "final-lap"]:
+		race.restart()
+		race.state = "racing"
+		race.speed = 68
+		race.distance = 100 if milestone == "overtake" else race.track.length * 2 - 0.1
+		for i in range(race.rivals.size()):
+			race.rivals[i].distance = race.distance + 120 + i * 12
+		if milestone == "overtake":
+			race.rivals[0].distance = race.distance + 0.1
+			race.rivals[0].lane = 3
+		race.step(1.0 / 60, 0, false, false, false)
+		race.place_cars()
+		race.update_camera(1)
+		for frame in range(5):
+			await process_frame
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://docs/feel-%s.png" % milestone)
+		print("Milestone ",milestone," / overtakes ",race.overtakes," / lap cue ",race.lap_flash)
 	race.queue_free()
 	await process_frame
 	await process_frame

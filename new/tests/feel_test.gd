@@ -65,13 +65,21 @@ func run() -> void:
 	check(ai_boosted, "CPU must use its finite nitro reserve on open road")
 	race.restart()
 	race.state = "racing"
+	var lap_notices := 0
+	var previous_notice := 0.0
 	for i in range(10800):
 		var rate: float = wrapf(race.track.heading(race.distance + 16) - race.track.heading(race.distance), -PI, PI) / 16
 		var correction: float = clampf(((-3.2 - race.lane) * 1.5 - rate * race.speed * race.speed * 0.04) / 7.6, -1, 1)
 		race.step(1.0 / 60, correction, false, false, false)
+		if race.lap_flash > 0 and previous_notice <= 0:
+			lap_notices += 1
+		previous_notice = race.lap_flash
 		if race.state == "finished":
 			break
 	check(race.state == "finished", "A line-following driver must be able to complete the race")
+	check(lap_notices == 2, "Lap announcements must fire on laps two and three, not after finishing")
+	check(race.overtakes >= 2, "Improving from eighth to sixth must produce overtake feedback")
+	var full_overtakes: int = race.overtakes
 	var full_rank: int = race.rank_position()
 	var full_time: float = race.elapsed
 	# At maximum speed, rendering must keep the hero close instead of accumulating world-space follow lag.
@@ -83,7 +91,7 @@ func run() -> void:
 		race.update_camera(1.0 / 60)
 	var camera_gap: float = race.camera.position.distance_to(race.player.position)
 	check(camera_gap > 5 and camera_gap < 9, "High-speed chase camera must stay close to the player")
-	var report := {"zero_to_100_seconds": snappedf(t100, 0.001), "zero_to_200_seconds": snappedf(t200, 0.001), "cruise_kmh": snappedf(cruise, 0.1), "nitro_kmh": snappedf(turbo, 0.1), "cpu_passed_slow_car": passed_within_four_seconds, "cpu_lateral_movement_m": snappedf(lateral, 0.1), "cpu_simulated_seconds": 124, "line_following_no_boost_rank": full_rank, "line_following_race_seconds": snappedf(full_time, 0.01), "camera_gap_at_317_kmh_m": snappedf(camera_gap, 0.01), "failures": failures}
+	var report := {"zero_to_100_seconds": snappedf(t100, 0.001), "zero_to_200_seconds": snappedf(t200, 0.001), "cruise_kmh": snappedf(cruise, 0.1), "nitro_kmh": snappedf(turbo, 0.1), "cpu_passed_slow_car": passed_within_four_seconds, "cpu_lateral_movement_m": snappedf(lateral, 0.1), "cpu_simulated_seconds": 124, "line_following_no_boost_rank": full_rank, "line_following_race_seconds": snappedf(full_time, 0.01), "camera_gap_at_317_kmh_m": snappedf(camera_gap, 0.01), "lap_announcements": lap_notices, "overtake_events": full_overtakes, "failures": failures}
 	print(JSON.stringify(report))
 	var output := FileAccess.open("res://docs/game-feel-metrics.json", FileAccess.WRITE)
 	output.store_string(JSON.stringify(report, "\t") + "\n")

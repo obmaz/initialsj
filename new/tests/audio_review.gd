@@ -29,6 +29,8 @@ func run():
 	race.drifting = false
 	race.mini_turbo = 1
 	await create_timer(0.3).timeout
+	race.lap_flash = 1.8
+	await create_timer(0.4).timeout
 	race.sound_enabled = false
 	await create_timer(0.7).timeout
 	record.set_recording_active(false)

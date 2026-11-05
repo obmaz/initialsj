@@ -37,7 +37,9 @@ godot --path new
 
 드리프트를 0.55초 넘게 유지한 뒤 도로 안에서 해제하면 미니 터보를 얻습니다. 충전 상태는 드리프트 버튼의 테두리로 표시합니다. 앞차를 가까이 따라가면 슬립스트림으로 속도와 니트로 회복량이 늘고, 근접 추월에는 점수와 니트로 보상이 있습니다. 니트로를 모두 쓰면 8% 이상 회복한 뒤 다시 사용할 수 있습니다.
 
-[게임 감각 개선과 측정 결과](docs/GAME_FEEL.md)
+[게임 감각 개선과 측정 결과](docs/GAME_FEEL.md) · [음원 출처와 라이선스](assets/audio/LICENSE.txt)
+
+엔진 녹음: qubodup. 타이어 녹음: audible-edge(Tom Haigh), 루프 편집: qubodup. 두 녹음은 CC BY 3.0이며 필터·루프 경계·음량을 조정했습니다.
 
 ## 구현 범위
 
@@ -48,7 +50,7 @@ godot --path new
 - 속도에 반응하는 후방 카메라와 니트로 FOV 효과
 - 드리프트 연기·실시간 타이어 자국·미니 터보·슬립스트림·근접 추월 보상
 - 주변 속도선·약한 화면 가장자리 흐림·배기 불꽃·벚꽃잎과 코스 배너
-- 렌더링 프레임과 독립적으로 재생하는 엔진·바람·타이어 소리와 보상·충돌 효과음
+- 실제 엔진·타이어 녹음의 OGG 루프와 WAV 효과음, 웹에서는 브라우저의 샘플 재생 사용
 - 순위·랩·시간·미니맵·속도계·일시정지·결과 화면
 - 주행·접촉·완주·재시작·멀티터치 상태의 자동 검사
 
@@ -64,7 +66,7 @@ godot --path new
 - `scripts/race.gd`: 입력, 경기 상태, 주행, AI, 카메라, 기록
 - `scripts/hud.gd`: 해상도 대응 HUD와 터치 입력
 - `scripts/rival_brain.gd`: CPU 추월·간격·코너·부스트 판단
-- `scripts/racing_audio.gd`: 합성 주행 루프와 효과음
+- `scripts/racing_audio.gd`: OGG/WAV 파일 기반 주행음·효과음
 - `scripts/tire_trails.gd`, `scripts/speed_ambience.gd`: 타이어 자국과 벚꽃잎
 - `tests/race_test.gd`: 주요 주행 규칙 검사
 
