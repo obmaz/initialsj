@@ -80,8 +80,18 @@ func run() -> void:
 	var expected: Vector3 = race.track.point(race.distance+(45+22.0/60)/60,race.lane)
 	race.step(1.0/60,0,false,true,false)
 	check(race.stage_index == 1 and race.route_node == 1 and race.checkpoints == 1,"Taking the right fork must choose the right route node")
-	check(race.time_left > Library.START_TIME+21,"Checkpoint must extend the countdown")
+	check(race.time_left > Library.START_TIME+Library.checkpoint_bonus(1)-1,"Checkpoint must extend the countdown")
 	check(race.track.point(race.distance,race.lane).distance_to(expected) < 0.3,"Changing road sections must not teleport the car")
+	# A late switch within the open fork must update the same risk and time reward.
+	var old_bonus: float = race.checkpoint_award
+	race.distance = 100
+	var f: Vector3 = (race.track.point(102)-race.track.point(100)).normalized()
+	var across := Vector3(-f.z,0,f.x).normalized()
+	race.lane = (race.track.sibling.point(100)-race.track.point(100)).dot(across)
+	race.speed = 0
+	race.lane_velocity = 0
+	race.step(1.0/60,0,false,false,false)
+	check(race.route_node == 0 and race.checkpoint_award > old_bonus,"Switching branch within the fork must reconcile checkpoint difficulty rewards")
 	for i in range(3):
 		clear_traffic(race)
 		race.distance = race.track.length+Library.FORK_COMMIT-0.1
@@ -100,15 +110,81 @@ func run() -> void:
 	for viewport in [Vector2i(1280,720),Vector2i(2340,1080),Vector2i(390,844)]:
 		root.size = viewport
 		race.hud.fingers.clear()
-		for action in ["gas","brake"]:
+		for action in ["gas","brake","nitro"]:
 			var event := InputEventScreenTouch.new()
-			event.index = 1 if action == "gas" else 2
+			event.index = {"gas":1,"brake":2,"nitro":3}[action]
 			event.position = race.hud.buttons[action].get_center()*race.hud.ui_scale()+race.hud.ui_offset()
 			event.pressed = true
 			race.hud.handle_pointer(event)
-		check(race.hud.held("gas") and race.hud.held("brake"),"Gas and brake touch targets must remain aligned on resize")
+		check(race.hud.held("gas") and race.hud.held("brake") and race.hud.held("nitro"),"Gas, brake and nitro touch targets must remain aligned on resize")
 	root.size = Vector2i(1280,720)
 	check(not race.hud.buttons.gas.intersects(race.hud.buttons.brake),"Gas and brake must have distinct touch targets")
+	reset_drive(race)
+	var minimum := INF
+	var maximum := 0.0
+	for i in range(100):
+		var d: float = race.track.length*i/100
+		minimum = minf(minimum,race.track.half_width(d))
+		maximum = maxf(maximum,race.track.half_width(d))
+	check(maximum-minimum > 2.5,"The same road must visibly widen and narrow")
+	var mesh_arrays = race.track.road_surface.mesh.surface_get_arrays(0)
+	for segment in [0,230,540,830]:
+		var d: float = race.track.length*segment/900
+		var edge: Vector3 = mesh_arrays[Mesh.ARRAY_VERTEX][segment*6]
+		check(absf(edge.distance_to(race.track.point(d))-race.track.half_width(d)) < 0.02,"Rendered road edges must follow the same width as driving bounds")
+	var start: Vector2 = race.hud.route_map_point(0,0)
+	var left: Vector2 = race.hud.route_map_point(1,0)
+	var right: Vector2 = race.hud.route_map_point(1,1)
+	check(start.y > left.y and start.y > right.y and left.x < start.x and right.x > start.x,"Route map must travel upward with left/right matching the physical fork")
+	check(not race.hud.buttons.nitro.intersects(race.hud.buttons.drift) and not race.hud.buttons.nitro.intersects(race.hud.buttons.gas),"Nitro must have its own visible touch target")
+	race.speed = 80
+	race.nitro = 70
+	for i in range(30): race.step(1.0/60,0,false,true,false,true)
+	check(race.nitro_active and race.speed > 90 and race.nitro < 62,"Nitro must accelerate beyond cruise speed and consume fuel")
+	race.step(1.0/60,0,false,true,true,true)
+	check(not race.nitro_active and race.braking,"Braking must override nitro")
+	race.nitro = 0
+	race.distance = 80
+	race.step(1.0/60,0,false,true,false,true)
+	check(not race.nitro_active and race.nitro_locked,"Empty nitro must lock out repeated tiny boost pulses")
+	race.nitro = 20
+	race.step(1.0/60,0,false,true,false,true)
+	check(race.nitro_active,"Recharged nitro must become usable again")
+	race.speed_ambience.update(race)
+	check(not race.speed_ambience.petals.emitting,"Normal driving must not emit ambient particles")
+	race.checkpoints = 1
+	race.speed_ambience.update(race)
+	check(race.speed_ambience.petals.one_shot,"Celebrations must be bounded one-shot bursts")
+	var canopies := 0
+	for stage in range(5):
+		for node in range(stage+1):
+			var span := Library.canopy_span(stage,node)
+			if span.y > span.x: canopies += 1
+	check(canopies <= 2 and Library.canopy_span(0,0) == Vector2.ZERO,"Glass roofs must be rare and absent from the starting coast")
+	var city_tunnel := Library.tunnel_span(1,1)
+	check(city_tunnel.y-city_tunnel.x >= 900,"There must be a genuinely long continuous city tunnel")
+	var section = load("res://scripts/road_section.gd")
+	var easy = section.new(Vector3.ZERO,-PI/2,4,0)
+	var hard = section.new(Vector3.ZERO,-PI/2,4,4)
+	var easy_width := 0.0
+	var hard_width := 0.0
+	var easy_bends := 0.0
+	var hard_bends := 0.0
+	for i in range(100):
+		var t := 0.15+i*0.007
+		easy_width += easy.half_width(easy.length*t)
+		hard_width += hard.half_width(hard.length*t)
+		easy_bends += absf(easy.curvature(easy.length*t))
+		hard_bends += absf(hard.curvature(hard.length*t))
+	check(hard.length > easy.length+500 and hard_width < easy_width-100 and hard_bends > easy_bends*1.25,"Right choices must produce longer, narrower and more demanding roads")
+	easy.free()
+	hard.free()
+	race.track.reset(4,4)
+	race.brain.stage_changed(race)
+	var active_count := 0
+	for r in race.rivals:
+		if r.active: active_count += 1
+	check(active_count == 16,"The hardest route must have denser active traffic")
 	print("Tour checks: ","PASS" if failures == 0 else "FAIL (%d)" % failures)
 	race.queue_free()
 	await process_frame

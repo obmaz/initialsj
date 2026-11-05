@@ -1,43 +1,41 @@
-# Open-road tour: implementation and review
+# Coast Rush route revision
 
-Current behavior is the five-stage Coast Rush tour. Earlier Fuji/lap-racing screenshots and benchmark files in this folder are historical and do not describe the current game.
+The current game is a five-stage branching open-road tour with a white AE86 Trueno-style player car. Older Fuji/circuit documentation and earlier route screenshots are historical.
 
-## Geometry and depth
+## Longer roads with changing width
 
-`route_library.gd` defines eight themes across 15 nodes in five rows. Each selected section has two physical preview roads, and a left/right fork chooses the next node. The selected route contains approximately 7.9 km. Sections rise 28–52 m above their entry elevation, with the surface, cars and camera following the grade. Junction transitions project the player's world position onto the chosen branch; distance never wraps into a lap.
+Sections now span 3,000–4,360 m, replacing the earlier 1,600 m sections. A full selected route covers approximately 16.7–18.3 km. Road width varies smoothly within a section, approximately 12.4–22.6 m overall. Junctions return to the same 18 m width to preserve continuity.
 
-`road_biome.gd` builds real geometry: palms and sea in Hawaii; dunes and pyramids; windowed city buildings; an observation tower for Seoul; broken blocks and rubble; an animated Ferris wheel and tents; basalt rocks and wind turbines for Jeju. These are thematic stylizations rather than geographic reproductions. Every section includes a transparent framed canopy and an arch tunnel. Large props begin beyond the shared fork area; the unselected branch's terrain is disabled after commitment to prevent terrain covering the selected road.
+The asphalt mesh, lane paint, curbs, guardrails, roadside props, terrain edges, tunnel shell, traffic lane choices and player collision boundaries all use the same width function. Width changes affect actual driving and passing space. Terrain rises 28–64 m depending on the section.
 
-Procedural geometry uses batched instances. Generated asphalt and ground source textures from the previous prototype are retained. The previous Fuji image panorama and billboard trees are preserved as source assets but are not active scenery in this tour.
+Each right choice increases the route node: subsequent roads become longer, narrower and more curved, traffic grows denser, and checkpoint extensions shrink. Initial traffic is eight vehicles; the hardest final route has sixteen. Right-hand difficulty does not alter the player's physics or teleport opponents. Map colors indicate increasing risk to the right. Route progress runs from the bottom upward; a physical right turn moves upward and right on the map.
 
-## Driving and impact feedback
+## Roofs and tunnels
 
-GAS accelerates to 288 km/h; fully established slipstream raises the cap to 316.8 km/h. BRAKE overrides GAS and can stop the car. A short brake tap while steering, followed by gas, initiates a latched drift. Space/DRIFT provides a shortcut. Drifting retains entry momentum without adding acceleration. Excess corner demand reduces steering authority and pushes the car outward; shoulder use and guardrails cost speed.
+Glass canopies appear at just two of the fifteen route nodes: a 96 m amusement section and an 84 m late Jeju section. The starting coast is open sky. Tunnels are selected by theme rather than repeated at the same place in every section. City tunnels are 950 m, Seoul tunnels 1,100 m; other selected themes have shorter passages.
 
-The car contact test uses oriented rectangular footprints, including drift angle. Resolution separates bodies in world space, respects the player's rail boundary, exchanges relative longitudinal speed and applies sideswipe slowdown. Sparks originate at the contact side, accompanied by camera shake, body recoil, a short screen flash and file-backed impact sound. Fixed particle pools keep bursts bounded.
+A continuous arched mesh follows road curvature, grade and changing width. Emissive light strips, limited local lights and the AE86's forward spotlight provide visibility. The headlight turns on inside a tunnel. The tunnel's entrance sign states its length.
 
-At high speed, the camera widens, nearby scenery moves quickly, an edge blur and speed lines appear, and ambient particles change by theme. Tire smoke, live fading skid marks and brake lights respond to driving. M/reduced-motion settings disable blur, speed lines and extra camera motion. Reduced motion uses fewer collision sparks.
+## City variety
 
-## Verification
+Six archetypes use batched geometry: low brick blocks, glass high-rises, stepped towers, round towers, medium-rise offices and low commercial buildings. Heights, footprints, facade colors, window spacing, roof equipment and podiums vary. Ruined variants retain broken tops and window openings. Seoul keeps an open sightline toward its hilltop observation tower.
 
-- `tests/race_test.gd`: open road, real fork, elevation, eight themes, acceleration, gas/brake priority, brake-tap drift, grip release, oriented contacts, rails, checkpoint bonus/world-position continuity, five-stage finish, time expiry and resized simultaneous touch targets.
-- `tests/contact_review.gd`: independently intersects world-space car polygons after actual collision resolution on four road locations, three lane positions and multiple drift/traffic angles. 144 overlapping contact cases; last reviewed maximum residual polygon intersection: 0.002 m², below 0.03 m² tolerance.
-- `tests/tour_review.gd`: deterministic skilled controllers clear left, right and mixed routes; gas-only controller fails. Raw results: `tour-metrics.json`. These are simulations, not human difficulty measurements.
-- `tests/keyboard_review.gd`: actual input events for W gas, S brake and brake-tap drift; `keyboard-metrics.json`, `tour/keyboard-drift.png`.
-- `tests/preview_tour.gd`: rendered fixtures of all eight themes, canopy, tunnel, fork, elevation, drift, impact and speed. These are controlled visual fixtures, not screenshots of a completed human run.
-- `tests/audio_review.gd`: records the actual native mixer and checks audibility, clipping, active silent gaps and mute. Graphical display required.
-- `tests/web_audio_review.cjs`: Chromium/Playwright drives the exported game, records Web Audio and checks two native looping recording sources plus browser errors. Set `INITIALSJ_REVIEW_URL` for the deployed game.
+## Situational effects and nitro
 
-Native visual checks:
+Normal driving emits no pollen, dust or confetti. Tire smoke is limited to drifting, sparks to collisions, celebration confetti to one-shot checkpoint/goal events, and the blue exhaust effect to active nitro. Reduced motion disables celebrations, scenery blur, speed lines and extra camera motion; collision sparks use fewer particles.
 
-```sh
-DISPLAY=:99 godot --path new --script res://tests/preview_tour.gd --audio-driver Dummy
-DISPLAY=:99 godot --path new --script res://tests/keyboard_review.gd --audio-driver Dummy
-DISPLAY=:99 godot --path new --script res://tests/audio_review.gd --audio-driver Dummy
-```
+GAS reaches 288 km/h; slipstream reaches 316.8 km/h. NITRO/Shift accelerates up to 345.6 km/h. Nitro also presses gas, so a touch player can steer with one thumb and move the other from GAS to NITRO. BRAKE overrides both. Nitro does not activate during drifting or an impact. Fuel drains at 20 units/s, regenerates at 3 units/s normally or 8 while drifting, and receives close-pass/checkpoint rewards. Empty fuel locks until 12 units recover, preventing repeated tiny pulses.
 
-The environment uses Mesa software rendering. Its frame rate is not representative of a player's GPU. Real phones still need performance and handling review. Godot version tested: 4.6.3, not 4.7.2.
+Starting time is 70 s. Checkpoints add 60 minus twice the accumulated number of right choices: 52–60 s. Finish and timeout end the tour without wrapping into laps.
 
-## Rendering revision
+## Review evidence
 
-Static car parts now share one mesh surface per material. Distant traffic uses four simple batched wheel silhouettes, while nearby cars retain spinning rims. Small traffic details no longer cast separate shadows. A fixed 1280×720 software-rendered canopy fixture reduced draw calls from 1,520 to approximately 580. This measures rendering work, not real-device FPS. Terrain elevation was increased from 12–28 m to 28–52 m, and ruined facades gained broken tops and open window gaps.
+- `tests/race_test.gd`: open roads, fork/world-position continuity, actual changing mesh widths, upward map orientation, nitro acceleration/fuel/brake override/lockout, sparse canopies, long tunnel coverage, denser hard-route traffic, road difficulty and resized touch controls.
+- `tests/contact_review.gd`: independent world-space polygon intersections after actual collision resolution on bends, across lane positions and drift angles.
+- `tests/tour_review.gd`: the same skilled controller drives left, right and mixed routes using braking, drifting and planned nitro. The latest runs finish in 204.18, 274.27 and 222.07 s respectively; remaining time is 105.82, 15.73 and 79.93 s. The gas-only controller times out in stage two. These are deterministic simulations, not human playtest timings. Raw results: `tour-metrics.json`.
+- `tests/keyboard_review.gd`: real input events for gas, braking, brake-tap drift and Shift nitro.
+- `tests/preview_tour.gd`: controlled rendered fixtures; pass scene names after `--` to review selected views. New views include `long-tunnel`, `narrow`, `wide`, `city`, `canopy`, `speed` and `fork`.
+- `tests/touch_review.cjs`: actual exported-game touch controls in Chromium's landscape phone emulation. It does not measure a physical phone.
+- Audio remains imported OGG/WAV files with native browser looping; `tests/web_audio_review.cjs` can capture the deployed game via `INITIALSJ_REVIEW_URL`.
+
+All source changes are under `new/`. Godot version verified is 4.6.3; 4.7.2 remains unverified. This workspace uses software rendering, so its frame rate does not represent a player's GPU. The older `render-metrics.json` records the earlier car batching review and is not a benchmark of this route revision.

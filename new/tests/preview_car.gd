@@ -13,6 +13,7 @@ func run() -> void:
 	race.place_cars()
 	race.update_camera(1)
 	for view in ["rear","front","side"]:
+		if not OS.get_cmdline_user_args().is_empty() and view not in OS.get_cmdline_user_args(): continue
 		race.hud.visible = view == "rear"
 		if view != "rear":
 			for r in race.rivals: r.car.visible = false

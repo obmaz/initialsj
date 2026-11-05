@@ -31,6 +31,11 @@ var throttling := false
 var braking := false
 var drifting := false
 var boosting := false
+var nitro := 70.0
+var nitro_active := false
+var nitro_locked := false
+var nitro_seconds := 0.0
+var checkpoint_award := Library.CHECKPOINT_BONUS
 var drift_latched := false
 var drift_sign := 0.0
 var drift_straight := 0.0
@@ -110,7 +115,7 @@ func _ready() -> void:
 	player.paint = Color("f0f1ed")
 	add_child(player)
 	var colors := ["e7c456","91aabe","aaa3b7","e8e5dc","4c9c97","ad6f55","62798c"]
-	for i in range(12):
+	for i in range(16):
 		var car := Car.new()
 		car.traffic = true
 		car.paint = Color(colors[i % colors.size()])
@@ -163,6 +168,11 @@ func restart() -> void:
 	braking = false
 	drifting = false
 	boosting = false
+	nitro = 70
+	nitro_active = false
+	nitro_locked = false
+	nitro_seconds = 0
+	checkpoint_award = Library.CHECKPOINT_BONUS
 	drift_latched = false
 	drift_sign = 0
 	drift_straight = 0
@@ -219,9 +229,10 @@ func _physics_process(delta: float) -> void:
 	if state == "racing":
 		var axis := float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
 		axis = clampf(axis + hud.touch_axis(),-1,1)
-		var gas := Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP) or Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("gas")
+		var nitro_input := Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("nitro")
+		var gas := Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP) or hud.held("gas") or nitro_input
 		var brake := Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake")
-		step(delta,axis,Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift"),gas,brake)
+		step(delta,axis,Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift"),gas,brake,nitro_input)
 	place_cars(delta)
 	tire_trails.update(self)
 	speed_ambience.update(self)
@@ -229,13 +240,14 @@ func _physics_process(delta: float) -> void:
 	speed_effect.material.set_shader_parameter("strength",clampf((speed-35)/53,0,1))
 	update_camera(delta)
 	player.road_speed = speed if state == "racing" else 0.0
-	player.animate(steer,drifting and state == "racing",false,delta,slip_angle,braking and state == "racing",impact)
+	player.animate(steer,drifting and state == "racing",nitro_active and state == "racing",delta,slip_angle,braking and state == "racing",impact)
+	if player.headlight != null: player.headlight.visible = track.active.in_tunnel(distance)
 	for r in rivals:
 		r.car.road_speed = r.speed if state == "racing" else 0.0
 		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),false,false,delta,r.visual_yaw)
 	hud.queue_redraw()
 
-func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool) -> void:
+func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool = false) -> void:
 	elapsed += delta
 	time_left = maxf(0,time_left-delta)
 	for field in ["near_miss_flash","overtake_flash","checkpoint_flash","launch_flash"]:
@@ -262,7 +274,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool) 
 	previous_brake = brake
 	if drifting: drift_charge = minf(3,drift_charge+delta)
 	elif was_drifting:
-		if drift_charge > 0.55 and absf(lane) < 8:
+		if drift_charge > 0.55 and absf(lane) < track.half_width(distance)-1:
 			drifts_completed += 1
 		drift_charge = 0
 	var desired_yaw := (-drift_sign*0.30-steer*0.30) if drifting else -steer*0.07
@@ -272,15 +284,23 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool) 
 	for r in rivals:
 		var gap: float = r.distance-distance
 		old_gaps.append(gap)
-		if r.detached == null and gap > 8 and gap < 75 and absf(r.lane-lane) < 2.1: drafting = true
+		if r.active and r.detached == null and gap > 8 and gap < 75 and absf(r.lane-lane) < 2.1: drafting = true
 	draft_charge = move_toward(draft_charge,1.0 if drafting else 0.0,delta*(1.0 if drafting else 1.2))
+	if nitro <= 0: nitro_locked = true
+	if nitro >= 12: nitro_locked = false
+	nitro_active = nitro_input and throttling and not drifting and speed > 25 and nitro > 0 and not nitro_locked and impact < 0.15
+	if nitro_active:
+		nitro = maxf(0,nitro-delta*20)
+		nitro_seconds += delta
+	else:
+		nitro = minf(100,nitro+delta*(8 if drifting else 3))
 	var was_boosting := boosting
-	boosting = draft_charge > 0.65 and throttling and not drifting
+	boosting = nitro_active or (draft_charge > 0.65 and throttling and not drifting)
 	if boosting and not was_boosting: boost_kick = 0.35
 	if brake: speed = move_toward(speed,0,delta*44)
 	elif not gas: speed = move_toward(speed,0,delta*5)
 	elif drifting: speed = maxf(0,speed-delta*0.35)
-	else: speed = move_toward(speed,80+draft_charge*8,delta*22)
+	else: speed = move_toward(speed,96 if nitro_active else 80+draft_charge*8,delta*(34 if nitro_active else 22))
 	var grip := 24.0 if drifting else 11.5
 	var demand := absf(curve) * speed * speed
 	var excess := maxf(0,demand-grip)
@@ -306,7 +326,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool) 
 	brain.tick(self,delta)
 	for i in range(rivals.size()):
 		var r: Dictionary = rivals[i]
-		if r.detached != null: continue
+		if not r.active or r.detached != null: continue
 		var gap: float = r.distance-distance
 		if absf(gap) > 8: continue
 		var forward := (track.point(distance+2)-track.point(distance)).normalized()
@@ -325,6 +345,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool) 
 			if contact.is_empty() and absf(lateral_gap) < 3.8:
 				near_misses += 1
 				near_miss_flash = 1.1
+				nitro = minf(100,nitro+12)
 				score += 150
 		if not contact.is_empty(): resolve_contact(r,contact)
 	if drifting and margin > 1 and impact < 0.1:
@@ -342,6 +363,10 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool) 
 		for r in rivals:
 			if r.detached == track.active: r.detached = null
 			elif r.detached == null and r.distance > 0: r.detached = old_section
+		var corrected_bonus := Library.checkpoint_bonus(route_node)
+		time_left += corrected_bonus-checkpoint_award
+		checkpoint_award = corrected_bonus
+		brain.stage_changed(self)
 	track.maintain(distance)
 	if stage_index == Library.STAGES-1 and distance >= track.length:
 		finish()
@@ -349,6 +374,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool) 
 		advance_route()
 	if time_left <= 0 and state != "finished":
 		state = "failed"
+		nitro_active = false
 		drifting = false
 		boosting = false
 
@@ -364,10 +390,14 @@ func advance_route() -> void:
 		if r.distance > 20 and r.route_side != choice: r.detached = result.sibling
 	checkpoints += 1
 	checkpoint_flash = 2
-	time_left += Library.CHECKPOINT_BONUS
+	checkpoint_award = Library.checkpoint_bonus(route_node)
+	time_left += checkpoint_award
+	nitro = minf(100,nitro+25)
+	brain.stage_changed(self)
 
 func finish() -> void:
 	state = "finished"
+	nitro_active = false
 	drifting = false
 	boosting = false
 	score += int(time_left)*100
@@ -398,7 +428,8 @@ func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
 		var limits := track.lane_limits(distance)+Vector2(radius-Contact.HALF_WIDTH,-radius+Contact.HALF_WIDTH)
 		lane = clampf(lane-n.x*depth*0.6,limits.x,limits.y)
 		distance += n.y*depth*0.6
-		r.lane = clampf(r.lane+n.x*depth+(lane-old_lane),-9.0,9.0)
+		var traffic_edge: float = track.half_width(r.distance)
+		r.lane = clampf(r.lane+n.x*depth+(lane-old_lane),-traffic_edge,traffic_edge)
 		r.distance -= n.y*depth*0.4
 		contact = contact_with(r)
 		if contact.is_empty(): break
@@ -421,6 +452,7 @@ func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
 
 func register_impact(strength: float, normal: Vector2) -> void:
 	impact = maxf(impact,strength)
+	nitro_active = false
 	drift_charge = 0
 	drift_latched = false
 	bump_cooldown = 0.45
@@ -433,6 +465,9 @@ func place_cars(delta: float = 1.0) -> void:
 	set_car_frame(player,track.point(distance,lane),track.point(distance+2,lane)-track.point(distance-2,lane),delta)
 	player.body.rotation.y = slip_angle
 	for r in rivals:
+		if not r.active:
+			r.car.visible = false
+			continue
 		var p: Vector3
 		var f: Vector3
 		if r.detached != null and is_instance_valid(r.detached):

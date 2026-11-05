@@ -33,14 +33,15 @@ var buttons := {
 	"left": Rect2(27, 562, 108, 108),
 	"right": Rect2(159, 562, 108, 108),
 	"drift": Rect2(1051, 445, 98, 98),
+	"nitro": Rect2(1166,443,100,100),
 	"gas": Rect2(1090, 557, 120, 120),
 	"brake": Rect2(955, 562, 110, 110),
 	"pause": Rect2(894, 12, 376, 50),
 }
 
 func _ready() -> void:
-	build_minimap()
 	build_dial_backdrop()
+	bottle_texture = load_icon("res://assets/ui/nitro-bottle.png")
 	drift_texture = load_icon("res://assets/ui/drift-car.png")
 	coin_texture = load_icon("res://assets/ui/coin.png")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -244,7 +245,10 @@ func draw_position(_rows: Array[Dictionary]) -> void:
 	draw_set_transform(ui_offset(),0,Vector2.ONE*ui_scale())
 	text_at(Vector2(151,67),"/5",40,WHITE,true,NUMBER_FONT)
 	var next := Library.next_titles(race.stage_index,race.route_node)
-	var labels := [Library.title(race.stage_index,race.route_node),"< " + next[0],next[1] + " >","PASS  %d" % race.overtakes]
+	var labels := [Library.title(race.stage_index,race.route_node),"< " + next[0]+" / LV%d" % (race.route_node+1),next[1]+" / LV%d >" % (race.route_node+2),"PASS  %d" % race.overtakes]
+	if race.stage_index == 4:
+		labels[1] = "GOAL IN %.1f KM" % maxf(0,(race.track.length-race.distance)/1000)
+		labels[2] = "RISK LV%d" % (race.route_node+1)
 	for i in range(4):
 		var y := 94.0+i*30
 		slant(Rect2(10,y,235,27),Color("073d59dd") if i == 0 else Color("11131cd6"),8,true)
@@ -284,36 +288,8 @@ func draw_lap_time() -> void:
 	text_at(Vector2(1080,35),"TOTAL TIME",13,Color("b9d1df"))
 	text_at(Vector2(1080,62),time_label(race.elapsed),28)
 
-func build_minimap() -> void:
-	# Reference-shaped schematic. Race distance drives every marker along the same route.
-	# This is a HUD layout model, independent of the current placeholder 3D road geometry.
-	minimap_route.bake_interval = 0.5
-	var knots := [
-		[Vector2(1233, 87), Vector2(-12, 1), Vector2(14, -1)],
-		[Vector2(1254, 109), Vector2(0, -12), Vector2(0, 15)],
-		[Vector2(1234, 135), Vector2(14, 0), Vector2(-13, 0)],
-		[Vector2(1206, 134), Vector2(12, -3), Vector2(-12, 2)],
-		[Vector2(1188, 150), Vector2(2, -12), Vector2(-4, 14)],
-		[Vector2(1172, 179), Vector2(10, -1), Vector2(-12, 1)],
-		[Vector2(1147, 173), Vector2(12, 6), Vector2(-12, -5)],
-		[Vector2(1110, 160), Vector2(15, 3), Vector2(-13, -7)],
-		[Vector2(1100, 141), Vector2(0, 10), Vector2(0, -13)],
-		[Vector2(1126, 127), Vector2(-15, 1), Vector2(14, -2)],
-		[Vector2(1148, 114), Vector2(-2, 10), Vector2(4, -14)],
-		[Vector2(1162, 90), Vector2(-10, 7), Vector2(12, -10)],
-		[Vector2(1191, 88), Vector2(-12, -3), Vector2(15, 4)],
-	]
-	for knot in knots:
-		minimap_route.add_point(knot[0], knot[1], knot[2])
-	minimap_route.add_point(knots[0][0], knots[0][1], knots[0][2])
-	minimap_points = minimap_route.get_baked_points()
-
-func map_point(d: float) -> Vector2:
-	var progress: float = fposmod(d, race.track.length) / race.track.length
-	return minimap_route.sample_baked(progress * minimap_route.get_baked_length())
-
 func route_map_point(row: int, node: int) -> Vector2:
-	return Vector2(1181 + (node-row*0.5)*33,94+row*24)
+	return Vector2(1181 + (node-row*0.5)*33,190-row*24)
 
 func draw_minimap(_rows: Array[Dictionary]) -> void:
 	slant(Rect2(1087,83,185,132),Color("121b2ac2"),10)
@@ -325,13 +301,13 @@ func draw_minimap(_rows: Array[Dictionary]) -> void:
 			if row < 4:
 				for side in [0,1]: draw_line(p,route_map_point(row+1,node+side),Color("728ea777"),1.2,true)
 			var visited: bool = row <= race.stage_index and node == selected
-			draw_circle(p,4.5 if visited else 3,CYAN if visited else Color("7994aa"))
+			draw_circle(p,4.5 if visited else 3,CYAN if visited else Color("7cd5bc").lerp(Color("f1755c"),float(node)/maxi(1,row)))
 			if visited and row > 0:
 				var previous: int = selected-race.track.history[row-1]
 				glow_line(PackedVector2Array([route_map_point(row-1,previous),p]),CYAN,1.8)
 	var current := route_map_point(race.stage_index,race.route_node)
 	draw_arc(current,7,0,TAU,24,GOLD,1.5,true)
-	text_at(Vector2(1124,210),"CHOOSE YOUR ROAD",11,Color("b4d1df"))
+	text_at(Vector2(1124,210),"START  /  GOAL",11,Color("b4d1df"))
 
 func draw_drift_score() -> void:
 	if drift_fade <= 0:
@@ -346,7 +322,7 @@ func round_button(action: String, neon: bool = false) -> void:
 	var rect: Rect2 = buttons[action]
 	var c := rect.get_center()
 	var radius := rect.size.x/2
-	var active: bool = held(action) or (action == "gas" and race.throttling) or (action == "brake" and race.braking) or (action == "drift" and race.drifting)
+	var active: bool = held(action) or (action == "gas" and race.throttling) or (action == "brake" and race.braking) or (action == "drift" and race.drifting) or (action == "nitro" and race.nitro_active)
 	var accent := Color("ff7a66") if action == "brake" else CYAN
 	draw_circle(c,radius,Color("183447d9") if active else Color("122235a0"))
 	draw_arc(c,radius-4,0,TAU,70,Color("ffffff14"),1,true)
@@ -374,6 +350,11 @@ func draw_controls() -> void:
 		glow_line(arc_points(c,51,-PI/2,-PI/2+TAU*clampf(race.drift_charge/2,0,1)),GOLD,2)
 	car_icon(c+Vector2(0,-12))
 	centered(c+Vector2(0,35),"DRIFT",19)
+	round_button("nitro",true)
+	var nitro_center: Vector2 = buttons.nitro.get_center()
+	bottle(nitro_center+Vector2(0,-10),0.43)
+	centered(nitro_center+Vector2(0,35),"NITRO",18)
+	draw_arc(nitro_center,52,-PI/2,-PI/2+TAU*race.nitro/100,56,GOLD if race.nitro_active else CYAN,2,true)
 	for action in ["brake","gas"]:
 		round_button(action,true)
 		c = buttons[action].get_center()
@@ -449,19 +430,18 @@ func draw_speedometer() -> void:
 	draw_set_transform(ui_offset(),0,Vector2.ONE*ui_scale())
 
 func draw_nitro() -> void:
-	var center := Vector2(405,659)
-	for i in range(3):
-		var y := center.y-17+i*17
-		glow_line(PackedVector2Array([Vector2(382,y),Vector2(415,y),Vector2(407,y-6)]),CYAN,2)
-	text_at(Vector2(443,651),"SLIPSTREAM",24,CYAN)
+	bottle(Vector2(405,663),0.6)
+	text_at(Vector2(443,651),"NITRO",24,CYAN)
+	text_at(Vector2(735,650),"SHIFT",17,Color("bad6e3"))
+	if race.drafting and not race.nitro_active: text_at(Vector2(443,624),"SLIPSTREAM",16,CYAN)
 	var rim := rounded_polygon(PackedVector2Array([Vector2(442,661),Vector2(847,661),Vector2(835,691),Vector2(430,691)]),4)
 	draw_colored_polygon(rim,Color("0b182bdf"))
 	draw_polyline(rim+PackedVector2Array([rim[0]]),Color("8ab5cc99"),1.5,true)
 	for i in range(9):
-		var fill: float = clampf(race.draft_charge*9-i,0,1)
+		var fill: float = clampf(race.nitro/100*9-i,0,1)
 		if fill <= 0: break
 		var x := 445.0+i*43
-		draw_colored_polygon(PackedVector2Array([Vector2(x,667),Vector2(x+41*fill,667),Vector2(x+41*fill-8,684),Vector2(x-8,684)]),CYAN)
+		draw_colored_polygon(PackedVector2Array([Vector2(x,667),Vector2(x+41*fill,667),Vector2(x+41*fill-8,684),Vector2(x-8,684)]),GOLD if race.nitro_active else CYAN)
 
 func draw_menu() -> void:
 	if race.state == "countdown":
@@ -484,8 +464,8 @@ func draw_menu() -> void:
 		text_at(Vector2(307, 277), detail, 25)
 		var touch_controls := DisplayServer.is_touchscreen_available()
 		text_at(Vector2(307, 331), "LEFT: STEER    RIGHT: GAS / BRAKE" if touch_controls else "W / UP GAS    S / DOWN BRAKE", 24, Color("d1d9e4"))
-		text_at(Vector2(307, 366), "TAP DRIFT + STEER TO SLIDE" if touch_controls else "A / D STEER    SPACE DRIFT SHORTCUT", 23, Color("d1d9e4"))
-		text_at(Vector2(307, 396), "TAP BRAKE + STEER, THEN GAS TO DRIFT", 19, CYAN)
+		text_at(Vector2(307, 366), "DRIFT / NITRO: RIGHT UPPER BUTTONS" if touch_controls else "A / D STEER    SPACE DRIFT SHORTCUT", 23, Color("d1d9e4"))
+		text_at(Vector2(307, 396), "BRAKE + STEER, THEN GAS TO DRIFT" if touch_controls else "SHIFT NITRO / BRAKE + STEER, THEN GAS TO DRIFT", 19, CYAN)
 		for rect in [MOTION_BUTTON, SOUND_BUTTON]:
 			slant(rect, Color("253548"), 8)
 		var motion_label := "MOTION: LOW" if race.motion_reduced else "MOTION: FULL"
@@ -500,10 +480,10 @@ func draw_pace_feedback() -> void:
 	if race.state != "racing": return
 	if race.launch_flash > 0: centered(Vector2(640,350),"GO!",76,Color(GOLD,minf(1,race.launch_flash*4)))
 	if race.checkpoint_flash > 0:
-		centered(Vector2(640,222),"CHECKPOINT +22s",40,Color(GOLD,minf(1,race.checkpoint_flash*3)))
+		centered(Vector2(640,222),"CHECKPOINT +%ds" % int(race.checkpoint_award),40,Color(GOLD,minf(1,race.checkpoint_flash*3)))
 	elif race.stage_index < 4 and race.distance > race.track.length-260:
 		var names := Library.next_titles(race.stage_index,race.route_node)
-		centered(Vector2(640,225),"< " + names[0] + "   |   " + names[1] + " >",24,CYAN)
+		centered(Vector2(640,225),"< " + names[0] + " / EASY   |   " + names[1] + " / HARD >",21,CYAN)
 	var intensity: float = clampf((race.speed-38)/50,0,1)
 	if not race.motion_reduced:
 		var origin := Vector2(640,315)
@@ -517,6 +497,6 @@ func draw_pace_feedback() -> void:
 	if race.impact > 0: draw_rect(Rect2(0,0,1280,720),Color(1,0.35,0.10,race.impact*0.07))
 	if race.near_miss_flash > 0: centered(Vector2(640,568),"CLOSE PASS +150",23,GOLD)
 	elif race.overtake_flash > 0: centered(Vector2(640,568),"PASS!",24,CYAN)
-	elif race.boosting: centered(Vector2(640,568),"SLIPSTREAM",23,CYAN)
+	elif race.boosting: centered(Vector2(640,568),"NITRO!" if race.nitro_active else "SLIPSTREAM",23,CYAN)
 	if race.corner_warning > 0.15:
 		centered(Vector2(640,606),"BRAKE / CORNER %d km/h" % int(race.recommended_speed*3.6),19,Color(1,0.66,0.38,race.corner_warning))

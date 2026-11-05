@@ -27,30 +27,33 @@ func run() -> void:
 	var saw_gas := false
 	var saw_brake := false
 	var saw_drift := false
+	var saw_nitro := false
 	var captured := false
 	var entry_speed := 0.0
 	var braked_speed := 0.0
 	for frame in range(1000):
 		await physics_frame
 		var t: float = race.elapsed
-		key(KEY_S,t > 2.8 and t < 3.0)
+		key(KEY_S,(t > 2.8 and t < 3.0) or (t > 4.0 and t < 4.35))
 		key(KEY_D,t > 2.8 and t < 3.6)
+		key(KEY_SHIFT,t > 4.6 and t < 5.8)
 		saw_gas = saw_gas or (race.throttling and race.speed > 30)
 		saw_brake = saw_brake or race.braking
 		saw_drift = saw_drift or race.drifting
+		saw_nitro = saw_nitro or race.nitro_active
 		if t > 2.7 and t < 2.8: entry_speed = race.speed
 		if race.braking: braked_speed = race.speed
 		if t > 3.4 and not captured:
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png("res://docs/tour/keyboard-drift.png")
 			captured = true
-		if t > 5: break
+		if t > 6: break
 	for code in held.keys(): key(code,false)
-	var report := {"gas_input":saw_gas,"brake_input":saw_brake,"brake_reduced_speed":braked_speed < entry_speed,"brake_tap_drift":saw_drift,"elapsed":snappedf(race.elapsed,0.01)}
+	var report := {"gas_input":saw_gas,"nitro_input":saw_nitro,"brake_input":saw_brake,"brake_reduced_speed":braked_speed < entry_speed,"brake_tap_drift":saw_drift,"elapsed":snappedf(race.elapsed,0.01)}
 	print(JSON.stringify(report))
 	var output := FileAccess.open("res://docs/keyboard-metrics.json",FileAccess.WRITE)
 	output.store_string(JSON.stringify(report,"\t")+"\n")
 	race.queue_free()
 	await process_frame
 	await process_frame
-	quit(0 if saw_gas and saw_brake and saw_drift and braked_speed < entry_speed else 1)
+	quit(0 if saw_gas and saw_brake and saw_drift and saw_nitro and braked_speed < entry_speed else 1)

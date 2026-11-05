@@ -32,15 +32,17 @@ func _init(origin: Vector3 = Vector3(0,6,0), heading_angle: float = -PI / 2, sta
 	curve.up_vector_enabled = false
 	curve.bake_interval = 2
 	var p := origin
-	for i in range(321):
+	var span := Library.section_length(stage,route_node)
+	for i in range(int(span/5)+1):
 		var d := i * 5.0
-		var t := d / 1600
-		var envelope := smoothstep(150,270,d) * (1 - smoothstep(1430,1600,d))
-		var wave := (0.48 + stage * 0.035) * sin(TAU * t) + (0.19 + route_node * 0.04) * sin(TAU * 2 * t) * pow(sin(PI * t),2)
-		var angle := start_heading - side * 0.38 * smoothstep(0,180,d) + wave * envelope
-		if i > 0:
-			p += Vector3(-sin(angle),0,-cos(angle)) * 5
-		p.y = origin.y + (28 + stage * 6) * pow(sin(PI * t),2) * smoothstep(160,300,d)
+		var t := d/span
+		var envelope := smoothstep(200,360,d)*(1-smoothstep(span-280,span-100,d))
+		var severity := 1.0+route_node*0.18
+		var wave := (0.42+stage*0.025)*severity*sin(TAU*(2.0+route_node*0.18)*t)
+		wave += (0.14+route_node*0.025)*sin(TAU*(4.0+route_node*0.28)*t)*pow(sin(PI*t),2)
+		var angle := start_heading-side*0.38*smoothstep(0,180,d)+wave*envelope
+		if i > 0: p += Vector3(-sin(angle),0,-cos(angle))*5
+		p.y = origin.y+(28+stage*6+route_node*3)*pow(sin(PI*t),2)*smoothstep(160,300,d)
 		curve.add_point(p)
 	length = curve.get_baked_length()
 
@@ -52,6 +54,20 @@ func point(distance: float, lane: float = 0) -> Vector3:
 	var forward := (b-a).normalized()
 	if distance != d: p += forward * (distance-d)
 	return p + Vector3(-forward.z,0,forward.x).normalized() * lane
+
+func half_width(distance: float) -> float:
+	var t := clampf(distance/length,0,1)
+	var blend := smoothstep(180,360,distance)*(1-smoothstep(length-360,length-180,distance))
+	var width := 9.8-route_node*0.50+1.5*sin(TAU*(1.5+route_node*0.12)*t+stage*0.7)
+	width -= 1.1*smoothstep(0.36,0.43,t)*(1-smoothstep(0.62,0.69,t))
+	return lerpf(9.0,clampf(width,6.2,11.5),blend)
+
+func surface_lane(reference: float, distance: float) -> float:
+	return reference*half_width(distance)/9 if absf(reference) <= 9 else signf(reference)*(half_width(distance)+absf(reference)-9)
+
+func in_tunnel(distance: float) -> bool:
+	var span := Library.tunnel_span(stage,route_node)
+	return span.y > span.x and distance >= span.x and distance <= span.y
 
 func heading(distance: float) -> float:
 	var f := point(distance+2)-point(distance-2)
@@ -84,7 +100,7 @@ func strip(left: float, right: float, height: float, mat: Material, begin: float
 	for i in range(900):
 		var a := begin + (length-begin) * i / 900.0
 		var b := begin + (length-begin) * (i+1) / 900.0
-		var points := [point(a, left), point(a, right), point(b, left), point(b, right)]
+		var points := [point(a,surface_lane(left,a)),point(a,surface_lane(right,a)),point(b,surface_lane(left,b)),point(b,surface_lane(right,b))]
 		var uvs := [Vector2(left / 6, a / 6), Vector2(right / 6, a / 6), Vector2(left / 6, b / 6), Vector2(right / 6, b / 6)]
 		for index in [0, 2, 1, 1, 2, 3]:
 			st.set_uv(uvs[index])
@@ -108,7 +124,7 @@ func _ready() -> void:
 	var asphalt := ShaderMaterial.new()
 	asphalt.shader = ASPHALT_SHADER
 	asphalt.set_shader_parameter("asphalt_texture", ASPHALT)
-	strip(-10, 10, -0.15, material(Color("7e8477")))
+	strip(-10.5, 10.5, -0.15, material(Color("7e8477")))
 	road_surface = strip(-9, 9, 0, asphalt)
 	road_surface.name = "TexturedAsphalt"
 	strip(-8.6,-8.4,0.025,paint(Color("e7e6d6")),150 if entry_side > 0 else 0)
@@ -118,7 +134,7 @@ func _ready() -> void:
 		var d := i * 12.0 + 3
 		var f := (point(d+2)-point(d)).normalized()
 		var basis := Basis(Vector3.UP,heading(d)).rotated(Vector3(-f.z,0,f.x).normalized(),asin(f.y))
-		for center in [-4.0,0.0,4.0]: lane_marks.append(Transform3D(basis,point(d,center)+Vector3.UP*0.027))
+		for center in [-0.5,0.0,0.5]: lane_marks.append(Transform3D(basis,point(d,center*half_width(d))+Vector3.UP*0.027))
 	box_batch(Vector3(0.11,0.015,5),paint(Color("e0e3df")),lane_marks)
 	var red := paint(Color("c94c48"))
 	var white := paint(Color("e9e7db"))
@@ -131,14 +147,14 @@ func _ready() -> void:
 		var d := i * 5.0
 		for side in [-1, 1]:
 			if d < 150 and side == -entry_side: continue
-			rail_transforms.append(Transform3D(Basis(Vector3.UP, heading(d)), point(d, side * 10.5) + Vector3.UP * 0.9))
+			rail_transforms.append(Transform3D(Basis(Vector3.UP, heading(d)), point(d, side * (half_width(d)+1.5)) + Vector3.UP * 0.9))
 			if i % 3 == 0:
-				post_transforms.append(Transform3D(Basis.IDENTITY, point(d, side * 10.5) + Vector3.UP * 0.4))
+				post_transforms.append(Transform3D(Basis.IDENTITY, point(d, side * (half_width(d)+1.5)) + Vector3.UP * 0.4))
 	for i in range(int(length / 3)):
 		var d := i * 3.0
 		for side in [-1, 1]:
 			if d < 150 and side == -entry_side: continue
-			var transform := Transform3D(Basis(Vector3.UP, heading(d)), point(d, side * 9.1))
+			var transform := Transform3D(Basis(Vector3.UP, heading(d)), point(d, side * (half_width(d)+0.1)))
 			if i % 2 == 0:
 				red_transforms.append(transform)
 			else:
@@ -232,7 +248,7 @@ func make_curve_markers() -> void:
 		var bend := wrapf(heading(d+40)-heading(d),-PI,PI)
 		var side := 1.0 if bend > 0 else -1.0
 		if d < 150 and side == -entry_side: continue
-		poses.append(Transform3D(Basis(Vector3.UP,heading(d)).scaled_local(Vector3(side,1,1)),point(d,side*12.3)+Vector3.UP*1.9))
+		poses.append(Transform3D(Basis(Vector3.UP,heading(d)).scaled_local(Vector3(side,1,1)),point(d,side*(half_width(d)+3.3))+Vector3.UP*1.9))
 	var multi := MultiMesh.new()
 	multi.transform_format = MultiMesh.TRANSFORM_3D
 	multi.mesh = mesh
@@ -251,9 +267,9 @@ func make_course_banners() -> void:
 		var d := 55.0+i*95
 		for side in [-1.0,1.0]:
 			if d < 150 and side == -entry_side: continue
-			var base: Vector3 = scenery.terrain_point(d,side*13.8)
+			var base: Vector3 = scenery.terrain_point(d,side*(half_width(d)+4.8))
 			poles.append(Transform3D(Basis.IDENTITY,base+Vector3.UP*3.8))
-			var center := point(d,side*13)
+			var center := point(d,side*(half_width(d)+4))
 			center.y = base.y+4.3
 			poses.append(Transform3D(Basis(Vector3.UP,heading(d)).scaled_local(Vector3(-side,1,1)),center))
 	box_batch(Vector3(0.08,7.6,0.08),material(Color("899aa1"),0.6),poles)

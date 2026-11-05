@@ -55,6 +55,32 @@ static func build(car: Node3D) -> void:
 	car.body.add_child(exhaust)
 	exhaust.position = Vector3(-0.61,0.32,2.23)
 	exhaust.rotation.x = PI/2
+	var flame := MeshInstance3D.new()
+	var plume := CylinderMesh.new()
+	plume.top_radius = 0.015
+	plume.bottom_radius = 0.13
+	plume.height = 0.9
+	plume.radial_segments = 10
+	plume.cap_top = false
+	plume.cap_bottom = false
+	flame.mesh = plume
+	var flame_material := ShaderMaterial.new()
+	flame_material.shader = preload("res://shaders/nitro_flame.gdshader")
+	flame.material_override = flame_material
+	flame.position = Vector3(-0.61,0.32,2.65)
+	flame.rotation.x = PI/2
+	flame.visible = false
+	car.body.add_child(flame)
+	car.nitro_flames.append(flame)
+	var headlight := SpotLight3D.new()
+	headlight.position = Vector3(0,1.1,-1.95)
+	headlight.light_color = Color("fff0d5")
+	headlight.light_energy = 2.5
+	headlight.spot_range = 65
+	headlight.spot_angle = 48
+	headlight.visible = false
+	car.body.add_child(headlight)
+	car.headlight = headlight
 
 static func beam(car: Node3D, a: Vector3, b: Vector3, width: float, material: Material) -> void:
 	var part: MeshInstance3D = car.block((a+b)/2,Vector3(width,width,a.distance_to(b)),material)
