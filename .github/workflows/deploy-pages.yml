@@ -1,9 +1,8 @@
-name: Deploy Flutter Web to GitHub Pages
+name: Deploy Racing Collection to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -18,38 +17,56 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-
-      - name: Enable web
-        run: flutter config --enable-web
-
-      - name: Install dependencies
+          cache: true
+      - name: Install legacy dependencies
+        working-directory: legacy
         run: flutter pub get
-
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed lib test
-
-      - name: Analyze
-        run: flutter analyze --fatal-infos
-
-      - name: Run tests
-        run: flutter test
-
-      - name: Build web app
-        run: flutter build web --release --base-href /initialsj/
-
+      - name: Check legacy game
+        working-directory: legacy
+        run: |
+          dart format --output=none --set-exit-if-changed lib test
+          flutter analyze --fatal-infos
+          flutter test
+      - name: Build legacy game
+        working-directory: legacy
+        env:
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+        run: flutter build web --release --base-href "/${REPOSITORY_NAME}/legacy/" --pwa-strategy=none
+      - name: Set up Godot
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.6.3
+          use-dotnet: false
+          include-templates: true
+      - name: Import and check new game
+        run: |
+          godot --headless --path new --editor --import --quit
+          godot --headless --path new --script res://tests/race_test.gd
+      - name: Assemble launcher and legacy game
+        run: |
+          mkdir -p build/site/legacy build/site/new
+          cp -R site/. build/site/
+          cp -R legacy/build/web/. build/site/legacy/
+          touch build/site/.nojekyll
+      - name: Export new game for Web
+        run: godot --headless --path new --export-release Web ../build/site/new/index.html
+      - name: Verify deployment structure
+        run: |
+          test -f build/site/index.html
+          test -f build/site/legacy/flutter_bootstrap.js
+          test -f build/site/new/index.wasm
+          test -f build/site/new/index.pck
+          test -f build/site/flutter_service_worker.js
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build/web
+          path: build/site
 
   deploy:
     needs: build
@@ -57,7 +74,6 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

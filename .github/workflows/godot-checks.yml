@@ -2,9 +2,9 @@ name: Godot prototype checks
 
 on:
   push:
-    paths: ['godot/**', '.github/workflows/godot-checks.yml']
+    paths: ['new/**', '.github/workflows/godot-checks.yml']
   pull_request:
-    paths: ['godot/**', '.github/workflows/godot-checks.yml']
+    paths: ['new/**', '.github/workflows/godot-checks.yml']
   workflow_dispatch:
 
 permissions:
@@ -21,6 +21,6 @@ jobs:
           use-dotnet: false
           include-templates: false
       - name: Import project
-        run: godot --headless --path godot --editor --import --quit
+        run: godot --headless --path new --editor --import --quit
       - name: Check race rules
-        run: godot --headless --path godot --script res://tests/race_test.gd
+        run: godot --headless --path new --script res://tests/race_test.gd

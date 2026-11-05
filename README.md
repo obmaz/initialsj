@@ -1,108 +1,49 @@
-# Initial SJ — Godot 리빌드
+# Initial SJ — Racing Collection
 
-새 3D 레이싱 버전 **Alpine Rush**는 [`godot/`](godot/)에 있습니다. Godot에서 [`godot/project.godot`](godot/project.godot)을 가져와 실행하세요. [실행·조작·구현 범위](godot/README.md)를 확인할 수 있습니다.
+**[게임 선택 화면](https://obmaz.github.io/initialsj/)**
 
-요청 목표는 Godot **4.7.2**이며, 현재 환경에서 실제 실행 검증한 버전은 **4.6.3**입니다. 새 버전은 프로시저럴 로우폴리 3D 프로토타입입니다.
+| 버전 | 플레이 | 소스 |
+| --- | --- | --- |
+| Initial SJ Legacy — 기존 세로 화면 레이싱 | [/initialsj/legacy/](https://obmaz.github.io/initialsj/legacy/) | [`legacy/`](legacy/) |
+| Alpine Rush — 새 가로 화면 3D 레이싱 | [/initialsj/new/](https://obmaz.github.io/initialsj/new/) | [`new/`](new/) |
 
-아래는 기존 Flutter 버전의 문서입니다. 기존 GitHub Pages는 이 Flutter 버전을 제공합니다.
+`site/`는 두 게임을 선택하는 정적 첫 화면입니다. 기존 Flutter 소스는 `legacy/`에 보존했습니다.
 
----
+## 새 게임 실행
 
-# Initial SJ
+Godot에서 [`new/project.godot`](new/project.godot)을 열고 F5를 누릅니다. [조작과 구현 범위](new/README.md)를 확인하세요.
 
-## Play on Mobile
+요청 목표 버전은 **Godot 4.7.2**, 현재 실제 개발·웹 내보내기·검증 버전은 **Godot 4.6.3 stable**입니다. 아직 4.7.2에서 검증하지 않았습니다.
 
-모바일에서 아래 GitHub Pages 주소로 접속하면 바로 게임을 실행할 수 있습니다.
-
-https://obmaz.github.io/initialsj
-
-주의: 이 프로젝트는 모바일 세로 화면 기준으로 맞춰져 있어서 PC에서 접속하면 화면 레이아웃이 깨질 수 있습니다.
-
-Flutter와 Flame으로 만든 세로 화면 레이싱 게임 프로젝트입니다. 차량 선택, 주행, 결과 화면, 로컬 프로필 저장을 포함한 아케이드 스타일 루프를 구현하고 있습니다.
-
-## Features
-
-- 세로 화면 기준 플레이
-- 차량 선택 및 구매 시스템
-- 주행 중 HUD, 조이스틱, 니트로 버튼
-- 결과 화면과 최고 점수/코인 반영
-- `SharedPreferences` 기반 로컬 프로필 저장
-- GitHub Pages용 웹 배포 워크플로 포함
-
-## Tech Stack
-
-- Flutter
-- Flame
-- Provider
-- GoRouter
-- Shared Preferences
-
-## Project Structure
-
-```text
-lib/
-├── app/          # 앱 부트스트랩, 라우터, 테마
-│   ├── router/
-│   └── theme/
-├── core/         # 공통 로직 및 서비스
-│   ├── constants/
-│   ├── platform/
-│   └── services/
-├── features/     # 각 화면별 기능
-│   ├── gameplay/
-│   ├── garage/
-│   ├── results/
-│   └── title/
-├── game/         # Flame 게임 엔진 및 요소
-│   ├── engine/
-│   ├── entities/
-│   ├── hud/
-│   └── world/
-└── shared/       # 공용 상태, 모델, 위젯
-    ├── models/
-    ├── state/
-    └── widgets/
-
-assets/
-├── audio/
-├── fonts/
-├── images/
-│   ├── backgrounds/
-│   ├── effects/
-│   ├── environment/
-│   ├── overlays/
-│   ├── tiles/
-│   ├── ui/
-│   └── vehicles/
-└── stages/       # 스테이지 텍스트 데이터
+```sh
+godot --headless --path new --editor --import --quit
+godot --headless --path new --script res://tests/race_test.gd
+godot --path new
 ```
 
-## Requirements
+## 기존 게임 실행
 
-- Flutter SDK: 프로젝트 `pubspec.yaml` 기준 `^3.11.3`
-- Dart SDK: Flutter 버전에 포함된 대응 버전
+Flutter SDK를 설치하고 다음을 실행합니다.
 
-## Getting Started
-
-```bash
+```sh
+cd legacy
 flutter pub get
 flutter run
 ```
 
-릴리스 웹 빌드:
+## 웹 배포
 
-```bash
-flutter build web --release
-```
+`main` 푸시 또는 GitHub Actions의 **Deploy Racing Collection to GitHub Pages** 수동 실행으로 두 버전을 함께 배포합니다.
 
-Android APK 빌드:
+1. Flutter를 검사하고 `/initialsj/legacy/` base href로 빌드합니다.
+2. Godot 주행 검사를 실행하고 단일 스레드 Web release를 `/new/`에 내보냅니다.
+3. `site/` 첫 화면, 기존 게임, 새 게임을 `build/site/`에 모아 GitHub Pages에 배포합니다.
 
-```bash
-flutter build apk --release
-```
+단일 스레드 Godot Web export를 사용하므로 SharedArrayBuffer나 COOP/COEP 헤더가 필요 없습니다. 실행에는 WebGL 2 지원 브라우저가 필요합니다. 기존 Flutter 루트 서비스 워커는 정리용 워커로 교체해 이전 캐시가 선택 화면을 가리지 않도록 합니다. 두 게임 모두 새 서비스 워커를 등록하지 않습니다.
 
-iOS 릴리스 빌드:
+로컬 웹 내보내기는 해당 Godot 버전의 export templates 설치 후 실행합니다.
 
-```bash
-flutter build ios --release
+```sh
+mkdir -p build/site/new
+godot --headless --path new --export-release Web ../build/site/new/index.html
 ```
