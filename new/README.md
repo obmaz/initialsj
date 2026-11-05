@@ -9,7 +9,7 @@
 Godot 프로젝트 관리자에서 이 폴더의 `project.godot`을 가져온 뒤 **F6/F5**로 실행합니다. 별도 에셋 다운로드나 플러그인은 필요 없습니다.
 
 ```sh
-godot --path godot
+godot --path new
 ```
 
 - 요청 목표 버전: **Godot 4.7.2**.
@@ -56,9 +56,9 @@ godot --path godot
 저장소 루트에서 실행합니다. 테스트는 완주 기록을 저장하지 않습니다.
 
 ```sh
-godot --headless --path godot --editor --import --quit
-godot --headless --path godot --script res://tests/race_test.gd
-godot --headless --path godot --quit-after 120
+godot --headless --path new --editor --import --quit
+godot --headless --path new --script res://tests/race_test.gd
+godot --headless --path new --quit-after 120
 ```
 
-기존 루트의 Flutter 소스와 GitHub Pages 배포는 유지됩니다. 현재 Pages 주소는 기존 Flutter 게임이며 이 Godot 버전은 배포되지 않았습니다.
+기존 Flutter 소스는 `../legacy/`에 있습니다. GitHub Pages의 첫 화면에서 두 게임을 선택할 수 있습니다. 새 게임 주소는 https://obmaz.github.io/initialsj/new/ 입니다. 웹 내보내기는 스레드를 사용하지 않으므로 GitHub Pages에 별도 COOP/COEP 헤더가 필요하지 않습니다. 웹 빌드 설정은 `export_presets.cfg`에 저장합니다.
