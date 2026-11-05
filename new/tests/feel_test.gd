@@ -74,7 +74,16 @@ func run() -> void:
 	check(race.state == "finished", "A line-following driver must be able to complete the race")
 	var full_rank: int = race.rank_position()
 	var full_time: float = race.elapsed
-	var report := {"zero_to_100_seconds": snappedf(t100, 0.001), "zero_to_200_seconds": snappedf(t200, 0.001), "cruise_kmh": snappedf(cruise, 0.1), "nitro_kmh": snappedf(turbo, 0.1), "cpu_passed_slow_car": passed_within_four_seconds, "cpu_lateral_movement_m": snappedf(lateral, 0.1), "cpu_simulated_seconds": 124, "line_following_no_boost_rank": full_rank, "line_following_race_seconds": snappedf(full_time, 0.01), "failures": failures}
+	# At maximum speed, rendering must keep the hero close instead of accumulating world-space follow lag.
+	race.state = "racing"
+	race.speed = 88
+	for i in range(120):
+		race.distance += race.speed / 60
+		race.place_cars()
+		race.update_camera(1.0 / 60)
+	var camera_gap: float = race.camera.position.distance_to(race.player.position)
+	check(camera_gap > 5 and camera_gap < 9, "High-speed chase camera must stay close to the player")
+	var report := {"zero_to_100_seconds": snappedf(t100, 0.001), "zero_to_200_seconds": snappedf(t200, 0.001), "cruise_kmh": snappedf(cruise, 0.1), "nitro_kmh": snappedf(turbo, 0.1), "cpu_passed_slow_car": passed_within_four_seconds, "cpu_lateral_movement_m": snappedf(lateral, 0.1), "cpu_simulated_seconds": 124, "line_following_no_boost_rank": full_rank, "line_following_race_seconds": snappedf(full_time, 0.01), "camera_gap_at_317_kmh_m": snappedf(camera_gap, 0.01), "failures": failures}
 	print(JSON.stringify(report))
 	var output := FileAccess.open("res://docs/game-feel-metrics.json", FileAccess.WRITE)
 	output.store_string(JSON.stringify(report, "\t") + "\n")
