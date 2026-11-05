@@ -1,6 +1,8 @@
 extends Node3D
 
 var paint := Color("b51223")
+var model := "sport"
+var wheel_radius := 0.43
 var road_speed := 0.0
 var traffic := false
 var material_cache := {}
@@ -39,6 +41,17 @@ func block(pos: Vector3, size: Vector3, material: Material) -> MeshInstance3D:
 func _ready() -> void:
 	body = Node3D.new()
 	add_child(body)
+	if model == "ae86":
+		wheel_radius = 0.37
+		body.position.y = -0.12
+		preload("res://scripts/ae86_body.gd").build(self)
+	else:
+		make_sport_body()
+	make_drift_smoke()
+	make_wheels()
+	merge_static_body()
+
+func make_sport_body() -> void:
 	var shell := mat(paint, 0.55)
 	shell.clearcoat_enabled = true
 	shell.roughness = 0.20
@@ -97,6 +110,14 @@ func _ready() -> void:
 		glow.position = Vector3(x, 0.47, 2.38)
 		glow.visible = false
 		nitro_glows.append(glow)
+	block(Vector3(0, 0.895, 1.36), Vector3(1.6, 0.035, 1.25), dark)
+	for i in range(6):
+		block(Vector3(0, 0.925, 0.90 + i * 0.135), Vector3(1.48, 0.035, 0.065), dark)
+	for side in [-1, 1]:
+		block(Vector3(side * 1.1, 1.02, -0.45), Vector3(0.24, 0.12, 0.32), shell)
+	block(Vector3(0, 1.17, 1.8), Vector3(2.2, 0.08, 0.36), dark)
+
+func make_drift_smoke() -> void:
 	for x in [-0.8, 0.8]:
 		var particles := CPUParticles3D.new()
 		particles.amount = 22
@@ -121,47 +142,44 @@ func _ready() -> void:
 		fade.set_color(1, Color(0.78, 0.83, 0.9, 0))
 		particles.color_ramp = fade
 		body.add_child(particles)
-		particles.position = Vector3(x, 0.25, 1.4)
+		particles.position = Vector3(x, 0.25, 1.25 if model == "ae86" else 1.4)
 		smoke.append(particles)
-	block(Vector3(0, 0.895, 1.36), Vector3(1.6, 0.035, 1.25), dark)
-	for i in range(6):
-		block(Vector3(0, 0.925, 0.90 + i * 0.135), Vector3(1.48, 0.035, 0.065), dark)
-	for side in [-1, 1]:
-		block(Vector3(side * 1.1, 1.02, -0.45), Vector3(0.24, 0.12, 0.32), shell)
-	block(Vector3(0, 1.17, 1.8), Vector3(2.2, 0.08, 0.36), dark)
+
+func make_wheels() -> void:
 	var rim_mesh := make_rim_mesh()
-	for x in [-1.02, 1.02]:
-		for z in [-1.35, 1.35]:
+	var axle := 0.82 if model == "ae86" else 1.02
+	var wheelbase := 1.25 if model == "ae86" else 1.35
+	for x in [-axle, axle]:
+		for z in [-wheelbase, wheelbase]:
 			var wheel := MeshInstance3D.new()
 			var mesh := CylinderMesh.new()
-			mesh.top_radius = 0.43
-			mesh.bottom_radius = 0.43
-			mesh.height = 0.3
+			mesh.top_radius = wheel_radius
+			mesh.bottom_radius = wheel_radius
+			mesh.height = 0.22 if model == "ae86" else 0.3
 			mesh.radial_segments = 24
 			wheel.mesh = mesh
 			wheel.material_override = mat(Color("131b23"))
 			body.add_child(wheel)
-			wheel.position = Vector3(x, 0.45, z)
+			wheel.position = Vector3(x, wheel_radius + 0.02, z)
 			wheel.rotation.z = PI / 2
 			wheels.append(wheel)
 			var rim := MeshInstance3D.new()
 			rim.mesh = rim_mesh
-			rim.material_override = mat(Color("83939e"), 0.85)
+			if model == "ae86": rim.scale = Vector3.ONE * 0.86
+			rim.material_override = mat(Color("737b7f") if model == "ae86" else Color("83939e"), 0.85)
 			wheel.add_child(rim)
-			rim.position.y = -signf(x) * 0.165
+			rim.position.y = -signf(x) * (0.12 if model == "ae86" else 0.165)
 			if x > 0:
 				rim.rotation.z = PI
-
-	merge_static_body()
 
 func animate(steer: float, drifting: bool, boosting: bool, delta: float, yaw: float = NAN, braking: bool = false, hit: float = 0) -> void:
 	body.rotation.z = lerp(body.rotation.z, -steer * 0.06, delta * 8)
 	body.rotation.y = lerp_angle(body.rotation.y,-steer*(0.40 if drifting else 0.07),delta*6) if is_nan(yaw) else yaw
 	body.rotation.x = lerpf(body.rotation.x,0.07 if braking else 0.0,1-exp(-delta*8))
-	body.position.y = sin(Time.get_ticks_msec()*0.05)*hit*0.08
+	body.position.y = (-0.12 if model == "ae86" else 0.0) + sin(Time.get_ticks_msec()*0.05)*hit*0.08
 	for lamp in brake_lights: lamp.emission_energy_multiplier = 4.5 if braking else 1.7
 	for wheel in wheels:
-		wheel.rotate_object_local(Vector3.UP, -road_speed * delta / 0.43)
+		wheel.rotate_object_local(Vector3.UP, -road_speed * delta / wheel_radius)
 	for particles in smoke:
 		particles.emitting = drifting
 	for glow in nitro_glows:
@@ -228,8 +246,9 @@ func make_rim_mesh() -> ArrayMesh:
 		for index in [0, 1, 2, 1, 3, 2]:
 			st.set_normal(Vector3.UP)
 			st.add_vertex(points[index])
-	for i in range(5):
-		var angle := TAU * i / 5
+	var spoke_count := 8 if model == "ae86" else 5
+	for i in range(spoke_count):
+		var angle := TAU * i / spoke_count
 		var direction := Vector3(cos(angle), 0, sin(angle))
 		var width := Vector3(-direction.z, 0, direction.x) * 0.028
 		var root_point := direction * 0.055

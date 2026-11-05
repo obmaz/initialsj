@@ -4,7 +4,9 @@ OutRun 2006을 참고한 **3D 오픈 로드 아케이드 투어**입니다. 한 
 
 [웹에서 플레이](https://obmaz.github.io/initialsj/new/) · [구현과 검증](docs/TOUR.md) · [레퍼런스 자료](docs/OUTRUN_REFERENCE.md)
 
-![반투명 지붕 아래의 해안 도로](docs/tour/canopy.png)
+플레이어 차량은 흰색·검정 투톤의 **AE86 Trueno 3도어 해치백 스타일**입니다. 팝업 헤드라이트, 작은 리어 스포일러와 8스포크 휠을 직접 만든 3D 메시로 구현했습니다.
+
+![흰색 AE86의 실제 주행 시점](docs/ae86-rear.png)
 
 ## 조작
 
