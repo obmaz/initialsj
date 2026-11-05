@@ -12,10 +12,14 @@ No P0/P1 issue was identified in this scoped review. This is not a claim that ev
 
 ## Vehicle implementation checks
 
-- Three real 3D bodies with fictional product names, separate acceleration, grip, steering, braking, impact loss and best-time keys.
+- Three real 3D bodies with fictional product names, separate acceleration, grip, steering, braking and best-time keys.
 - Hold gauge, three edge-triggered prepaid shots, and gauge plus two independent overdrive cells. Holding cannot spend successive shots/cells. Brake/drift/impact cancels a burst without refund. Checkpoints restore one shot/cell up to capacity.
 - Three-card selection and start hit regions verified at 1280×720, phone landscape 896×414, and portrait 390×844. Selection is blocked during a tour.
 - `race_test.gd` runs the shared `garage_checks.gd` regression suite, so the existing CI checks include these cases without changing root workflows.
 - Existing world-space collision review passes 144 cases, maximum residual overlap 0.002 m².
 - Scripted driving finishes the hardest all-right route with each car. These are controller simulations, not human playtest times; see `tour-metrics.json`.
 - Native keyboard and exported Chromium touch checks cover selection and driving. Browser emulation does not establish physical-phone performance.
+
+## Four-ability revision
+
+Vehicle cards now compare exactly top speed, acceleration, boost and handling on a common ten-point scale. Nitro activation/resource types remain separate. Armor and per-car impact-loss multipliers were removed; collision tests now require equal speed loss for identical impacts. The ability bars derive speed, acceleration and boost from driving parameters, with handling using the existing profile rating.

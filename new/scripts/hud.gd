@@ -488,13 +488,20 @@ func draw_garage() -> void:
 		text_at(Vector2(x+15,218),v.name,26,color)
 		text_at(Vector2(x+16,239),v["class"],13,Color("a7bdcd"))
 		if race.previews != null:
-			draw_texture_rect(race.previews.textures[i],Rect2(x+5,247,270,145),false)
-		text_at(Vector2(x+16,408),"TOP %d km/h" % int(v.max_speed*3.6),17)
-		text_at(Vector2(x+150,408),"0-200 %.1fs" % (55.56/v.accel),15,Color("bdd0dc"))
-		for stat in range(2):
-			var y := 429.0+stat*20
-			text_at(Vector2(x+16,y),"HANDLING" if stat == 0 else "ARMOR",12,Color("a7bdcd"))
-			for pip in range(10): draw_rect(Rect2(x+105+pip*15,y-9,11,7),color if pip < (v.handling if stat == 0 else v.armor) else Color("304153"))
+			draw_texture_rect(race.previews.textures[i],Rect2(x+5,241,270,137),false)
+		var abilities := Catalog.abilities(i)
+		for stat in range(Catalog.ABILITY_KEYS.size()):
+			var y := 390.0+stat*22
+			var rating: float = abilities[Catalog.ABILITY_KEYS[stat]]
+			text_at(Vector2(x+16,y),Catalog.ABILITY_LABELS[stat],14,Color("a7bdcd"))
+			for pip in range(10):
+				var rect := Rect2(x+119+pip*13,y-8,9,7)
+				draw_rect(rect,Color("304153"))
+				var fill := clampf(rating-pip,0,1)
+				if fill > 0:
+					rect.size.x *= fill
+					draw_rect(rect,color)
+			text_at(Vector2(x+252,y),"%.1f" % rating,12,Color("d1e1ec"))
 		draw_rect(Rect2(x+12,462,256,49),Color("09121f"))
 		text_at(Vector2(x+20,484),v.nitro_title,17,color)
 		var help: String = "HOLD SHIFT / drift recharges" if i == 0 else ("TAP SHIFT / +1 at checkpoints" if i == 1 else "HOLD SHIFT / E uses a cell")
