@@ -6,6 +6,7 @@ var nitro_flames: Array[MeshInstance3D] = []
 var wheels: Array[MeshInstance3D] = []
 var nitro_glows: Array[MeshInstance3D] = []
 var smoke: Array[CPUParticles3D] = []
+var brake_lights: Array[StandardMaterial3D] = []
 var body: Node3D
 
 func mat(color: Color, metal: float = 0.0, glow: bool = false) -> StandardMaterial3D:
@@ -46,7 +47,9 @@ func _ready() -> void:
 	wedge(Vector3(0, 0.24, 2.15), Vector2(1.5, 0.26), Vector2(1.9, 0.25), 0.30, 0, dark)
 	block(Vector3(0, 0.42, -2.21), Vector3(2.12, 0.12, 0.25), dark)
 	for x in [-0.50, 0.50]:
-		block(Vector3(x, 0.87, 2.19), Vector3(0.66, 0.055, 0.05), mat(Color("ff2620"), 0, true))
+		var lamp := mat(Color("ff2620"),0,true)
+		brake_lights.append(lamp)
+		block(Vector3(x,0.87,2.19),Vector3(0.66,0.055,0.05),lamp)
 		block(Vector3(x, 0.81, -2.19), Vector3(0.65, 0.08, 0.05), mat(Color("c6f3ff"), 0, true))
 		block(Vector3(x, 1.01, 1.76), Vector3(0.08, 0.32, 0.12), dark)
 		var exhaust := MeshInstance3D.new()
@@ -143,9 +146,12 @@ func _ready() -> void:
 			if x > 0:
 				rim.rotation.z = PI
 
-func animate(steer: float, drifting: bool, boosting: bool, delta: float) -> void:
+func animate(steer: float, drifting: bool, boosting: bool, delta: float, yaw: float = NAN, braking: bool = false, hit: float = 0) -> void:
 	body.rotation.z = lerp(body.rotation.z, -steer * 0.06, delta * 8)
-	body.rotation.y = lerp_angle(body.rotation.y, -steer * (0.40 if drifting else 0.07), delta * 6)
+	body.rotation.y = lerp_angle(body.rotation.y,-steer*(0.40 if drifting else 0.07),delta*6) if is_nan(yaw) else yaw
+	body.rotation.x = lerpf(body.rotation.x,0.07 if braking else 0.0,1-exp(-delta*8))
+	body.position.y = sin(Time.get_ticks_msec()*0.05)*hit*0.08
+	for lamp in brake_lights: lamp.emission_energy_multiplier = 4.5 if braking else 1.7
 	for wheel in wheels:
 		wheel.rotate_object_local(Vector3.UP, -road_speed * delta / 0.43)
 	for particles in smoke:

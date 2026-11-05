@@ -1,20 +1,18 @@
 extends SceneTree
-# Exercise actual keyboard input through the scene, including a clean drift release.
+# Drive with real input events; check gas, brake priority and brake-tap drifting.
 var held := {}
-func _initialize():
-	call_deferred("run")
-func key(code: Key, down: bool):
-	if held.get(code, false) == down:
-		return
+func _initialize() -> void: call_deferred("run")
+func key(code: Key, down: bool) -> void:
+	if held.get(code,false) == down: return
 	held[code] = down
 	var event := InputEventKey.new()
 	event.keycode = code
 	event.physical_keycode = code
 	event.pressed = down
 	Input.parse_input_event(event)
-func run():
+func run() -> void:
 	if DisplayServer.get_name() == "headless":
-		push_error("Keyboard visual review requires a graphical display")
+		push_error("Keyboard review requires a graphical display")
 		quit(2)
 		return
 	var race = load("res://scenes/race.tscn").instantiate()
@@ -22,38 +20,37 @@ func run():
 	race.save_records = false
 	race.sound_enabled = false
 	await process_frame
-	key(KEY_ENTER, true)
+	key(KEY_ENTER,true)
 	await process_frame
-	key(KEY_ENTER, false)
+	key(KEY_ENTER,false)
+	key(KEY_W,true)
+	var saw_gas := false
+	var saw_brake := false
 	var saw_drift := false
-	var saw_boost := false
-	var saw_turbo := false
 	var captured := false
-	for frame in range(1200):
+	var entry_speed := 0.0
+	var braked_speed := 0.0
+	for frame in range(1000):
 		await physics_frame
 		var t: float = race.elapsed
-		var drifting := t > 4.5 and t < 5.3
-		var target := -3.2 if t < 1.5 or t >= 5.3 else 3.2
-		key(KEY_A, drifting or (not drifting and race.lane > target + 0.25))
-		key(KEY_D, not drifting and race.lane < target - 0.25)
-		key(KEY_SPACE, drifting)
-		key(KEY_SHIFT, t > 3 and t < 4.2)
+		key(KEY_S,t > 2.8 and t < 3.0)
+		key(KEY_D,t > 2.8 and t < 3.6)
+		saw_gas = saw_gas or (race.throttling and race.speed > 30)
+		saw_brake = saw_brake or race.braking
 		saw_drift = saw_drift or race.drifting
-		saw_boost = saw_boost or race.boosting
-		saw_turbo = saw_turbo or race.mini_turbo > 0
-		if t > 5.1 and not captured:
+		if t > 2.7 and t < 2.8: entry_speed = race.speed
+		if race.braking: braked_speed = race.speed
+		if t > 3.4 and not captured:
 			await RenderingServer.frame_post_draw
-			root.get_texture().get_image().save_png("res://docs/feel-keyboard-corner.png")
+			root.get_texture().get_image().save_png("res://docs/tour/keyboard-drift.png")
 			captured = true
-		if t > 8:
-			break
-	for code in held.keys():
-		key(code, false)
-	var report := {"drift_input":saw_drift,"boost_input":saw_boost,"mini_turbo":saw_turbo,"score":snappedf(race.score, 0.01),"lane":snappedf(race.lane, 0.01),"elapsed":snappedf(race.elapsed, 0.01)}
+		if t > 5: break
+	for code in held.keys(): key(code,false)
+	var report := {"gas_input":saw_gas,"brake_input":saw_brake,"brake_reduced_speed":braked_speed < entry_speed,"brake_tap_drift":saw_drift,"elapsed":snappedf(race.elapsed,0.01)}
 	print(JSON.stringify(report))
-	var output := FileAccess.open("res://docs/keyboard-metrics.json", FileAccess.WRITE)
-	output.store_string(JSON.stringify(report, "\t") + "\n")
+	var output := FileAccess.open("res://docs/keyboard-metrics.json",FileAccess.WRITE)
+	output.store_string(JSON.stringify(report,"\t")+"\n")
 	race.queue_free()
 	await process_frame
 	await process_frame
-	quit(0 if saw_drift and saw_boost and saw_turbo else 1)
+	quit(0 if saw_gas and saw_brake and saw_drift and braked_speed < entry_speed else 1)

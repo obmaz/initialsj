@@ -1,5 +1,7 @@
 extends Node3D
 var petals := CPUParticles3D.new()
+var material := ShaderMaterial.new()
+var last_theme := ""
 func _ready() -> void:
 	petals.amount = 36
 	petals.lifetime = 1.1
@@ -18,9 +20,8 @@ func _ready() -> void:
 	var mesh := QuadMesh.new()
 	mesh.size = Vector2(0.18, 0.18)
 	petals.mesh = mesh
-	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://shaders/sakura_petal.gdshader")
-	petals.material_override = mat
+	material.shader = preload("res://shaders/sakura_petal.gdshader")
+	petals.material_override = material
 	var fade := Gradient.new()
 	fade.set_color(0, Color(1, 1, 1, 0))
 	fade.set_color(1, Color(1, 1, 1, 0))
@@ -29,6 +30,16 @@ func _ready() -> void:
 	petals.color_ramp = fade
 	add_child(petals)
 func update(race: Node3D) -> void:
+	var theme: String = race.track.active.scenery.theme
+	if theme != last_theme:
+		last_theme = theme
+		var start := Color("ffe9c8") if theme in ["desert","pyramid","ruins"] else Color("f4f4ff")
+		var end := Color("c7a77e") if theme in ["desert","pyramid","ruins"] else Color("d4ebed")
+		if theme == "jeju": end = Color("ffb5ce")
+		material.set_shader_parameter("petal_start",start)
+		material.set_shader_parameter("petal_end",end)
+		material.set_shader_parameter("confetti",1.0 if theme == "amusement" else 0.0)
+		petals.amount = 20 if theme in ["city","seoul"] else 36
 	petals.emitting = race.state == "racing" and not race.motion_reduced
 	petals.visible = not race.motion_reduced
 	petals.position = race.track.point(race.distance + 18) + Vector3.UP * 3

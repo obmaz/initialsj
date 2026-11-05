@@ -9,11 +9,11 @@ var cue := AudioStreamPlayer.new()
 var impact_sound := AudioStreamPlayer.new()
 var last_count := 0
 var last_launch := 0.0
-var last_turbo := 0.0
+var last_drifts := 0
 var last_impact := 0.0
 var last_misses := 0
 var last_overtakes := 0
-var last_lap := 0.0
+var last_checkpoint := 0.0
 const COUNT_TONE = preload("res://assets/audio/countdown.wav")
 const LAUNCH_TONE = preload("res://assets/audio/launch.wav")
 const REWARD_TONE = preload("res://assets/audio/reward.wav")
@@ -40,16 +40,16 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var active: bool = race.state in ["countdown", "racing"] and race.sound_enabled
-	var number: int = ceili(race.countdown) if race.state == "countdown" else 0
+	var number: int = ceili(race.countdown) if race.state == "countdown" else (ceili(race.time_left) if race.state == "racing" and race.time_left <= 10 else 0)
 	if active:
 		var tone: AudioStream
 		if number > 0 and number != last_count:
 			tone = COUNT_TONE
 		elif race.launch_flash > last_launch + 0.05:
 			tone = LAUNCH_TONE
-		elif race.lap_flash > last_lap + 0.05:
+		elif race.checkpoint_flash > last_checkpoint + 0.05:
 			tone = LAP_TONE
-		elif race.mini_turbo > last_turbo + 0.05 or race.near_misses > last_misses or race.overtakes > last_overtakes:
+		elif race.drifts_completed > last_drifts or race.near_misses > last_misses or race.overtakes > last_overtakes:
 			tone = REWARD_TONE
 		if tone != null:
 			cue.stream = tone
@@ -61,11 +61,11 @@ func _process(delta: float) -> void:
 		impact_sound.stop()
 	last_count = number
 	last_launch = race.launch_flash
-	last_turbo = race.mini_turbo
+	last_drifts = race.drifts_completed
 	last_impact = race.impact
 	last_misses = race.near_misses
 	last_overtakes = race.overtakes
-	last_lap = race.lap_flash
+	last_checkpoint = race.checkpoint_flash
 	var gear := clampi(ceili(race.speed / 13), 1, 6)
 	var rpm: float = clampf((race.speed - (gear - 1) * 13) / 13, 0, 1)
 	var target_pitch := 0.82 + rpm * 0.38 + (gear - 1) * 0.075
