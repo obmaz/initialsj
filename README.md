@@ -1,3 +1,13 @@
+# Initial SJ — Godot 리빌드
+
+새 3D 레이싱 버전 **Alpine Rush**는 [`godot/`](godot/)에 있습니다. Godot에서 [`godot/project.godot`](godot/project.godot)을 가져와 실행하세요. [실행·조작·구현 범위](godot/README.md)를 확인할 수 있습니다.
+
+요청 목표는 Godot **4.7.2**이며, 현재 환경에서 실제 실행 검증한 버전은 **4.6.3**입니다. 새 버전은 프로시저럴 로우폴리 3D 프로토타입입니다.
+
+아래는 기존 Flutter 버전의 문서입니다. 기존 GitHub Pages는 이 Flutter 버전을 제공합니다.
+
+---
+
 # Initial SJ
 
 ## Play on Mobile
