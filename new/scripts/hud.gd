@@ -565,5 +565,7 @@ func draw_pace_feedback() -> void:
 		draw_rect(Rect2(0, 0, 1280, 720), Color(1, 0.35, 0.10, race.impact * 0.07))
 	if race.mini_turbo > 0 and not race.boosting:
 		centered(Vector2(640, 568), "MINI TURBO!", 26, GOLD)
+	elif race.near_miss_flash > 0:
+		centered(Vector2(640, 568), "NEAR MISS +100", 22, GOLD)
 	elif race.draft_charge > 0.65:
 		centered(Vector2(640, 568), "SLIPSTREAM", 20, CYAN)

@@ -11,6 +11,8 @@ var mini_turbo := 0.0
 var drift_charge := 0.0
 var draft_charge := 0.0
 var drafting := false
+var near_misses := 0
+var near_miss_flash := 0.0
 var impact := 0.0
 var boost_kick := 0.0
 var motion_reduced := false
@@ -67,7 +69,7 @@ func _ready() -> void:
 		var car := Car.new()
 		car.paint = Color(colors[i])
 		add_child(car)
-		rivals.append({"car": car, "distance": -10.0 - i * 9.0, "lane": 3.0 if i % 2 == 0 else -3.0, "pace": 47.0 + i * 0.85})
+		rivals.append({"car": car, "distance": 10.0 + i * 9.0, "lane": 3.0 if i % 2 == 0 else -3.0, "pace": 47.0 + i * 0.85})
 	brain.initialize(rivals)
 	camera = Camera3D.new()
 	camera.far = 2400
@@ -111,9 +113,11 @@ func restart() -> void:
 	drifting = false
 	boosting = false
 	drafting = false
+	near_misses = 0
+	near_miss_flash = 0
 	brain.initialize(rivals)
 	for i in range(rivals.size()):
-		rivals[i].distance = -10.0 - i * 9.0
+		rivals[i].distance = 10.0 + i * 9.0
 	place_cars()
 	update_camera(1)
 
@@ -162,6 +166,10 @@ func _physics_process(delta: float) -> void:
 
 func step(delta: float, axis: float, drift_input: bool, boost_input: bool, brake: bool) -> void:
 	elapsed += delta
+	near_miss_flash = maxf(0, near_miss_flash - delta)
+	var old_gaps: Array[float] = []
+	for rival in rivals:
+		old_gaps.append(wrapf(float(rival.distance) - distance, -track.length / 2, track.length / 2))
 	impact = maxf(0, impact - delta * 2.8)
 	boost_kick = maxf(0, boost_kick - delta * 2)
 	mini_turbo = maxf(0, mini_turbo - delta)
@@ -172,10 +180,10 @@ func step(delta: float, axis: float, drift_input: bool, boost_input: bool, brake
 	boosting = boost_input and nitro > 1 and not brake
 	if boosting and not was_boosting:
 		boost_kick = 1
-	if drifting:
+	if drifting and absf(lane) < 7.2:
 		drift_charge = minf(2.5, drift_charge + delta)
 	elif was_drifting:
-		if drift_charge > 0.55:
+		if drift_charge > 0.55 and not brake and absf(lane) < 7.4:
 			mini_turbo = minf(1.35, drift_charge * 0.5)
 			speed = minf(88, speed + 3)
 			boost_kick = 0.7
@@ -192,7 +200,8 @@ func step(delta: float, axis: float, drift_input: bool, boost_input: bool, brake
 	elif drifting:
 		target = 61 if not boosting else 76
 	speed = move_toward(speed, target, (34.0 if brake else (26.0 if boosting else 20.0)) * delta)
-	var target_lateral := steer * (10.5 if drifting else 7.6) * minf(speed / 20, 1)
+	var bend_rate := wrapf(track.heading(distance + 16) - track.heading(distance), -PI, PI) / 16
+	var target_lateral := steer * (10.5 if drifting else 7.6) * minf(speed / 20, 1) + bend_rate * speed * speed * 0.04
 	lane_velocity = move_toward(lane_velocity, target_lateral, delta * (17 if drifting else 33))
 	lane += lane_velocity * delta
 	if absf(lane) > 7.4:
@@ -206,11 +215,20 @@ func step(delta: float, axis: float, drift_input: bool, boost_input: bool, brake
 		nitro = maxf(0, nitro - delta * 24)
 	else:
 		nitro = minf(100, nitro + delta * (13 if drifting else 3 + draft_charge * 3))
-	if drifting:
+	if drifting and absf(lane) < 7.2:
 		score += delta * speed * (2.5 + drift_charge)
 	distance += speed * delta
 	bump_cooldown = maxf(0, bump_cooldown - delta)
 	brain.tick(self, delta)
+	for i in range(rivals.size()):
+		var rival: Dictionary = rivals[i]
+		var gap: float = wrapf(float(rival.distance) - distance, -track.length / 2, track.length / 2)
+		var lateral_gap: float = absf(float(rival.lane) - lane)
+		if old_gaps[i] > 0 and old_gaps[i] < 8 and gap <= 0 and lateral_gap > 1.95 and lateral_gap < 3.6:
+			near_misses += 1
+			near_miss_flash = 1.1
+			nitro = minf(100, nitro + 7)
+			score += 100
 	for rival in rivals:
 		var separation := wrapf(float(rival.distance) - distance, -track.length / 2, track.length / 2)
 		if absf(separation) < 4.1 and absf(float(rival.lane) - lane) < 1.9 and bump_cooldown <= 0:
@@ -245,9 +263,9 @@ func update_camera(delta: float) -> void:
 	var turbo := boosting or mini_turbo > 0
 	var shake := (0.012 * pace * pace + impact * 0.14) if active and not motion_reduced else 0.0
 	var vibration := right * sin(camera_time * 53) * shake + Vector3.UP * cos(camera_time * 67) * shake * 0.55
-	var desired := player.position - forward * (8.5 + pace * 0.9 + boost_kick * 0.8) + Vector3.UP * (3.8 - pace * 0.45) + vibration
+	var desired := player.position - forward * (6.1 + pace * 0.4 + (boost_kick * 0.55 if not motion_reduced else 0.0)) + Vector3.UP * (3.0 - pace * 0.30) + vibration
 	camera.position = camera.position.lerp(desired, 1.0 - exp(-delta * 9.0))
-	camera.look_at(player.position + forward * (14 + pace * 7) + right * steer * 1.1 + Vector3.UP * 1.15)
+	camera.look_at(player.position + forward * (2.5 + pace * 0.8) + right * steer * 0.7 + Vector3.UP * 0.7)
 	if not motion_reduced:
 		camera.rotate_object_local(Vector3.FORWARD, -steer * pace * (0.022 if drifting else 0.01))
 	var target_fov := (68.0 if motion_reduced else 64.0 + pace * 17.0) + (9 if turbo and active else 0)

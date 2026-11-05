@@ -18,7 +18,7 @@ func capture() -> void:
 		var shift: float = race.track.length * i / 4.0
 		race.distance = first_distance + shift
 		for j in range(race.rivals.size()):
-			race.rivals[j].distance = -10.0 - j * 9.0 + float(race.rivals[j].pace) * 6.0 + shift
+			race.rivals[j].distance = 10.0 + j * 9.0 + float(race.rivals[j].pace) * 6.0 + shift
 		race.place_cars()
 		race.update_camera(1)
 		race.hud.queue_redraw()
