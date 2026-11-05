@@ -115,7 +115,7 @@ func make_trees() -> void:
 		var d: float = i * track.length / 170.0 + rng.randf_range(-3, 3)
 		var lakeside := i % 6 == 0
 		var outer_belt := i % 4 == 1
-		var lane := rng.randf_range(-16, -14) if lakeside else rng.randf_range(65 if outer_belt else 19, 100 if outer_belt else 55)
+		var lane := rng.randf_range(-16, -14) if lakeside else rng.randf_range(65 if outer_belt else 14, 100 if outer_belt else 35)
 		var p := terrain_point(d, lane)
 		var is_sakura := i % 5 == 0 or lakeside
 		var source: Texture2D = SAKURA if is_sakura else PINE

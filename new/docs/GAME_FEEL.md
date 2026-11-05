@@ -1,4 +1,4 @@
-# Game feel review — iteration 1–4
+# Game feel review — iteration 1–5
 
 ## Measured in deterministic headless simulation
 
@@ -22,13 +22,19 @@ Raw values: `game-feel-metrics.json`. Run `godot --headless --path new --script 
 - Lower, closer chase camera, speed-sensitive FOV, restrained road vibration, impact feedback and nitro kick. Follow smoothing uses the offset from the player so speed cannot create excessive camera lag.
 - Edge speed streaks, blue nitro edge light, soft billboard tire smoke, tapered additive exhaust flames, turbo and near-miss callouts. A five-sample peripheral blur affects scenery before the HUD is drawn; reduced motion disables it.
 - Corrected inside-out vehicle surfaces and added a beveled painted shell, rear vents and spinning rims.
-- Impacts also slow the opponent. Engine playback stops on menus/mute and releases on scene exit. Explicit stream playback fixes the Web export’s unsupported sample-playback warning for generated audio.
-- Synthesized engine, tire and wind sound. V mutes sound; M reduces camera motion and streak effects, and browser reduced-motion preference is respected.
+- Impacts also slow the opponent. Engine playback stops on menus/mute and releases on scene exit. All layers explicitly use stream playback on Web.
+- Synthesized engine, tire and wind loops mixed independently of rendering frames. Countdown, drift-release, close-pass and impact sounds have short envelopes. V mutes sound; M reduces camera motion and streak effects, and browser reduced-motion preference is respected.
 - Reflective curve chevrons provide roadside motion cues.
 - Player tire trails follow the actual rear wheels during drifts, using one fixed 160-segment MultiMesh pool and fading after nine seconds. They reset between races.
 - The drift button fills a cyan/gold charge arc; releasing a gold charge awards mini turbo.
 - Pulsing countdown, start tones and a short GO cue emphasize the launch. An empty nitro tank requires 8% charge to restart, avoiding repeated tiny activation kicks.
 
+## Audio and roadside motion review
+
+The real audio mixer is captured by `tests/audio_review.gd` with a graphical display and Dummy audio. It checks nonzero output, clipping, sustained silent gaps during active sound and silence after muting; results are saved to `audio-metrics.json`, with a WAV in `user://audio-review.wav`. For example: `DISPLAY=:99 godot --path new --script res://tests/audio_review.gd --audio-driver Dummy`. This is a mixer-output test, not an assessment of speaker quality.
+
+Near-road trees, two batched red course-banner layers and a fixed 36-petal emitter provide additional motion cues. Petals remain in world space as the car passes them; reduced motion hides them. No generated environment images were replaced.
+
 ## Review discipline
 
-Check actual rendering and input after simulation. Headless speed/rank metrics do not establish perceived excitement or real-device frame rate. Keep `legacy/` unchanged. Native captures `feel-0.png` through `feel-3.png` cover acceleration, boost, drifting and drift release. A local Chromium WebGL run reached active racing and exercised Shift, M and V with no browser/Godot error output. Software-rendered frame rate is not a measurement of real-device performance. Browser checks are also required; simulation results do not establish perceived excitement or real-device frame rate.
+Check actual rendering and input after simulation. Headless speed/rank metrics do not establish perceived excitement or real-device frame rate. Keep `legacy/` unchanged. Native captures `feel-0.png` through `feel-3.png` cover acceleration, boost, drifting and drift release. A local Chromium WebGL run reached active racing and exercised Shift, M and V with no browser/Godot error output. Software-rendered frame rate is not a measurement of real-device performance.
