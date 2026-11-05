@@ -18,9 +18,11 @@ var boost_kick := 0.0
 var motion_reduced := false
 var sound_enabled := true
 var camera_time := 0.0
+var camera_offset := Vector3.ZERO
 var track: Track
 var player: Car
 var camera: Camera3D
+var speed_effect: ColorRect
 var hud: HUD
 var rivals: Array[Dictionary] = []
 var distance := 0.0
@@ -78,6 +80,14 @@ func _ready() -> void:
 	camera.current = true
 	var canvas := CanvasLayer.new()
 	add_child(canvas)
+	speed_effect = ColorRect.new()
+	speed_effect.visible = false
+	speed_effect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	speed_effect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var effect_material := ShaderMaterial.new()
+	effect_material.shader = preload("res://shaders/speed_blur.gdshader")
+	speed_effect.material = effect_material
+	canvas.add_child(speed_effect)
 	hud = HUD.new()
 	hud.race = self
 	canvas.add_child(hud)
@@ -110,6 +120,7 @@ func restart() -> void:
 	impact = 0
 	boost_kick = 0
 	steer = 0
+	camera_offset = Vector3.ZERO
 	drifting = false
 	boosting = false
 	drafting = false
@@ -158,9 +169,13 @@ func _physics_process(delta: float) -> void:
 		axis = clampf(axis + hud.touch_axis(), -1, 1)
 		step(delta, axis, Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift"), Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("boost"), Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake"))
 	place_cars()
+	speed_effect.visible = state == "racing" and not motion_reduced and speed > 35
+	speed_effect.material.set_shader_parameter("strength", clampf((speed - 35) / 53, 0, 1))
 	update_camera(delta)
+	player.road_speed = speed if state == "racing" else 0.0
 	player.animate(steer, drifting and state == "racing", (boosting or mini_turbo > 0) and state == "racing", delta)
 	for rival in rivals:
+		rival.car.road_speed = rival.speed if state == "racing" else 0.0
 		rival.car.animate(clampf((float(rival.target_lane) - float(rival.lane)) / 2, -1, 1), false, rival.boosting and state == "racing", delta)
 	hud.queue_redraw()
 
@@ -233,6 +248,7 @@ func step(delta: float, axis: float, drift_input: bool, boost_input: bool, brake
 		var separation := wrapf(float(rival.distance) - distance, -track.length / 2, track.length / 2)
 		if absf(separation) < 4.1 and absf(float(rival.lane) - lane) < 1.9 and bump_cooldown <= 0:
 			speed *= 0.74
+			rival.speed *= 0.88
 			lane_velocity += -3.0 if lane < float(rival.lane) else 3.0
 			impact = 1
 			bump_cooldown = 0.65
@@ -263,12 +279,14 @@ func update_camera(delta: float) -> void:
 	var turbo := boosting or mini_turbo > 0
 	var shake := (0.012 * pace * pace + impact * 0.14) if active and not motion_reduced else 0.0
 	var vibration := right * sin(camera_time * 53) * shake + Vector3.UP * cos(camera_time * 67) * shake * 0.55
-	var desired := player.position - forward * (6.1 + pace * 0.4 + (boost_kick * 0.55 if not motion_reduced else 0.0)) + Vector3.UP * (3.0 - pace * 0.30) + vibration
-	camera.position = camera.position.lerp(desired, 1.0 - exp(-delta * 9.0))
+	var desired_offset := -forward * (6.1 + pace * 0.4 + (boost_kick * 0.55 if not motion_reduced else 0.0)) + Vector3.UP * (3.0 - pace * 0.30) + vibration
+	# Smooth the relative chase offset, not world position: speed must not add 10 m of camera lag.
+	camera_offset = camera_offset.lerp(desired_offset, 1.0 - exp(-delta * 9.0))
+	camera.position = player.position + camera_offset
 	camera.look_at(player.position + forward * (2.5 + pace * 0.8) + right * steer * 0.7 + Vector3.UP * 0.7)
 	if not motion_reduced:
 		camera.rotate_object_local(Vector3.FORWARD, -steer * pace * (0.022 if drifting else 0.01))
-	var target_fov := (68.0 if motion_reduced else 64.0 + pace * 17.0) + (9 if turbo and active else 0)
+	var target_fov := (68.0 if motion_reduced else 64.0 + pace * 17.0) + (9 if turbo and active and not motion_reduced else 0)
 	camera.fov = lerpf(camera.fov, target_fov, 1.0 - exp(-delta * (8 if turbo else 4)))
 
 func rank_position() -> int:
