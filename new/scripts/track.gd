@@ -117,6 +117,7 @@ func _ready() -> void:
 	scenery = Scenery.new()
 	scenery.track = self
 	add_child(scenery)
+	make_course_banners()
 	# Starting stripe and a welcome gantry farther along the lakeside road.
 	for i in range(18):
 		for row in range(2):
@@ -201,6 +202,32 @@ func make_curve_markers() -> void:
 		instances.set_instance_transform(i, Transform3D(basis, point(d, side * 11.5) + Vector3.UP * 1.9))
 	var node := MultiMeshInstance3D.new()
 	node.multimesh = instances
+	node.material_override = mat
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(node)
+
+func make_course_banners() -> void:
+	var poles: Array[Transform3D] = []
+	var flags := MultiMesh.new()
+	flags.transform_format = MultiMesh.TRANSFORM_3D
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2(1.6, 6.4)
+	mesh.subdivide_depth = 10
+	flags.mesh = mesh
+	flags.instance_count = int(length / 95) * 2
+	for i in range(flags.instance_count):
+		var d := 55.0 + floori(i / 2.0) * 95.0
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var base: Vector3 = scenery.terrain_point(d, side * 13.8)
+		poles.append(Transform3D(Basis.IDENTITY, base + Vector3.UP * 3.8))
+		var center := point(d, side * 13.0)
+		center.y = base.y + 4.3
+		flags.set_instance_transform(i, Transform3D(Basis(Vector3.UP, heading(d)).scaled(Vector3(-side, 1, 1)), center))
+	box_batch(Vector3(0.08, 7.6, 0.08), material(Color("899aa1"), 0.6), poles)
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/course_banner.gdshader")
+	var node := MultiMeshInstance3D.new()
+	node.multimesh = flags
 	node.material_override = mat
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(node)

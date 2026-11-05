@@ -17,6 +17,7 @@ func run() -> void:
 			race.step(1.0 / 60, axis, drift, stage == 1, false)
 			race.place_cars()
 			race.tire_trails.update(race)
+			race.speed_ambience.update(race)
 			race.player.road_speed = race.speed
 			race.player.animate(race.steer, race.drifting, race.boosting or race.mini_turbo > 0, 1.0 / 60)
 			race.update_camera(1.0 / 60)

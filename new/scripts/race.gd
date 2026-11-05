@@ -25,6 +25,7 @@ var player: Car
 var camera: Camera3D
 var speed_effect: ColorRect
 var tire_trails: Node3D
+var speed_ambience: Node3D
 var hud: HUD
 var rivals: Array[Dictionary] = []
 var distance := 0.0
@@ -68,6 +69,8 @@ func _ready() -> void:
 	add_child(sun)
 	tire_trails = preload("res://scripts/tire_trails.gd").new()
 	add_child(tire_trails)
+	speed_ambience = preload("res://scripts/speed_ambience.gd").new()
+	add_child(speed_ambience)
 	player = Car.new()
 	add_child(player)
 	var colors := ["ffc94d", "438aef", "a58aeb", "eee6db", "44bea9", "ee843f", "6c92a1"]
@@ -177,6 +180,7 @@ func _physics_process(delta: float) -> void:
 		step(delta, axis, Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift"), Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("boost"), Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake"))
 	place_cars()
 	tire_trails.update(self)
+	speed_ambience.update(self)
 	speed_effect.visible = state == "racing" and not motion_reduced and speed > 35
 	speed_effect.material.set_shader_parameter("strength", clampf((speed - 35) / 53, 0, 1))
 	update_camera(delta)
