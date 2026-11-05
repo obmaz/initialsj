@@ -410,7 +410,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		lane_velocity *= -0.28
 		if bump_cooldown <= 0:
 			wall_hits += 1
-			speed *= 1-0.28*vehicle.impact_loss
+			speed *= 0.72
 			register_impact(0.8,Vector2(-side,0))
 	distance += speed*delta
 	brain.tick(self,delta)
@@ -527,12 +527,12 @@ func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
 	if bump_cooldown > 0: return
 	var relative := speed-float(r.speed)
 	if absf(normal.x) > 0.65:
-		speed *= 1-0.13*vehicle.impact_loss
+		speed *= 0.87
 		r.speed *= 0.91
 	else:
 		var impulse := absf(relative) * 0.6
 		if normal.y < 0:
-			speed = maxf(0,speed-(impulse+4)*vehicle.impact_loss)
+			speed = maxf(0,speed-impulse-4)
 			r.speed = minf(70,r.speed+impulse*0.35)
 		else:
 			speed = minf(88,speed+minf(5,impulse*0.3))

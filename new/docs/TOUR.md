@@ -24,6 +24,8 @@ Six archetypes use batched geometry: low brick blocks, glass high-rises, stepped
 
 Normal driving emits no pollen, dust or confetti. Tire smoke is limited to drifting, sparks to collisions, celebration confetti to one-shot checkpoint/goal events, and the vehicle-colored exhaust effect to active nitro. Reduced motion disables celebrations, scenery blur, speed lines and extra camera motion; collision sparks use fewer particles.
 
+The garage exposes exactly four abilities: top speed, acceleration, boost and handling. Its shared ten-point bars derive speed/acceleration/boost from actual driving values; boost rates nitro acceleration. Nitro resource type is a separate mechanic. Collision speed-loss factors are identical for all vehicles.
+
 Vehicle profiles live in `vehicle_catalog.gd`: Nimori cruises at 273.6 km/h and boosts to 334.8; Veltrix cruises at 306 and fires 385.2 km/h shots; Ironvale cruises at 284.4, holds gauge boost at 331.2 and reaches 367.2 with a cell. Slipstream adds up to 28.8 km/h to cruise. Actual attained speed depends on acceleration, cornering and traffic.
 
 Nimori holds Shift/NITRO to drain 19 fuel/s, recharging 3/s normally or 9/s drifting. Veltrix starts with three 2.4 s prepaid shots, triggered once per tap. Ironvale holds Shift for a 24 fuel/s gauge or presses E/CELL for an independent 1.6 s overdrive (two cells). Hybrid recharge is 2/s normally, 7/s drifting. Overdrive does not drain gauge fuel. Every checkpoint restores one shot/cell up to capacity and adds 25 gauge fuel; close passes add 12. Gauge lockout ends at 12 units.
@@ -37,7 +39,7 @@ Starting time is 70 s. Checkpoints add 60 minus twice the accumulated number of 
 - `tests/race_test.gd`: open roads, fork/world-position continuity, actual changing mesh widths, upward map orientation, nitro acceleration/fuel/brake override/lockout, sparse canopies, long tunnel coverage, denser hard-route traffic, road difficulty and resized touch controls.
 - `tests/contact_review.gd`: independent world-space polygon intersections after actual collision resolution on bends, across lane positions and drift angles.
 - `tests/tour_review.gd`: braking/drifting/planned nitro controllers finish left, right and mixed Nimori routes, and all-right routes in Veltrix and Ironvale. The gas-only controller times out in stage two. These are scripted simulations, not human playtest timings. Raw results: `tour-metrics.json`.
-- `tests/garage_review.gd` / `garage_checks.gd`: three-car selection, resized touch regions, different acceleration/armor, gauge/shot/hybrid resource rules, checkpoint refill and the P2/P3 regressions in [CODE_REVIEW.md](CODE_REVIEW.md). The main `race_test.gd` also invokes this suite for CI.
+- `tests/garage_review.gd` / `garage_checks.gd`: three-car selection, resized touch regions, different acceleration and uniform collision loss, gauge/shot/hybrid resource rules, checkpoint refill and the P2/P3 regressions in [CODE_REVIEW.md](CODE_REVIEW.md). The main `race_test.gd` also invokes this suite for CI.
 - `tests/keyboard_review.gd`: real input events for gas, braking, brake-tap drift and Shift nitro.
 - `tests/preview_tour.gd`: controlled rendered fixtures; pass scene names after `--` to review selected views. New views include `long-tunnel`, `narrow`, `wide`, `city`, `canopy`, `speed` and `fork`.
 - `tests/touch_review.cjs`: actual exported-game touch controls in Chromium's landscape phone emulation. It does not measure a physical phone.
