@@ -52,8 +52,35 @@ func run() -> void:
 	race.restart()
 	check(race.distance == 0 and race.score == 0 and race.nitro == 100 and race.state == "countdown", "Restart must reset race state")
 	race.hud.fingers[0] = Vector2(70, 630)
-	race.hud.fingers[1] = Vector2(1180, 630)
+	race.hud.fingers[1] = Vector2(960, 616)
 	check(race.hud.touch_axis() == -1 and race.hud.held("boost"), "Multi-touch steering and boost must work together")
+	check(not race.hud.hit_button("left", Vector2(28, 563)), "Circular controls must ignore transparent corners")
+	# The inverse transform must keep touch targets aligned on ultrawide and portrait windows.
+	for viewport_size in [Vector2i(1920, 1080), Vector2i(2340, 1080), Vector2i(390, 844)]:
+		root.size = viewport_size
+		var center: Vector2 = race.hud.buttons.boost.get_center()
+		var screen: Vector2 = center * race.hud.ui_scale() + race.hud.ui_offset()
+		var touch := InputEventScreenTouch.new()
+		touch.index = 7
+		touch.position = screen
+		touch.pressed = true
+		race.state = "racing"
+		race.hud.fingers.clear()
+		race.hud.handle_pointer(touch)
+		check(race.hud.held("boost"), "Boost hit target must align after resizing")
+		touch.pressed = false
+		race.hud.handle_pointer(touch)
+		check(not race.hud.held("boost"), "Touch release must clear the button")
+	root.size = Vector2i(1280, 720)
+	race.hud.fingers[0] = Vector2(70, 630)
+	var pause_touch := InputEventScreenTouch.new()
+	pause_touch.index = 8
+	pause_touch.position = race.hud.buttons.pause.get_center() * race.hud.ui_scale() + race.hud.ui_offset()
+	pause_touch.pressed = true
+	race.hud.handle_pointer(pause_touch)
+	check(race.state == "paused" and race.hud.fingers.is_empty(), "Touch pause must clear held driving controls")
+	race.hud.handle_pointer(pause_touch)
+	check(race.state == "racing", "Lap panel must also resume the race")
 	print("Race checks: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	race.queue_free()
 	await process_frame
