@@ -1,4 +1,4 @@
-# Game feel review — iteration 1–5
+# Game feel review — iteration 1–6
 
 ## Measured in deterministic headless simulation
 
@@ -20,8 +20,8 @@ Raw values: `game-feel-metrics.json`. Run `godot --headless --path new --script 
 - CPU traffic-aware lane selection, gap braking, corner-speed planning and exit boost. No distance teleporting or position-based speed boost.
 - Player starts eighth; CPU and player share the 88 m/s hard speed cap.
 - Lower, closer chase camera, speed-sensitive FOV, restrained road vibration, impact feedback and nitro kick. Follow smoothing uses the offset from the player so speed cannot create excessive camera lag.
-- Edge speed streaks, blue nitro edge light, soft billboard tire smoke, tapered additive exhaust flames, turbo and near-miss callouts. A five-sample peripheral blur affects scenery before the HUD is drawn; reduced motion disables it.
-- Corrected inside-out vehicle surfaces and added a beveled painted shell, rear vents and spinning rims.
+- Edge speed streaks, blue nitro edge light, soft billboard tire smoke, tapered additive blue exhaust flames and soft outlet halos, turbo and near-miss callouts. A five-sample peripheral blur affects scenery before the HUD is drawn; reduced motion disables it.
+- Corrected inside-out vehicle surfaces and added a beveled painted shell, rear vents, tapered diffuser, metal exhaust outlets and spinning five-spoke rims. Thin tail LEDs and restrained clearcoat refine the chase view.
 - Impacts also slow the opponent. Engine playback stops on menus/mute and releases on scene exit. All layers explicitly use stream playback on Web.
 - Synthesized engine, tire and wind loops mixed independently of rendering frames. Countdown, drift-release, close-pass and impact sounds have short envelopes. V mutes sound; M reduces camera motion and streak effects, and browser reduced-motion preference is respected.
 - Reflective curve chevrons provide roadside motion cues.
@@ -34,6 +34,10 @@ Raw values: `game-feel-metrics.json`. Run `godot --headless --path new --script 
 The real audio mixer is captured by `tests/audio_review.gd` with a graphical display and Dummy audio. It checks nonzero output, clipping, sustained silent gaps during active sound and silence after muting; results are saved to `audio-metrics.json`, with a WAV in `user://audio-review.wav`. For example: `DISPLAY=:99 godot --path new --script res://tests/audio_review.gd --audio-driver Dummy`. This is a mixer-output test, not an assessment of speaker quality.
 
 Near-road trees, two batched red course-banner layers and a fixed 36-petal emitter provide additional motion cues. Petals remain in world space as the car passes them; reduced motion hides them. No generated environment images were replaced.
+
+## Keyboard integration review
+
+`DISPLAY=:99 godot --path new --script res://tests/keyboard_review.gd --audio-driver Dummy` sends real keyboard events through the scene rather than calling the simulation step directly. It verifies acceleration/boost, steering into a drift and releasing a charged drift into mini turbo. The corner capture is `feel-keyboard-corner.png`; observed flags and score are in `keyboard-metrics.json`. Timing and pose depend on rendering, so this is not a deterministic balance replay. A Chromium touch run at 896×414 also exercised steering and boost together with no page overflow or error output; see `feel-mobile.png`.
 
 ## Review discipline
 
