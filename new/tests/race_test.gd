@@ -20,6 +20,11 @@ func run() -> void:
 	var track = race.track
 	check(track.point(0).distance_to(track.point(track.length)) < 0.001, "Course must form a closed loop")
 	check(track.point(-5).distance_to(track.point(track.length - 5)) < 0.001, "Negative start-grid distances must wrap")
+	check(race.hud.map_point(0).distance_to(race.hud.map_point(track.length)) < 0.01, "HUD route must close at the lap boundary")
+	check(race.hud.map_point(-5).distance_to(race.hud.map_point(track.length - 5)) < 0.01, "Starting grid markers must wrap on the HUD route")
+	check(race.hud.map_point(track.length - 0.01).distance_to(race.hud.map_point(0)) < 0.1, "HUD markers must not jump at the finish line")
+	for progress in [0.0, 0.25, 0.5, 0.75]:
+		check(Rect2(1090, 70, 180, 120).has_point(race.hud.map_point(track.length * progress)), "HUD route must stay inside its safe area")
 	race.restart()
 	race.state = "racing"
 	# Move opponents clear of the player for deterministic control checks.
