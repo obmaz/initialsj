@@ -110,6 +110,7 @@ func _ready() -> void:
 	var colors := ["e7c456","91aabe","aaa3b7","e8e5dc","4c9c97","ad6f55","62798c"]
 	for i in range(12):
 		var car := Car.new()
+		car.traffic = true
 		car.paint = Color(colors[i % colors.size()])
 		add_child(car)
 		rivals.append({"car":car})
@@ -440,7 +441,9 @@ func place_cars(delta: float = 1.0) -> void:
 			f = track.traffic_point(r.distance+2,r.lane,r.route_side)-track.traffic_point(r.distance-2,r.lane,r.route_side)
 		set_car_frame(r.car,p,f,delta)
 		r.car.body.rotation.y = r.visual_yaw
-		r.car.visible = p.distance_to(player.position) < 460
+		var gap := p.distance_to(player.position)
+		r.car.visible = gap < 460
+		r.car.set_detail(gap)
 
 func set_car_frame(car: Node3D, p: Vector3, forward: Vector3, delta: float) -> void:
 	car.position = p + Vector3.UP*0.12
