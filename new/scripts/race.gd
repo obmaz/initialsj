@@ -106,6 +106,8 @@ func _ready() -> void:
 	impacts = preload("res://scripts/impact_effect.gd").new()
 	add_child(impacts)
 	player = Car.new()
+	player.model = "ae86"
+	player.paint = Color("f0f1ed")
 	add_child(player)
 	var colors := ["e7c456","91aabe","aaa3b7","e8e5dc","4c9c97","ad6f55","62798c"]
 	for i in range(12):

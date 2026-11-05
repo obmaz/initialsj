@@ -34,9 +34,10 @@ func update(race: Node3D) -> void:
 		previous.clear()
 		return
 	var points: Array[Vector3] = []
-	for side in [-1, 1]:
-		var p: Vector3 = race.player.body.to_global(Vector3(side * 0.83, 0, 1.35))
-		p.y = race.track.point(race.distance - 1.35).y + 0.045
+	for wheel_index in [1, 3]:
+		var wheel: Node3D = race.player.wheels[wheel_index]
+		var p: Vector3 = race.player.body.to_global(wheel.position)
+		p.y = race.track.point(race.distance - wheel.position.z).y + 0.045
 		points.append(p)
 	if previous.is_empty():
 		previous = points
