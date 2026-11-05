@@ -50,6 +50,8 @@ func _ready() -> void:
 		plume.bottom_radius = 0.18
 		plume.height = 1.2
 		plume.radial_segments = 12
+		plume.cap_top = false
+		plume.cap_bottom = false
 		flame.mesh = plume
 		var plume_material := ShaderMaterial.new()
 		plume_material.shader = preload("res://shaders/nitro_flame.gdshader")

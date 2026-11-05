@@ -16,13 +16,14 @@ func run() -> void:
 			var axis := -0.25 if drift else 0.0
 			race.step(1.0 / 60, axis, drift, stage == 1, false)
 			race.place_cars()
+			race.tire_trails.update(race)
 			race.player.road_speed = race.speed
 			race.player.animate(race.steer, race.drifting, race.boosting or race.mini_turbo > 0, 1.0 / 60)
 			race.update_camera(1.0 / 60)
 			race.speed_effect.visible = true
 			race.speed_effect.material.set_shader_parameter("strength", clampf((race.speed - 35) / 53, 0, 1))
-			# Only render the last few frames: simulation remains deterministic and preview is quick.
-			if frame > (174 if stage == 0 else 54):
+			# Only render the last half-second: simulation remains deterministic and preview is quick.
+			if frame > (149 if stage == 0 else 29):
 				await process_frame
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://docs/feel-%d.png" % stage)
