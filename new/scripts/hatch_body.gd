@@ -1,5 +1,5 @@
 extends RefCounted
-# Original low-poly three-door AE86 Trueno body; shares the existing driving/effects rig.
+# Original low-poly three-door Nimori body; shares the existing driving/effects rig.
 static func build(car: Node3D) -> void:
 	var white: StandardMaterial3D = car.mat(car.paint,0.18)
 	white.roughness = 0.28
@@ -41,8 +41,8 @@ static func build(car: Node3D) -> void:
 		car.block(Vector3(side*0.80,0.87,2.15),Vector3(0.10,0.105,0.025),car.mat(Color("d58c30")))
 		car.block(Vector3(side*0.32,0.87,2.15),Vector3(0.12,0.105,0.025),car.mat(Color("d9ddd5")))
 	car.block(Vector3(0,0.64,2.255),Vector3(0.46,0.17,0.025),car.mat(Color("e7e8db")))
-	label(car,"AE86",Vector3(0,0.64,2.273),Color("26312a"),0.002)
-	label(car,"TRUENO",Vector3(-0.52,1.006,2.10),Color("20282b"),0.0015)
+	label(car,"NIMORI",Vector3(0,0.64,2.273),Color("26312a"),0.002)
+	label(car,"N-H",Vector3(-0.52,1.006,2.10),Color("20282b"),0.0015)
 	beam(car,Vector3(0,1.11,1.48),Vector3(0.37,1.24,1.23),0.025,black)
 	var exhaust := MeshInstance3D.new()
 	var pipe := TorusMesh.new()
@@ -55,32 +55,8 @@ static func build(car: Node3D) -> void:
 	car.body.add_child(exhaust)
 	exhaust.position = Vector3(-0.61,0.32,2.23)
 	exhaust.rotation.x = PI/2
-	var flame := MeshInstance3D.new()
-	var plume := CylinderMesh.new()
-	plume.top_radius = 0.015
-	plume.bottom_radius = 0.13
-	plume.height = 0.9
-	plume.radial_segments = 10
-	plume.cap_top = false
-	plume.cap_bottom = false
-	flame.mesh = plume
-	var flame_material := ShaderMaterial.new()
-	flame_material.shader = preload("res://shaders/nitro_flame.gdshader")
-	flame.material_override = flame_material
-	flame.position = Vector3(-0.61,0.32,2.65)
-	flame.rotation.x = PI/2
-	flame.visible = false
-	car.body.add_child(flame)
-	car.nitro_flames.append(flame)
-	var headlight := SpotLight3D.new()
-	headlight.position = Vector3(0,1.1,-1.95)
-	headlight.light_color = Color("fff0d5")
-	headlight.light_energy = 2.5
-	headlight.spot_range = 65
-	headlight.spot_angle = 48
-	headlight.visible = false
-	car.body.add_child(headlight)
-	car.headlight = headlight
+	car.add_boost_jet(Vector3(-0.61,0.32,2.23),0.13)
+	car.add_headlight(Vector3(0,1.1,-1.95))
 
 static func beam(car: Node3D, a: Vector3, b: Vector3, width: float, material: Material) -> void:
 	var part: MeshInstance3D = car.block((a+b)/2,Vector3(width,width,a.distance_to(b)),material)
@@ -97,24 +73,24 @@ static func label(car: Node3D, text: String, position: Vector3, color: Color, pi
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	car.body.add_child(node)
 
-static func arch_bottom(z: float) -> float:
-	var offset := minf(absf(z-1.25),absf(z+1.25))
-	return 0.39+sqrt(maxf(0,0.46*0.46-offset*offset)) if offset < 0.46 else 0.22
+static func arch_bottom(z: float, axle: float = 1.25, radius: float = 0.46, center_y: float = 0.39) -> float:
+	var offset := minf(absf(z-axle),absf(z+axle))
+	return center_y+sqrt(maxf(0,radius*radius-offset*offset)) if offset < radius else 0.22
 
-static func make_arch_panels(car: Node3D, white: Material, black: Material) -> void:
+static func make_arch_panels(car: Node3D, white: Material, black: Material, half_width: float = 0.90, half_length: float = 2.06, axle: float = 1.25, radius: float = 0.46, center_y: float = 0.39, upper: float = 1.0, split: float = 0.60) -> void:
 	for lower in [false,true]:
 		var surface := SurfaceTool.new()
 		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 		for side in [-1.0,1.0]:
 			for i in range(100):
-				var a := -2.06+i*4.12/100
-				var b := -2.06+(i+1)*4.12/100
-				var bottom_a := arch_bottom(a)
-				var bottom_b := arch_bottom(b)
-				var top := 0.60 if lower else 1.0
-				bottom_a = minf(top,bottom_a) if lower else maxf(0.60,bottom_a)
-				bottom_b = minf(top,bottom_b) if lower else maxf(0.60,bottom_b)
-				var points := [Vector3(side*0.90,bottom_a,a),Vector3(side*0.90,bottom_b,b),Vector3(side*0.90,top,a),Vector3(side*0.90,top,b)]
+				var a := -half_length+i*half_length*2/100
+				var b := -half_length+(i+1)*half_length*2/100
+				var bottom_a := arch_bottom(a,axle,radius,center_y)
+				var bottom_b := arch_bottom(b,axle,radius,center_y)
+				var top := split if lower else upper
+				bottom_a = minf(top,bottom_a) if lower else maxf(split,bottom_a)
+				bottom_b = minf(top,bottom_b) if lower else maxf(split,bottom_b)
+				var points := [Vector3(side*half_width,bottom_a,a),Vector3(side*half_width,bottom_b,b),Vector3(side*half_width,top,a),Vector3(side*half_width,top,b)]
 				for index in ([0,1,2,1,3,2] if side > 0 else [0,2,1,1,2,3]):
 					surface.set_normal(Vector3(side,0,0))
 					surface.add_vertex(points[index])

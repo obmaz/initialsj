@@ -2,6 +2,12 @@ extends Node3D
 
 var paint := Color("b51223")
 var model := "sport"
+var wheel_half_track := 1.02
+var wheel_half_base := 1.35
+var wheel_thickness := 0.3
+var rim_scale := 1.0
+var ride_offset := 0.0
+var nitro_tint := Color("56dfff")
 var wheel_radius := 0.43
 var road_speed := 0.0
 var traffic := false
@@ -42,12 +48,25 @@ func block(pos: Vector3, size: Vector3, material: Material) -> MeshInstance3D:
 func _ready() -> void:
 	body = Node3D.new()
 	add_child(body)
-	if model == "ae86":
+	if model == "hatch":
 		wheel_radius = 0.37
-		body.position.y = -0.12
-		preload("res://scripts/ae86_body.gd").build(self)
+		wheel_half_track = 0.82
+		wheel_half_base = 1.25
+		wheel_thickness = 0.22
+		rim_scale = 0.86
+		ride_offset = -0.12
+		preload("res://scripts/hatch_body.gd").build(self)
+	elif model in ["wedge","muscle"]:
+		wheel_radius = 0.38 if model == "wedge" else 0.40
+		wheel_half_track = 0.94 if model == "wedge" else 0.90
+		wheel_half_base = 1.32 if model == "wedge" else 1.30
+		wheel_thickness = 0.30 if model == "wedge" else 0.28
+		rim_scale = 1.0 if model == "wedge" else 0.94
+		ride_offset = -0.12
+		preload("res://scripts/custom_bodies.gd").build(self)
 	else:
 		make_sport_body()
+	body.position.y = ride_offset
 	make_drift_smoke()
 	make_wheels()
 	merge_static_body()
@@ -143,20 +162,20 @@ func make_drift_smoke() -> void:
 		fade.set_color(1, Color(0.78, 0.83, 0.9, 0))
 		particles.color_ramp = fade
 		body.add_child(particles)
-		particles.position = Vector3(x, 0.25, 1.25 if model == "ae86" else 1.4)
+		particles.position = Vector3(x, 0.25, wheel_half_base)
 		smoke.append(particles)
 
 func make_wheels() -> void:
 	var rim_mesh := make_rim_mesh()
-	var axle := 0.82 if model == "ae86" else 1.02
-	var wheelbase := 1.25 if model == "ae86" else 1.35
+	var axle := wheel_half_track
+	var wheelbase := wheel_half_base
 	for x in [-axle, axle]:
 		for z in [-wheelbase, wheelbase]:
 			var wheel := MeshInstance3D.new()
 			var mesh := CylinderMesh.new()
 			mesh.top_radius = wheel_radius
 			mesh.bottom_radius = wheel_radius
-			mesh.height = 0.22 if model == "ae86" else 0.3
+			mesh.height = wheel_thickness
 			mesh.radial_segments = 24
 			wheel.mesh = mesh
 			wheel.material_override = mat(Color("131b23"))
@@ -166,10 +185,10 @@ func make_wheels() -> void:
 			wheels.append(wheel)
 			var rim := MeshInstance3D.new()
 			rim.mesh = rim_mesh
-			if model == "ae86": rim.scale = Vector3.ONE * 0.86
-			rim.material_override = mat(Color("737b7f") if model == "ae86" else Color("83939e"), 0.85)
+			rim.scale = Vector3.ONE*rim_scale
+			rim.material_override = mat(Color("737b7f") if model == "hatch" else Color("83939e"), 0.85)
 			wheel.add_child(rim)
-			rim.position.y = -signf(x) * (0.12 if model == "ae86" else 0.165)
+			rim.position.y = -signf(x) * (wheel_thickness*0.5+0.015)
 			if x > 0:
 				rim.rotation.z = PI
 
@@ -177,7 +196,7 @@ func animate(steer: float, drifting: bool, boosting: bool, delta: float, yaw: fl
 	body.rotation.z = lerp(body.rotation.z, -steer * 0.06, delta * 8)
 	body.rotation.y = lerp_angle(body.rotation.y,-steer*(0.40 if drifting else 0.07),delta*6) if is_nan(yaw) else yaw
 	body.rotation.x = lerpf(body.rotation.x,0.07 if braking else 0.0,1-exp(-delta*8))
-	body.position.y = (-0.12 if model == "ae86" else 0.0) + sin(Time.get_ticks_msec()*0.05)*hit*0.08
+	body.position.y = ride_offset + sin(Time.get_ticks_msec()*0.05)*hit*0.08
 	for lamp in brake_lights: lamp.emission_energy_multiplier = 4.5 if braking else 1.7
 	for wheel in wheels:
 		wheel.rotate_object_local(Vector3.UP, -road_speed * delta / wheel_radius)
@@ -247,7 +266,7 @@ func make_rim_mesh() -> ArrayMesh:
 		for index in [0, 1, 2, 1, 3, 2]:
 			st.set_normal(Vector3.UP)
 			st.add_vertex(points[index])
-	var spoke_count := 8 if model == "ae86" else 5
+	var spoke_count := 8 if model == "hatch" else (6 if model == "wedge" else 5)
 	for i in range(spoke_count):
 		var angle := TAU * i / spoke_count
 		var direction := Vector3(cos(angle), 0, sin(angle))
@@ -314,3 +333,45 @@ func merge_static_body() -> void:
 func set_detail(distance_to_player: float) -> void:
 	for wheel in wheels: wheel.visible = distance_to_player < 110
 	if traffic_wheels != null: traffic_wheels.visible = distance_to_player >= 110
+
+func add_boost_jet(pos: Vector3, radius: float) -> void:
+	var flame := MeshInstance3D.new()
+	var plume := CylinderMesh.new()
+	plume.top_radius = 0.015
+	plume.bottom_radius = radius
+	plume.height = 1.2
+	plume.radial_segments = 12
+	plume.cap_top = false
+	plume.cap_bottom = false
+	flame.mesh = plume
+	var material := ShaderMaterial.new()
+	material.shader = preload("res://shaders/nitro_flame.gdshader")
+	material.set_shader_parameter("tint",nitro_tint)
+	flame.material_override = material
+	body.add_child(flame)
+	flame.position = pos+Vector3(0,0,0.48)
+	flame.rotation.x = PI/2
+	flame.visible = false
+	nitro_flames.append(flame)
+	var glow := MeshInstance3D.new()
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE*radius*4
+	glow.mesh = quad
+	var glow_material := ShaderMaterial.new()
+	glow_material.shader = preload("res://shaders/nitro_glow.gdshader")
+	glow_material.set_shader_parameter("tint",nitro_tint)
+	glow.material_override = glow_material
+	body.add_child(glow)
+	glow.position = pos+Vector3(0,0,0.08)
+	glow.visible = false
+	nitro_glows.append(glow)
+
+func add_headlight(pos: Vector3) -> void:
+	headlight = SpotLight3D.new()
+	headlight.position = pos
+	headlight.spot_range = 65
+	headlight.spot_angle = 48
+	headlight.light_color = Color("eaf3ff")
+	headlight.light_energy = 2.5
+	headlight.visible = false
+	body.add_child(headlight)

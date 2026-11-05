@@ -11,6 +11,11 @@ const CAPTION_FONT = preload("res://assets/fonts/LiberationSans-BoldItalic.ttf")
 const POSITION_FONT = preload("res://assets/fonts/PositionNumeral.tres")
 const NUMBER_FONT = preload("res://assets/fonts/Roboto-BlackItalic.ttf")
 const Library = preload("res://scripts/route_library.gd")
+const Catalog = preload("res://scripts/vehicle_catalog.gd")
+const GARAGE_START := Rect2(690,574,385,68)
+const GARAGE_MOTION := Rect2(205,604,160,40)
+const GARAGE_SOUND := Rect2(380,604,170,40)
+const CHANGE_CAR := Rect2(390,578,500,35)
 const START_BUTTON := Rect2(390, 483, 500, 82)
 const MOTION_BUTTON := Rect2(307, 424, 300, 46)
 const SOUND_BUTTON := Rect2(630, 424, 330, 46)
@@ -33,6 +38,7 @@ var buttons := {
 	"left": Rect2(27, 562, 108, 108),
 	"right": Rect2(159, 562, 108, 108),
 	"drift": Rect2(1051, 445, 98, 98),
+	"cell": Rect2(947,445,88,88),
 	"nitro": Rect2(1166,443,100,100),
 	"gas": Rect2(1090, 557, 120, 120),
 	"brake": Rect2(955, 562, 110, 110),
@@ -89,6 +95,7 @@ func to_design(pos: Vector2) -> Vector2:
 	return (pos - ui_offset()) / ui_scale()
 
 func hit_button(action: String, pos: Vector2) -> bool:
+	if action == "cell" and race.vehicle.mode != "hybrid": return false
 	if not buttons.has(action):
 		return false
 	var rect: Rect2 = buttons[action]
@@ -104,26 +111,25 @@ func handle_pointer(event: InputEvent) -> void:
 		fingers.erase(index)
 		return
 	var p := to_design(event.position)
-	if race.state in ["ready", "paused", "finished", "failed"]:
-		if SOUND_BUTTON.has_point(p):
-			race.sound_enabled = not race.sound_enabled
-			return
-		if MOTION_BUTTON.has_point(p):
-			race.motion_reduced = not race.motion_reduced
-			return
-	if race.state in ["ready", "finished", "failed"]:
-		if START_BUTTON.has_point(p):
-			fingers.clear()
-			race.restart()
-	elif race.state == "paused":
-		if START_BUTTON.has_point(p) or hit_button("pause", p):
-			fingers.clear()
-			race.state = "racing"
-	elif hit_button("pause", p) and race.state == "racing":
-		fingers.clear()
-		race.state = "paused"
-	else:
-		move_pointer(index, event.position)
+	if race.state == "ready":
+		if GARAGE_SOUND.has_point(p): race.sound_enabled = not race.sound_enabled
+		elif GARAGE_MOTION.has_point(p): race.motion_reduced = not race.motion_reduced
+		elif GARAGE_START.has_point(p): race.restart()
+		else:
+			for i in range(3):
+				if garage_card(i).has_point(p): race.select_vehicle(i)
+		return
+	if race.state in ["paused","finished","failed"]:
+		if SOUND_BUTTON.has_point(p): race.sound_enabled = not race.sound_enabled
+		elif MOTION_BUTTON.has_point(p): race.motion_reduced = not race.motion_reduced
+		elif race.state == "paused" and CHANGE_CAR.has_point(p): race.open_garage()
+		elif START_BUTTON.has_point(p) or (race.state == "paused" and hit_button("pause",p)):
+			if race.state == "paused": race.resume_tour()
+			else: race.open_garage()
+		return
+	if hit_button("pause",p) and race.state in ["racing","countdown"]:
+		race.pause_tour()
+	else: move_pointer(index,event.position)
 
 func move_pointer(index: int, pos: Vector2) -> void:
 	fingers[index] = to_design(pos)
@@ -323,7 +329,7 @@ func round_button(action: String, neon: bool = false) -> void:
 	var c := rect.get_center()
 	var radius := rect.size.x/2
 	var active: bool = held(action) or (action == "gas" and race.throttling) or (action == "brake" and race.braking) or (action == "drift" and race.drifting) or (action == "nitro" and race.nitro_active)
-	var accent := Color("ff7a66") if action == "brake" else CYAN
+	var accent := Color("ff7a66") if action == "brake" else (Color(race.vehicle.accent) if action in ["nitro","cell"] else CYAN)
 	draw_circle(c,radius,Color("183447d9") if active else Color("122235a0"))
 	draw_arc(c,radius-4,0,TAU,70,Color("ffffff14"),1,true)
 	if neon:
@@ -354,7 +360,12 @@ func draw_controls() -> void:
 	var nitro_center: Vector2 = buttons.nitro.get_center()
 	bottle(nitro_center+Vector2(0,-10),0.43)
 	centered(nitro_center+Vector2(0,35),"NITRO",18)
-	draw_arc(nitro_center,52,-PI/2,-PI/2+TAU*race.nitro/100,56,GOLD if race.nitro_active else CYAN,2,true)
+	draw_arc(nitro_center,52,-PI/2,-PI/2+TAU*race.nitro_ratio(),56,GOLD if race.nitro_active else CYAN,2,true)
+	if race.vehicle.mode == "hybrid":
+		round_button("cell",true)
+		var cell: Vector2 = buttons.cell.get_center()
+		centered(cell+Vector2(0,1),str(race.nitro_charges),30,Color(race.vehicle.accent))
+		centered(cell+Vector2(0,28),"CELL / E",14)
 	for action in ["brake","gas"]:
 		round_button(action,true)
 		c = buttons[action].get_center()
@@ -430,20 +441,78 @@ func draw_speedometer() -> void:
 	draw_set_transform(ui_offset(),0,Vector2.ONE*ui_scale())
 
 func draw_nitro() -> void:
+	var color := Color(race.vehicle.accent)
 	bottle(Vector2(405,663),0.6)
-	text_at(Vector2(443,651),"NITRO",24,CYAN)
-	text_at(Vector2(735,650),"SHIFT",17,Color("bad6e3"))
-	if race.drafting and not race.nitro_active: text_at(Vector2(443,624),"SLIPSTREAM",16,CYAN)
+	text_at(Vector2(443,651),"NITRO",24,color)
+	text_at(Vector2(605,650),"TAP SHIFT" if race.vehicle.mode == "charges" else "HOLD SHIFT",16,Color("bad6e3"))
+	if race.vehicle.mode == "hybrid":
+		for i in range(2):
+			draw_circle(Vector2(807+i*22,642),7,color if i < race.nitro_charges else Color("304252"))
+	if race.boosting and not race.nitro_active: text_at(Vector2(443,624),"SLIPSTREAM",16,CYAN)
 	var rim := rounded_polygon(PackedVector2Array([Vector2(442,661),Vector2(847,661),Vector2(835,691),Vector2(430,691)]),4)
 	draw_colored_polygon(rim,Color("0b182bdf"))
 	draw_polyline(rim+PackedVector2Array([rim[0]]),Color("8ab5cc99"),1.5,true)
-	for i in range(9):
-		var fill: float = clampf(race.nitro/100*9-i,0,1)
-		if fill <= 0: break
-		var x := 445.0+i*43
-		draw_colored_polygon(PackedVector2Array([Vector2(x,667),Vector2(x+41*fill,667),Vector2(x+41*fill-8,684),Vector2(x-8,684)]),GOLD if race.nitro_active else CYAN)
+	if race.vehicle.mode == "charges":
+		for i in range(3):
+			var rect := Rect2(445+i*129,667,120,17)
+			draw_rect(rect,color if i < race.nitro_charges else Color("25374a"))
+			if i == race.nitro_charges and race.nitro_burst_left > 0:
+				rect.size.x *= race.nitro_burst_left/race.vehicle.burst_duration
+				draw_rect(rect,GOLD)
+	else:
+		for i in range(9):
+			var fill: float = clampf(race.nitro/100*9-i,0,1)
+			if fill <= 0: break
+			var x := 445.0+i*43
+			draw_colored_polygon(PackedVector2Array([Vector2(x,667),Vector2(x+41*fill,667),Vector2(x+41*fill-8,684),Vector2(x-8,684)]),GOLD if race.nitro_active else color)
+
+func garage_card(index: int) -> Rect2:
+	return Rect2(205+index*295,185,280,338)
+
+func draw_garage() -> void:
+	draw_rect(Rect2(-ui_offset()/ui_scale(),get_viewport_rect().size/ui_scale()),Color("040b16c9"))
+	slant(Rect2(170,65,940,610),Color("0c1423fc"),28)
+	glow_line(PackedVector2Array([Vector2(198,65),Vector2(1110,65)]),CYAN,2)
+	text_at(Vector2(205,105),"INITIAL SJ / GRAND TOUR",17,CYAN)
+	text_at(Vector2(205,151),"CHOOSE YOUR RIDE",38)
+	text_at(Vector2(750,147),"5 STAGES / 16 ROUTES",18,Color("91acc0"))
+	for i in range(3):
+		var v := Catalog.spec(i)
+		var card := garage_card(i)
+		var x := card.position.x
+		var selected: bool = i == race.selected_vehicle
+		var color := Color(v.accent)
+		draw_rect(card,Color("203346") if selected else Color("121f30"))
+		draw_rect(card,color if selected else Color("33485b"),false,2)
+		draw_rect(Rect2(x,185,280,4),color)
+		text_at(Vector2(x+15,218),v.name,26,color)
+		text_at(Vector2(x+16,239),v["class"],13,Color("a7bdcd"))
+		if race.previews != null:
+			draw_texture_rect(race.previews.textures[i],Rect2(x+5,247,270,145),false)
+		text_at(Vector2(x+16,408),"TOP %d km/h" % int(v.max_speed*3.6),17)
+		text_at(Vector2(x+150,408),"0-200 %.1fs" % (55.56/v.accel),15,Color("bdd0dc"))
+		for stat in range(2):
+			var y := 429.0+stat*20
+			text_at(Vector2(x+16,y),"HANDLING" if stat == 0 else "ARMOR",12,Color("a7bdcd"))
+			for pip in range(10): draw_rect(Rect2(x+105+pip*15,y-9,11,7),color if pip < (v.handling if stat == 0 else v.armor) else Color("304153"))
+		draw_rect(Rect2(x+12,462,256,49),Color("09121f"))
+		text_at(Vector2(x+20,484),v.nitro_title,17,color)
+		var help: String = "HOLD SHIFT / drift recharges" if i == 0 else ("TAP SHIFT / +1 at checkpoints" if i == 1 else "HOLD SHIFT / E uses a cell")
+		text_at(Vector2(x+20,503),help,12,Color("b5c9d9"))
+	text_at(Vector2(205,553),race.vehicle.description,18,Color("cedde7"))
+	text_at(Vector2(205,580),"1 / 2 / 3 OR TAP TO SELECT",15,CYAN)
+	text_at(Vector2(205,598),"W GAS / S BRAKE / A D STEER / SPACE DRIFT",12,Color("94aabd"))
+	for rect in [GARAGE_MOTION,GARAGE_SOUND]: slant(rect,Color("253548"),6)
+	centered(Vector2(285,630),"MOTION: LOW" if race.motion_reduced else "MOTION: FULL",16,CYAN)
+	centered(Vector2(465,630),"SOUND: ON" if race.sound_enabled else "SOUND: OFF",16,CYAN)
+	slant(GARAGE_START,Color(race.vehicle.accent),12)
+	centered(Vector2(882,617),"DRIVE / ENTER",30,Color("0a1b2b"))
+	text_at(Vector2(700,662),"CAR BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"),15,GOLD)
 
 func draw_menu() -> void:
+	if race.state == "ready":
+		draw_garage()
+		return
 	if race.state == "countdown":
 		slant(Rect2(568, 248, 144, 136), Color("11121bba"), 24)
 		var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
@@ -473,8 +542,11 @@ func draw_menu() -> void:
 		centered(Vector2(MOTION_BUTTON.get_center().x, 454), motion_label, 21, CYAN)
 		centered(Vector2(SOUND_BUTTON.get_center().x, 454), sound_label, 21, CYAN)
 		slant(START_BUTTON, CYAN, 13)
-		var cta := "RESUME" if race.state == "paused" else ("DRIVE AGAIN / ENTER" if race.state == "finished" else "START TOUR / ENTER")
+		var cta := "RESUME" if race.state == "paused" else ("CHOOSE CAR / ENTER")
 		centered(Vector2(640, 536), cta, 32, Color("0a1b2b"))
+		if race.state == "paused":
+			slant(CHANGE_CAR,Color("253548"),8)
+			centered(Vector2(640,602),"CHANGE CAR / G",19,CYAN)
 
 func draw_pace_feedback() -> void:
 	if race.state != "racing": return
@@ -497,6 +569,6 @@ func draw_pace_feedback() -> void:
 	if race.impact > 0: draw_rect(Rect2(0,0,1280,720),Color(1,0.35,0.10,race.impact*0.07))
 	if race.near_miss_flash > 0: centered(Vector2(640,568),"CLOSE PASS +150",23,GOLD)
 	elif race.overtake_flash > 0: centered(Vector2(640,568),"PASS!",24,CYAN)
-	elif race.boosting: centered(Vector2(640,568),"NITRO!" if race.nitro_active else "SLIPSTREAM",23,CYAN)
+	elif race.boosting: centered(Vector2(640,568),("OVERDRIVE!" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO!") if race.nitro_active else "SLIPSTREAM",23,CYAN)
 	if race.corner_warning > 0.15:
 		centered(Vector2(640,606),"BRAKE / CORNER %d km/h" % int(race.recommended_speed*3.6),19,Color(1,0.66,0.38,race.corner_warning))
