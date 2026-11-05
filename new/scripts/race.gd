@@ -5,6 +5,7 @@ const HUD = preload("res://scripts/hud.gd")
 const Library = preload("res://scripts/route_library.gd")
 const Contact = preload("res://scripts/car_contact.gd")
 const Brain = preload("res://scripts/rival_brain.gd")
+const RECORD_GROUP := "coast_rush_v2"
 var brain := Brain.new()
 var track: Track
 var player: Car
@@ -147,7 +148,7 @@ func _ready() -> void:
 		if OS.has_feature("web"):
 			motion_reduced = bool(JavaScriptBridge.eval("window.matchMedia('(prefers-reduced-motion: reduce)').matches"))
 	var saved := ConfigFile.new()
-	if saved.load("user://records.cfg") == OK: best_time = float(saved.get_value("tour","best_time",0))
+	if saved.load("user://records.cfg") == OK: best_time = float(saved.get_value(RECORD_GROUP,"best_time",0))
 	place_cars()
 	update_camera(1)
 
@@ -406,7 +407,7 @@ func finish() -> void:
 		if save_records:
 			var saved := ConfigFile.new()
 			saved.load("user://records.cfg")
-			saved.set_value("tour","best_time",best_time)
+			saved.set_value(RECORD_GROUP,"best_time",best_time)
 			saved.save("user://records.cfg")
 
 func contact_with(r: Dictionary) -> Dictionary:
