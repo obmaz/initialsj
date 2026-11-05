@@ -11,7 +11,9 @@ const CAPTION_FONT = preload("res://assets/fonts/LiberationSans-BoldItalic.ttf")
 const POSITION_FONT = preload("res://assets/fonts/PositionNumeral.tres")
 const NUMBER_FONT = preload("res://assets/fonts/Roboto-BlackItalic.ttf")
 const DRIVER_NAMES := ["RAY", "KAI", "EMMA", "LEO", "ACE", "MIA", "NOAH"]
-const START_BUTTON := Rect2(466, 454, 348, 58)
+const START_BUTTON := Rect2(390, 483, 500, 82)
+const MOTION_BUTTON := Rect2(307, 424, 300, 46)
+const SOUND_BUTTON := Rect2(630, 424, 330, 46)
 var race: Node3D
 var fingers: Dictionary = {}
 var font: Font = FONT
@@ -101,6 +103,13 @@ func handle_pointer(event: InputEvent) -> void:
 		fingers.erase(index)
 		return
 	var p := to_design(event.position)
+	if race.state in ["ready", "paused", "finished"]:
+		if SOUND_BUTTON.has_point(p):
+			race.sound_enabled = not race.sound_enabled
+			return
+		if MOTION_BUTTON.has_point(p):
+			race.motion_reduced = not race.motion_reduced
+			return
 	if race.state in ["ready", "finished"]:
 		if START_BUTTON.has_point(p):
 			fingers.clear()
@@ -233,6 +242,8 @@ func _draw() -> void:
 
 func draw_position(rows: Array[Dictionary]) -> void:
 	draw_colored_polygon(PackedVector2Array([Vector2(25, 14), Vector2(226, 14), Vector2(200, 78), Vector2(8, 78)]), Color("17171cdd"))
+	if race.overtake_flash > 0:
+		glow_line(PackedVector2Array([Vector2(25, 14), Vector2(226, 14), Vector2(200, 78)]), Color(CYAN, race.overtake_flash * 0.85), 2)
 	slant(Rect2(23, 18, 72, 29), Color("090a10b3"), 7)
 	text_at(Vector2(32, 40), "POS", 25)
 	var ui_transform := Transform2D(Vector2(ui_scale(), 0), Vector2(0, ui_scale()), ui_offset())
@@ -495,14 +506,17 @@ func draw_nitro() -> void:
 func draw_world_ranks(rows: Array[Dictionary]) -> void:
 	if race.state != "racing":
 		return
-	var count := 0
-	var occupied: Array[Rect2] = []
+	var targets: Array[Dictionary] = []
 	for i in range(rows.size()):
 		var row: Dictionary = rows[i]
 		var gap := fposmod(float(row.distance) - race.distance, race.track.length)
-		if row.player or gap > 100:
-			continue
-		var pos: Vector3 = row.car.position + Vector3.UP * 2.4
+		if not row.player and gap > 0 and gap < 100:
+			targets.append({"car": row.car, "rank": i + 1, "gap": gap})
+	targets.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.gap < b.gap)
+	var count := 0
+	var occupied: Array[Rect2] = []
+	for target in targets:
+		var pos: Vector3 = target.car.position + Vector3.UP * 2.4
 		if race.camera.is_position_behind(pos):
 			continue
 		var p := to_design(race.camera.unproject_position(pos))
@@ -515,8 +529,9 @@ func draw_world_ranks(rows: Array[Dictionary]) -> void:
 				badge.position.y -= 30
 		occupied.append(badge)
 		slant(badge, Color("16151dc4"), 6)
-		var suffix := "st" if i == 0 else ("nd" if i == 1 else ("rd" if i == 2 else "th"))
-		centered(p, str(i + 1) + suffix, 23)
+		var rank: int = target.rank
+		var suffix := "st" if rank == 1 else ("nd" if rank == 2 else ("rd" if rank == 3 else "th"))
+		centered(p, str(rank) + suffix, 23)
 		count += 1
 		if count == 2:
 			break
@@ -528,29 +543,40 @@ func draw_menu() -> void:
 		centered(Vector2(640, 353), str(maxi(1, ceili(race.countdown))), int(90 + 18 * pulse), GOLD)
 	elif race.state in ["ready", "paused", "finished"]:
 		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("060b168f"))
-		slant(Rect2(360, 183, 560, 358), Color("10121bec"), 30)
-		glow_line(PackedVector2Array([Vector2(390, 183), Vector2(920, 183)]), CYAN, 2)
-		text_at(Vector2(424, 230), "INITIAL SJ / FUJI LAKESIDE", 19, CYAN)
+		slant(Rect2(235, 100, 810, 525), Color("10121bf7"), 30)
+		glow_line(PackedVector2Array([Vector2(265, 100), Vector2(1045, 100)]), CYAN, 2)
+		text_at(Vector2(307, 150), "INITIAL SJ / FUJI LAKESIDE", 22, CYAN)
+		text_at(Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD)
 		var title := "ALPINE RUSH" if race.state == "ready" else ("RACE PAUSED" if race.state == "paused" else "FINISH / P%d" % race.rank_position())
-		text_at(Vector2(424, 289), title, 46)
+		text_at(Vector2(307, 224), title, 62)
 		var detail := "8 DRIVERS. 3 LAPS. ONE WINNER."
 		if race.state == "paused":
 			detail = "P / ESC TO RESUME. R TO RESTART."
 		elif race.state == "finished":
 			detail = "TIME %s / DRIFT %d" % [time_label(race.elapsed), int(race.score)]
-		text_at(Vector2(424, 337), detail, 20)
-		text_at(Vector2(424, 374), "A / D STEER   SPACE DRIFT   SHIFT BOOST", 17, Color("adb6c5"))
-		text_at(Vector2(424, 433), "M: REDUCED MOTION / V: SOUND", 13, Color("adb6c5"))
-		text_at(Vector2(424, 411), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 20, GOLD)
+		text_at(Vector2(307, 277), detail, 25)
+		var touch_controls := DisplayServer.is_touchscreen_available()
+		text_at(Vector2(307, 331), "ARROWS STEER    BOOST ACCELERATES" if touch_controls else "A / D STEER    SHIFT BOOST", 24, Color("d1d9e4"))
+		text_at(Vector2(307, 366), "HOLD DRIFT + DIRECTION (80+ km/h)" if touch_controls else "HOLD SPACE + STEER TO DRIFT (80+ km/h)", 23, Color("d1d9e4"))
+		text_at(Vector2(307, 396), "RELEASE GOLD CHARGE FOR MINI TURBO", 19, CYAN)
+		for rect in [MOTION_BUTTON, SOUND_BUTTON]:
+			slant(rect, Color("253548"), 8)
+		var motion_label := "MOTION: LOW" if race.motion_reduced else "MOTION: FULL"
+		var sound_label := "SOUND: ON" if race.sound_enabled else "SOUND: OFF"
+		centered(Vector2(MOTION_BUTTON.get_center().x, 454), motion_label, 21, CYAN)
+		centered(Vector2(SOUND_BUTTON.get_center().x, 454), sound_label, 21, CYAN)
 		slant(START_BUTTON, CYAN, 13)
 		var cta := "RESUME" if race.state == "paused" else ("RACE AGAIN / ENTER" if race.state == "finished" else "START RACE / ENTER")
-		centered(Vector2(640, 491), cta, 25, Color("0a1b2b"))
+		centered(Vector2(640, 536), cta, 32, Color("0a1b2b"))
 
 func draw_pace_feedback() -> void:
 	if race.state != "racing":
 		return
 	if race.launch_flash > 0:
 		centered(Vector2(640, 350), "GO!", 76, Color(GOLD, minf(1, race.launch_flash * 4)))
+	if race.lap_flash > 0:
+		var label := "FINAL LAP" if race.distance >= race.track.length * 2 else "LAP 2 / 3"
+		centered(Vector2(640, 222), label, 44, Color(GOLD, minf(1, race.lap_flash * 3)))
 	var intensity: float = clampf((race.speed - 38) / 50, 0, 1)
 	var turbo: bool = race.boosting or race.mini_turbo > 0
 	if not race.motion_reduced:
@@ -574,5 +600,7 @@ func draw_pace_feedback() -> void:
 		centered(Vector2(640, 568), "MINI TURBO!", 26, GOLD)
 	elif race.near_miss_flash > 0:
 		centered(Vector2(640, 568), "NEAR MISS +100", 22, GOLD)
+	elif race.overtake_flash > 0:
+		centered(Vector2(640, 568), "OVERTAKE!", 23, CYAN)
 	elif race.draft_charge > 0.65:
 		centered(Vector2(640, 568), "SLIPSTREAM", 20, CYAN)

@@ -13,6 +13,9 @@ var draft_charge := 0.0
 var drafting := false
 var near_misses := 0
 var near_miss_flash := 0.0
+var overtake_flash := 0.0
+var overtakes := 0
+var lap_flash := 0.0
 var impact := 0.0
 var boost_kick := 0.0
 var motion_reduced := false
@@ -134,6 +137,9 @@ func restart() -> void:
 	drafting = false
 	near_misses = 0
 	near_miss_flash = 0
+	overtake_flash = 0
+	overtakes = 0
+	lap_flash = 0
 	tire_trails.reset()
 	brain.initialize(rivals)
 	for i in range(rivals.size()):
@@ -142,6 +148,8 @@ func restart() -> void:
 	update_camera(1)
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION:
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ENTER and state in ["ready", "finished"]:
 			restart()
@@ -192,6 +200,10 @@ func _physics_process(delta: float) -> void:
 	hud.queue_redraw()
 
 func step(delta: float, axis: float, drift_input: bool, boost_input: bool, brake: bool) -> void:
+	var old_rank := rank_position()
+	var old_lap := int(distance / track.length)
+	overtake_flash = maxf(0, overtake_flash - delta)
+	lap_flash = maxf(0, lap_flash - delta)
 	elapsed += delta
 	launch_flash = maxf(0, launch_flash - delta)
 	near_miss_flash = maxf(0, near_miss_flash - delta)
@@ -265,6 +277,12 @@ func step(delta: float, axis: float, drift_input: bool, boost_input: bool, brake
 			lane_velocity += -3.0 if lane < float(rival.lane) else 3.0
 			impact = 1
 			bump_cooldown = 0.65
+	var new_rank := rank_position()
+	if new_rank < old_rank:
+		overtakes += old_rank - new_rank
+		overtake_flash = 1.0
+	if int(distance / track.length) > old_lap and distance < track.length * LAPS:
+		lap_flash = 1.8
 	if distance >= track.length * LAPS:
 		state = "finished"
 		boosting = false
