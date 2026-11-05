@@ -55,15 +55,24 @@ func _ready() -> void:
 		particles.direction = Vector3(0, 0.3, 1)
 		particles.spread = 35
 		particles.initial_velocity_min = 1
-		particles.initial_velocity_max = 3
+		particles.initial_velocity_max = 5
 		particles.gravity = Vector3(0, 0.6, 0)
 		particles.scale_amount_min = 0.5
 		particles.scale_amount_max = 2.5
 		var puff := SphereMesh.new()
 		puff.radius = 0.18
 		puff.height = 0.36
+		puff.radial_segments = 8
+		puff.rings = 4
 		particles.mesh = puff
-		particles.material_override = mat(Color("b4c3ce"))
+		var smoke_mat := mat(Color.WHITE)
+		smoke_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		smoke_mat.vertex_color_use_as_albedo = true
+		particles.material_override = smoke_mat
+		var fade := Gradient.new()
+		fade.set_color(0, Color(0.78, 0.83, 0.9, 0.4))
+		fade.set_color(1, Color(0.78, 0.83, 0.9, 0))
+		particles.color_ramp = fade
 		body.add_child(particles)
 		particles.position = Vector3(x, 0.25, 1.4)
 		smoke.append(particles)
@@ -85,7 +94,7 @@ func _ready() -> void:
 
 func animate(steer: float, drifting: bool, boosting: bool, delta: float) -> void:
 	body.rotation.z = lerp(body.rotation.z, -steer * 0.06, delta * 8)
-	body.rotation.y = lerp_angle(body.rotation.y, -steer * (0.28 if drifting else 0.06), delta * 6)
+	body.rotation.y = lerp_angle(body.rotation.y, -steer * (0.40 if drifting else 0.07), delta * 6)
 	for particles in smoke:
 		particles.emitting = drifting
 	for flame in nitro_flames:

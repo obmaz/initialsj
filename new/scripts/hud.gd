@@ -219,6 +219,7 @@ func _draw() -> void:
 	if race == null:
 		return
 	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
+	draw_pace_feedback()
 	var rows := standings()
 	draw_world_ranks(rows)
 	draw_position(rows)
@@ -534,7 +535,35 @@ func draw_menu() -> void:
 			detail = "TIME %s / DRIFT %d" % [time_label(race.elapsed), int(race.score)]
 		text_at(Vector2(424, 337), detail, 20)
 		text_at(Vector2(424, 374), "A / D STEER   SPACE DRIFT   SHIFT BOOST", 17, Color("adb6c5"))
+		text_at(Vector2(424, 433), "M: REDUCED MOTION / V: SOUND", 13, Color("adb6c5"))
 		text_at(Vector2(424, 411), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 20, GOLD)
 		slant(START_BUTTON, CYAN, 13)
 		var cta := "RESUME" if race.state == "paused" else ("RACE AGAIN / ENTER" if race.state == "finished" else "START RACE / ENTER")
 		centered(Vector2(640, 491), cta, 25, Color("0a1b2b"))
+
+func draw_pace_feedback() -> void:
+	if race.state != "racing":
+		return
+	var intensity: float = clampf((race.speed - 38) / 50, 0, 1)
+	var turbo: bool = race.boosting or race.mini_turbo > 0
+	if not race.motion_reduced:
+		var origin := Vector2(640, 315)
+		for i in range(32):
+			var angle: float = TAU * (i * 0.61803398875 - floor(i * 0.61803398875))
+			var phase: float = fposmod(race.elapsed * (1.3 + intensity * 1.5) + i * 0.317, 1)
+			var ray := Vector2.from_angle(angle) * Vector2(800, 500)
+			var start := origin + ray * (0.70 + phase * 0.6)
+			var end := start + ray.normalized() * (22 + phase * 70) * intensity
+			var alpha := intensity * (0.19 if turbo else 0.065) * sin(phase * PI)
+			draw_line(start, end, Color(0.65, 0.88, 1, alpha), 1.4 if turbo else 1, true)
+		if turbo:
+			for side in [0, 1]:
+				var x := 0.0 if side == 0 else 1280.0
+				var inner := 70.0 if side == 0 else 1210.0
+				draw_polygon(PackedVector2Array([Vector2(x, 0), Vector2(inner, 0), Vector2(inner, 720), Vector2(x, 720)]), PackedColorArray([Color("00baff24"), Color("00baff00"), Color("00baff00"), Color("00baff24")]))
+	if race.impact > 0:
+		draw_rect(Rect2(0, 0, 1280, 720), Color(1, 0.35, 0.10, race.impact * 0.07))
+	if race.mini_turbo > 0 and not race.boosting:
+		centered(Vector2(640, 568), "MINI TURBO!", 26, GOLD)
+	elif race.draft_charge > 0.65:
+		centered(Vector2(640, 568), "SLIPSTREAM", 20, CYAN)
