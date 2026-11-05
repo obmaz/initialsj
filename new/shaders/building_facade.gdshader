@@ -1,5 +1,6 @@
 shader_type spatial;
 uniform bool ruined = false;
+uniform bool night_city = false;
 uniform int facade_style = 0;
 varying vec3 local_point;
 varying vec3 local_normal;
@@ -39,6 +40,7 @@ void fragment() {
 	ALBEDO = mix(concrete * (1.0-floor_line*0.3),glass,pane);
 	METALLIC = pane * 0.65;
 	ROUGHNESS = mix(0.83,0.24,pane);
-	EMISSION = glass * pane * 0.07;
+	EMISSION = glass*pane*(night_city ? 0.7 : 0.07);
+	if (night_city) { EMISSION += vec3(0.20,0.02,0.30)*floor_line; }
 	}
 }

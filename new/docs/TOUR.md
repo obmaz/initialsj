@@ -12,7 +12,7 @@ Each right choice increases the route node: subsequent roads become longer, narr
 
 ## Roofs and tunnels
 
-Glass canopies appear at just two of the fifteen route nodes: a 96 m amusement section and an 84 m late Jeju section. The starting coast is open sky. Tunnels are selected by theme rather than repeated at the same place in every section. City tunnels are 950 m, Seoul tunnels 1,100 m; other selected themes have shorter passages.
+Glass canopies appear at just two of the fifteen route nodes: a 96 m amusement section and an 84 m container-port section. The starting coast is open sky. Tunnels are selected by theme rather than repeated at the same place in every section. City tunnels are 950 m, Seoul tunnels 1,100 m; other selected themes have shorter passages.
 
 A continuous arched mesh follows road curvature, grade and changing width. Emissive light strips, limited local lights and the AE86's forward spotlight provide visibility. The headlight turns on inside a tunnel. The tunnel's entrance sign states its length.
 
@@ -39,3 +39,7 @@ Starting time is 70 s. Checkpoints add 60 minus twice the accumulated number of 
 - Audio remains imported OGG/WAV files with native browser looping; `tests/web_audio_review.cjs` can capture the deployed game via `INITIALSJ_REVIEW_URL`.
 
 All source changes are under `new/`. Godot version verified is 4.6.3; 4.7.2 remains unverified. This workspace uses software rendering, so its frame rate does not represent a player's GPU. The older `render-metrics.json` records the earlier car batching review and is not a benchmark of this route revision.
+
+## Fifteen distinct destinations
+
+Every route node now has its own theme. All sixteen possible full tours visit five distinct themes, and every fork has different left and right destinations. [THEMES.md](THEMES.md) lists the complete map and generated roadside-art pipeline. The road, collision geometry, route lengths, timing and cumulative right-branch difficulty are unchanged by this visual revision. The existing deterministic tour metrics remain identical.
