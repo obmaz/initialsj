@@ -10,7 +10,8 @@ self.addEventListener('activate', event => {
     const clients = await self.clients.matchAll({type: 'window'});
     for (const client of clients) {
       if (new URL(client.url).pathname === root.pathname || new URL(client.url).pathname === root.pathname + 'index.html') {
-        await client.navigate(root.href);
+        // Navigation waits for activation to finish, so do not await it here.
+        client.navigate(root.href).catch(() => {});
       }
     }
     await self.registration.unregister();
