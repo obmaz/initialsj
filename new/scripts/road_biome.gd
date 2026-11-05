@@ -8,6 +8,7 @@ var batches: Array[MultiMeshInstance3D] = []
 var rotating: Array[Node3D] = []
 var tree_positions: Array[Vector3] = []
 var ground_nodes: Array[MeshInstance3D] = []
+var roadside_art: Node3D
 var water: MeshInstance3D
 
 func mat(color: Color, metal: float = 0, glow: float = 0) -> StandardMaterial3D:
@@ -48,11 +49,13 @@ func boxes(material: Material, poses: Array[Transform3D], shadows: bool = true) 
 func terrain_point(d: float, lane: float) -> Vector3:
 	var p: Vector3 = track.point(d,lane)
 	var road_y: float = track.point(d).y
-	if theme in ["hawaii", "jeju"] and lane < -(track.half_width(d)+1):
-		p.y = lerpf(0.12,road_y - 0.3,clampf((lane+track.half_width(d)+10)/9,0,1))
+	if theme == "harbor" and lane >= -(track.half_width(d)+71):
+		p.y = road_y-0.3
+	elif Library.coastal(theme) and lane < -(track.half_width(d)+(71 if theme == "harbor" else 1)):
+		p.y = lerpf(0.12,road_y - 0.3,clampf((lane+track.half_width(d)+(80 if theme == "harbor" else 10))/9,0,1))
 	else:
 		var rise := pow(clampf((absf(lane) - 18) / 140,0,1),1.5)
-		p.y = road_y - 0.3 + rise * (10 if theme in ["desert","pyramid"] else 5) * sin(d * 0.012 + lane * 0.035)
+		p.y = road_y - 0.3 + rise * (10 if theme in ["desert","pyramid","canyon","volcano"] else 5) * sin(d * 0.012 + lane * 0.035)
 	return p
 
 func _ready() -> void:
@@ -62,28 +65,32 @@ func _ready() -> void:
 	ground.shader = preload("res://shaders/biome_ground.gdshader")
 	ground.set_shader_parameter("grain",GRASS)
 	ground.set_shader_parameter("ground_color",Color(Library.PALETTES[theme]))
-	ground.set_shader_parameter("grassness",0.0 if theme in ["desert","pyramid","ruins"] else 1.0)
-	if theme in ["hawaii","jeju"]:
+	ground.set_shader_parameter("grassness",0.0 if theme in ["desert","pyramid","ruins","canyon","harbor","snow","volcano","neon"] else 1.0)
+	if Library.coastal(theme):
 		var beach := ground.duplicate()
-		beach.set_shader_parameter("ground_color",Color("dccb9c"))
+		beach.set_shader_parameter("ground_color",Color("747c80") if theme == "harbor" else Color("dccb9c"))
 		beach.set_shader_parameter("grassness",0.0)
-		ground_band(-19,-10,beach)
+		ground_band(-80 if theme == "harbor" else -19,-10,beach)
 	else:
 		ground_band(-180,-10,ground)
 	ground_band(10,180,ground)
-	if theme in ["hawaii","jeju"]:
+	if Library.coastal(theme):
 		make_water()
 	match theme:
-		"city", "seoul", "ruins": make_city()
-		"desert", "pyramid": make_desert()
-		"hawaii", "jeju", "amusement": make_trees()
+		"city", "seoul", "ruins", "neon": make_city()
+		"desert", "pyramid", "canyon": make_desert()
 	if theme == "amusement": make_park()
 	if theme == "jeju": make_jeju()
 	if theme == "seoul": make_seoul()
+	if theme in ["fuji","snow"]: make_mountain()
+	if theme == "volcano": make_volcano()
+	roadside_art = preload("res://scripts/roadside_art.gd").new()
+	roadside_art.scenery = self
+	add_child(roadside_art)
 	make_cover()
 
 func ground_lane(d: float, lane: float) -> float:
-	return lane+signf(lane)*(track.half_width(d)-9) if absf(lane) <= 19 else lane
+	return lane+signf(lane)*(track.half_width(d)-9) if absf(lane) <= 19 or (theme == "harbor" and lane == -80) else lane
 
 func ground_band(left: float, right: float, material: Material) -> void:
 	var surface := SurfaceTool.new()
@@ -92,8 +99,11 @@ func ground_band(left: float, right: float, material: Material) -> void:
 	for i in range(segments):
 		var a: float = track.length * i / segments
 		var b: float = track.length * (i + 1) / segments
-		var points := [terrain_point(a,ground_lane(a,left)),terrain_point(a,ground_lane(a,right)),terrain_point(b,ground_lane(b,left)),terrain_point(b,ground_lane(b,right))]
-		for index in [0,2,1,1,2,3]: surface.add_vertex(points[index])
+		for j in range(12):
+			var inner := lerpf(left,right,j/12.0)
+			var outer := lerpf(left,right,(j+1)/12.0)
+			var points := [terrain_point(a,ground_lane(a,inner)),terrain_point(a,ground_lane(a,outer)),terrain_point(b,ground_lane(b,inner)),terrain_point(b,ground_lane(b,outer))]
+			for index in [0,2,1,1,2,3]: surface.add_vertex(points[index])
 	surface.generate_normals()
 	var node := MeshInstance3D.new()
 	node.mesh = surface.commit()
@@ -111,7 +121,7 @@ func make_water() -> void:
 	for i in range(180):
 		var a: float = track.length * i / 180
 		var b: float = track.length * (i + 1) / 180
-		var points := [track.point(a,-900),track.point(a,ground_lane(a,-19)),track.point(b,-900),track.point(b,ground_lane(b,-19))]
+		var points := [track.point(a,-900),track.point(a,ground_lane(a,-80 if theme == "harbor" else -19)),track.point(b,-900),track.point(b,ground_lane(b,-80 if theme == "harbor" else -19))]
 		for index in [0,2,1,1,2,3]:
 			var p: Vector3 = points[index]
 			p.y = 0
@@ -121,6 +131,8 @@ func make_water() -> void:
 	water.mesh = surface.commit()
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/coastal_water.gdshader")
+	material.set_shader_parameter("deep_color",Color("193e56") if theme == "harbor" else Color("084270"))
+	material.set_shader_parameter("shallow_color",Color("497a8a") if theme == "harbor" else Color("1582a6"))
 	water.material_override = material
 	water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(water)
@@ -174,7 +186,7 @@ func make_city() -> void:
 	var plinths: Array[Transform3D] = []
 	var roof_details: Array[Transform3D] = []
 	var rubble: Array[Transform3D] = []
-	var count := int(track.length/42)
+	var count := int(track.length/65)
 	for i in range(count):
 		var d: float = 250+i*(track.length-430)/count
 		var side := -1.0 if i%2 == 0 else 1.0
@@ -229,6 +241,7 @@ func make_city() -> void:
 		material.shader = preload("res://shaders/building_facade.gdshader")
 		material.set_shader_parameter("ruined",theme == "ruins")
 		material.set_shader_parameter("facade_style",style)
+		material.set_shader_parameter("night_city",theme == "neon")
 		var node := MultiMeshInstance3D.new()
 		node.multimesh = multi
 		node.material_override = material
@@ -248,9 +261,9 @@ func make_desert() -> void:
 	var sphere := SphereMesh.new()
 	sphere.radius = 0.5
 	sphere.height = 1
-	sphere.radial_segments = 14
-	sphere.rings = 7
-	batch(sphere,mat(Color("d6aa68")),dunes)
+	sphere.radial_segments = 8 if theme == "canyon" else 14
+	sphere.rings = 4 if theme == "canyon" else 7
+	batch(sphere,mat(Color("a55a35") if theme == "canyon" else Color("d6aa68")),dunes)
 	if theme == "pyramid":
 		var pyramids: Array[Transform3D] = []
 		for i in range(4):
@@ -341,6 +354,44 @@ func make_park() -> void:
 	roof.height = 1
 	roof.radial_segments = 8
 	batch(roof,mat(Color("df5b87")),tents)
+
+func make_mountain() -> void:
+	var poses: Array[Transform3D] = []
+	var caps: Array[Transform3D] = []
+	var count := 1 if theme == "fuji" else 5
+	for i in range(count):
+		var d: float = track.length*(0.35+i*0.1)
+		var p: Vector3 = track.point(d,-500 if theme == "fuji" else (1 if i%2 == 0 else -1)*280)
+		p.y = 0
+		poses.append(Transform3D(Basis.IDENTITY.scaled_local(Vector3(430,150,430)),p+Vector3.UP*75))
+		caps.append(Transform3D(Basis.IDENTITY.scaled_local(Vector3(180,65,180)),p+Vector3.UP*182.5))
+	var base := CylinderMesh.new()
+	base.top_radius = 90.0/430
+	base.bottom_radius = 0.5
+	base.height = 1
+	base.radial_segments = 24
+	batch(base,mat(Color("738395") if theme == "fuji" else Color("a8bdce")),poses)
+	var cap := CylinderMesh.new()
+	cap.top_radius = 0
+	cap.bottom_radius = 0.5
+	cap.height = 1
+	cap.radial_segments = 24
+	batch(cap,mat(Color("e9f0f3")),caps)
+
+func make_volcano() -> void:
+	var mountain := CylinderMesh.new()
+	mountain.top_radius = 0.15
+	mountain.bottom_radius = 0.5
+	mountain.height = 1
+	mountain.radial_segments = 15
+	var p: Vector3 = terrain_point(track.length*0.55,280)
+	var poses: Array[Transform3D] = [Transform3D(Basis.IDENTITY.scaled_local(Vector3(270,160,270)),p+Vector3.UP*80)]
+	batch(mountain,mat(Color("3b3537")),poses)
+	var lava: Array[Transform3D] = []
+	for i in range(14):
+		var d: float = 500.0+i*(track.length-1000)/14
+		lava.append(transform_at(d,(1 if i%2 == 0 else -1)*75,0.02,Vector3(9,0.08,24),0.6))
+	boxes(mat(Color("e45c15"),0,0.7),lava,false)
 
 func make_cover() -> void:
 	var canopy := Library.canopy_span(track.stage,track.route_node)

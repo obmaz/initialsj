@@ -9,6 +9,11 @@ const RECORD_GROUP := "coast_rush_v2"
 var brain := Brain.new()
 var track: Track
 var player: Car
+var atmosphere: Environment
+var sky_colors: ProceduralSkyMaterial
+var sun_light: DirectionalLight3D
+var visual_theme := "hawaii"
+var atmosphere_transition := 0.0
 var camera: Camera3D
 var hud: HUD
 var speed_effect: ColorRect
@@ -78,8 +83,10 @@ func _ready() -> void:
 	add_child(track)
 	var world := WorldEnvironment.new()
 	var env := Environment.new()
+	atmosphere = env
 	var sky := Sky.new()
 	var sky_material := ProceduralSkyMaterial.new()
+	sky_colors = sky_material
 	sky_material.sky_top_color = Color("438cce")
 	sky_material.sky_horizon_color = Color("cce5e9")
 	sky_material.ground_bottom_color = Color("688370")
@@ -99,6 +106,7 @@ func _ready() -> void:
 	world.environment = env
 	add_child(world)
 	var sun := DirectionalLight3D.new()
+	sun_light = sun
 	sun.rotation_degrees = Vector3(-42,-32,0)
 	sun.light_color = Color("fff0d4")
 	sun.light_energy = 0.95
@@ -222,6 +230,7 @@ func _notification(what: int) -> void:
 		hud.fingers.clear()
 
 func _physics_process(delta: float) -> void:
+	update_atmosphere(delta)
 	if state == "countdown":
 		countdown -= delta
 		if countdown <= 0:
@@ -242,7 +251,7 @@ func _physics_process(delta: float) -> void:
 	update_camera(delta)
 	player.road_speed = speed if state == "racing" else 0.0
 	player.animate(steer,drifting and state == "racing",nitro_active and state == "racing",delta,slip_angle,braking and state == "racing",impact)
-	if player.headlight != null: player.headlight.visible = track.active.in_tunnel(distance)
+	if player.headlight != null: player.headlight.visible = track.active.in_tunnel(distance) or track.scenery.theme == "neon"
 	for r in rivals:
 		r.car.road_speed = r.speed if state == "racing" else 0.0
 		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),false,false,delta,r.visual_yaw)
@@ -505,3 +514,26 @@ func update_camera(delta: float) -> void:
 	if not motion_reduced: camera.rotate_object_local(Vector3.FORWARD,-steer*pace*(0.024 if drifting else 0.01))
 	var target_fov := (68.0 if motion_reduced else 64+pace*17) + (6 if boosting and active and not motion_reduced else 0)
 	camera.fov = lerpf(camera.fov,target_fov,1-exp(-delta*(8 if boosting else 4)))
+
+func update_atmosphere(delta: float) -> void:
+	var theme_id: String = track.scenery.theme
+	if visual_theme != theme_id:
+		visual_theme = theme_id
+		atmosphere_transition = 3.0
+	if atmosphere_transition <= 0: return
+	var profile := {"top":Color("438cce"),"horizon":Color("cce5e9"),"fog":Color("b3d3df"),"sun":0.95,"ambient":0.35,"sun_color":Color("fff0d4")}
+	match theme_id:
+		"neon": profile.merge({"top":Color("101027"),"horizon":Color("383456"),"fog":Color("292a46"),"sun":0.12,"ambient":0.5,"sun_color":Color("b7c4ef")},true)
+		"snow": profile.merge({"top":Color("90b9d4"),"horizon":Color("e6eff6"),"fog":Color("dbe5ec"),"sun":0.8,"ambient":0.45,"sun_color":Color("e9f0ff")},true)
+		"volcano": profile.merge({"top":Color("8a655e"),"horizon":Color("bc8265"),"fog":Color("8b635a"),"sun":0.7,"ambient":0.4,"sun_color":Color("ffd2aa")},true)
+		"canyon": profile.merge({"top":Color("ad927e"),"horizon":Color("f2cc8e"),"fog":Color("bfb190"),"sun":0.9},true)
+		"harbor": profile.merge({"top":Color("587e97"),"horizon":Color("b6ccda"),"fog":Color("96b1c1"),"sun":0.8,"ambient":0.4},true)
+		"bamboo": profile.merge({"top":Color("6d9f99"),"horizon":Color("c0d3b6"),"fog":Color("90b1a4"),"sun":0.8},true)
+	var blend := 1.0 if delta >= atmosphere_transition else 1-exp(-delta*2)
+	sky_colors.sky_top_color = sky_colors.sky_top_color.lerp(profile.top,blend)
+	sky_colors.sky_horizon_color = sky_colors.sky_horizon_color.lerp(profile.horizon,blend)
+	atmosphere.fog_light_color = atmosphere.fog_light_color.lerp(profile.fog,blend)
+	atmosphere.ambient_light_energy = lerpf(atmosphere.ambient_light_energy,profile.ambient,blend)
+	sun_light.light_energy = lerpf(sun_light.light_energy,profile.sun,blend)
+	sun_light.light_color = sun_light.light_color.lerp(profile.sun_color,blend)
+	atmosphere_transition = maxf(0,atmosphere_transition-delta)

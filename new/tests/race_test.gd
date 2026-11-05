@@ -30,7 +30,42 @@ func run() -> void:
 	var themes := {}
 	for row in Library.THEMES:
 		for theme in row: themes[theme] = true
-	check(themes.size() == 8,"Route graph must contain all eight requested themes")
+	check(themes.size() == 15,"All fifteen route nodes must have different themes")
+	for stage in range(4):
+		for node in range(stage+1):
+			check(Library.theme(stage+1,node) != Library.theme(stage+1,node+1),"Every fork must lead to different left and right themes")
+	var catalog = load("res://scripts/route_prop_catalog.gd")
+	check(catalog.REGIONS.size() == 15,"Each theme must have generated roadside art")
+	for theme_id in themes:
+		check(catalog.REGIONS.has(theme_id),"Every route theme must resolve to its own art region")
+	var source: Texture2D = load("res://assets/environment/route-props.png")
+	var pixels := source.get_image()
+	for cell in range(15):
+		var transparent := 0
+		var samples := 0
+		for y in range(0,16):
+			for x in range(0,16):
+				var px := int((cell%4+(x+0.5)/16)*pixels.get_width()/4)
+				var py := int((cell/4+(y+0.5)/16)*pixels.get_height()/4)
+				if pixels.get_pixel(px,py).a < 0.1: transparent += 1
+				samples += 1
+		check(float(transparent)/samples > 0.3,"Generated props must have transparent surroundings rather than opaque paper backdrops")
+	var art = race.track.scenery.roadside_art
+	check(art.sprite_batch.multimesh.instance_count > 30,"The actual starting road must instantiate generated roadside props")
+	for i in range(art.positions.size()):
+		var p: Vector3 = art.positions[i]
+		var d: float = race.track.active.curve.get_closest_offset(p)
+		var width: float = art.sprite_batch.multimesh.get_instance_transform(i).basis.x.length()
+		check(p.distance_to(race.track.point(d))-width*0.5 > race.track.half_width(d)+2,"Billboard silhouettes must stay outside the drivable road and rails")
+	for path in range(16):
+		var visited := {Library.theme(0,0):true}
+		var node := 0
+		for stage in range(1,5):
+			node += (path >> (stage-1)) & 1
+			var theme_id := Library.theme(stage,node)
+			check(not visited.has(theme_id),"A complete tour must never repeat a theme")
+			visited[theme_id] = true
+
 	reset_drive(race)
 	for i in range(158): race.step(1.0/60,0,false,true,false)
 	check(race.speed > 55,"Gas must reach 200 km/h within 2.64 seconds")

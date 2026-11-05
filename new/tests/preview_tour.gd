@@ -7,7 +7,7 @@ func run() -> void:
 	race.set_physics_process(false)
 	race.save_records = false
 	race.sound_enabled = false
-	var scenes := [[0,0,280,"hawaii"],[1,0,450,"desert"],[1,1,950,"city"],[2,0,440,"pyramid"],[2,1,510,"amusement"],[2,2,300,"jeju"],[3,0,650,"ruins"],[3,1,650,"seoul"],[2,1,805,"canopy"],[1,1,1860,"tunnel"],[3,1,2150,"long-tunnel"],[4,4,2200,"narrow"],[1,0,760,"wide"],[0,0,1495,"fork"],[2,2,810,"hill"],[0,0,650,"drift"],[1,1,580,"impact"],[2,1,670,"speed"]]
+	var scenes := [[0,0,280,"hawaii"],[1,0,450,"desert"],[1,1,950,"city"],[2,0,440,"pyramid"],[2,1,510,"amusement"],[2,2,300,"jeju"],[3,0,650,"ruins"],[3,1,650,"seoul"],[2,1,805,"canopy"],[1,1,1860,"tunnel"],[3,1,2150,"long-tunnel"],[4,4,2200,"narrow"],[1,0,760,"wide"],[0,0,1495,"fork"],[2,2,810,"hill"],[0,0,650,"drift"],[1,1,580,"impact"],[2,1,670,"speed"],[3,2,700,"fuji"],[3,3,900,"neon"],[4,0,900,"canyon"],[4,1,1000,"harbor"],[4,2,900,"bamboo"],[4,3,900,"snow"],[4,4,1700,"volcano"]]
 	for setup in scenes:
 		var requested := OS.get_cmdline_user_args()
 		if not requested.is_empty() and setup[3] not in requested: continue
@@ -42,11 +42,19 @@ func run() -> void:
 			race.boosting = true
 			race.drafting = true
 			race.draft_charge = 1
+		race.brain.stage_changed(race)
+		for r in race.rivals:
+			r.detached = null
+			r.distance = race.distance+85+r.id*60
+			r.lane = race.track.lane_centers(r.distance)[int(r.id)%4]
+			r.target_lane = r.lane
+			r.visual_yaw = 0
 		race.place_cars()
 		race.player.road_speed = race.speed
 		race.player.animate(race.steer,race.drifting,race.nitro_active,1.0/60,race.slip_angle,false,race.impact)
 		race.speed_ambience.update(race)
-		if race.player.headlight != null: race.player.headlight.visible = race.track.active.in_tunnel(race.distance)
+		if race.player.headlight != null: race.player.headlight.visible = race.track.active.in_tunnel(race.distance) or race.track.scenery.theme == "neon"
+		race.update_atmosphere(3.0)
 		race.update_camera(1)
 		race.speed_effect.visible = setup[3] in ["speed","drift","impact"]
 		race.speed_effect.material.set_shader_parameter("strength",1.0 if setup[3] == "speed" else 0.5)
