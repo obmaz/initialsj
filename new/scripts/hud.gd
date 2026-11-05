@@ -386,6 +386,10 @@ func draw_controls() -> void:
 		draw_colored_polygon(chevron, Color("ffffffe0"))
 	round_button("drift")
 	var c: Vector2 = buttons.drift.get_center()
+	if race.drift_charge > 0 and race.state == "racing":
+		var charge: float = clampf(race.drift_charge / 1.6, 0, 1)
+		var tint := GOLD if race.drift_charge > 0.55 else CYAN
+		glow_line(arc_points(c, 51, -PI / 2, -PI / 2 + TAU * charge), tint, 2.5)
 	car_icon(c + Vector2(0, -12))
 	centered(c + Vector2(0, 35), "DRIFT", 20)
 	round_button("boost", true)
@@ -520,7 +524,8 @@ func draw_world_ranks(rows: Array[Dictionary]) -> void:
 func draw_menu() -> void:
 	if race.state == "countdown":
 		slant(Rect2(568, 248, 144, 136), Color("11121bba"), 24)
-		centered(Vector2(640, 353), str(maxi(1, ceili(race.countdown))), 100, GOLD)
+		var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
+		centered(Vector2(640, 353), str(maxi(1, ceili(race.countdown))), int(90 + 18 * pulse), GOLD)
 	elif race.state in ["ready", "paused", "finished"]:
 		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("060b168f"))
 		slant(Rect2(360, 183, 560, 358), Color("10121bec"), 30)
@@ -544,6 +549,8 @@ func draw_menu() -> void:
 func draw_pace_feedback() -> void:
 	if race.state != "racing":
 		return
+	if race.launch_flash > 0:
+		centered(Vector2(640, 350), "GO!", 76, Color(GOLD, minf(1, race.launch_flash * 4)))
 	var intensity: float = clampf((race.speed - 38) / 50, 0, 1)
 	var turbo: bool = race.boosting or race.mini_turbo > 0
 	if not race.motion_reduced:

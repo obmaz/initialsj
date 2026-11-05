@@ -17,12 +17,14 @@ var impact := 0.0
 var boost_kick := 0.0
 var motion_reduced := false
 var sound_enabled := true
+var launch_flash := 0.0
 var camera_time := 0.0
 var camera_offset := Vector3.ZERO
 var track: Track
 var player: Car
 var camera: Camera3D
 var speed_effect: ColorRect
+var tire_trails: Node3D
 var hud: HUD
 var rivals: Array[Dictionary] = []
 var distance := 0.0
@@ -64,6 +66,8 @@ func _ready() -> void:
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 160
 	add_child(sun)
+	tire_trails = preload("res://scripts/tire_trails.gd").new()
+	add_child(tire_trails)
 	player = Car.new()
 	add_child(player)
 	var colors := ["ffc94d", "438aef", "a58aeb", "eee6db", "44bea9", "ee843f", "6c92a1"]
@@ -111,6 +115,7 @@ func restart() -> void:
 	score = 0
 	elapsed = 0
 	countdown = 3
+	launch_flash = 0
 	bump_cooldown = 0
 	state = "countdown"
 	lane_velocity = 0
@@ -126,6 +131,7 @@ func restart() -> void:
 	drafting = false
 	near_misses = 0
 	near_miss_flash = 0
+	tire_trails.reset()
 	brain.initialize(rivals)
 	for i in range(rivals.size()):
 		rivals[i].distance = 10.0 + i * 9.0
@@ -164,11 +170,13 @@ func _physics_process(delta: float) -> void:
 		countdown -= delta
 		if countdown <= 0:
 			state = "racing"
+			launch_flash = 0.7
 	if state == "racing":
 		var axis := float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
 		axis = clampf(axis + hud.touch_axis(), -1, 1)
 		step(delta, axis, Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift"), Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("boost"), Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake"))
 	place_cars()
+	tire_trails.update(self)
 	speed_effect.visible = state == "racing" and not motion_reduced and speed > 35
 	speed_effect.material.set_shader_parameter("strength", clampf((speed - 35) / 53, 0, 1))
 	update_camera(delta)
@@ -181,6 +189,7 @@ func _physics_process(delta: float) -> void:
 
 func step(delta: float, axis: float, drift_input: bool, boost_input: bool, brake: bool) -> void:
 	elapsed += delta
+	launch_flash = maxf(0, launch_flash - delta)
 	near_miss_flash = maxf(0, near_miss_flash - delta)
 	var old_gaps: Array[float] = []
 	for rival in rivals:
@@ -192,7 +201,7 @@ func step(delta: float, axis: float, drift_input: bool, boost_input: bool, brake
 	var was_drifting := drifting
 	var was_boosting := boosting
 	drifting = drift_input and absf(steer) > 0.1 and speed > 22
-	boosting = boost_input and nitro > 1 and not brake
+	boosting = boost_input and nitro > (0 if was_boosting else 8) and not brake
 	if boosting and not was_boosting:
 		boost_kick = 1
 	if drifting and absf(lane) < 7.2:
@@ -279,11 +288,13 @@ func update_camera(delta: float) -> void:
 	var turbo := boosting or mini_turbo > 0
 	var shake := (0.012 * pace * pace + impact * 0.14) if active and not motion_reduced else 0.0
 	var vibration := right * sin(camera_time * 53) * shake + Vector3.UP * cos(camera_time * 67) * shake * 0.55
-	var desired_offset := -forward * (6.1 + pace * 0.4 + (boost_kick * 0.55 if not motion_reduced else 0.0)) + Vector3.UP * (3.0 - pace * 0.30) + vibration
+	var desired_offset := -forward * (5.3 + pace * 0.25 + (boost_kick * 0.55 if not motion_reduced else 0.0)) + Vector3.UP * (2.75 - pace * 0.30) + vibration
+	if drifting and not motion_reduced:
+		desired_offset += right * steer * 0.9
 	# Smooth the relative chase offset, not world position: speed must not add 10 m of camera lag.
 	camera_offset = camera_offset.lerp(desired_offset, 1.0 - exp(-delta * 9.0))
 	camera.position = player.position + camera_offset
-	camera.look_at(player.position + forward * (2.5 + pace * 0.8) + right * steer * 0.7 + Vector3.UP * 0.7)
+	camera.look_at(player.position + forward * (2.5 + pace * 0.8) + right * steer * (0 if motion_reduced else 0.7) + Vector3.UP * 0.7)
 	if not motion_reduced:
 		camera.rotate_object_local(Vector3.FORWARD, -steer * pace * (0.022 if drifting else 0.01))
 	var target_fov := (68.0 if motion_reduced else 64.0 + pace * 17.0) + (9 if turbo and active and not motion_reduced else 0)
