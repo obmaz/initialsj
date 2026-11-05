@@ -2,6 +2,9 @@ extends Node3D
 
 var paint := Color("b51223")
 var road_speed := 0.0
+var traffic := false
+var material_cache := {}
+var traffic_wheels: MultiMeshInstance3D
 var nitro_flames: Array[MeshInstance3D] = []
 var wheels: Array[MeshInstance3D] = []
 var nitro_glows: Array[MeshInstance3D] = []
@@ -10,6 +13,8 @@ var brake_lights: Array[StandardMaterial3D] = []
 var body: Node3D
 
 func mat(color: Color, metal: float = 0.0, glow: bool = false) -> StandardMaterial3D:
+	var key := "%s/%s/%s" % [color.to_html(),metal,glow]
+	if material_cache.has(key): return material_cache[key]
 	var m := StandardMaterial3D.new()
 	m.albedo_color = color
 	m.metallic = metal
@@ -18,6 +23,7 @@ func mat(color: Color, metal: float = 0.0, glow: bool = false) -> StandardMateri
 		m.emission_enabled = true
 		m.emission = color
 		m.emission_energy_multiplier = 2.0
+	material_cache[key] = m
 	return m
 
 func block(pos: Vector3, size: Vector3, material: Material) -> MeshInstance3D:
@@ -146,6 +152,8 @@ func _ready() -> void:
 			if x > 0:
 				rim.rotation.z = PI
 
+	merge_static_body()
+
 func animate(steer: float, drifting: bool, boosting: bool, delta: float, yaw: float = NAN, braking: bool = false, hit: float = 0) -> void:
 	body.rotation.z = lerp(body.rotation.z, -steer * 0.06, delta * 8)
 	body.rotation.y = lerp_angle(body.rotation.y,-steer*(0.40 if drifting else 0.07),delta*6) if is_nan(yaw) else yaw
@@ -235,3 +243,54 @@ func make_rim_mesh() -> ArrayMesh:
 			st.set_normal(Vector3.UP)
 			st.add_vertex(p)
 	return st.commit()
+
+# Untextured body pieces share a surface per material instead of individual draw calls.
+func merge_static_body() -> void:
+	var groups := {}
+	for child in body.get_children():
+		if not child is MeshInstance3D or child in wheels or child in nitro_flames or child in nitro_glows: continue
+		var material: Material = child.material_override
+		if not groups.has(material): groups[material] = []
+		groups[material].append(child)
+	for material in groups:
+		var surface := SurfaceTool.new()
+		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for child in groups[material]:
+			var arrays: Array = child.mesh.surface_get_arrays(0)
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+			var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+			if indices.is_empty(): indices = PackedInt32Array(range(vertices.size()))
+			for index in indices:
+				surface.set_normal((child.transform.basis * normals[index]).normalized())
+				surface.add_vertex(child.transform * vertices[index])
+			body.remove_child(child)
+			child.queue_free()
+		surface.index()
+		var merged := MeshInstance3D.new()
+		merged.mesh = surface.commit()
+		merged.material_override = material
+		# Keep body shadows; tiny lights, glazing and far traffic details need none.
+		if material.emission_enabled or material.albedo_color == Color("78818c") or material.albedo_color == Color("253e50") or (traffic and material.albedo_color != paint):
+			merged.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		body.add_child(merged)
+	if traffic:
+		for wheel in wheels:
+			wheel.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			for rim in wheel.get_children(): rim.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var multi := MultiMesh.new()
+		multi.transform_format = MultiMesh.TRANSFORM_3D
+		var tire := BoxMesh.new()
+		tire.size = Vector3(0.3,0.76,0.8)
+		multi.mesh = tire
+		multi.instance_count = 4
+		for i in range(4): multi.set_instance_transform(i,Transform3D(Basis.IDENTITY,Vector3(-1.02 if i < 2 else 1.02,0.45,-1.35 if i % 2 == 0 else 1.35)))
+		traffic_wheels = MultiMeshInstance3D.new()
+		traffic_wheels.multimesh = multi
+		traffic_wheels.material_override = mat(Color("131b23"))
+		traffic_wheels.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		body.add_child(traffic_wheels)
+
+func set_detail(distance_to_player: float) -> void:
+	for wheel in wheels: wheel.visible = distance_to_player < 110
+	if traffic_wheels != null: traffic_wheels.visible = distance_to_player >= 110

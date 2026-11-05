@@ -4,7 +4,7 @@ Current behavior is the five-stage Coast Rush tour. Earlier Fuji/lap-racing scre
 
 ## Geometry and depth
 
-`route_library.gd` defines eight themes across 15 nodes in five rows. Each selected section has two physical preview roads, and a left/right fork chooses the next node. The selected route contains approximately 7.9 km. Sections rise 12–28 m above their entry elevation, with the surface, cars and camera following the grade. Junction transitions project the player's world position onto the chosen branch; distance never wraps into a lap.
+`route_library.gd` defines eight themes across 15 nodes in five rows. Each selected section has two physical preview roads, and a left/right fork chooses the next node. The selected route contains approximately 7.9 km. Sections rise 28–52 m above their entry elevation, with the surface, cars and camera following the grade. Junction transitions project the player's world position onto the chosen branch; distance never wraps into a lap.
 
 `road_biome.gd` builds real geometry: palms and sea in Hawaii; dunes and pyramids; windowed city buildings; an observation tower for Seoul; broken blocks and rubble; an animated Ferris wheel and tents; basalt rocks and wind turbines for Jeju. These are thematic stylizations rather than geographic reproductions. Every section includes a transparent framed canopy and an arch tunnel. Large props begin beyond the shared fork area; the unselected branch's terrain is disabled after commitment to prevent terrain covering the selected road.
 
@@ -37,3 +37,7 @@ DISPLAY=:99 godot --path new --script res://tests/audio_review.gd --audio-driver
 ```
 
 The environment uses Mesa software rendering. Its frame rate is not representative of a player's GPU. Real phones still need performance and handling review. Godot version tested: 4.6.3, not 4.7.2.
+
+## Rendering revision
+
+Static car parts now share one mesh surface per material. Distant traffic uses four simple batched wheel silhouettes, while nearby cars retain spinning rims. Small traffic details no longer cast separate shadows. A fixed 1280×720 software-rendered canopy fixture reduced draw calls from 1,520 to approximately 580. This measures rendering work, not real-device FPS. Terrain elevation was increased from 12–28 m to 28–52 m, and ruined facades gained broken tops and open window gaps.

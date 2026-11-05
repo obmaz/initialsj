@@ -40,7 +40,7 @@ func _init(origin: Vector3 = Vector3(0,6,0), heading_angle: float = -PI / 2, sta
 		var angle := start_heading - side * 0.38 * smoothstep(0,180,d) + wave * envelope
 		if i > 0:
 			p += Vector3(-sin(angle),0,-cos(angle)) * 5
-		p.y = origin.y + (12 + stage * 4) * pow(sin(PI * t),2) * smoothstep(160,300,d)
+		p.y = origin.y + (28 + stage * 6) * pow(sin(PI * t),2) * smoothstep(160,300,d)
 		curve.add_point(p)
 	length = curve.get_baked_length()
 

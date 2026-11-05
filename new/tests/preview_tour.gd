@@ -9,6 +9,8 @@ func run() -> void:
 	race.sound_enabled = false
 	var scenes := [[0,0,280,"hawaii"],[1,0,450,"desert"],[1,1,650,"city"],[2,0,440,"pyramid"],[2,1,510,"amusement"],[2,2,300,"jeju"],[3,0,650,"ruins"],[3,1,650,"seoul"],[0,0,480,"canopy"],[1,1,1110,"tunnel"],[0,0,1495,"fork"],[2,2,810,"hill"],[0,0,650,"drift"],[1,1,580,"impact"],[2,1,670,"speed"]]
 	for setup in scenes:
+		var requested := OS.get_cmdline_user_args()
+		if not requested.is_empty() and setup[3] not in requested: continue
 		race.track.reset(setup[0],setup[1])
 		race.state = "racing"
 		race.distance = setup[2]

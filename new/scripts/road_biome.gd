@@ -173,6 +173,7 @@ func make_city() -> void:
 	for i in range(42):
 		var d: float = 230 + i*(track.length-300)/42
 		var side := -1.0 if i % 2 == 0 else 1.0
+		if theme == "seoul" and side > 0 and d > 450 and d < 1050: continue
 		var lane := side * rng.randf_range(23,66)
 		var height := rng.randf_range(20,75 if theme != "ruins" else 34)
 		var width := rng.randf_range(10,21)
@@ -185,26 +186,24 @@ func make_city() -> void:
 				var pose := transform_at(d + piece * 4,lane - side * 6,2 + piece * 2,Vector3(width * 0.7,2,3),rng.randf_range(-1,1))
 				pose.basis = pose.basis.rotated(Vector3.FORWARD,rng.randf_range(-0.4,0.4))
 				rubble.append(pose)
-	if theme == "ruins":
-		boxes(mat(Color("777364")),buildings)
-	else:
-		var material := ShaderMaterial.new()
-		material.shader = preload("res://shaders/building_facade.gdshader")
-		var multi := MultiMesh.new()
-		multi.transform_format = MultiMesh.TRANSFORM_3D
-		multi.use_custom_data = true
-		var cube := BoxMesh.new()
-		cube.size = Vector3.ONE
-		multi.mesh = cube
-		multi.instance_count = buildings.size()
-		for i in range(buildings.size()):
-			multi.set_instance_transform(i,buildings[i])
-			multi.set_instance_custom_data(i,dimensions[i])
-		var node := MultiMeshInstance3D.new()
-		node.multimesh = multi
-		node.material_override = material
-		add_child(node)
-		batches.append(node)
+	var material := ShaderMaterial.new()
+	material.shader = preload("res://shaders/building_facade.gdshader")
+	material.set_shader_parameter("ruined",theme == "ruins")
+	var multi := MultiMesh.new()
+	multi.transform_format = MultiMesh.TRANSFORM_3D
+	multi.use_custom_data = true
+	var cube := BoxMesh.new()
+	cube.size = Vector3.ONE
+	multi.mesh = cube
+	multi.instance_count = buildings.size()
+	for i in range(buildings.size()):
+		multi.set_instance_transform(i,buildings[i])
+		multi.set_instance_custom_data(i,dimensions[i])
+	var node := MultiMeshInstance3D.new()
+	node.multimesh = multi
+	node.material_override = material
+	add_child(node)
+	batches.append(node)
 	boxes(mat(Color("5d666b")),plinths)
 	if not rubble.is_empty(): boxes(mat(Color("6d695a")),rubble)
 
@@ -257,8 +256,16 @@ func make_jeju() -> void:
 		rotating.append(rotor)
 
 func make_seoul() -> void:
-	var p := terrain_point(780,125)
-	track.box(self,p + Vector3.UP * 35,Vector3(4,70,4),mat(Color("cbd5df"),0.4))
+	var p := terrain_point(950,60)
+	var hill := SphereMesh.new()
+	hill.radius = 0.5
+	hill.height = 1
+	hill.radial_segments = 14
+	hill.rings = 8
+	var hill_poses: Array[Transform3D] = [Transform3D(Basis.IDENTITY.scaled(Vector3(90,36,90)),p+Vector3.UP*8)]
+	batch(hill,mat(Color("4e7250")),hill_poses)
+	p += Vector3.UP*26
+	track.box(self,p + Vector3.UP * 50,Vector3(4,100,4),mat(Color("cbd5df"),0.4))
 	var deck := MeshInstance3D.new()
 	var mesh := CylinderMesh.new()
 	mesh.top_radius = 11
@@ -268,8 +275,8 @@ func make_seoul() -> void:
 	deck.mesh = mesh
 	deck.material_override = mat(Color("657f95"),0.5)
 	add_child(deck)
-	deck.position = p + Vector3.UP * 70
-	track.box(self,p + Vector3.UP * 88,Vector3(1,30,1),mat(Color("e9e3dd")))
+	deck.position = p + Vector3.UP * 100
+	track.box(self,p + Vector3.UP * 119,Vector3(1,30,1),mat(Color("e9e3dd")))
 
 func make_park() -> void:
 	var wheel := Node3D.new()
