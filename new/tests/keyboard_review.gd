@@ -20,6 +20,12 @@ func run() -> void:
 	race.save_records = false
 	race.sound_enabled = false
 	await process_frame
+	var selected_all := true
+	for code in [KEY_2,KEY_3,KEY_1]:
+		key(code,true)
+		await process_frame
+		key(code,false)
+		selected_all = selected_all and race.selected_vehicle == code-KEY_1
 	key(KEY_ENTER,true)
 	await process_frame
 	key(KEY_ENTER,false)
@@ -49,11 +55,27 @@ func run() -> void:
 			captured = true
 		if t > 6: break
 	for code in held.keys(): key(code,false)
-	var report := {"gas_input":saw_gas,"nitro_input":saw_nitro,"brake_input":saw_brake,"brake_reduced_speed":braked_speed < entry_speed,"brake_tap_drift":saw_drift,"elapsed":snappedf(race.elapsed,0.01)}
+	var drive_elapsed: float = race.elapsed
+	race.pause_tour()
+	key(KEY_G,true)
+	await process_frame
+	key(KEY_G,false)
+	key(KEY_3,true)
+	await process_frame
+	key(KEY_3,false)
+	race.restart()
+	race.state = "racing"
+	race.speed = 60
+	key(KEY_E,true)
+	await physics_frame
+	await physics_frame
+	key(KEY_E,false)
+	var cell_key: bool = race.nitro_charges == 1 and race.nitro_active
+	var report := {"garage_selection_keys":selected_all,"hybrid_cell_key":cell_key,"gas_input":saw_gas,"nitro_input":saw_nitro,"brake_input":saw_brake,"brake_reduced_speed":braked_speed < entry_speed,"brake_tap_drift":saw_drift,"elapsed":snappedf(drive_elapsed,0.01)}
 	print(JSON.stringify(report))
 	var output := FileAccess.open("res://docs/keyboard-metrics.json",FileAccess.WRITE)
 	output.store_string(JSON.stringify(report,"\t")+"\n")
 	race.queue_free()
 	await process_frame
 	await process_frame
-	quit(0 if saw_gas and saw_brake and saw_drift and saw_nitro and braked_speed < entry_speed else 1)
+	quit(0 if selected_all and cell_key and saw_gas and saw_brake and saw_drift and saw_nitro and braked_speed < entry_speed else 1)

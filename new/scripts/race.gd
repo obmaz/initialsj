@@ -5,7 +5,20 @@ const HUD = preload("res://scripts/hud.gd")
 const Library = preload("res://scripts/route_library.gd")
 const Contact = preload("res://scripts/car_contact.gd")
 const Brain = preload("res://scripts/rival_brain.gd")
+const Catalog = preload("res://scripts/vehicle_catalog.gd")
+const Nitro = preload("res://scripts/nitro_system.gd")
 const RECORD_GROUP := "coast_rush_v2"
+var selected_vehicle := 0
+var vehicle: Dictionary = Catalog.spec(0)
+var previews: Node
+var resume_state := "racing"
+var nitro_charges := 0
+var nitro_burst_left := 0.0
+var nitro_cooldown := 0.0
+var nitro_previous_input := false
+var cell_previous_input := false
+var nitro_pending := false
+var cell_pending := false
 var brain := Brain.new()
 var track: Track
 var player: Car
@@ -120,8 +133,9 @@ func _ready() -> void:
 	impacts = preload("res://scripts/impact_effect.gd").new()
 	add_child(impacts)
 	player = Car.new()
-	player.model = "ae86"
-	player.paint = Color("f0f1ed")
+	player.model = vehicle.model
+	player.paint = Color(vehicle.paint)
+	player.nitro_tint = Color(vehicle.accent)
 	add_child(player)
 	var colors := ["e7c456","91aabe","aaa3b7","e8e5dc","4c9c97","ad6f55","62798c"]
 	for i in range(16):
@@ -150,13 +164,15 @@ func _ready() -> void:
 	hud.race = self
 	canvas.add_child(hud)
 	if DisplayServer.get_name() != "headless":
+		previews = preload("res://scripts/garage_previews.gd").new()
+		add_child(previews)
 		var audio = preload("res://scripts/racing_audio.gd").new()
 		audio.race = self
 		add_child(audio)
 		if OS.has_feature("web"):
 			motion_reduced = bool(JavaScriptBridge.eval("window.matchMedia('(prefers-reduced-motion: reduce)').matches"))
-	var saved := ConfigFile.new()
-	if saved.load("user://records.cfg") == OK: best_time = float(saved.get_value(RECORD_GROUP,"best_time",0))
+	load_record()
+	reset_nitro()
 	place_cars()
 	update_camera(1)
 
@@ -177,10 +193,8 @@ func restart() -> void:
 	braking = false
 	drifting = false
 	boosting = false
-	nitro = 70
-	nitro_active = false
-	nitro_locked = false
-	nitro_seconds = 0
+	reset_nitro()
+	hud.fingers.clear()
 	checkpoint_award = Library.CHECKPOINT_BONUS
 	drift_latched = false
 	drift_sign = 0
@@ -213,21 +227,85 @@ func restart() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION: return
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_ENTER and state in ["ready","finished","failed"]: restart()
+		if event.keycode == KEY_ENTER:
+			if state == "ready": restart()
+			elif state in ["finished","failed"]: open_garage()
+		elif state == "ready" and event.keycode in [KEY_1,KEY_2,KEY_3]: select_vehicle(event.keycode-KEY_1)
+		elif state == "ready" and event.keycode in [KEY_A,KEY_LEFT]: select_vehicle(posmod(selected_vehicle-1,3))
+		elif state == "ready" and event.keycode in [KEY_D,KEY_RIGHT]: select_vehicle((selected_vehicle+1)%3)
 		elif event.keycode == KEY_V: sound_enabled = not sound_enabled
 		elif event.keycode == KEY_M: motion_reduced = not motion_reduced
-		elif event.keycode == KEY_R: restart()
+		elif event.keycode == KEY_R and state != "ready": restart()
+		elif event.keycode == KEY_G and state == "paused": open_garage()
 		elif event.keycode in [KEY_ESCAPE,KEY_P]:
-			if state == "racing": state = "paused"
-			elif state == "paused": state = "racing"
+			if state == "paused": resume_tour()
+			else: pause_tour()
 	if event is InputEventScreenTouch or event is InputEventMouseButton: hud.handle_pointer(event)
 	if event is InputEventScreenDrag: hud.move_pointer(event.index,event.position)
 	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT): hud.move_pointer(-1,event.position)
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and state == "racing":
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		if hud != null: hud.fingers.clear()
+		pause_tour()
+
+func pause_tour() -> void:
+	if state in ["racing","countdown"]:
+		resume_state = state
 		state = "paused"
+		if hud != null: hud.fingers.clear()
+
+func resume_tour() -> void:
+	if state == "paused":
 		hud.fingers.clear()
+		state = resume_state
+
+func load_record() -> void:
+	best_time = 0
+	var saved := ConfigFile.new()
+	if saved.load("user://records.cfg") == OK: best_time = float(saved.get_value(RECORD_GROUP,Catalog.record_key(selected_vehicle),0))
+
+func select_vehicle(index: int) -> void:
+	if state != "ready": return
+	selected_vehicle = clampi(index,0,2)
+	vehicle = Catalog.spec(selected_vehicle)
+	remove_child(player)
+	player.queue_free()
+	player = Car.new()
+	player.model = vehicle.model
+	player.paint = Color(vehicle.paint)
+	player.nitro_tint = Color(vehicle.accent)
+	add_child(player)
+	reset_nitro()
+	load_record()
+	place_cars()
+	update_camera(1)
+
+func open_garage() -> void:
+	restart()
+	state = "ready"
+
+func reset_nitro() -> void:
+	nitro = vehicle.energy_start
+	nitro_charges = vehicle.charges
+	nitro_seconds = 0
+	nitro_locked = false
+	nitro_previous_input = false
+	cell_previous_input = false
+	nitro_cooldown = 0
+	cancel_nitro()
+
+func cancel_nitro() -> void:
+	boost_kick = 0
+	nitro_active = false
+	nitro_burst_left = 0
+	nitro_pending = false
+	cell_pending = false
+	boosting = false
+
+func nitro_ratio() -> float:
+	if vehicle.mode == "charges": return (nitro_charges+nitro_burst_left/vehicle.burst_duration)/vehicle.charges
+	return nitro/100
 
 func _physics_process(delta: float) -> void:
 	update_atmosphere(delta)
@@ -240,9 +318,10 @@ func _physics_process(delta: float) -> void:
 		var axis := float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
 		axis = clampf(axis + hud.touch_axis(),-1,1)
 		var nitro_input := Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("nitro")
+		var cell_input := Input.is_physical_key_pressed(KEY_E) or hud.held("cell")
 		var gas := Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP) or hud.held("gas") or nitro_input
 		var brake := Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake")
-		step(delta,axis,Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift"),gas,brake,nitro_input)
+		step(delta,axis,Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift"),gas,brake,nitro_input,cell_input)
 	place_cars(delta)
 	tire_trails.update(self)
 	speed_ambience.update(self)
@@ -257,7 +336,15 @@ func _physics_process(delta: float) -> void:
 		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),false,false,delta,r.visual_yaw)
 	hud.queue_redraw()
 
-func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool = false) -> void:
+func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool = false, cell_input: bool = false) -> void:
+	# Advance only the time still available; a later checkpoint cannot revive an expired run.
+	delta = minf(delta,time_left)
+	if delta <= 0:
+		state = "failed"
+		cancel_nitro()
+		drifting = false
+		return
+	gas = gas or nitro_input or (cell_input and vehicle.mode == "hybrid") or nitro_burst_left > 0
 	elapsed += delta
 	time_left = maxf(0,time_left-delta)
 	for field in ["near_miss_flash","overtake_flash","checkpoint_flash","launch_flash"]:
@@ -268,7 +355,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	brake_armed = maxf(0,brake_armed-delta)
 	throttling = gas and not brake
 	braking = brake
-	steer = move_toward(steer,axis,delta*6.5)
+	steer = move_toward(steer,axis,delta*vehicle.steer_rate)
 	if brake and not previous_brake and speed > 25: brake_armed = 0.45
 	var was_drifting := drifting
 	if not brake and speed > 25 and absf(steer) > 0.2 and (drift_input or (previous_brake and brake_armed > 0 and gas)):
@@ -296,28 +383,21 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		old_gaps.append(gap)
 		if r.active and r.detached == null and gap > 8 and gap < 75 and absf(r.lane-lane) < 2.1: drafting = true
 	draft_charge = move_toward(draft_charge,1.0 if drafting else 0.0,delta*(1.0 if drafting else 1.2))
-	if nitro <= 0: nitro_locked = true
-	if nitro >= 12: nitro_locked = false
-	nitro_active = nitro_input and throttling and not drifting and speed > 25 and nitro > 0 and not nitro_locked and impact < 0.15
-	if nitro_active:
-		nitro = maxf(0,nitro-delta*20)
-		nitro_seconds += delta
-	else:
-		nitro = minf(100,nitro+delta*(8 if drifting else 3))
+	Nitro.update(self,delta,nitro_input,cell_input)
 	var was_boosting := boosting
-	boosting = nitro_active or (draft_charge > 0.65 and throttling and not drifting)
+	boosting = nitro_active or (draft_charge > 0.65 and throttling and not drifting and impact < 0.15)
 	if boosting and not was_boosting: boost_kick = 0.35
-	if brake: speed = move_toward(speed,0,delta*44)
+	if brake: speed = move_toward(speed,0,delta*vehicle.brake)
 	elif not gas: speed = move_toward(speed,0,delta*5)
 	elif drifting: speed = maxf(0,speed-delta*0.35)
-	else: speed = move_toward(speed,96 if nitro_active else 80+draft_charge*8,delta*(34 if nitro_active else 22))
-	var grip := 24.0 if drifting else 11.5
+	else: speed = move_toward(speed,(vehicle.overdrive_speed if nitro_burst_left > 0 else vehicle.boost_speed) if nitro_active else vehicle.max_speed+draft_charge*8,delta*(vehicle.boost_accel if nitro_active else vehicle.accel))
+	var grip: float = vehicle.drift_grip if drifting else vehicle.grip
 	var demand := absf(curve) * speed * speed
 	var excess := maxf(0,demand-grip)
 	var authority := clampf(1-excess/(grip*2),0.38,1)
 	var outward := signf(curve) * (demand * 0.055 + excess * 1.6)
-	var lateral := steer * (10.8 if drifting else 8.0) * minf(speed/20,1) * authority + outward
-	lane_velocity = move_toward(lane_velocity,lateral,delta*(17 if drifting else 34))
+	var lateral: float = steer * (vehicle.drift_steer_speed if drifting else vehicle.steer_speed) * minf(speed/20,1) * authority + outward
+	lane_velocity = move_toward(lane_velocity,lateral,delta*(vehicle.lateral_drift if drifting else vehicle.lateral_grip))
 	lane += lane_velocity*delta
 	var limits := track.lane_limits(distance)
 	var radius := Contact.HALF_WIDTH * absf(cos(slip_angle)) + Contact.HALF_LENGTH * absf(sin(slip_angle))
@@ -330,7 +410,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		lane_velocity *= -0.28
 		if bump_cooldown <= 0:
 			wall_hits += 1
-			speed *= 0.72
+			speed *= 1-0.28*vehicle.impact_loss
 			register_impact(0.8,Vector2(-side,0))
 	distance += speed*delta
 	brain.tick(self,delta)
@@ -360,10 +440,10 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		if not contact.is_empty(): resolve_contact(r,contact)
 	if drifting and margin > 1 and impact < 0.1:
 		score += delta * speed * (2.0+drift_charge)
-	recommended_speed = 80
+	recommended_speed = vehicle.max_speed
 	for look in [15.0,45.0,85.0]:
 		var k: float = absf(track.curvature(distance+look))
-		recommended_speed = minf(recommended_speed,sqrt(15.0/maxf(k,0.0001)))
+		recommended_speed = minf(recommended_speed,sqrt(vehicle.grip*1.25/maxf(k,0.0001)))
 	corner_warning = move_toward(corner_warning,clampf((speed-recommended_speed-4)/15,0,1),delta*3)
 	var reconsidered := track.reconsider(distance,lane)
 	if not reconsidered.is_empty():
@@ -384,7 +464,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		advance_route()
 	if time_left <= 0 and state != "finished":
 		state = "failed"
-		nitro_active = false
+		cancel_nitro()
 		drifting = false
 		boosting = false
 
@@ -403,11 +483,12 @@ func advance_route() -> void:
 	checkpoint_award = Library.checkpoint_bonus(route_node)
 	time_left += checkpoint_award
 	nitro = minf(100,nitro+25)
+	nitro_charges = mini(vehicle.charges,nitro_charges+1)
 	brain.stage_changed(self)
 
 func finish() -> void:
 	state = "finished"
-	nitro_active = false
+	cancel_nitro()
 	drifting = false
 	boosting = false
 	score += int(time_left)*100
@@ -416,7 +497,7 @@ func finish() -> void:
 		if save_records:
 			var saved := ConfigFile.new()
 			saved.load("user://records.cfg")
-			saved.set_value(RECORD_GROUP,"best_time",best_time)
+			saved.set_value(RECORD_GROUP,Catalog.record_key(selected_vehicle),best_time)
 			saved.save("user://records.cfg")
 
 func contact_with(r: Dictionary) -> Dictionary:
@@ -446,12 +527,12 @@ func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
 	if bump_cooldown > 0: return
 	var relative := speed-float(r.speed)
 	if absf(normal.x) > 0.65:
-		speed *= 0.87
+		speed *= 1-0.13*vehicle.impact_loss
 		r.speed *= 0.91
 	else:
 		var impulse := absf(relative) * 0.6
 		if normal.y < 0:
-			speed = maxf(0,speed-impulse-4)
+			speed = maxf(0,speed-(impulse+4)*vehicle.impact_loss)
 			r.speed = minf(70,r.speed+impulse*0.35)
 		else:
 			speed = minf(88,speed+minf(5,impulse*0.3))
@@ -462,7 +543,8 @@ func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
 
 func register_impact(strength: float, normal: Vector2) -> void:
 	impact = maxf(impact,strength)
-	nitro_active = false
+	cancel_nitro()
+	drifting = false
 	drift_charge = 0
 	drift_latched = false
 	bump_cooldown = 0.45

@@ -223,4 +223,5 @@ func run() -> void:
 	print("Tour checks: ","PASS" if failures == 0 else "FAIL (%d)" % failures)
 	race.queue_free()
 	await process_frame
+	failures += await preload("res://tests/garage_checks.gd").new().run(self)
 	quit(1 if failures else 0)
