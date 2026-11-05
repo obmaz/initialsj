@@ -5,12 +5,12 @@ func initialize(rivals: Array[Dictionary]) -> void:
 	for i in range(rivals.size()):
 		var r: Dictionary = rivals[i]
 		r.speed = 0.0
+		r.lane = 3.0 if i % 2 == 0 else -3.0
 		r.nitro = 65.0 + i * 3
 		r.target_lane = float(r.lane)
 		r.decision = i * 0.09
 		r.boosting = false
-		r.passes = 0
-		r.pace = 63.0 + i * 0.65
+		r.pace = 66.5 + i * 0.25
 
 func tick(race: Node3D, delta: float) -> void:
 	var traffic: Array[Dictionary] = [{"distance": race.distance, "lane": race.lane, "speed": race.speed}]
@@ -42,7 +42,8 @@ func tick(race: Node3D, delta: float) -> void:
 					best_lane = candidate
 			r.target_lane = best_lane
 		r.lane = move_toward(float(r.lane), float(r.target_lane), delta * 3.8)
-		var target: float = r.pace - minf(absf(bend) * 17, 12)
+		r.lane = clampf(r.lane + bend / 55.0 * r.speed * r.speed * 0.04 * delta, -6.3, 6.3)
+		var target: float = minf(68, r.pace) - minf(absf(bend) * 9, 7)
 		var lead_gap := INF
 		for other in traffic:
 			if other == r or absf(float(other.lane) - float(r.lane)) > 2:
@@ -58,6 +59,6 @@ func tick(race: Node3D, delta: float) -> void:
 			target = minf(88, target + 19)
 			r.nitro = maxf(0, r.nitro - delta * 24)
 		else:
-			r.nitro = minf(100, r.nitro + delta * 5)
+			r.nitro = minf(100, r.nitro + delta * 4)
 		r.speed = move_toward(float(r.speed), target, delta * (26 if target < r.speed else 20))
 		r.distance += r.speed * delta

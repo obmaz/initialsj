@@ -112,6 +112,7 @@ func _ready() -> void:
 	box_batch(Vector3(0.16, 1.0, 0.16), steel, post_transforms)
 	box_batch(Vector3(0.7, 0.13, 3.05), red, red_transforms)
 	box_batch(Vector3(0.7, 0.13, 3.05), white, white_transforms)
+	make_curve_markers()
 	make_skid_marks()
 	scenery = Scenery.new()
 	scenery.track = self
@@ -180,3 +181,26 @@ func box_batch(size: Vector3, mat: Material, transforms: Array[Transform3D]) -> 
 	node.material_override = mat
 	add_child(node)
 	prop_batches.append(node)
+
+func make_curve_markers() -> void:
+	var mat := StandardMaterial3D.new()
+	mat.albedo_texture = preload("res://assets/environment/curve-chevron.svg")
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2(3, 1.5)
+	var instances := MultiMesh.new()
+	instances.transform_format = MultiMesh.TRANSFORM_3D
+	instances.mesh = mesh
+	instances.instance_count = int(length / 65)
+	for i in range(instances.instance_count):
+		var d := 35.0 + i * 65.0
+		var bend := wrapf(heading(d + 40) - heading(d), -PI, PI)
+		var side := 1.0 if bend > 0 else -1.0
+		var basis := Basis(Vector3.UP, heading(d)).scaled(Vector3(side, 1, 1))
+		instances.set_instance_transform(i, Transform3D(basis, point(d, side * 11.5) + Vector3.UP * 1.9))
+	var node := MultiMeshInstance3D.new()
+	node.multimesh = instances
+	node.material_override = mat
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(node)
