@@ -3,6 +3,12 @@ config_version=5
 
 [application]
 config/name="Initial SJ — Coast Rush"
+config/icon="res://assets/ui/coast-rush-icon.svg"
+boot_splash/bg_color=Color(0.02745, 0.06667, 0.11765, 1)
+boot_splash/image="res://assets/ui/coast-rush-splash.png"
+boot_splash/show_image=true
+boot_splash/fullsize=true
+boot_splash/use_filter=true
 run/main_scene="res://scenes/race.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/description="A branching open-road arcade tour. Fifteen unique destinations, brake-tap drifting and checkpoint time attack."
