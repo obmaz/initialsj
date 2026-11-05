@@ -9,7 +9,8 @@ func capture() -> void:
 	race.set_physics_process(false)
 	race.save_records = false
 	race.state = "racing"
-	race.distance = race.track.length + 250.0
+	var map_progress: float = race.hud.minimap_route.get_closest_offset(Vector2(1109, 156)) / race.hud.minimap_route.get_baked_length()
+	race.distance = race.track.length * (1 + map_progress)
 	race.speed = 248.0 / 3.6
 	race.elapsed = 84.683
 	race.nitro = 66.7
