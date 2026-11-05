@@ -1,6 +1,15 @@
 extends Node3D
 
 const WIDTH := 18.0
+const Scenery = preload("res://scripts/fuji_environment.gd")
+const ASPHALT = preload("res://assets/environment/asphalt.png")
+const ASPHALT_SHADER = preload("res://shaders/asphalt.gdshader")
+const PAINT_SHADER = preload("res://shaders/road_paint.gdshader")
+const SKID_SHADER = preload("res://shaders/skid_marks.gdshader")
+var scenery: Scenery
+var road_surface: MeshInstance3D
+var skid_meshes: Array[MeshInstance3D] = []
+var prop_batches: Array[MultiMeshInstance3D] = []
 var curve := Curve3D.new()
 var length := 0.0
 var rng := RandomNumberGenerator.new()
@@ -40,94 +49,134 @@ func box(parent: Node3D, pos: Vector3, size: Vector3, mat: Material) -> MeshInst
 	node.position = pos
 	return node
 
-func strip(left: float, right: float, height: float, mat: Material) -> void:
+func strip(left: float, right: float, height: float, mat: Material) -> MeshInstance3D:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for i in range(900):
 		var a := length * i / 900.0
 		var b := length * (i + 1) / 900.0
 		var points := [point(a, left), point(a, right), point(b, left), point(b, right)]
-		for index in [0, 1, 2, 1, 3, 2]:
+		var uvs := [Vector2(left / 6, a / 6), Vector2(right / 6, a / 6), Vector2(left / 6, b / 6), Vector2(right / 6, b / 6)]
+		for index in [0, 2, 1, 1, 2, 3]:
+			st.set_uv(uvs[index])
 			st.add_vertex(points[index] + Vector3.UP * height)
 	st.generate_normals()
 	var n := MeshInstance3D.new()
 	n.mesh = st.commit()
 	n.material_override = mat
 	add_child(n)
+	return n
+
+func paint(color: Color) -> ShaderMaterial:
+	var mat := ShaderMaterial.new()
+	mat.shader = PAINT_SHADER
+	mat.set_shader_parameter("asphalt_texture", ASPHALT)
+	mat.set_shader_parameter("paint_color", color)
+	return mat
 
 func _ready() -> void:
 	rng.seed = 8417
-	var asphalt := material(Color("303e4b"))
-	asphalt.cull_mode = BaseMaterial3D.CULL_DISABLED
-	strip(-10, 10, -0.15, material(Color("c2b7a0")))
-	strip(-9, 9, 0, asphalt)
-	strip(-8.6, -8.4, 0.025, material(Color("eef0dd")))
-	strip(8.4, 8.6, 0.025, material(Color("eef0dd")))
-	var yellow := material(Color("efca67"))
+	var asphalt := ShaderMaterial.new()
+	asphalt.shader = ASPHALT_SHADER
+	asphalt.set_shader_parameter("asphalt_texture", ASPHALT)
+	strip(-10, 10, -0.15, material(Color("7e8477")))
+	road_surface = strip(-9, 9, 0, asphalt)
+	road_surface.name = "TexturedAsphalt"
+	strip(-8.6, -8.4, 0.025, paint(Color("e7e6d6")))
+	strip(8.4, 8.6, 0.025, paint(Color("e7e6d6")))
+	var yellow := paint(Color("dfc76d"))
 	strip(-0.13, 0.0, 0.025, yellow)
 	strip(0.15, 0.28, 0.025, yellow)
-	var red := material(Color("df494a"))
-	var white := material(Color("e9e7d9"))
-	var steel := material(Color("8eabb4"), 0.6)
+	var red := paint(Color("c94c48"))
+	var white := paint(Color("e9e7db"))
+	var steel := material(Color("8d9c9c"), 0.6)
+	var rail_transforms: Array[Transform3D] = []
+	var post_transforms: Array[Transform3D] = []
+	var red_transforms: Array[Transform3D] = []
+	var white_transforms: Array[Transform3D] = []
 	for i in range(int(length / 5)):
 		var d := i * 5.0
 		for side in [-1, 1]:
-			var curb := box(self, point(d, side * 9.1), Vector3(0.7, 0.15, 5.1), red if i % 2 == 0 else white)
-			curb.rotation.y = heading(d)
-			var rail := box(self, point(d, side * 10.5) + Vector3.UP * 0.9, Vector3(0.18, 0.45, 5.15), steel)
-			rail.rotation.y = heading(d)
+			rail_transforms.append(Transform3D(Basis(Vector3.UP, heading(d)), point(d, side * 10.5) + Vector3.UP * 0.9))
 			if i % 3 == 0:
-				box(self, point(d, side * 10.5) + Vector3.UP * 0.4, Vector3(0.16, 1.0, 0.16), steel)
-	var ground := material(Color("457461"))
-	box(self, Vector3(0, -6, 0), Vector3(2400, 4, 2400), ground)
-	var water := material(Color("288dba"), 0.45)
-	box(self, Vector3(0, -3.5, 0), Vector3(355, 1, 440), water)
-	var pine := material(Color("245a4d"))
-	var pine_light := material(Color("387866"))
-	var trunk := material(Color("6c5442"))
-	var blossom := material(Color("eeb5c7"))
-	for i in range(240):
-		var d := rng.randf_range(0, length)
-		var side := -1.0 if i % 3 == 0 else 1.0
-		var p := point(d, side * rng.randf_range(17, 65))
-		p.y -= 3
-		var h := rng.randf_range(7, 17)
-		box(self, p + Vector3.UP * h * 0.35, Vector3(0.7, h * 0.7, 0.7), trunk)
-		cone(p + Vector3.UP * h * 0.75, h * 0.35, h, blossom if i % 9 == 0 else (pine if i % 2 == 0 else pine_light), 7)
-	for i in range(34):
-		var a := TAU * i / 34.0
-		var p := Vector3(sin(a) * 850, 20, cos(a) * 850)
-		var h := rng.randf_range(160, 360)
-		var radius := rng.randf_range(150, 220)
-		cone(p, radius, h, material(Color("647f8e")), 6)
-		cone(p + Vector3.UP * h * 0.323, radius * 0.365, h * 0.36, white, 6)
-	# Finish gantry and chequered road stripe.
+				post_transforms.append(Transform3D(Basis.IDENTITY, point(d, side * 10.5) + Vector3.UP * 0.4))
+	for i in range(int(length / 3)):
+		var d := i * 3.0
+		for side in [-1, 1]:
+			var transform := Transform3D(Basis(Vector3.UP, heading(d)), point(d, side * 9.1))
+			if i % 2 == 0:
+				red_transforms.append(transform)
+			else:
+				white_transforms.append(transform)
+	box_batch(Vector3(0.18, 0.45, 5.15), steel, rail_transforms)
+	box_batch(Vector3(0.16, 1.0, 0.16), steel, post_transforms)
+	box_batch(Vector3(0.7, 0.13, 3.05), red, red_transforms)
+	box_batch(Vector3(0.7, 0.13, 3.05), white, white_transforms)
+	make_skid_marks()
+	scenery = Scenery.new()
+	scenery.track = self
+	add_child(scenery)
+	# Starting stripe and a welcome gantry farther along the lakeside road.
 	for i in range(18):
 		for row in range(2):
 			var tile := box(self, point(row * 1.2, i - 8.5) + Vector3.UP * 0.035, Vector3(1, 0.025, 1.2), white if (i + row) % 2 == 0 else asphalt)
 			tile.rotation.y = heading(0)
 	var gantry := Node3D.new()
 	add_child(gantry)
-	gantry.position = point(0)
-	gantry.rotation.y = heading(0)
+	gantry.position = point(110)
+	gantry.rotation.y = heading(110)
 	for side in [-1, 1]:
 		box(gantry, Vector3(side * 11, 4.5, 0), Vector3(0.5, 9, 0.5), steel)
 	box(gantry, Vector3(0, 8.5, 0), Vector3(23, 2.2, 0.6), material(Color("122a40")))
 	var sign_label := Label3D.new()
-	sign_label.text = "INITIAL SJ  /  ALPINE RUSH"
+	sign_label.text = "INITIAL SJ  /  FUJI LAKESIDE"
 	sign_label.font_size = 90
 	sign_label.pixel_size = 0.008
 	sign_label.position = Vector3(0, 8.5, 0.35)
 	gantry.add_child(sign_label)
 
-func cone(pos: Vector3, radius: float, height: float, mat: Material, sides: int) -> void:
-	var mesh := CylinderMesh.new()
-	mesh.top_radius = 0
-	mesh.bottom_radius = radius
-	mesh.height = height
-	mesh.radial_segments = sides
-	var n := MeshInstance3D.new()
-	n.mesh = mesh
-	n.material_override = mat
-	add_child(n)
-	n.position = pos
+func make_skid_marks() -> void:
+	var mat := ShaderMaterial.new()
+	mat.shader = SKID_SHADER
+	mat.set_shader_parameter("asphalt_texture", ASPHALT)
+	for run in range(12):
+		var start := length * (0.012 + run * 0.078)
+		var run_length := 65.0 + 20.0 * sin(run * 2.1)
+		var direction := -1.0 if run % 2 == 0 else 1.0
+		for wheel in [-1, 1]:
+			var st := SurfaceTool.new()
+			st.begin(Mesh.PRIMITIVE_TRIANGLES)
+			for segment in range(36):
+				var t0 := segment / 36.0
+				var t1 := (segment + 1) / 36.0
+				var a := start + t0 * run_length
+				var b := start + t1 * run_length
+				var lane_a: float = direction * (1.1 + sin(t0 * PI) * 2.7) + wheel * 0.79
+				var lane_b: float = direction * (1.1 + sin(t1 * PI) * 2.7) + wheel * 0.79
+				var vertices := [point(a, lane_a - 0.14), point(a, lane_a + 0.14), point(b, lane_b - 0.14), point(b, lane_b + 0.14)]
+				var uvs := [Vector2(0, t0), Vector2(1, t0), Vector2(0, t1), Vector2(1, t1)]
+				for index in [0, 2, 1, 1, 2, 3]:
+					st.set_uv(uvs[index])
+					st.set_normal(Vector3.UP)
+					st.add_vertex(vertices[index] + Vector3.UP * 0.038)
+			var node := MeshInstance3D.new()
+			node.mesh = st.commit()
+			node.material_override = mat
+			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			add_child(node)
+			skid_meshes.append(node)
+
+func box_batch(size: Vector3, mat: Material, transforms: Array[Transform3D]) -> void:
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	var instances := MultiMesh.new()
+	instances.transform_format = MultiMesh.TRANSFORM_3D
+	instances.mesh = mesh
+	instances.instance_count = transforms.size()
+	for i in range(transforms.size()):
+		instances.set_instance_transform(i, transforms[i])
+	var node := MultiMeshInstance3D.new()
+	node.multimesh = instances
+	node.material_override = mat
+	add_child(node)
+	prop_batches.append(node)

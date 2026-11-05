@@ -19,6 +19,19 @@ func run() -> void:
 	check(race.rivals.size() == 7, "Eight racers must be present")
 	var track = race.track
 	check(track.point(0).distance_to(track.point(track.length)) < 0.001, "Course must form a closed loop")
+	var road_arrays = track.road_surface.mesh.surface_get_arrays(0)
+	check(road_arrays[Mesh.ARRAY_TEX_UV].size() > 0, "Generated asphalt must have road UV coordinates")
+	check(road_arrays[Mesh.ARRAY_NORMAL][0].y > 0.8, "Road faces must point upward so the asphalt is visible")
+	var water_arrays = track.scenery.water.mesh.surface_get_arrays(0)
+	check(water_arrays[Mesh.ARRAY_NORMAL][0].y > 0.9, "Lake surface must face upward")
+	check(track.scenery.tree_positions.size() > 0, "Generated foliage must be placed along the course")
+	check(track.prop_batches.size() > 0, "Roadside props must be batched for web rendering")
+	for texture in [track.scenery.PINE, track.scenery.SAKURA]:
+		check(texture.get_image().detect_alpha() != Image.ALPHA_NONE, "Foliage must have a transparent background")
+	for progress in [0.0, 0.25, 0.5, 0.75]:
+		var d: float = track.length * progress
+		check(track.scenery.terrain_point(d, track.scenery.SHORE_LANE).y > track.scenery.WATER_HEIGHT, "Shoreline must stay above lake level")
+
 	check(track.point(-5).distance_to(track.point(track.length - 5)) < 0.001, "Negative start-grid distances must wrap")
 	check(race.hud.map_point(0).distance_to(race.hud.map_point(track.length)) < 0.01, "HUD route must close at the lap boundary")
 	check(race.hud.map_point(-5).distance_to(race.hud.map_point(track.length - 5)) < 0.01, "Starting grid markers must wrap on the HUD route")

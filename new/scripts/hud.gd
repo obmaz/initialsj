@@ -491,6 +491,7 @@ func draw_world_ranks(rows: Array[Dictionary]) -> void:
 	if race.state != "racing":
 		return
 	var count := 0
+	var occupied: Array[Rect2] = []
 	for i in range(rows.size()):
 		var row: Dictionary = rows[i]
 		var gap := fposmod(float(row.distance) - race.distance, race.track.length)
@@ -502,7 +503,13 @@ func draw_world_ranks(rows: Array[Dictionary]) -> void:
 		var p := to_design(race.camera.unproject_position(pos))
 		if p.x < 270 or p.x > 1080 or p.y < 100 or p.y > 500:
 			continue
-		slant(Rect2(p - Vector2(28, 21), Vector2(58, 26)), Color("16151dc4"), 6)
+		var badge := Rect2(p - Vector2(28, 21), Vector2(58, 26))
+		for previous in occupied:
+			if previous.grow(3).intersects(badge):
+				p.y -= 30
+				badge.position.y -= 30
+		occupied.append(badge)
+		slant(badge, Color("16151dc4"), 6)
 		var suffix := "st" if i == 0 else ("nd" if i == 1 else ("rd" if i == 2 else "th"))
 		centered(p, str(i + 1) + suffix, 23)
 		count += 1
@@ -517,7 +524,7 @@ func draw_menu() -> void:
 		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("060b168f"))
 		slant(Rect2(360, 183, 560, 358), Color("10121bec"), 30)
 		glow_line(PackedVector2Array([Vector2(390, 183), Vector2(920, 183)]), CYAN, 2)
-		text_at(Vector2(424, 230), "INITIAL SJ / ALPINE CIRCUIT", 19, CYAN)
+		text_at(Vector2(424, 230), "INITIAL SJ / FUJI LAKESIDE", 19, CYAN)
 		var title := "ALPINE RUSH" if race.state == "ready" else ("RACE PAUSED" if race.state == "paused" else "FINISH / P%d" % race.rank_position())
 		text_at(Vector2(424, 289), title, 46)
 		var detail := "8 DRIVERS. 3 LAPS. ONE WINNER."
