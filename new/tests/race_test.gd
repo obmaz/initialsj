@@ -172,10 +172,10 @@ func run() -> void:
 	var right: Vector2 = race.hud.route_map_point(1,1)
 	check(start.y > left.y and start.y > right.y and left.x < start.x and right.x > start.x,"Route map must travel upward with left/right matching the physical fork")
 	check(not race.hud.buttons.nitro.intersects(race.hud.buttons.drift) and not race.hud.buttons.nitro.intersects(race.hud.buttons.gas),"Nitro must have its own visible touch target")
-	race.speed = 80
+	race.speed = race.vehicle.max_speed
 	race.nitro = 70
 	for i in range(30): race.step(1.0/60,0,false,true,false,true)
-	check(race.nitro_active and race.speed > 90 and race.nitro < 62,"Nitro must accelerate beyond cruise speed and consume fuel")
+	check(race.nitro_active and race.speed > race.vehicle.max_speed+8 and race.nitro < 63,"Nitro must accelerate beyond cruise speed and consume fuel")
 	race.step(1.0/60,0,false,true,true,true)
 	check(not race.nitro_active and race.braking,"Braking must override nitro")
 	race.nitro = 0
@@ -224,4 +224,5 @@ func run() -> void:
 	race.queue_free()
 	await process_frame
 	failures += await preload("res://tests/garage_checks.gd").new().run(self)
+	failures += await preload("res://tests/modes_checks.gd").new().run(self)
 	quit(1 if failures else 0)

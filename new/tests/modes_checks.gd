@@ -1,0 +1,78 @@
+extends RefCounted
+const Catalog = preload("res://scripts/vehicle_catalog.gd")
+var failures := 0
+func check(value: bool, message: String) -> void:
+	if not value:
+		push_error(message)
+		failures += 1
+func click(race: Node3D, rect: Rect2) -> void:
+	var event := InputEventScreenTouch.new()
+	event.index = 0
+	event.pressed = true
+	event.position = rect.get_center()*race.hud.ui_scale()+race.hud.ui_offset()
+	race.hud.handle_pointer(event)
+	event.pressed = false
+	race.hud.handle_pointer(event)
+func run(tree: SceneTree) -> int:
+	var race = load("res://scenes/race.tscn").instantiate()
+	tree.root.add_child(race)
+	race.set_physics_process(false)
+	race.save_records = false
+	check(race.state == "menu","Startup must offer modes before vehicle selection")
+	var initial_sound: bool = race.sound_enabled
+	click(race,race.hud.HOME_SETTINGS)
+	click(race,race.hud.SETTINGS_SOUND)
+	click(race,race.hud.SETTINGS_CLOSE)
+	check(race.state == "menu" and race.sound_enabled != initial_sound,"Settings must return to the mode menu and retain the chosen value")
+	click(race,race.hud.HOME_TRACK)
+	check(race.state == "ready" and race.mode == "track","Track selection must lead to the shared garage")
+	check(race.track.previews.is_empty() and race.track.scenery.theme == "fuji","The one circuit must use Fuji scenery and have no route forks")
+	var length: float = race.track.length
+	for d in [-5.0,0.0,80.0,length-1]:
+		check(race.track.point(d).distance_to(race.track.point(d+length)) < 0.002,"Circuit positions must wrap continuously")
+	check(absf(wrapf(race.track.heading(-0.1)-race.track.heading(0.1),-PI,PI)) < 0.01,"Start/finish tangent must be continuous")
+	var active := 0
+	for r in race.rivals:
+		if r.active: active += 1
+	check(active == 7 and race.race_position() == 8,"Track must have a fixed grid of eight cars")
+	race.restart()
+	race.state = "racing"
+	for r in race.rivals: r.active = false
+	race.distance = 450
+	race.lane = 0
+	race.speed = 38
+	race.drift_latched = true
+	race.drift_sign = 1
+	for frame in range(40): race.step(1.0/60,0,false,true,false)
+	check(not race.drifting,"Unwinding steering with recovered grip must settle a drift on gentle circuit bends")
+	race.restart()
+	race.state = "racing"
+	race.time_left = 0
+	for r in race.rivals: r.active = false
+	for lap in range(3):
+		race.distance = 80+length*(lap+1)-0.4
+		race.lane = 0
+		race.speed = 60
+		race.step(1.0/60,0,false,false,false)
+		check(race.laps_completed == lap+1,"Each start/finish crossing must count exactly one lap")
+		check(race.state == ("finished" if lap == 2 else "racing"),"Track must finish at three laps without a Tour countdown deadline")
+	race.restart()
+	race.state = "racing"
+	race.distance = 80+length
+	race.speed = 60
+	var other: Dictionary = race.rivals[0]
+	other.distance = 83.2
+	other.lane = race.lane
+	other.speed = 40.0
+	check(absf(race.relative_gap(other.distance,race.distance)-3.2) < 0.001,"Physical traffic gaps must wrap independently of lap progress")
+	var contact: Dictionary = race.contact_with(other)
+	check(not contact.is_empty(),"A lapped vehicle must still have physical collision bounds")
+	if not contact.is_empty(): race.resolve_contact(other,contact)
+	check(race.contact_with(other).is_empty(),"Lapped-vehicle contacts must separate normally")
+	check(Catalog.record_key(0,"track") != Catalog.record_key(0,"tour"),"Circuit and Tour records must stay separate")
+	race.choose_mode("tour")
+	check(race.mode == "tour" and not race.track.active.closed_loop and race.track.previews.size() == 2,"Tour must retain its open branching roads after switching modes")
+	print("Mode / circuit checks: ","PASS" if failures == 0 else "FAIL (%d)" % failures)
+	race.queue_free()
+	await tree.process_frame
+	return failures

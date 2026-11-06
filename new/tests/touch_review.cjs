@@ -11,14 +11,14 @@ const path=require('path');
   await page.goto(process.env.INITIALSJ_REVIEW_URL||'http://127.0.0.1:8787/new/');
   await page.waitForFunction(()=>typeof engine!=='undefined'&&!document.querySelector('#status'),{},{timeout:60000});
   const point=(x,y)=>({x:80+x*0.575,y:y*0.575});
-  await page.touchscreen.tap(point(465,624).x,point(465,624).y);
+  await page.touchscreen.tap(point(420,590).x,point(420,590).y);
   // Tap all three cards in the real exported UI, returning to the hatch for the drive.
-  for (const x of [640,935,345]) {
-   await page.touchscreen.tap(point(x,330).x,point(x,330).y);
+  for (const x of [590,910,270]) {
+   await page.touchscreen.tap(point(x,596).x,point(x,596).y);
    await page.waitForTimeout(300);
   }
   await page.screenshot({path:path.resolve(__dirname,'../docs/menu-mobile.png')});
-  await page.touchscreen.tap(point(882,608).x,point(882,608).y);
+  await page.touchscreen.tap(point(1050,670).x,point(1050,670).y);
   await page.waitForTimeout(10000);
   const cdp=await page.context().newCDPSession(page);
   const touch=(type,points)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:points.map(([id,x,y])=>({id,...point(x,y)}))});

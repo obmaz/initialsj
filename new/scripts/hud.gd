@@ -12,7 +12,15 @@ const POSITION_FONT = preload("res://assets/fonts/PositionNumeral.tres")
 const NUMBER_FONT = preload("res://assets/fonts/Roboto-BlackItalic.ttf")
 const Library = preload("res://scripts/route_library.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
-const GARAGE_START := Rect2(690,574,385,68)
+const HOME_TOUR := Rect2(225,535,390,110)
+const HOME_TRACK := Rect2(645,535,390,110)
+const HOME_SETTINGS := Rect2(1100,24,155,40)
+const GARAGE_BACK := Rect2(100,40,150,40)
+const SETTINGS_SOUND := Rect2(430,270,420,70)
+const SETTINGS_MOTION := Rect2(430,352,420,70)
+const SETTINGS_CLOSE := Rect2(430,486,420,70)
+const SPLASH = preload("res://assets/ui/coast-rush-splash.png")
+const GARAGE_START := Rect2(940,624,220,76)
 const GARAGE_MOTION := Rect2(205,604,160,40)
 const GARAGE_SOUND := Rect2(380,604,170,40)
 const CHANGE_CAR := Rect2(390,578,500,35)
@@ -111,9 +119,18 @@ func handle_pointer(event: InputEvent) -> void:
 		fingers.erase(index)
 		return
 	var p := to_design(event.position)
+	if race.state == "menu":
+		if HOME_TOUR.has_point(p): race.choose_mode("tour")
+		elif HOME_TRACK.has_point(p): race.choose_mode("track")
+		elif HOME_SETTINGS.has_point(p): race.open_settings()
+		return
+	if race.state == "settings":
+		if SETTINGS_SOUND.has_point(p): race.sound_enabled = not race.sound_enabled
+		elif SETTINGS_MOTION.has_point(p): race.motion_reduced = not race.motion_reduced
+		elif SETTINGS_CLOSE.has_point(p): race.close_settings()
+		return
 	if race.state == "ready":
-		if GARAGE_SOUND.has_point(p): race.sound_enabled = not race.sound_enabled
-		elif GARAGE_MOTION.has_point(p): race.motion_reduced = not race.motion_reduced
+		if GARAGE_BACK.has_point(p): race.open_menu()
 		elif GARAGE_START.has_point(p): race.restart()
 		else:
 			for i in range(3):
@@ -132,6 +149,7 @@ func handle_pointer(event: InputEvent) -> void:
 	else: move_pointer(index,event.position)
 
 func move_pointer(index: int, pos: Vector2) -> void:
+	if race.state not in ["racing","countdown"]: return
 	fingers[index] = to_design(pos)
 
 func held(action: String) -> bool:
@@ -230,6 +248,13 @@ func _draw() -> void:
 	if race == null:
 		return
 	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
+	if race.state in ["menu","settings"]:
+		draw_home()
+		if race.state == "settings": draw_settings()
+		return
+	if race.state == "ready":
+		draw_garage()
+		return
 	draw_pace_feedback()
 	var rows := standings()
 	draw_position(rows)
@@ -244,24 +269,19 @@ func _draw() -> void:
 func draw_position(_rows: Array[Dictionary]) -> void:
 	draw_colored_polygon(PackedVector2Array([Vector2(25,14),Vector2(226,14),Vector2(200,78),Vector2(8,78)]),Color("17171cdd"))
 	slant(Rect2(23,18,72,29),Color("090a10b3"),7)
-	text_at(Vector2(32,40),"STG",24)
+	text_at(Vector2(32,40),"POS" if race.mode == "track" else "STG",24)
 	var transform := Transform2D(Vector2(ui_scale(),0),Vector2(0,ui_scale()),ui_offset())
-	draw_set_transform_matrix(transform * Transform2D(Vector2(1,0),Vector2(-0.18,1),Vector2(94,70)))
-	text_at(Vector2.ZERO,str(race.stage_index+1),72,GOLD,true,POSITION_FONT)
+	draw_set_transform_matrix(transform*Transform2D(Vector2(1,0),Vector2(-0.18,1),Vector2(94,70)))
+	text_at(Vector2.ZERO,str(race.race_position() if race.mode == "track" else race.stage_index+1),72,GOLD,true,POSITION_FONT)
 	draw_set_transform(ui_offset(),0,Vector2.ONE*ui_scale())
-	text_at(Vector2(151,67),"/5",40,WHITE,true,NUMBER_FONT)
-	var next := Library.next_titles(race.stage_index,race.route_node)
-	var labels := [Library.title(race.stage_index,race.route_node),"< " + next[0]+" / LV%d" % (race.route_node+1),next[1]+" / LV%d >" % (race.route_node+2),"PASS  %d" % race.overtakes]
-	if race.stage_index == 4:
-		labels[1] = "GOAL IN %.1f KM" % maxf(0,(race.track.length-race.distance)/1000)
-		labels[2] = "RISK LV%d" % (race.route_node+1)
-	for i in range(4):
-		var y := 94.0+i*30
-		slant(Rect2(10,y,235,27),Color("073d59dd") if i == 0 else Color("11131cd6"),8,true)
-		text_at(Vector2(25,y+21),labels[i],18,CYAN if i == 0 else WHITE)
-	slant(Rect2(10,234,245,39),Color("121520bd"),8,true)
-	text_at(Vector2(25,259),"SCORE",16,CYAN)
-	text_at(Vector2(92,264),comma_number(int(race.score)),29)
+	text_at(Vector2(151,67),"/8" if race.mode == "track" else "/5",40,WHITE,true,NUMBER_FONT)
+	var title := "FUJI LAKESIDE" if race.mode == "track" else Library.title(race.stage_index,race.route_node)
+	slant(Rect2(13,89,190,25),Color("073d59c9"),6,true)
+	text_at(Vector2(24,107),title,14,CYAN)
+	slant(Rect2(13,123,190,42),Color("121520bd"),7,true)
+	text_at(Vector2(24,137),"SCORE",10,Color("99b8c9"))
+	text_at(Vector2(24,158),comma_number(int(race.score)),23)
+	text_at(Vector2(128,154),"PASS %d" % race.overtakes,11,Color("adc1cb"))
 
 func comma_number(value: int) -> String:
 	var digits := str(maxi(0, value))
@@ -286,6 +306,13 @@ func draw_coin(center: Vector2) -> void:
 	draw_polyline(star + PackedVector2Array([star[0]]), Color("d19622"), 1, true)
 
 func draw_lap_time() -> void:
+	if race.mode == "track":
+		slant(Rect2(894,15,378,60),Color("15151ce6"),15)
+		text_at(Vector2(914,43),"LAP",23)
+		text_at(Vector2(975,61),"%d / 3" % mini(3,race.laps_completed+1),39,GOLD,true,NUMBER_FONT)
+		text_at(Vector2(1090,35),"RACE TIME",12,Color("b9d1df"))
+		text_at(Vector2(1085,62),time_label(race.elapsed),26)
+		return
 	slant(Rect2(894,15,378,60),Color("15151ce6"),15)
 	text_at(Vector2(914,43),"TIME",23)
 	var color := Color("ff785e") if race.time_left < 10 else GOLD
@@ -298,6 +325,9 @@ func route_map_point(row: int, node: int) -> Vector2:
 	return Vector2(1181 + (node-row*0.5)*33,190-row*24)
 
 func draw_minimap(_rows: Array[Dictionary]) -> void:
+	if race.mode == "track":
+		draw_circuit_map()
+		return
 	slant(Rect2(1087,83,185,132),Color("121b2ac2"),10)
 	var selected := 0
 	for row in range(5):
@@ -314,6 +344,21 @@ func draw_minimap(_rows: Array[Dictionary]) -> void:
 	var current := route_map_point(race.stage_index,race.route_node)
 	draw_arc(current,7,0,TAU,24,GOLD,1.5,true)
 	text_at(Vector2(1124,210),"START  /  GOAL",11,Color("b4d1df"))
+
+func circuit_map_point(d: float) -> Vector2:
+	var p: Vector3 = race.track.point(d)
+	return Vector2(1180+p.x*0.14,149+p.z*0.12)
+
+func draw_circuit_map() -> void:
+	slant(Rect2(1087,83,185,132),Color("121b2ac2"),10)
+	var points := PackedVector2Array()
+	for i in range(101): points.append(circuit_map_point(race.track.length*i/100.0))
+	draw_polyline(points,Color("d1e2ee"),3,true)
+	for r in race.rivals:
+		if r.active: draw_circle(circuit_map_point(r.distance),2.5,Color("ff9f68"))
+	draw_circle(circuit_map_point(race.distance),5,CYAN)
+	draw_rect(Rect2(circuit_map_point(80)-Vector2(3,3),Vector2(6,6)),WHITE)
+	text_at(Vector2(1124,210),"FUJI / CIRCUIT 01",11,Color("b4d1df"))
 
 func draw_drift_score() -> void:
 	if drift_fade <= 0:
@@ -467,54 +512,76 @@ func draw_nitro() -> void:
 			draw_colored_polygon(PackedVector2Array([Vector2(x,667),Vector2(x+41*fill,667),Vector2(x+41*fill-8,684),Vector2(x-8,684)]),GOLD if race.nitro_active else color)
 
 func garage_card(index: int) -> Rect2:
-	return Rect2(205+index*295,185,280,338)
+	return Rect2(120+index*320,548,300,72)
+
+func draw_home() -> void:
+	draw_rect(Rect2(-ui_offset()/ui_scale(),get_viewport_rect().size/ui_scale()),Color("07111e"))
+	draw_texture_rect(SPLASH,Rect2(0,0,1280,720),false)
+	draw_rect(Rect2(0,510,1280,210),Color("07111edc"))
+	for index in range(2):
+		var rect: Rect2 = HOME_TOUR if index == 0 else HOME_TRACK
+		var accent := CYAN if index == 0 else Color("ffae72")
+		var x := rect.position.x
+		slant(rect,Color("112334f2"),12)
+		draw_line(rect.position+Vector2(14,0),rect.position+Vector2(rect.size.x,0),accent,2,true)
+		text_at(Vector2(x+28,rect.position.y+43),"TOUR" if index == 0 else "TRACK",32,WHITE)
+		text_at(Vector2(x+28,rect.position.y+68),"BRANCHING COAST RUN" if index == 0 else "FUJI LAKESIDE CIRCUIT",14,accent)
+		text_at(Vector2(x+28,rect.position.y+91),"5 STAGES / 16 ROUTES" if index == 0 else "3 LAPS / 8 CARS",12,Color("98b5c8"))
+		text_at(Vector2(x+330,rect.position.y+64),">",35,accent)
+	slant(HOME_SETTINGS,Color("07111ed9"),6)
+	centered(Vector2(HOME_SETTINGS.get_center().x,50),"SETTINGS",15)
+	centered(Vector2(640,682),"1  TOUR     2  TRACK     TAB  SETTINGS",12,Color("91aab9"))
+
+func draw_settings() -> void:
+	draw_rect(Rect2(0,0,1280,720),Color("020812c9"))
+	slant(Rect2(370,175,540,430),Color("101e2bfa"),18)
+	text_at(Vector2(430,239),"SETTINGS",32)
+	for rect in [SETTINGS_SOUND,SETTINGS_MOTION]: slant(rect,Color("20374a"),6)
+	text_at(Vector2(450,314),"SOUND",20)
+	text_at(Vector2(760,314),"ON" if race.sound_enabled else "OFF",20,CYAN)
+	text_at(Vector2(450,394),"REDUCED MOTION",20)
+	text_at(Vector2(760,394),"ON" if race.motion_reduced else "OFF",20,CYAN)
+	text_at(Vector2(430,448),"W GAS / S BRAKE / A D STEER",17,Color("92adbf"))
+	text_at(Vector2(430,472),"SPACE DRIFT / SHIFT NITRO / E CELL",17,Color("92adbf"))
+	slant(SETTINGS_CLOSE,CYAN,8)
+	centered(Vector2(640,529),"DONE / ESC",22,Color("0a1b2b"))
 
 func draw_garage() -> void:
-	draw_rect(Rect2(-ui_offset()/ui_scale(),get_viewport_rect().size/ui_scale()),Color("040b16c9"))
-	slant(Rect2(170,65,940,610),Color("0c1423fc"),28)
-	glow_line(PackedVector2Array([Vector2(198,65),Vector2(1110,65)]),CYAN,2)
-	text_at(Vector2(205,105),"INITIAL SJ / GRAND TOUR",17,CYAN)
-	text_at(Vector2(205,151),"CHOOSE YOUR RIDE",38)
-	text_at(Vector2(750,147),"5 STAGES / 16 ROUTES",18,Color("91acc0"))
+	var color := Color(race.vehicle.accent)
+	draw_rect(Rect2(-ui_offset()/ui_scale(),get_viewport_rect().size/ui_scale()),Color("08121f"))
+	draw_line(Vector2(100,104),Vector2(1160,104),Color("264152"),1,true)
+	text_at(Vector2(112,68),"<  BACK",17,Color("9db6c9"))
+	centered(Vector2(640,68),("TRACK" if race.mode == "track" else "TOUR")+" / GARAGE",15,Color("9db6c9"))
+	text_at(Vector2(1105,68),"%d / 3" % (race.selected_vehicle+1),16,color)
+	text_at(Vector2(120,168),race.vehicle.name,43)
+	text_at(Vector2(123,195),race.vehicle["class"],14,color)
+	if race.previews != null:
+		draw_texture_rect(race.previews.textures[race.selected_vehicle],Rect2(80,210,690,300),false)
+	text_at(Vector2(826,162),"PERFORMANCE",14,Color("9db6c9"))
+	var abilities := Catalog.abilities(race.selected_vehicle)
+	for i in range(4):
+		var y := 203.0+i*58
+		var rating: float = abilities[Catalog.ABILITY_KEYS[i]]
+		text_at(Vector2(826,y),Catalog.ABILITY_LABELS[i],18,Color("c8d9e4"))
+		text_at(Vector2(1115,y),"%.1f" % rating,20,color)
+		draw_rect(Rect2(826,y+13,334,5),Color("263746"))
+		draw_rect(Rect2(826,y+13,334*rating/10.0,5),color)
+	text_at(Vector2(826,455),race.vehicle.nitro_title,18,color)
+	text_at(Vector2(826,483),race.vehicle.nitro_help,14,Color("a1b8c9"))
+	text_at(Vector2(120,528),race.vehicle.description,16,Color("9db6c9"))
 	for i in range(3):
+		var rect := garage_card(i)
 		var v := Catalog.spec(i)
-		var card := garage_card(i)
-		var x := card.position.x
 		var selected: bool = i == race.selected_vehicle
-		var color := Color(v.accent)
-		draw_rect(card,Color("203346") if selected else Color("121f30"))
-		draw_rect(card,color if selected else Color("33485b"),false,2)
-		draw_rect(Rect2(x,185,280,4),color)
-		text_at(Vector2(x+15,218),v.name,26,color)
-		text_at(Vector2(x+16,239),v["class"],13,Color("a7bdcd"))
-		if race.previews != null:
-			draw_texture_rect(race.previews.textures[i],Rect2(x+5,241,270,137),false)
-		var abilities := Catalog.abilities(i)
-		for stat in range(Catalog.ABILITY_KEYS.size()):
-			var y := 390.0+stat*22
-			var rating: float = abilities[Catalog.ABILITY_KEYS[stat]]
-			text_at(Vector2(x+16,y),Catalog.ABILITY_LABELS[stat],14,Color("a7bdcd"))
-			for pip in range(10):
-				var rect := Rect2(x+119+pip*13,y-8,9,7)
-				draw_rect(rect,Color("304153"))
-				var fill := clampf(rating-pip,0,1)
-				if fill > 0:
-					rect.size.x *= fill
-					draw_rect(rect,color)
-			text_at(Vector2(x+252,y),"%.1f" % rating,12,Color("d1e1ec"))
-		draw_rect(Rect2(x+12,462,256,49),Color("09121f"))
-		text_at(Vector2(x+20,484),v.nitro_title,17,color)
-		var help: String = "HOLD SHIFT / drift recharges" if i == 0 else ("TAP SHIFT / +1 at checkpoints" if i == 1 else "HOLD SHIFT / E uses a cell")
-		text_at(Vector2(x+20,503),help,12,Color("b5c9d9"))
-	text_at(Vector2(205,553),race.vehicle.description,18,Color("cedde7"))
-	text_at(Vector2(205,580),"1 / 2 / 3 OR TAP TO SELECT",15,CYAN)
-	text_at(Vector2(205,598),"W GAS / S BRAKE / A D STEER / SPACE DRIFT",12,Color("94aabd"))
-	for rect in [GARAGE_MOTION,GARAGE_SOUND]: slant(rect,Color("253548"),6)
-	centered(Vector2(285,630),"MOTION: LOW" if race.motion_reduced else "MOTION: FULL",16,CYAN)
-	centered(Vector2(465,630),"SOUND: ON" if race.sound_enabled else "SOUND: OFF",16,CYAN)
-	slant(GARAGE_START,Color(race.vehicle.accent),12)
-	centered(Vector2(882,617),"DRIVE / ENTER",30,Color("0a1b2b"))
-	text_at(Vector2(700,662),"CAR BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"),15,GOLD)
+		slant(rect,Color("203345") if selected else Color("101d2b"),8)
+		if selected: draw_line(rect.position+Vector2(8,rect.size.y),rect.end,Color(v.accent),3,true)
+		text_at(rect.position+Vector2(19,25),"%d  %s" % [i+1,v.name],20,Color(v.accent) if selected else Color("bdcedb"))
+		var role: String = ["AGILE / GAUGE","TOP SPEED / SHOTS","POWER / HYBRID"][i]
+		text_at(rect.position+Vector2(20,47),role,12,Color("94acbe"))
+	text_at(Vector2(120,679),"BEST "+(time_label(race.best_time) if race.best_time > 0 else "--:--.---"),15,GOLD)
+	text_at(Vector2(420,679),"1 / 2 / 3 SELECT     ESC BACK",13,Color("7c98ac"))
+	slant(GARAGE_START,color,8)
+	centered(Vector2(GARAGE_START.get_center().x,672),"DRIVE / ENTER",23,Color("07111e"))
 
 func draw_menu() -> void:
 	if race.state == "ready":
@@ -530,13 +597,13 @@ func draw_menu() -> void:
 		glow_line(PackedVector2Array([Vector2(265, 100), Vector2(1045, 100)]), CYAN, 2)
 		text_at(Vector2(307, 150), "INITIAL SJ / GRAND TOUR", 22, CYAN)
 		text_at(Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD)
-		var title := "GRAND TOUR" if race.state == "ready" else ("TOUR PAUSED" if race.state == "paused" else ("GOAL CLEAR!" if race.state == "finished" else "TIME OVER"))
+		var title := "GRAND TOUR" if race.state == "ready" else ("TOUR PAUSED" if race.state == "paused" else (("RACE FINISHED" if race.mode == "track" else "GOAL CLEAR!") if race.state == "finished" else "TIME OVER"))
 		text_at(Vector2(307, 224), title, 62)
 		var detail := "5 STAGES. CHOOSE YOUR ROAD."
 		if race.state == "paused":
 			detail = "P / ESC TO RESUME. R TO RESTART."
 		elif race.state == "finished":
-			detail = "TIME %s / SCORE %d" % [time_label(race.elapsed), int(race.score)]
+			detail = ("POS %d / 8  -  %s" % [race.race_position(),time_label(race.elapsed)]) if race.mode == "track" else ("TIME %s / SCORE %d" % [time_label(race.elapsed), int(race.score)])
 		text_at(Vector2(307, 277), detail, 25)
 		var touch_controls := DisplayServer.is_touchscreen_available()
 		text_at(Vector2(307, 331), "LEFT: STEER    RIGHT: GAS / BRAKE" if touch_controls else "W / UP GAS    S / DOWN BRAKE", 24, Color("d1d9e4"))
@@ -559,10 +626,10 @@ func draw_pace_feedback() -> void:
 	if race.state != "racing": return
 	if race.launch_flash > 0: centered(Vector2(640,350),"GO!",76,Color(GOLD,minf(1,race.launch_flash*4)))
 	if race.checkpoint_flash > 0:
-		centered(Vector2(640,222),"CHECKPOINT +%ds" % int(race.checkpoint_award),40,Color(GOLD,minf(1,race.checkpoint_flash*3)))
-	elif race.stage_index < 4 and race.distance > race.track.length-260:
+		centered(Vector2(640,222),("LAP %d / 3" % mini(3,race.laps_completed+1)) if race.mode == "track" else ("CHECKPOINT +%ds" % int(race.checkpoint_award)),40,Color(GOLD,minf(1,race.checkpoint_flash*3)))
+	elif race.mode == "tour" and race.stage_index < 4 and race.distance > race.track.length-260:
 		var names := Library.next_titles(race.stage_index,race.route_node)
-		centered(Vector2(640,225),"< " + names[0] + " / EASY   |   " + names[1] + " / HARD >",21,CYAN)
+		centered(Vector2(640,225),"< " + names[0] + "   |   " + names[1] + " >",17,CYAN)
 	var intensity: float = clampf((race.speed-38)/50,0,1)
 	if not race.motion_reduced:
 		var origin := Vector2(640,315)

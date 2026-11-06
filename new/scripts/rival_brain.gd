@@ -27,7 +27,7 @@ func tick(race: Node3D, delta: float) -> void:
 				r.distance += r.speed * delta
 				if r.detached.point(r.distance,r.lane).distance_to(race.track.point(race.distance,race.lane)) < 450: continue
 			recycle(race,r)
-		if r.distance < race.distance - 65:
+		if race.mode == "tour" and r.distance < race.distance - 65:
 			recycle(race,r)
 		var d: float = r.distance
 		var edge: float = race.track.half_width(d)-0.2
@@ -41,7 +41,7 @@ func tick(race: Node3D, delta: float) -> void:
 				var cost: float = absf(candidate-r.lane) * 0.35
 				for other in traffic:
 					if other == r or not other.get("active",true) or other.get("detached") != null: continue
-					var gap: float = other.distance-d
+					var gap: float = race.relative_gap(other.distance,d)
 					if absf(other.lane-candidate) < 2.5 and gap > -12 and gap < 36:
 						cost += (36-gap) * (1.0 if other.speed < r.speed+3 else 0.25)
 					if absf(gap) < 8 and other.lane > minf(r.lane,candidate)-2.1 and other.lane < maxf(r.lane,candidate)+2.1: cost += 160
@@ -55,11 +55,11 @@ func tick(race: Node3D, delta: float) -> void:
 		var target: float = r.pace
 		for look in [0.0,35.0,80.0,130.0]:
 			var curve: float = absf(race.track.curvature(d+look))
-			var safe := sqrt(12.5 / maxf(curve,0.0001))
+			var safe := sqrt((race.vehicle.grip*1.2 if race.mode == "track" else 12.5) / maxf(curve,0.0001))
 			target = minf(target,sqrt(safe * safe + 2 * 40 * look))
 		for other in traffic:
 			if other == r or not other.get("active",true) or other.get("detached") != null or absf(other.lane-r.lane) > 2.3: continue
-			var gap: float = other.distance-d
+			var gap: float = race.relative_gap(other.distance,d)
 			if gap > 0 and gap < 18: target = minf(target,maxf(0,other.speed-(18-gap) * 2))
 		r.speed = move_toward(float(r.speed),target,delta * (44 if target < r.speed else 14))
 		r.distance += r.speed * delta
