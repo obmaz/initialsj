@@ -44,6 +44,9 @@ var impacts: Node3D
 var rivals: Array[Dictionary] = []
 var surface := SurfaceState.new()
 var air := AirState.new()
+var shoulder_dust: Node3D
+var offroad_amount := 0.0
+var shoulder_dust_clock := 0.0
 var landing_dust: Node3D
 var water_effect: Node3D
 var pad_active: bool:
@@ -182,6 +185,8 @@ func _ready() -> void:
 	add_child(water_effect)
 	landing_dust = preload("res://scripts/landing_dust.gd").new()
 	add_child(landing_dust)
+	shoulder_dust = preload("res://scripts/landing_dust.gd").new()
+	add_child(shoulder_dust)
 	impacts = preload("res://scripts/impact_effect.gd").new()
 	add_child(impacts)
 	player = Factory.create(selected_vehicle)
@@ -373,6 +378,8 @@ func restart() -> void:
 	time_left = Library.START_TIME
 	score = 0
 	surface.reset()
+	offroad_amount = 0
+	shoulder_dust_clock = 0
 	air.reset()
 	throttling = false
 	braking = false
@@ -559,6 +566,13 @@ func _physics_process(delta: float) -> void:
 	tire_trails.visible = world_visible
 	if not world_visible:
 		for r in rivals: r.car.visible = false
+	shoulder_dust_clock = maxf(0,shoulder_dust_clock-delta)
+	shoulder_dust.visible = world_visible and state == "racing"
+	if state == "racing" and offroad_amount > 0.25 and speed > 12 and not air.active:
+		if shoulder_dust_clock <= 0:
+			shoulder_dust.burst(track.point(distance-2,lane),true)
+			shoulder_dust_clock = 0.24
+	else: shoulder_dust.particles.emitting = false
 	tire_trails.update(self)
 	speed_ambience.update(self)
 	speed_effect.visible = state == "racing" and not motion_reduced and speed > 35 and render_budget.level < 2
@@ -567,6 +581,8 @@ func _physics_process(delta: float) -> void:
 	update_camera(delta)
 	player.road_speed = speed if state == "racing" else 0.0
 	player.animate(steer,drifting and state == "racing",(nitro_active or pad_active) and state == "racing",delta,slip_angle,braking and state == "racing",impact)
+	if offroad_amount > 0.2:
+		for particles in player.smoke: particles.emitting = false
 	if player.headlight != null: player.headlight.visible = track.active.in_tunnel(distance) or track.scenery.theme == "neon"
 	for r in rivals:
 		if not r.active or not r.car.visible or absf(relative_gap(r.distance,distance)) > 145:
@@ -587,6 +603,8 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		drifting = false
 		return
 	axis = route_axis(axis)
+	var shoulder := clampf((absf(lane)+0.8-track.half_width(distance))/1.6,0,1) if not air.active else 0.0
+	offroad_amount = move_toward(offroad_amount,shoulder,delta*6)
 	gas = gas or nitro_input or (cell_input and vehicle.mode == "hybrid") or nitro_burst_left > 0 or surface.pad_time > 0
 	var old_surface_position := Vector2(lane,distance)
 	elapsed += delta
@@ -653,8 +671,10 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		if pad_active:
 			cap = maxf(cap,pad_speed_cap())
 			acceleration = maxf(acceleration,vehicle.boost_accel+12)
+		cap *= lerpf(1,0.58,offroad_amount)
 		speed = move_toward(speed,cap,delta*acceleration)
-	var grip: float = (vehicle.drift_grip if drifting else vehicle.grip)*surface.grip_factor
+	speed = maxf(0,speed-delta*10*offroad_amount)
+	var grip: float = (vehicle.drift_grip if drifting else vehicle.grip)*surface.grip_factor*lerpf(1,0.72,offroad_amount)
 	var demand := absf(curve) * speed * speed
 	var excess := maxf(0,demand-grip)
 	var authority := clampf(1-excess/(grip*2),0.38,1)
@@ -726,7 +746,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 				nitro = minf(100,nitro+12)
 				score += 150
 		if not contact.is_empty(): resolve_contact(r,contact)
-	if drifting and margin > 1 and impact < 0.1:
+	if drifting and offroad_amount < 0.15 and margin > 1 and impact < 0.1:
 		score += delta * speed * (2.0+drift_charge)
 	recommended_speed = vehicle.max_speed
 	for look in [15.0,45.0,85.0]:
@@ -928,7 +948,7 @@ func update_camera(delta: float) -> void:
 	var pace := clampf(speed/88,0,1)
 	var active := state == "racing"
 	camera_time += delta if active else 0
-	var shake := (0.012*pace*pace + impact*0.24) if active and not motion_reduced else 0.0
+	var shake := (0.012*pace*pace + impact*0.24 + offroad_amount*pace*0.022) if active and not motion_reduced else 0.0
 	var vibration := right*sin(camera_time*53)*shake + Vector3.UP*cos(camera_time*67)*shake*0.55
 	var desired := -forward*(5.3+pace*0.25+(boost_kick*0.55 if not motion_reduced else 0.0)-(0.25 if braking else 0.0)) + Vector3.UP*((2.75 if motion_reduced else 2.60)-pace*0.30) + vibration
 	if camera_intro > 0: desired += -forward*camera_intro*3.5+Vector3.UP*camera_intro*2.0

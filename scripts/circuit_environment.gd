@@ -122,11 +122,12 @@ func make_trees() -> void:
 		var lakeside := i % 6 == 0
 		var outer_belt := i % 4 == 1
 		var lane := rng.randf_range(-16, -14) if lakeside else rng.randf_range(65 if outer_belt else 14, 100 if outer_belt else 35)
-		var p := terrain_point(d, lane)
 		var is_sakura := i % 5 == 0 or lakeside
 		var source: Texture2D = SAKURA if is_sakura else PINE
 		var height := rng.randf_range(6.5, 9) if is_sakura else rng.randf_range(14 if outer_belt else 9, 22 if outer_belt else 16)
 		var size := Vector3(height * source.get_width() / source.get_height(), height, 1)
+		lane = signf(lane)*maxf(absf(lane),track.half_width(d)+track.rail_setback(d,signf(lane))+2.5+size.x*0.5)
+		var p: Vector3 = track.roadside_point(d,lane)
 		var transform := Transform3D(Basis.IDENTITY.scaled(size), p + Vector3.UP * (height * 0.5 - 0.16))
 		if is_sakura:
 			sakura_transforms.append(transform)

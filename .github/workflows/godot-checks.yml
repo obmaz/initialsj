@@ -13,11 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Read pinned Godot version
+        id: godot_version
+        run: echo "version=$(tr -d '[:space:]' < .godot-version)" >> "$GITHUB_OUTPUT"
       - uses: chickensoft-games/setup-godot@v2
         with:
-          version: 4.6.3
+          version: ${{ steps.godot_version.outputs.version }}
           use-dotnet: false
           include-templates: false
+      - name: Verify engine version
+        run: godot --headless --path . --script res://tests/verify_engine.gd
       - name: Import project
         run: godot --headless --path . --editor --import --quit
       - name: Check race rules and install bridge

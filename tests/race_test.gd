@@ -106,7 +106,7 @@ func run() -> void:
 	race.speed = 70
 	race.lane = 9.15
 	race.step(0.1,1,false,true,false)
-	check(race.wall_hits > 0 and race.impact > 0 and race.lane <= 9.2,"Roadside contact must align with the rail and produce impact")
+	check(race.wall_hits > 0 and race.impact > 0 and race.lane <= race.track.lane_limits(race.distance).y+0.01,"Roadside contact must align with the rail and produce impact")
 	reset_drive(race)
 	var length: float = race.track.length
 	race.award_checkpoint()
@@ -235,4 +235,5 @@ func run() -> void:
 	failures += await preload("res://tests/tunnel_lights_checks.gd").new().run(self)
 	failures += await preload("res://tests/render_budget_checks.gd").new().run(self)
 	failures += await preload("res://tests/fork_checks.gd").new().run(self)
+	failures += await preload("res://tests/shoulder_checks.gd").new().run(self)
 	quit(1 if failures else 0)
