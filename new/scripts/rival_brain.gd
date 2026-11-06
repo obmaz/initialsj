@@ -1,5 +1,6 @@
 extends RefCounted
 const SurfaceState = preload("res://scripts/road_surface_state.gd")
+const Contact = preload("res://scripts/car_contact.gd")
 const Features = preload("res://scripts/road_features.gd")
 # Reusable road traffic: lane planning, safe gaps, preview braking and off-screen recycling.
 func initialize(rivals: Array[Dictionary]) -> void:
@@ -56,7 +57,16 @@ func tick(race: Node3D, delta: float) -> void:
 					chosen = candidate
 			r.target_lane = chosen
 		var old_surface_position := Vector2(r.lane,r.distance)
-		r.lane = clampf(move_toward(float(r.lane),float(r.target_lane),delta*3.1*lerpf(1,0.55,r.surface.wetness)),-edge,edge)
+		var proposed_lane := clampf(move_toward(float(r.lane),float(r.target_lane),delta*3.1*minf(r.speed/12.0,1.0)*lerpf(1,0.55,r.surface.wetness)),-edge,edge)
+		for other in traffic:
+			if other == r or not other.get("active",true) or other.get("detached") != null: continue
+			var gap: float = race.relative_gap(other.distance,d)+(other.speed-r.speed)*delta
+			var clearance := absf(proposed_lane-float(other.lane))
+			if absf(gap) < Contact.HALF_LENGTH*2+1.6 and clearance < Contact.HALF_WIDTH*2+0.6 and clearance < absf(r.lane-float(other.lane)):
+				proposed_lane = r.lane
+				r.decision = minf(r.decision,0.06)
+				break
+		r.lane = proposed_lane
 		r.visual_yaw = lerp_angle(r.visual_yaw,-clampf((r.target_lane-r.lane)/2,-1,1)*0.07,1-exp(-delta*6))
 		var target: float = r.pace+(18 if r.surface.pad_time > 0 else 0)
 		for look in [0.0,35.0,80.0,130.0]:
@@ -66,7 +76,11 @@ func tick(race: Node3D, delta: float) -> void:
 		for other in traffic:
 			if other == r or not other.get("active",true) or other.get("detached") != null or absf(other.lane-r.lane) > 2.3: continue
 			var gap: float = race.relative_gap(other.distance,d)
-			if gap > 0 and gap < 18: target = minf(target,maxf(0,other.speed-(18-gap) * 2))
+			if gap > 0 and gap < 170:
+				# Preview the distance needed to slow to the lead car, with a body-length margin.
+				var safe_follow: float = sqrt(other.speed*other.speed+2*38*maxf(0,gap-7.5))
+				target = minf(target,safe_follow)
+				if gap < 10: target = minf(target,maxf(0,other.speed-(10-gap)*2))
 		if target < r.speed: r.surface.cancel_boost()
 		r.boosting = r.surface.pad_time > 0
 		r.speed = move_toward(float(r.speed),target,delta*(44 if target < r.speed else (28 if r.boosting else 14)))

@@ -21,3 +21,5 @@ Records use `coast_rush_v3`, separated by mode and car. Older v2 records are pre
 `race_test.gd` includes garage and mode regression checks. `modes_checks.gd` covers menu/settings touch navigation, mode switching, loop continuity, three-lap finish, lapped-car separation and record isolation. `circuit_drive_review.gd` drives all three vehicles through a complete race and checks that opponents never teleport. Existing real keyboard and exported-browser tests cover entry through the new home screen.
 
 ![Fuji circuit](fuji-circuit-80.png)
+
+CPU traffic now previews the braking distance to a slower car and rechecks an occupied merge path every tick. These checks use wrapped physical gaps on the circuit, so a car on another lap still blocks an unsafe merge or approach. Stationary traffic cannot move sideways. Sustained pack results are in `traffic-metrics.json`; targeted queue and merge regressions are included by `race_test.gd`.
