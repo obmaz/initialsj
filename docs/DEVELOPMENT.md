@@ -40,6 +40,7 @@ python3 tools/verify_repository.py
 ./tools/godot --headless --fixed-fps 60 --path . --script res://tests/race_test.gd
 node tests/install_bridge_review.cjs
 node tests/back_bridge_review.cjs
+node tests/fullscreen_bridge_review.cjs
 ```
 
 [저장소 검사기](../tools/verify_repository.py)는 실행 진입점에서의 리소스 도달성, 끊긴 참조, 짝이 없는 `.uid`/`.import`, 문서 링크와 `docs/`의 생성 산출물을 확인합니다. [race_test.gd](../tests/race_test.gd)는 투어·서킷·차량·니트로·충돌·CPU·노면·점프·드리프트·RPM·그래픽 품질·뒤로가기·3D 배치·터널·뱅킹 구조 회귀 검사를 실행합니다. Node 검사는 실제 HTML 셸의 설치·history 브리지를 DOM/history 모형으로 검사합니다.

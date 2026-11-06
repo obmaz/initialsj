@@ -16,6 +16,7 @@ var safe_lane := -3.2
 var airborne_time := 0.0
 var landing_velocity := 0.0
 var wrong_way_time := 0.0
+var crash_flight := false
 
 func setup() -> void:
 	for i in range(8):
@@ -46,6 +47,7 @@ func reset() -> void:
 	airborne_time = 0
 	landing_velocity = 0
 	wrong_way_time = 0
+	crash_flight = false
 	safe_distance = 80
 	safe_lane = -3.2
 	for i in range(bodies.size()):
@@ -69,6 +71,7 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		airborne_time = 0
 		landing_velocity = 0
 		wrong_way_time = 0
+		crash_flight = false
 		race.player.reset_physics_interpolation()
 		race.camera.reset_physics_interpolation()
 	else:
@@ -151,6 +154,10 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	if reversing: target = -10
 	var signed_speed: float = player_body.velocity.dot(player_body.forward_direction())
 	if not reversing and signed_speed < -0.5: target = move_toward(signed_speed,0,(race.vehicle.brake if gas else 5)*delta)
+	if race.crash.active:
+		# Air motion remains ballistic. Once grounded, settle the signed rebound
+		# instead of accelerating the chassis head-first into the same barrier.
+		target = move_toward(signed_speed,0,race.vehicle.brake*0.8*delta)
 	var grip: float = race.surface.grip_factor*lerpf(1,0.72,race.offroad_amount)
 	var contacts: Array = player_body.advance(delta,race.steer,target,race.drifting,grip)
 	var data: Dictionary = trackers[0].update(player_body.feet_position(),delta)
@@ -236,10 +243,11 @@ func update_air(delta: float, was_airborne: bool) -> void:
 		if airborne_time > 0.12 and landing_velocity < -1.5:
 			race.air.landing_flash = 0.65
 			race.air.landing_strength = clampf(-landing_velocity/14,0.25,1)
-			race.score += 100
+			if not crash_flight: race.score += 100
 			if DisplayServer.get_name() != "headless": race.landing_dust.burst(player_body.feet_position(),race.motion_reduced)
 		airborne_time = 0
 		landing_velocity = 0
+		crash_flight = false
 
 func update_passes(old_gaps: Array[float], previous_distance: float) -> void:
 	if race.distance <= previous_distance or player_body.velocity.dot(player_body.forward_direction()) < 10: return
@@ -260,10 +268,31 @@ func update_passes(old_gaps: Array[float], previous_distance: float) -> void:
 			race.score += 150
 
 func impact(hit: Dictionary) -> void:
-	if race.bump_cooldown > 0: return
 	var normal: Vector3 = hit.normal
 	var forward: Vector3 = player_body.forward_direction()
 	var local := Vector2(normal.dot(player_body.global_basis.x),-normal.dot(forward))
+	var barrier: bool = hit.collider is StaticBody3D and hit.collider.get_collision_layer_value(2)
+	var incoming: float = hit.get("incoming_speed",race.speed)
+	var closing: float = hit.get("closing_speed",hit.speed)
+	if barrier and incoming >= 55 and closing >= 28 and absf(normal.y) < 0.65 and not race.crash.active:
+		race.crash.start(incoming,local,player_body.feet_position().y)
+		crash_flight = true
+		var outward := normal.slide(Vector3.UP).normalized()
+		var tangent := player_body.velocity.slide(normal)
+		tangent.y = 0
+		player_body.velocity = tangent*0.72+outward*clampf(closing*0.28,8,17)+Vector3.UP*clampf(10+closing*0.055,11.5,14.5)
+		player_body.grounded = false
+		race.air.active = true
+		race.air.trick = false
+		race.air.world_y = player_body.feet_position().y
+		race.air.velocity = player_body.velocity.y
+		airborne_time = 0
+		landing_velocity = 0
+		reverse_wait = 0
+		reversing = false
+		# A recent gentle scrape must not suppress a genuine severe impact.
+		race.bump_cooldown = 0
+	if race.bump_cooldown > 0: return
 	if hit.collider is CharacterBody3D: race.traffic_hits += 1
 	else: race.wall_hits += 1
 	race.register_impact(smoothstep(2.5,65,float(hit.speed)),local,hit.point)
@@ -334,7 +363,7 @@ func update_rivals(delta: float) -> void:
 		var forward: Vector3 = body.forward_direction()
 		var right := Vector3(-forward.z,0,forward.x).normalized()
 		var angle := atan2(direction.dot(right),direction.dot(forward))
-		var wheel: float = (0.46+race.vehicle.handling*0.007)/(1+speed_of(body)*0.035)
+		var wheel: float = (0.46+race.vehicle.handling*0.007)/(1+speed_of(body)*0.035)*WorldCar.steering_scale(speed_of(body))
 		var axis := clampf(atan(5.4*sin(angle)/look)/wheel,-1,1)
 		if absf(angle) > 1.1: axis = signf(angle)
 		rival.surface.tick(delta)
@@ -406,6 +435,51 @@ func update_recovery(delta: float, data: Dictionary) -> void:
 		race.cancel_nitro()
 		recovery_clock = 0
 
+func recover_player() -> bool:
+	# Recovery is an explicit rescue, never part of ordinary driving. Search
+	# only the last safe road region and behind it; ordered progress is retained.
+	var space := get_world_3d().direct_space_state
+	for back in [0.0,8.0,16.0,24.0]:
+		var d: float = safe_distance-back
+		var edge: float = race.track.half_width(d)-1.5
+		for lane in [clampf(safe_lane,-edge,edge),0.0,-edge*0.45,edge*0.45,-edge*0.75,edge*0.75]:
+			var up := road_up(d)
+			var feet: Vector3 = race.track.point(d,lane)
+			var probe := PhysicsRayQueryParameters3D.create(feet+up*2,feet-up,1,[player_body.get_rid()])
+			var ground := space.intersect_ray(probe)
+			if ground.is_empty() or ground.normal.y < 0.4: continue
+			up = ground.normal
+			feet = ground.position+up*0.04
+			var forward: Vector3 = (race.track.point(d+2,lane)-race.track.point(d-2,lane)).slide(up).normalized()
+			var pose := Transform3D(Basis.looking_at(forward,up),feet+up*WorldCar.SUPPORT_HEIGHT)
+			var query := PhysicsShapeQueryParameters3D.new()
+			query.shape = player_body.contact_shape.shape
+			query.transform = pose
+			query.margin = 0.25
+			query.collision_mask = 6
+			query.exclude = [player_body.get_rid()]
+			if not space.intersect_shape(query,1).is_empty(): continue
+			teleport(0,d,lane,false)
+			# The real road mesh can include a small ramp or a banked shoulder.
+			# Land on its measured floor rather than underneath its geometry.
+			player_body.reset_pose(feet,forward,up)
+			race.lane_velocity = 0
+			race.slip_angle = 0
+			race.offroad_amount = 0
+			race.steer = 0
+			reverse_wait = 0
+			reversing = false
+			recovery_clock = 0
+			race.tire_trails.reset()
+			race.cancel_nitro()
+			place_cars()
+			race.camera_offset = -forward*7.1+Vector3.UP*3
+			update_camera(1)
+			race.player.reset_physics_interpolation()
+			race.camera.reset_physics_interpolation()
+			return true
+	return false
+
 func update_camera(delta: float) -> void:
 	var forward: Vector3 = player_body.forward_direction()
 	var right := Vector3(-forward.z,0,forward.x).normalized()
@@ -416,6 +490,12 @@ func update_camera(delta: float) -> void:
 	race.camera_offset = race.camera_offset.lerp(desired,1-exp(-delta*7))
 	var recoil: Vector3 = race.collision_camera_offset(forward,right)
 	race.camera.position = race.player.position+race.camera_offset+recoil
+	if race.crash.active:
+		var origin: Vector3 = race.player.position+Vector3.UP*0.8
+		var query := PhysicsRayQueryParameters3D.create(origin,race.camera.position,2,[player_body.get_rid()])
+		var obstruction := get_world_3d().direct_space_state.intersect_ray(query)
+		if not obstruction.is_empty() and origin.distance_to(obstruction.position) > 1:
+			race.camera.position = obstruction.position+obstruction.normal*0.2
 	race.camera.look_at(race.player.position+forward*(5.0+pace*3.0)+up*0.8,up)
 	var fov: float = 68 if race.motion_reduced else 66+pace*17+(6 if race.boosting else 0)
 	race.camera.fov = lerpf(race.camera.fov,fov,1-exp(-delta*5))

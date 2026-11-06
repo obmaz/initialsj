@@ -31,6 +31,22 @@ func corner_trial(car: CharacterBody3D, spec: Dictionary, axis: float, drift: bo
 		car.advance(1.0/60,axis,target,drift)
 		loss = maxf(loss,car.last_corner_loss)
 	return {"speed_mps":car.velocity.slide(car.surface_normal).length(),"peak_scrub_mps2":loss,"demand_mps2":car.corner_demand,"slip_radians":car.slip_angle}
+func collision_trial(car: CharacterBody3D, feet: Vector3, forward: Vector3, speed: float) -> Dictionary:
+	car.reset_pose(feet,forward)
+	car.velocity = forward.normalized()*speed
+	for frame in range(60):
+		var contacts: Array = car.advance(1.0/60,0,speed,false)
+		for hit in contacts:
+			return {"layer":int(hit.collider.collision_layer),"barrier":hit.barrier,"severe":hit.severe,"severity":hit.severity,"closing_speed":hit.closing_speed,"incoming_speed":hit.incoming_speed,"rebound_mps":car.velocity.dot(hit.normal)}
+	return {}
+func steering_trial(car: CharacterBody3D, speed: float) -> Dictionary:
+	car.reset_pose(Vector3(400,0,400),Vector3.FORWARD)
+	car.velocity = Vector3.FORWARD*speed
+	var first_input := 0.0
+	for frame in range(24):
+		car.advance(1.0/60,0.6,speed,false)
+		if frame == 0: first_input = car.steering
+	return {"yaw_rate":absf(car.yaw_rate),"heading_radians":absf(atan2(car.forward_direction().x,-car.forward_direction().z)),"first_input":first_input}
 func run(tree: SceneTree) -> int:
 	var scene := Node3D.new()
 	tree.root.add_child(scene)
@@ -80,6 +96,40 @@ func run(tree: SceneTree) -> int:
 	var contacts := 0
 	for frame in range(20): contacts += car.advance(1.0/30,0,112,false).size()
 	check(contacts > 0 and car.feet_position().z > -78,"High-speed physical sweeps must hit the actual wall without tunnelling")
+	var head_on := collision_trial(car,Vector3(0,0,-65),Vector3.FORWARD,80)
+	check(head_on.get("barrier",false) and head_on.get("severe",false) and head_on.get("closing_speed",0) > 70 and head_on.get("incoming_speed",0) > 70,"A severe real barrier impact must preserve its incoming/closing speed for the crash controller")
+	check(head_on.get("rebound_mps",0) >= 10 and head_on.get("rebound_mps",100) <= 14.1,"A high-speed barrier collision must rebound visibly with bounded normal restitution")
+	# Adjacent rail triangles can produce a second recovery contact after the
+	# impact. An already-separating body must keep its outgoing normal impulse.
+	car.reset_pose(Vector3(0,0,-77.63),Vector3.FORWARD)
+	car.velocity = Vector3.BACK*10
+	car.advance(1.0/60,0,-10,false)
+	var recovery_rebound: float = car.velocity.z
+	check(recovery_rebound > 9 and car.feet_position().z > -77.6,"A separating wall recovery contact must preserve the rebound instead of sliding its normal impulse away")
+	car.reset_pose(Vector3(50,-0.02,0),Vector3.FORWARD)
+	car.velocity = Vector3.UP*5
+	car.advance(1.0/60,0,0,false)
+	check(not car.grounded and car.velocity.y > 4 and car.feet_position().y > 0.05,"A separating floor recovery contact must preserve upward momentum and skip ground adhesion")
+	var glance := collision_trial(car,Vector3(-10,0,-78.2),Vector3(80,0,-8).normalized(),80)
+	check(glance.get("barrier",false) and not glance.get("severe",true) and glance.get("closing_speed",100) < 12,"A fast glancing guardrail scrape must not trigger a severe crash")
+	var slow_wall := collision_trial(car,Vector3(0,0,-65),Vector3.FORWARD,35)
+	check(slow_wall.get("barrier",false) and not slow_wall.get("severe",true),"A lower-speed head-on wall touch must rebound without launching the crash animation")
+	var ground_edge := collision_trial(car,Vector3(-180,0,0),Vector3.FORWARD,80)
+	check(ground_edge.get("layer",0) == 1 and not ground_edge.get("barrier",true) and not ground_edge.get("severe",true),"Even a fast ground-layer edge contact must never be classified as a guardrail crash")
+	var opponent := Car.new()
+	opponent.configure(Catalog.spec(0))
+	scene.add_child(opponent)
+	opponent.reset_pose(Vector3(250,0,-15),Vector3.FORWARD)
+	await tree.physics_frame
+	await tree.physics_frame
+	var car_hit := collision_trial(car,Vector3(250,0,0),Vector3.FORWARD,80)
+	check(car_hit.get("layer",0) == 4 and not car_hit.get("barrier",true) and not car_hit.get("severe",true) and car_hit.get("rebound_mps",0) > 10,"Actual car contacts must rebound while remaining distinct from severe barrier impacts")
+	opponent.queue_free()
+	await tree.process_frame
+	var low_steering := steering_trial(car,20)
+	var fast_steering := steering_trial(car,80)
+	check(fast_steering.yaw_rate < low_steering.yaw_rate*0.88 and fast_steering.first_input < low_steering.first_input*0.88,"Fast touch steering must engage smoothly and turn less sharply than low-speed steering")
+	check(low_steering.yaw_rate > 0.9 and fast_steering.yaw_rate > 0.65,"Steering must retain responsive low-speed control and enough high-speed corner authority")
 	car.reset_pose(Vector3(100,12,100),Vector3.FORWARD)
 	car.velocity = Vector3(10,3,0)
 	for frame in range(30): car.advance(1.0/60,0,80,false)
@@ -186,8 +236,8 @@ func run(tree: SceneTree) -> int:
 		pack_error = maxf(pack_error,absf(pack[index].feet_position().z-expected))
 		check(pack[index].velocity.length() > 49 and pack[index].last_contacts.is_empty(),"An eight-car formation must keep moving without stale spawn-position collisions")
 	check(pack_error < 0.05,"All eight cars must travel their world distance after physics-frame synchronization")
-	FileAccess.open(Report.path("world-car-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"failures":failures,"wall_contacts":contacts,"air_momentum_x_at_half_second":air_x,"bank_normal_alignment":bank_alignment,"eight_car_max_position_error":pack_error,"ramp_peak_height":ramp_peak,"ramp_launch_speed":ramp_launch_speed,"low_step_height":curb_height,"tall_ledge_contacts":ledge_contacts,"low_roof_contacts":roof_contacts,"corner_trials":corners,"corner_throttle_mps":throttle.speed_mps,"corner_coast_mps":coast.speed_mps,"overspeed_recovery_mps":overspeed.speed_mps,"bank_corner_grip":bank_corner_grip},"\t")+"\n")
+	FileAccess.open(Report.path("world-car-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"failures":failures,"wall_contacts":contacts,"air_momentum_x_at_half_second":air_x,"bank_normal_alignment":bank_alignment,"eight_car_max_position_error":pack_error,"ramp_peak_height":ramp_peak,"ramp_launch_speed":ramp_launch_speed,"low_step_height":curb_height,"tall_ledge_contacts":ledge_contacts,"low_roof_contacts":roof_contacts,"corner_trials":corners,"corner_throttle_mps":throttle.speed_mps,"corner_coast_mps":coast.speed_mps,"overspeed_recovery_mps":overspeed.speed_mps,"bank_corner_grip":bank_corner_grip,"contact_trials":{"head_on":head_on,"recovery_rebound_mps":recovery_rebound,"glancing":glance,"slow_wall":slow_wall,"ground_edge":ground_edge,"car":car_hit},"steering_trials":{"low":low_steering,"fast":fast_steering}},"\t")+"\n")
 	scene.queue_free()
 	await tree.process_frame
-	print("World car / physical sweep / free heading / airborne momentum / banking / reverse / ramp / low steps / corner scrub / eight-car formation: ","PASS" if failures == 0 else "FAIL")
+	print("World car / physical sweep / free heading / airborne momentum / banking / reverse / ramp / low steps / corner scrub / rebound / mobile steering / eight-car formation: ","PASS" if failures == 0 else "FAIL")
 	return failures

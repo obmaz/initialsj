@@ -13,7 +13,7 @@ func pilot_axis(race: Node3D, target_lane: float) -> float:
 	var forward: Vector3 = body.forward_direction()
 	var right := Vector3(-forward.z,0,forward.x).normalized()
 	var angle := atan2(direction.dot(right),direction.dot(forward))
-	var wheel: float = (0.46+race.vehicle.handling*0.007)/(1+speed*0.035)
+	var wheel: float = (0.46+race.vehicle.handling*0.007)/(1+speed*0.035)*session.WorldCar.steering_scale(speed)
 	return clampf(atan(5.4*sin(angle)/look)/wheel,-1,1)
 func seed_speed(race: Node3D, speed: float) -> void:
 	# Seed a real physical velocity, then synchronize the acceleration input.

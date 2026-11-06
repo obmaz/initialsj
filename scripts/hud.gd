@@ -22,11 +22,13 @@ const COURSE_SPEEDWAY := Rect2(660,150,520,440)
 const FUJI_PREVIEW = preload("res://assets/ui/course-fuji.png")
 const SPEEDWAY_PREVIEW = preload("res://assets/ui/course-speedway.png")
 const GARAGE_BACK := Rect2(60,24,220,84)
-const SETTINGS_SOUND := Rect2(365,180,550,78)
-const SETTINGS_MOTION := Rect2(365,266,550,78)
-const SETTINGS_GRAPHICS := Rect2(365,352,550,78)
-const SETTINGS_INSTALL := Rect2(365,438,550,78)
-const SETTINGS_CLOSE := Rect2(365,542,550,82)
+const SETTINGS_SOUND := Rect2(365,130,550,78)
+const SETTINGS_MOTION := Rect2(365,216,550,78)
+const SETTINGS_GRAPHICS := Rect2(365,302,550,78)
+const SETTINGS_FULLSCREEN := Rect2(365,388,550,78)
+const SETTINGS_INSTALL := Rect2(365,474,550,78)
+const SETTINGS_CLOSE := Rect2(365,574,550,82)
+const RECOVERY_BUTTON := Rect2(500,176,280,64)
 const HOME_BG = preload("res://assets/ui/home-coast.png")
 const GARAGE_BG = preload("res://assets/ui/garage-bay.png")
 const GARAGE_START := Rect2(930,630,290,76)
@@ -36,6 +38,7 @@ const MOTION_BUTTON := Rect2(307, 424, 300, 46)
 const SOUND_BUTTON := Rect2(630, 424, 330, 46)
 var race: Node3D
 var fingers: Dictionary = {}
+var recovery_touches: Dictionary = {}
 var bottle_texture: Texture2D
 var drift_texture: Texture2D
 var install_note := ""
@@ -177,7 +180,9 @@ func handle_pointer(event: InputEvent) -> void:
 	var index: int = event.index if event is InputEventScreenTouch else -1
 	if not event.pressed:
 		fingers.erase(index)
+		recovery_touches.erase(index)
 		return
+	if recovery_touches.has(index): return
 	var p := to_design(event.position)
 	if race.state == "menu":
 		if HOME_TOUR.has_point(p): race.navigate(func(): race.choose_mode("tour"))
@@ -193,6 +198,8 @@ func handle_pointer(event: InputEvent) -> void:
 		if SETTINGS_SOUND.has_point(p): race.sound_enabled = not race.sound_enabled
 		elif SETTINGS_MOTION.has_point(p): race.motion_reduced = not race.motion_reduced
 		elif SETTINGS_GRAPHICS.has_point(p): race.cycle_graphics()
+		elif SETTINGS_FULLSCREEN.has_point(p):
+			if race.has_method("toggle_fullscreen"): race.toggle_fullscreen()
 		elif SETTINGS_INSTALL.has_point(p):
 			if OS.has_feature("web"): JavaScriptBridge.eval("window.initialsjInstallGame()")
 			else: install_note = "OPEN THE WEB VERSION TO INSTALL"
@@ -215,6 +222,11 @@ func handle_pointer(event: InputEvent) -> void:
 			if race.state == "paused": race.resume_tour()
 			else: race.navigate(race.open_garage)
 		return
+	if recovery_visible() and recovery_touch_rect().has_point(p):
+		recovery_touches[index] = true
+		fingers.erase(index)
+		race.recover_car()
+		return
 	if race.route_choices_visible():
 		if route_touch_rect(0).has_point(p): race.select_route(0); return
 		if route_touch_rect(1).has_point(p): race.select_route(1); return
@@ -223,7 +235,7 @@ func handle_pointer(event: InputEvent) -> void:
 	else: move_pointer(index,event.position)
 
 func move_pointer(index: int, pos: Vector2) -> void:
-	if race.state not in ["racing","countdown"]: return
+	if recovery_touches.has(index) or race.state not in ["racing","countdown"]: return
 	fingers[index] = to_design(pos)
 
 func held(action: String) -> bool:
@@ -238,6 +250,7 @@ func touch_axis() -> float:
 func _process(delta: float) -> void:
 	if race == null:
 		return
+	if race.state != "racing": recovery_touches.clear()
 	selection_blend = minf(1,selection_blend+delta*5)
 	var target: Dictionary = Catalog.abilities(race.selected_vehicle)
 	if shown_abilities.size() != 4:
@@ -355,6 +368,7 @@ func _draw() -> void:
 	draw_speedometer()
 	draw_nitro()
 	draw_route_choice()
+	draw_recovery()
 	draw_menu()
 
 func draw_position(_rows: Array[Dictionary]) -> void:
@@ -650,20 +664,24 @@ func draw_courses() -> void:
 
 func draw_settings() -> void:
 	draw_rect(Rect2(0,0,1280,720),Color("020812d9"))
-	slant(Rect2(300,90,680,565),Color("101e2bfc"),20)
-	text_at(Vector2(365,164),"SETTINGS",42)
-	for rect in [SETTINGS_SOUND,SETTINGS_MOTION,SETTINGS_GRAPHICS,SETTINGS_INSTALL]: slant(rect,Color("20374a"),9)
-	text_at(Vector2(393,225),"SOUND",28)
-	text_at(Vector2(815,225),"ON" if race.sound_enabled else "OFF",30,CYAN)
-	text_at(Vector2(393,316),"REDUCED MOTION",26)
-	text_at(Vector2(815,316),"ON" if race.motion_reduced else "OFF",30,CYAN)
-	text_at(Vector2(393,402),"GRAPHICS",28)
-	text_at(Vector2(795,402),["AUTO","HIGH","FAST"][race.graphics_mode],28,CYAN)
-	text_at(Vector2(393,488),"INSTALL GAME",30,WHITE)
-	text_at(Vector2(854,488),"+",35,CYAN)
-	if not install_note.is_empty(): centered(Vector2(640,536),install_note,17,Color("b2cbd8"))
+	slant(Rect2(300,40,680,640),Color("101e2bfc"),20)
+	text_at(Vector2(365,110),"SETTINGS",42)
+	for rect in [SETTINGS_SOUND,SETTINGS_MOTION,SETTINGS_GRAPHICS,SETTINGS_FULLSCREEN,SETTINGS_INSTALL]: slant(rect,Color("20374a"),9)
+	text_at(SETTINGS_SOUND.position+Vector2(28,50),"SOUND",28)
+	text_at(SETTINGS_SOUND.position+Vector2(450,50),"ON" if race.sound_enabled else "OFF",30,CYAN)
+	text_at(SETTINGS_MOTION.position+Vector2(28,50),"REDUCED MOTION",26)
+	text_at(SETTINGS_MOTION.position+Vector2(450,50),"ON" if race.motion_reduced else "OFF",30,CYAN)
+	text_at(SETTINGS_GRAPHICS.position+Vector2(28,50),"GRAPHICS",28)
+	text_at(SETTINGS_GRAPHICS.position+Vector2(430,50),["AUTO","HIGH","FAST"][race.graphics_mode],28,CYAN)
+	var fullscreen_label: String = race.fullscreen_label() if race.has_method("fullscreen_label") else "ENTER FULLSCREEN"
+	text_at(SETTINGS_FULLSCREEN.position+Vector2(28,50),fullscreen_label,28)
+	text_at(SETTINGS_FULLSCREEN.position+Vector2(489,50),">",32,CYAN)
+	text_at(SETTINGS_INSTALL.position+Vector2(28,50),"INSTALL GAME",30,WHITE)
+	text_at(SETTINGS_INSTALL.position+Vector2(489,50),"+",35,CYAN)
+	if not install_note.is_empty(): centered(Vector2(640,568),install_note,17,Color("b2cbd8"))
 	slant(SETTINGS_CLOSE,CYAN,10)
-	centered(Vector2(640,596),"DONE",34,Color("0a1b2b"))
+	centered(Vector2(640,SETTINGS_CLOSE.position.y+54),"DONE",34,Color("0a1b2b"))
+	if race.has_method("sync_fullscreen_button"): race.sync_fullscreen_button(SETTINGS_FULLSCREEN)
 
 func draw_garage() -> void:
 	var color := Color(race.vehicle.accent)
@@ -847,6 +865,22 @@ func draw_boost_badge() -> void:
 		var x: float = 640+side*126
 		var points := PackedVector2Array([Vector2(x-side*7,y+12),Vector2(x+side*2,y+24),Vector2(x-side*7,y+36)])
 		draw_polyline(points,CYAN,2.5,true)
+
+func recovery_visible() -> bool:
+	return race != null and race.state == "racing" and race.get("recovery_available") == true
+
+func recovery_touch_rect() -> Rect2:
+	return RECOVERY_BUTTON.grow(6)
+
+func draw_recovery() -> void:
+	if not recovery_visible(): return
+	var outline := slant(RECOVERY_BUTTON,Color("192b37ed"),10)
+	draw_polyline(outline+PackedVector2Array([outline[0]]),Color(GOLD,0.85),2,true)
+	var center := RECOVERY_BUTTON.position+Vector2(29,32)
+	draw_arc(center,11,deg_to_rad(-35),deg_to_rad(260),18,GOLD,2,true)
+	var tip := center+Vector2.from_angle(deg_to_rad(260))*11
+	draw_colored_polygon(PackedVector2Array([tip+Vector2(5,-1),tip+Vector2(-3,-4),tip+Vector2(-2,4)]),GOLD)
+	centered(RECOVERY_BUTTON.position+Vector2(155,42),"RESET CAR",27,GOLD)
 
 # Single-line route chips stay above the road view; their larger invisible
 # touch areas are separate from the visuals so a phone remains easy to use.

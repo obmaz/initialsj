@@ -15,6 +15,14 @@ const Nitro = preload("res://scripts/nitro_system.gd")
 const RenderBudget = preload("res://scripts/render_budget.gd")
 const WorldRace = preload("res://scripts/world_race.gd")
 const Corner = preload("res://scripts/corner_resistance.gd")
+const Crash = preload("res://scripts/crash_state.gd")
+const Recovery = preload("res://scripts/recovery_state.gd")
+var crash := Crash.new()
+var recovery := Recovery.new()
+var recovery_distance := 80.0
+var recovery_lane := -3.2
+var recovery_available: bool:
+	get: return state == "racing" and recovery.available
 const GAME_PACE := 1.2
 const RECORD_GROUP := "coast_rush_v3"
 var selected_vehicle := 0
@@ -52,7 +60,7 @@ var shoulder_dust_clock := 0.0
 var landing_dust: Node3D
 var water_effect: Node3D
 var pad_active: bool:
-	get: return state == "racing" and (surface.pad_time > 0 or surface.lane_active) and not braking and impact < 0.15
+	get: return state == "racing" and not crash.active and (surface.pad_time > 0 or surface.lane_active) and not braking and impact < 0.15
 var mode := "tour"
 var graphics_mode := 0
 var render_budget := RenderBudget.new()
@@ -73,6 +81,7 @@ var state := "menu":
 	set(value):
 		state = value
 		_sync_web_back()
+		if state != "settings": _hide_fullscreen_control()
 var distance := 80.0
 var completed_distance := 0.0
 var lane := -3.2
@@ -129,6 +138,13 @@ var launch_flash := 0.0
 var web_portrait := false
 var web_orientation_callback: JavaScriptObject
 var web_back_callback: JavaScriptObject
+var web_fullscreen_callback: JavaScriptObject
+var web_fullscreen_active := false
+var web_dom_fullscreen_active := false
+var web_back_after_fullscreen_until := 0
+var fullscreen_control_rect := Rect2()
+var fullscreen_control_visible := false
+var fullscreen_return_mode := DisplayServer.WINDOW_MODE_WINDOWED
 var motion_reduced := false
 var sound_enabled := true
 var camera_time := 0.0
@@ -251,8 +267,58 @@ func _ready() -> void:
 		JavaScriptBridge.get_interface("window").initialsjObserveOrientation(web_orientation_callback)
 		web_back_callback = JavaScriptBridge.create_callback(_on_web_back)
 		JavaScriptBridge.get_interface("window").initialsjObserveBack(web_back_callback,state != "menu")
+		web_fullscreen_callback = JavaScriptBridge.create_callback(_on_web_fullscreen)
+		JavaScriptBridge.get_interface("window").initialsjObserveFullscreen(web_fullscreen_callback)
 	elif OS.has_feature("android"):
 		get_tree().quit_on_go_back = false
+
+func _on_web_fullscreen(args: Array) -> void:
+	var active: bool = bool(args[0])
+	var dom_active: bool = bool(args[1])
+	var exited: bool = (web_fullscreen_active and not active) or (web_dom_fullscreen_active and not dom_active)
+	web_fullscreen_active = active
+	web_dom_fullscreen_active = dom_active
+	# Android Back can leave browser fullscreen before dispatching popstate.
+	if exited and state in ["racing","countdown","paused"]:
+		pause_tour()
+		# Some browser versions emit both fullscreenchange and popstate for
+		# one Back gesture; do not let the second event immediately resume.
+		web_back_after_fullscreen_until = Time.get_ticks_msec()+350
+
+func is_fullscreen() -> bool:
+	if OS.has_feature("web"): return bool(JavaScriptBridge.eval("window.initialsjIsFullscreen && window.initialsjIsFullscreen()"))
+	if DisplayServer.get_name() == "headless": return false
+	return DisplayServer.window_get_mode() in [DisplayServer.WINDOW_MODE_FULLSCREEN,DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN]
+
+func fullscreen_label() -> String:
+	if OS.has_feature("web"): return str(JavaScriptBridge.eval("window.initialsjFullscreenLabel ? window.initialsjFullscreenLabel() : 'ENTER FULLSCREEN'"))
+	return "EXIT FULLSCREEN" if is_fullscreen() else "ENTER FULLSCREEN"
+
+func toggle_fullscreen() -> void:
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("window.initialsjToggleFullscreen && window.initialsjToggleFullscreen()")
+	elif DisplayServer.get_name() != "headless":
+		if is_fullscreen(): DisplayServer.window_set_mode(fullscreen_return_mode)
+		else:
+			fullscreen_return_mode = DisplayServer.window_get_mode()
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+
+func _hide_fullscreen_control() -> void:
+	if not fullscreen_control_visible: return
+	fullscreen_control_visible = false
+	if OS.has_feature("web"): JavaScriptBridge.get_interface("window").initialsjFullscreenControl(false,0,0,0,0)
+
+func sync_fullscreen_button(design_rect: Rect2) -> void:
+	if not OS.has_feature("web"): return
+	if state != "settings" or (screen_transition != null and screen_transition.busy):
+		_hide_fullscreen_control()
+		return
+	var viewport_size := get_viewport().get_visible_rect().size
+	var rect := Rect2((design_rect.position*hud.ui_scale()+hud.ui_offset())/viewport_size,design_rect.size*hud.ui_scale()/viewport_size)
+	if fullscreen_control_visible and fullscreen_control_rect.is_equal_approx(rect): return
+	fullscreen_control_visible = true
+	fullscreen_control_rect = rect
+	JavaScriptBridge.get_interface("window").initialsjFullscreenControl(true,rect.position.x,rect.position.y,rect.size.x,rect.size.y)
 
 func _sync_web_back() -> void:
 	if web_back_callback != null:
@@ -265,6 +331,7 @@ func _on_web_back(_args: Array) -> void:
 # Keep hardware/browser Back consistent with the visible screen's back action.
 # Repeated Back during a transition is consumed rather than queued.
 func navigate_back() -> bool:
+	if Time.get_ticks_msec() < web_back_after_fullscreen_until: return true
 	if screen_transition != null and screen_transition.busy: return true
 	match state:
 		"racing", "countdown": pause_tour()
@@ -283,11 +350,14 @@ func _on_web_orientation(args: Array) -> void:
 		pause_tour()
 
 func _exit_tree() -> void:
+	_hide_fullscreen_control()
 	Engine.time_scale = 1.0
 	if OS.has_feature("web"):
 		JavaScriptBridge.get_interface("window").initialsjObserveOrientation(null)
 		JavaScriptBridge.get_interface("window").initialsjObserveBack(null,false)
+		JavaScriptBridge.get_interface("window").initialsjObserveFullscreen(null)
 		web_back_callback = null
+		web_fullscreen_callback = null
 
 func initialize_traffic() -> void:
 	brain.initialize(rivals)
@@ -301,6 +371,7 @@ func initialize_traffic() -> void:
 			r.pace = vehicle.max_speed*(0.94+r.id*0.018)
 
 func navigate(action: Callable) -> void:
+	_hide_fullscreen_control()
 	if screen_transition == null: action.call()
 	else:
 		if web_back_callback != null: JavaScriptBridge.get_interface("window").initialsjSetBackEnabled(true)
@@ -413,6 +484,13 @@ func competitor_position(id: int) -> int:
 	return place
 
 func restart() -> void:
+	crash.reset()
+	recovery.reset()
+	player.body.rotation.x = 0
+	player.body.rotation.z = 0
+	player.body.position = Vector3(0,player.ride_offset,0)
+	recovery_distance = 80
+	recovery_lane = -3.2
 	if mode == "tour" and (track.active.stage != 0 or not track.history.is_empty()): track.reset()
 	distance = 80
 	completed_distance = 0
@@ -641,6 +719,8 @@ func _physics_process(delta: float) -> void:
 	update_camera(delta)
 	player.road_speed = speed if state == "racing" else 0.0
 	player.animate(steer,drifting and state == "racing",(nitro_active or pad_active) and state == "racing",delta,0.0 if world_race != null else slip_angle,braking and state == "racing",impact if state == "racing" and not motion_reduced else 0.0)
+	if crash.active:
+		apply_crash_pose()
 	if offroad_amount > 0.2:
 		for particles in player.smoke: particles.emitting = false
 	if player.headlight != null: player.headlight.visible = track.active.in_tunnel(distance) or track.scenery.theme == "neon"
@@ -655,6 +735,18 @@ func _physics_process(delta: float) -> void:
 	hud.queue_redraw()
 
 func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool = false, cell_input: bool = false) -> void:
+	if crash.advance(delta):
+		player.body.rotation.x = 0
+		player.body.rotation.z = 0
+		player.body.position = Vector3(0,player.ride_offset,0)
+	update_recovery(delta)
+	if crash.active:
+		axis = 0
+		drift_input = false
+		gas = false
+		brake = false
+		nitro_input = false
+		cell_input = false
 	if world_race != null:
 		world_race.step(delta,axis,drift_input,gas,brake,nitro_input,cell_input)
 		return
@@ -668,7 +760,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	axis = route_axis(axis)
 	var shoulder := clampf((absf(lane)+0.8-track.half_width(distance))/1.6,0,1) if not air.active else 0.0
 	offroad_amount = move_toward(offroad_amount,shoulder,delta*6)
-	surface.update_lane(track.active,Vector2(lane,distance),speed,brake,impact,not air.active)
+	surface.update_lane(track.active,Vector2(lane,distance),speed,brake,impact,not air.active and not crash.active)
 	gas = gas or nitro_input or (cell_input and vehicle.mode == "hybrid") or nitro_burst_left > 0 or surface.pad_time > 0 or surface.lane_active
 	var old_surface_position := Vector2(lane,distance)
 	elapsed += delta
@@ -683,7 +775,8 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	brake_armed = maxf(0,brake_armed-delta)
 	throttling = gas and not brake
 	braking = brake
-	steer = move_toward(steer,axis,delta*vehicle.steer_rate*lerpf(1,0.75,surface.wetness))
+	var steer_input := signf(axis)*pow(absf(axis),1.22)
+	steer = move_toward(steer,steer_input,delta*vehicle.steer_rate*0.9*lerpf(1,0.75,surface.wetness))
 	if brake and not previous_brake and speed > 25: brake_armed = 0.45
 	var was_drifting := drifting
 	var drift_pressed := drift_input and not drift_previous_input
@@ -756,7 +849,8 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		var loaded := smoothstep(0.45,1.2,demand/maxf(grip,1))*smoothstep(35,70,speed)
 		authority *= lerpf(1,0.72,loaded)
 	var outward := signf(curve) * (demand * 0.055 + excess * 1.6)
-	var lateral: float = steer * (vehicle.drift_steer_speed if drifting else vehicle.steer_speed) * minf(speed/20,1) * authority + outward
+	var steering_scale := lerpf(1,0.86,smoothstep(35,85,speed))
+	var lateral: float = steer * steering_scale * (vehicle.drift_steer_speed if drifting else vehicle.steer_speed) * minf(speed/20,1) * authority + outward
 	if air.active: lateral = lane_velocity+steer*delta*3.0
 	lane_velocity = move_toward(lane_velocity,lateral,delta*(vehicle.lateral_drift if drifting else vehicle.lateral_grip)*surface.lateral_factor)
 	lane += lane_velocity*delta
@@ -767,13 +861,22 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	if margin < 1.0: speed = move_toward(speed,minf(speed,38),delta*32)
 	if lane < limits.x or lane > limits.y:
 		var side := -1.0 if lane < limits.x else 1.0
+		var incoming_speed := speed
+		var closing_speed := absf(lane_velocity)
 		lane = clampf(lane,limits.x,limits.y)
-		lane_velocity *= -0.28
+		lane_velocity = -side*clampf(closing_speed*0.42,1.5,14)
 		if bump_cooldown <= 0:
 			wall_hits += 1
 			var scrape_speed := maxf(speed,absf(lane_velocity)*3)
 			speed *= 0.72
 			register_impact(smoothstep(2.5,72,scrape_speed)*0.9,Vector2(-side,0))
+			if incoming_speed >= 55 and closing_speed >= 9 and not crash.active:
+				crash.start(incoming_speed,Vector2(-side,0))
+				air.active = true
+				air.trick = false
+				air.world_y = track.point(distance,lane).y+0.15
+				air.height = 0.15
+				air.velocity = 10
 	distance += speed*delta
 	var was_airborne := air.active
 	var flight_events: Array[String] = air.advance(track.active,old_surface_position,Vector2(lane,distance),speed,delta)
@@ -782,14 +885,14 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			drifting = false
 			drift_latched = false
 			drift_charge = 0
-		elif event == "land":
+		elif event == "land" and air.trick:
 			score += 100
 			if DisplayServer.get_name() != "headless": landing_dust.burst(track.point(distance,lane),motion_reduced)
 		elif event == "settle" and DisplayServer.get_name() != "headless":
 			landing_dust.burst(track.point(distance,lane),true)
 	var surface_events: Array[String] = []
-	if not air.active and not was_airborne and flight_events.is_empty(): surface_events = surface.contact(track.active,old_surface_position,Vector2(lane,distance),speed,brake,impact)
-	surface.update_lane(track.active,Vector2(lane,distance),speed,brake,impact,not air.active)
+	if not crash.active and not air.active and not was_airborne and flight_events.is_empty(): surface_events = surface.contact(track.active,old_surface_position,Vector2(lane,distance),speed,brake,impact)
+	surface.update_lane(track.active,Vector2(lane,distance),speed,brake,impact,not air.active and not crash.active)
 	for event in surface_events:
 		if event == "boost":
 			speed = maxf(speed,minf(pad_speed_cap(),speed+8))
@@ -870,6 +973,69 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 func pad_speed_cap() -> float:
 	return maxf(vehicle.overdrive_speed+2,vehicle.max_speed+21)
 
+func update_recovery(delta: float) -> void:
+	var at: Vector3 = world_race.player_body.feet_position() if world_race != null else track.point(distance,lane)+Vector3.UP*air.height
+	recovery.advance(delta,at)
+	if world_race == null and not crash.active and not air.active and impact < 0.1 and absf(lane) < track.half_width(distance)-1:
+		recovery_distance = distance
+		recovery_lane = lane
+
+func apply_crash_pose() -> void:
+	# Rotate about the chassis centre, so a barrel roll cannot orbit the road
+	# contact point or bury the model beneath the visible road on touchdown.
+	var pivot := Vector3(0,0.7,0)
+	player.body.rotation = Vector3(crash.visual_pitch,0,crash.visual_roll)
+	player.body.position = Vector3(0,player.ride_offset,0)+pivot-player.body.basis*pivot
+
+func recover_car() -> void:
+	if not recovery_available: return
+	var used_ramps: Dictionary = air.consumed.duplicate()
+	var launches: int = air.launches
+	var landings: int = air.landings
+	if world_race != null:
+		if not world_race.recover_player(): return
+	else:
+		var found := false
+		for back in [0.0,8.0,16.0,24.0]:
+			var d := maxf(0,minf(distance,recovery_distance)-back)
+			for candidate in [0.0,-3.2,3.2,-5.5,5.5]:
+				var clear := true
+				for rival in rivals:
+					if rival.active and rival.detached == null and absf(relative_gap(rival.distance,d)) < 7 and absf(rival.lane-candidate) < 2.6: clear = false; break
+				if clear and absf(candidate) < track.half_width(d)-1:
+					distance = d
+					lane = candidate
+					found = true
+					break
+			if found: break
+		if not found: return
+	crash.reset()
+	recovery.reset()
+	player.body.rotation.x = 0
+	player.body.rotation.z = 0
+	player.body.position = Vector3(0,player.ride_offset,0)
+	speed = 0
+	lane_velocity = 0
+	steer = 0
+	slip_angle = 0
+	air.reset()
+	air.consumed = used_ramps
+	air.launches = launches
+	air.landings = landings
+	offroad_amount = 0
+	impact = 0
+	impact_age = 1
+	drifting = false
+	drift_latched = false
+	drift_charge = 0
+	drift_pending = 0
+	cancel_nitro()
+	tire_trails.reset()
+	place_cars()
+	update_camera(1)
+	player.reset_physics_interpolation()
+	camera.reset_physics_interpolation()
+
 func route_choices_visible() -> bool:
 	return mode == "tour" and state == "racing" and stage_index < Library.STAGES-1 and checkpoint_stage == stage_index
 
@@ -903,6 +1069,9 @@ func award_checkpoint() -> void:
 	nitro_charges = mini(vehicle.charges,nitro_charges+1)
 
 func advance_route() -> void:
+	recovery.reset()
+	recovery_distance = 5
+	recovery_lane = 0
 	var choice := 0 if lane < 0 else 1
 	var result := track.advance(choice,distance,lane)
 	completed_distance += result.old_length
@@ -966,15 +1135,17 @@ func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
 	if absf(normal.x) > 0.65:
 		speed *= 0.87
 		r.speed *= 0.91
+		lane_velocity = -normal.x*clampf(absf(lane_velocity)*0.42+absf(relative)*0.12,2,10)
 	else:
-		var impulse := absf(relative) * 0.6
 		if normal.y < 0:
-			speed = maxf(0,speed-impulse-4)
-			r.speed = maxf(r.speed,minf(r.pace+24,r.speed+impulse*0.35))
+			var impulse := maxf(0,relative)*0.64
+			speed = maxf(0,speed-impulse)
+			r.speed += impulse
 		else:
-			speed += minf(5,impulse*0.3)
+			var impulse := maxf(0,-relative)*0.64
+			speed += impulse
 			r.speed = maxf(0,r.speed-impulse)
-	lane_velocity -= normal.x*(3+absf(relative)*0.12)
+		lane_velocity -= normal.x*(3+absf(relative)*0.12)
 	traffic_hits += 1
 	if r.has("surface"): r.surface.cancel_boost()
 	r.boosting = false
