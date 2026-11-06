@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<!-- Adapted from the Godot Engine web shell (MIT); see assets/audio/GODOT-LICENSE.txt in the source distribution. -->
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+		<meta name="theme-color" content="#07111e">
+		<title>$GODOT_PROJECT_NAME</title>
+		<style>
+:root { color-scheme: dark; font-family: Arial, Helvetica, sans-serif; }
+html, body, #canvas { margin: 0; padding: 0; border: 0; }
+html, body { width: 100%; height: 100%; }
+body { color: #f3f8ff; background: #07111e; overflow: hidden; touch-action: none; }
+#canvas { display: block; }
+#canvas:focus { outline: none; }
+#status { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: $GODOT_SPLASH_COLOR; z-index: 2; }
+#landscape-guide { display: none; position: fixed; inset: 0; z-index: 4; background: #07111e; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center; padding: 24px; box-sizing: border-box; }
+#landscape-guide svg { width: 168px; height: 120px; }
+#landscape-guide h2 { margin: 0; font-size: clamp(22px,6vw,30px); font-style: italic; letter-spacing: .04em; }
+#landscape-start { min-height: 52px; width: min(280px,80vw); border: 1px solid #a9f2ff; border-radius: 5px; background: #39d7f3; color: #07111e; font: 800 16px system-ui,sans-serif; cursor: pointer; }
+#landscape-start:focus-visible { outline: 3px solid #ff9756; outline-offset: 5px; }
+#landscape-start:disabled { opacity: .65; cursor: wait; }
+#landscape-guide p { margin: 0; max-width: 290px; color: #bad1df; font-size: 15px; line-height: 1.6; }
+@media (orientation: portrait) { #landscape-guide { display: flex; } }
+#status-splash { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+#status-splash.show-image--false { display: none; }
+#status-splash.use-filter--false { image-rendering: pixelated; }
+#loading-card { position: absolute; bottom: max(20px, env(safe-area-inset-bottom)); width: min(420px, 76vw); padding: 18px 22px; border: 1px solid #76dfff40; border-radius: 4px; background: #07111ee8; box-shadow: 0 10px 36px #0008; }
+.loading-meta { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 12px; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+#loading-percent { color: #66e5ff; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#status-progress { display: block; width: 100%; height: 4px; border: 0; border-radius: 1px; overflow: hidden; background: #263c51; color: #36dfff; accent-color: #36dfff; }
+#status-progress::-webkit-progress-bar { background: #263c51; border-radius: 1px; }
+#status-progress::-webkit-progress-value { background: linear-gradient(90deg,#168aff,#35dbff,#b2faff); border-radius: 1px; }
+#status-progress::-moz-progress-bar { background: linear-gradient(90deg,#168aff,#35dbff,#b2faff); border-radius: 1px; }
+#status-progress:indeterminate { background: linear-gradient(90deg,#263c51 0%,#36dfff 50%,#263c51 100%); background-size: 200% 100%; animation: load-sweep 1.6s linear infinite; }
+#status-notice { display: none; position: relative; z-index: 1; max-width: 560px; margin: 24px; padding: 22px; border: 1px solid #ff987080; border-radius: 12px; color: #f5f8ff; background: #07111ef5; line-height: 1.5; overflow-wrap: anywhere; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+noscript { position: fixed; z-index: 3; bottom: 20px; left: 20px; right: 20px; padding: 16px; background: #07111e; text-align: center; }
+@keyframes load-sweep { to { background-position: -200% 0; } }
+@media (max-height: 500px) { #loading-card { bottom: max(12px, env(safe-area-inset-bottom)); padding: 11px 16px; } .loading-meta { margin-bottom: 8px; font-size: 10px; } }
+@media (prefers-reduced-motion: reduce) { #status-progress { animation: none !important; } }
+
+#install-dialog { color:#f4f8fb; background:#0d2132; border:1px solid #4bdcf1; border-radius:16px; padding:28px; width:min(560px,85vw); font-family:system-ui,sans-serif; box-shadow:0 20px 80px #0009; }
+#install-dialog::backdrop { background:#020b16c9; }
+#install-dialog h2 { margin:0 0 18px; font-size:clamp(22px,4vw,30px); }
+#install-dialog p { color:#d0e2ee; line-height:1.7; font-size:17px; margin:0 0 24px; }
+#install-dialog menu { display:flex; gap:14px; padding:0; margin:0; justify-content:flex-end; }
+#install-dialog button { min-height:52px; min-width:110px; padding:12px 22px; font:700 18px system-ui,sans-serif; border:0; border-radius:8px; cursor:pointer; color:#092031; background:#4bdcf1; }
+#install-dialog button.secondary { color:#e0eef6; background:#294358; }
+
+</style>
+		$GODOT_HEAD_INCLUDE
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
+
+		<div id="status" role="status" aria-label="Loading Initial SJ Coast Rush">
+			<h1 class="sr-only">Initial SJ — Coast Rush</h1>
+			<img id="status-splash" class="$GODOT_SPLASH_CLASSES" src="$GODOT_SPLASH?art=mobile-v3" alt="Initial SJ Coast Rush — three cars on a coastal highway" fetchpriority="high">
+			<div id="loading-card">
+				<div class="loading-meta"><span id="loading-label">LOADING YOUR NEXT DRIVE</span><span id="loading-percent" aria-hidden="true">STARTING</span></div>
+				<progress id="status-progress" aria-label="Game download progress"></progress>
+			</div>
+			<div id="status-notice" role="alert"></div>
+		</div>
+
+		<div id="landscape-guide" role="status" aria-label="Landscape orientation required">
+			<svg viewBox="0 0 168 120" aria-hidden="true"><rect x="24" y="42" width="120" height="64" rx="12" fill="#163045" stroke="#42dcff" stroke-width="4"/><path d="M63 62l13 12-13 12M85 62l13 12-13 12" fill="none" stroke="#ff9756" stroke-width="7"/><path d="M42 24c26-19 65-12 80 8M120 17l3 16-17-1" fill="none" stroke="#dff8ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			<h2>ROTATE TO RACE</h2>
+			<p id="landscape-status" lang="ko" aria-live="polite">버튼을 누르거나 기기를 가로로 돌려 주세요.</p>
+			<button id="landscape-start" type="button" lang="ko" aria-describedby="landscape-status">가로로 시작</button>
+		</div>
+		<script>
+// Keep the active tour paused while the landscape-only layout is covered.
+(function () {
+	const portrait = window.matchMedia('(orientation: portrait)');
+	const button = document.getElementById('landscape-start');
+	const message = document.getElementById('landscape-status');
+	const prompt = message.textContent;
+	let observer = null;
+	window.initialsjObserveOrientation = function (callback) {
+		observer = callback;
+		if (observer) observer(portrait.matches);
+	};
+	portrait.addEventListener('change', function (event) {
+		if (observer) observer(event.matches);
+		if (!event.matches || !button.disabled) message.textContent = prompt;
+	});
+	function waitForLandscape() {
+		if (!portrait.matches) return Promise.resolve(true);
+		return new Promise(function (resolve) {
+			function changed(event) { if (!event.matches) finish(true); }
+			function finish(ok) {
+				clearTimeout(timeout);
+				portrait.removeEventListener('change', changed);
+				resolve(ok);
+			}
+			const timeout = setTimeout(function () { finish(false); }, 2000);
+			portrait.addEventListener('change', changed);
+		});
+	}
+	button.addEventListener('click', async function (event) {
+		event.preventDefault();
+		event.stopPropagation();
+		if (button.disabled) return;
+		button.disabled = true;
+		button.textContent = '전환 중…';
+		message.textContent = '가로 화면으로 전환하고 있어요.';
+		let enteredFullscreen = false;
+		try {
+			const root = document.documentElement;
+			const request = root.requestFullscreen || root.webkitRequestFullscreen;
+			if (!document.fullscreenElement && !document.webkitFullscreenElement && request) {
+				try {
+					await request.call(root, {navigationUI: 'hide'});
+					enteredFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+				} catch (_) { /* A standalone browser may still support orientation lock. */ }
+			}
+			let locked = false;
+			if (screen.orientation && typeof screen.orientation.lock === 'function') {
+				try { await screen.orientation.lock('landscape'); locked = true; } catch (_) { /* Manual rotation remains available. */ }
+			}
+			const landscape = !portrait.matches || (locked && await waitForLandscape());
+			if (landscape) {
+				message.textContent = prompt;
+			} else {
+				// Restore browser controls if fullscreen did not achieve rotation.
+				const exit = document.exitFullscreen || document.webkitExitFullscreen;
+				if (enteredFullscreen && exit) { try { await exit.call(document); } catch (_) {} }
+				message.textContent = '자동 전환을 사용할 수 없어요. 기기를 직접 가로로 돌려 주세요.';
+			}
+		} catch (_) {
+			message.textContent = '기기를 직접 가로로 돌려 주세요.';
+		} finally {
+			button.disabled = false;
+			button.textContent = '가로로 시작';
+		}
+	});
+}());
+		</script>
+
+<dialog lang="ko" id="install-dialog" aria-labelledby="install-title">
+  <h2 id="install-title">INITIAL SJ 설치</h2>
+  <p id="install-message"></p>
+  <menu><button id="install-close" class="secondary" type="button">닫기</button><button id="install-confirm" type="button" hidden>설치</button></menu>
+</dialog>
+		<script src="$GODOT_URL"></script>
+		<script>
+const GODOT_CONFIG = $GODOT_CONFIG;
+const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+const engine = new Engine(GODOT_CONFIG);
+
+// Installation is user-triggered. Preparing the offline cache happens in the
+// settings screen, so it does not compete with racing for CPU or disk access.
+(function () {
+  let pendingPrompt = null;
+  let preparation = null;
+  const dialog = document.getElementById('install-dialog');
+  const message = document.getElementById('install-message');
+  const confirm = document.getElementById('install-confirm');
+  function standalone() { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; }
+  window.addEventListener('beforeinstallprompt', function (event) {
+    event.preventDefault(); pendingPrompt = event;
+    if (dialog.open) { confirm.hidden = false; message.textContent = '준비가 끝났습니다. 설치 버튼을 눌러 게임을 앱으로 추가하세요.'; }
+  });
+  window.addEventListener('appinstalled', function () { pendingPrompt = null; confirm.hidden = true; message.textContent = '게임이 설치되었습니다.'; });
+  window.initialsjPrepareInstall = function () {
+    if (!preparation && 'serviceWorker' in navigator && GODOT_CONFIG.serviceWorker) {
+      preparation = engine.installServiceWorker().catch(function () { preparation = null; return null; });
+    }
+    return preparation;
+  };
+  function help() {
+    confirm.hidden = !pendingPrompt || standalone();
+    const ua = navigator.userAgent;
+    if (standalone()) message.textContent = '이미 앱으로 설치된 게임입니다.';
+    else if (pendingPrompt) message.textContent = '설치 버튼을 눌러 INITIAL SJ를 앱으로 추가하세요.';
+    else if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) message.textContent = 'Safari의 공유 버튼을 누르고 ‘홈 화면에 추가’를 선택하세요.';
+    else if (/Firefox/.test(ua)) message.textContent = '이 브라우저는 앱 설치를 지원하지 않습니다. Chrome 또는 Edge에서 같은 게임 주소를 열고 설치하세요.';
+    else if (/Safari/.test(ua) && !/Chrome|Chromium|Edg/.test(ua) && /Macintosh/.test(ua)) message.textContent = 'Safari 메뉴에서 ‘파일 → Dock에 추가’를 선택하세요.';
+    else message.textContent = '설치를 준비하고 있습니다. 준비되면 설치 버튼이 나타납니다. 브라우저 주소창의 설치 아이콘이나 메뉴의 ‘앱 설치’로 추가할 수도 있습니다.';
+    if (!dialog.open) dialog.showModal();
+  }
+  window.initialsjInstallGame = async function () {
+    window.initialsjPrepareInstall();
+    if (!pendingPrompt || standalone()) { help(); return; }
+    const prompt = pendingPrompt; pendingPrompt = null;
+    try {
+      await prompt.prompt();
+      const result = await prompt.userChoice;
+      if (result.outcome === 'accepted') { if (dialog.open) dialog.close(); }
+      else { help(); message.textContent = '설치를 취소했습니다. 나중에 설정에서 다시 설치할 수 있습니다.'; }
+    } catch (_) { help(); }
+  };
+  confirm.addEventListener('click', function () { window.initialsjInstallGame(); });
+  document.getElementById('install-close').addEventListener('click', function () { dialog.close(); });
+  dialog.addEventListener('keydown', function (event) { event.stopPropagation(); });
+}());
+
+
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const loadingCard = document.getElementById('loading-card');
+	const loadingLabel = document.getElementById('loading-label');
+	const loadingPercent = document.getElementById('loading-percent');
+	const statusNotice = document.getElementById('status-notice');
+
+	let initializing = true;
+	let statusMode = '';
+
+	// The web runtime can reject its WASM download outside startGame's promise.
+	// Listen only during startup so exhausted retries produce a visible notice.
+	function onStartupRejection(event) {
+		if (!initializing) return;
+		event.preventDefault();
+		displayFailureNotice(event.reason);
+	}
+	window.addEventListener('unhandledrejection', onStartupRejection);
+
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			statusOverlay.remove();
+			initializing = false;
+			window.removeEventListener('unhandledrejection', onStartupRejection);
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		loadingCard.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		statusMode = mode;
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
+
+	function displayFailureNotice(err) {
+		if (!initializing) return;
+		console.error(err);
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		setStatusMode('notice');
+		initializing = false;
+		window.removeEventListener('unhandledrejection', onStartupRejection);
+	}
+
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+			let serviceWorkerRegistrationPromise;
+			try {
+				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+			} catch (err) {
+				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+			}
+			// There's a chance that installing the service worker would fix the issue
+			Promise.race([
+				serviceWorkerRegistrationPromise.then((registration) => {
+					if (registration != null) {
+						return Promise.reject(new Error('Service worker already exists.'));
+					}
+					return registration;
+				}).then(() => engine.installServiceWorker()),
+				// For some reason, `getRegistration()` can stall
+				new Promise((resolve) => {
+					setTimeout(() => resolve(), 2000);
+				}),
+			]).then(() => {
+				// Reload if there was no error.
+				window.location.reload();
+			}).catch((err) => {
+				console.error('Error while registering service worker:', err);
+			});
+		} else {
+			// Display the message as usual
+			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			displayFailureNotice(missingMsg + missing.join('\n'));
+		}
+	} else {
+		setStatusMode('progress');
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					statusProgress.value = current;
+					statusProgress.max = total;
+					const percent = Math.min(100, Math.floor(current / total * 100));
+					loadingPercent.textContent = percent + '%';
+					loadingLabel.textContent = percent === 100 ? 'PREPARING YOUR RIDE' : 'LOADING YOUR NEXT DRIVE';
+				} else {
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
+					loadingPercent.textContent = 'STARTING';
+					loadingLabel.textContent = 'LOADING YOUR NEXT DRIVE';
+				}
+			},
+		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
+</html>
