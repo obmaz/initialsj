@@ -26,7 +26,7 @@ func run() -> void:
 				if frame % 18 == 0:
 					var best := INF
 					for candidate in race.track.lane_centers(race.distance):
-						var cost: float = absf(candidate-race.lane)*0.1
+						var cost: float = absf(candidate-race.lane)*0.1+race.Features.lane_cost(race.track.active,race.distance,candidate)
 						for r in race.rivals:
 							if not r.active or r.detached != null: continue
 							var gap: float = r.distance-race.distance
@@ -41,11 +41,11 @@ func run() -> void:
 				var allowed: float = race.vehicle.overdrive_speed
 				for look in [0.0,25.0,55.0,90.0,135.0]:
 					var k: float = absf(race.track.curvature(race.distance+look))
-					var corner_speed := sqrt(race.vehicle.drift_grip/maxf(k,0.0001))
+					var corner_speed := sqrt(race.vehicle.drift_grip*race.surface.grip_factor/maxf(k,0.0001))
 					allowed = minf(allowed,sqrt(corner_speed*corner_speed+2*36*look))
 				brake = race.speed > allowed+0.7
 				slide = absf(curve)*race.speed*race.speed > race.vehicle.grip*0.9 and race.speed > 40 and not brake
-				var grip: float = race.vehicle.drift_grip if race.drifting else race.vehicle.grip
+				var grip: float = (race.vehicle.drift_grip if race.drifting else race.vehicle.grip)*race.surface.grip_factor
 				var demand: float = absf(curve)*race.speed*race.speed
 				var excess := maxf(0,demand-grip)
 				var authority := clampf(1-excess/(grip*2),0.38,1)
@@ -62,7 +62,7 @@ func run() -> void:
 				checkpoint = race.checkpoints
 				await process_frame
 			if race.state in ["finished","failed"]: break
-		report[strategy] = {"state":race.state,"stage":race.stage_index+1,"seconds":snappedf(race.elapsed,0.01),"remaining":snappedf(race.time_left,0.01),"distance_m":snappedf(race.journey_distance,1),"peak_kmh":snappedf(peak_speed*3.6,0.1),"wall_hits":race.wall_hits,"traffic_hits":race.traffic_hits,"drift_seconds":snappedf(drift_seconds,0.1),"nitro_seconds":snappedf(race.nitro_seconds,0.1),"route":race.track.history.duplicate()}
+		report[strategy] = {"state":race.state,"stage":race.stage_index+1,"seconds":snappedf(race.elapsed,0.01),"remaining":snappedf(race.time_left,0.01),"distance_m":snappedf(race.journey_distance,1),"peak_kmh":snappedf(peak_speed*3.6,0.1),"wall_hits":race.wall_hits,"traffic_hits":race.traffic_hits,"drift_seconds":snappedf(drift_seconds,0.1),"boost_pads":race.surface.boosts_hit,"puddles":race.surface.puddles_hit,"nitro_seconds":snappedf(race.nitro_seconds,0.1),"route":race.track.history.duplicate()}
 		print(strategy," ",JSON.stringify(report[strategy]))
 		await process_frame
 	if report.gas_only.state != "failed":

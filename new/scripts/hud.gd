@@ -493,7 +493,7 @@ func draw_nitro() -> void:
 	if race.vehicle.mode == "hybrid":
 		for i in range(2):
 			draw_circle(Vector2(807+i*22,642),7,color if i < race.nitro_charges else Color("304252"))
-	if race.boosting and not race.nitro_active: text_at(Vector2(443,624),"SLIPSTREAM",16,CYAN)
+	if race.boosting and not race.nitro_active and not race.pad_active: text_at(Vector2(443,624),"SLIPSTREAM",16,CYAN)
 	var rim := rounded_polygon(PackedVector2Array([Vector2(442,661),Vector2(847,661),Vector2(835,691),Vector2(430,691)]),4)
 	draw_colored_polygon(rim,Color("0b182bdf"))
 	draw_polyline(rim+PackedVector2Array([rim[0]]),Color("8ab5cc99"),1.5,true)
@@ -641,8 +641,10 @@ func draw_pace_feedback() -> void:
 			var end := start+ray.normalized()*(22+phase*80)*intensity
 			draw_line(start,end,Color(0.65,0.88,1,intensity*(0.26 if race.boosting else 0.16)*sin(phase*PI)),1.2,true)
 	if race.impact > 0: draw_rect(Rect2(0,0,1280,720),Color(1,0.35,0.10,race.impact*0.07))
-	if race.near_miss_flash > 0: centered(Vector2(640,568),"CLOSE PASS +150",23,GOLD)
+	if race.surface.pad_flash > 0: centered(Vector2(640,568),"BOOST PAD!",26,GOLD)
+	elif race.surface.water_flash > 0: centered(Vector2(640,568),"WET ROAD / LOW GRIP",21,Color("a9dfff"))
+	elif race.near_miss_flash > 0: centered(Vector2(640,568),"CLOSE PASS +150",23,GOLD)
 	elif race.overtake_flash > 0: centered(Vector2(640,568),"PASS!",24,CYAN)
-	elif race.boosting: centered(Vector2(640,568),("OVERDRIVE!" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO!") if race.nitro_active else "SLIPSTREAM",23,CYAN)
+	elif race.boosting: centered(Vector2(640,568),("BOOST PAD!" if race.pad_active else ("OVERDRIVE!" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO!")) if race.nitro_active or race.pad_active else "SLIPSTREAM",23,CYAN)
 	if race.corner_warning > 0.15:
 		centered(Vector2(640,606),"BRAKE / CORNER %d km/h" % int(race.recommended_speed*3.6),19,Color(1,0.66,0.38,race.corner_warning))

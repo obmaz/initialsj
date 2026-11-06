@@ -5,6 +5,8 @@ const HUD = preload("res://scripts/hud.gd")
 const Library = preload("res://scripts/route_library.gd")
 const Contact = preload("res://scripts/car_contact.gd")
 const Brain = preload("res://scripts/rival_brain.gd")
+const SurfaceState = preload("res://scripts/road_surface_state.gd")
+const Features = preload("res://scripts/road_features.gd")
 const Factory = preload("res://scripts/vehicle_factory.gd")
 const Circuit = preload("res://scripts/circuit_track.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
@@ -36,6 +38,10 @@ var tire_trails: Node3D
 var speed_ambience: Node3D
 var impacts: Node3D
 var rivals: Array[Dictionary] = []
+var surface := SurfaceState.new()
+var water_effect: Node3D
+var pad_active: bool:
+	get: return state == "racing" and surface.pad_time > 0 and not braking and impact < 0.15
 var mode := "tour"
 var settings_return := "menu"
 var laps_completed := 0
@@ -139,6 +145,8 @@ func _ready() -> void:
 	add_child(tire_trails)
 	speed_ambience = preload("res://scripts/speed_ambience.gd").new()
 	add_child(speed_ambience)
+	water_effect = preload("res://scripts/water_splash.gd").new()
+	add_child(water_effect)
 	impacts = preload("res://scripts/impact_effect.gd").new()
 	add_child(impacts)
 	player = Factory.create(selected_vehicle)
@@ -279,6 +287,7 @@ func restart() -> void:
 	countdown = 3
 	time_left = Library.START_TIME
 	score = 0
+	surface.reset()
 	throttling = false
 	braking = false
 	drifting = false
@@ -398,6 +407,7 @@ func reset_nitro() -> void:
 	cancel_nitro()
 
 func cancel_nitro() -> void:
+	surface.cancel_boost()
 	boost_kick = 0
 	nitro_active = false
 	nitro_burst_left = 0
@@ -437,11 +447,11 @@ func _physics_process(delta: float) -> void:
 	speed_effect.material.set_shader_parameter("strength",clampf((speed-35)/53,0,1))
 	update_camera(delta)
 	player.road_speed = speed if state == "racing" else 0.0
-	player.animate(steer,drifting and state == "racing",nitro_active and state == "racing",delta,slip_angle,braking and state == "racing",impact)
+	player.animate(steer,drifting and state == "racing",(nitro_active or pad_active) and state == "racing",delta,slip_angle,braking and state == "racing",impact)
 	if player.headlight != null: player.headlight.visible = track.active.in_tunnel(distance) or track.scenery.theme == "neon"
 	for r in rivals:
 		r.car.road_speed = r.speed if state == "racing" else 0.0
-		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),false,false,delta,r.visual_yaw)
+		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),false,r.boosting and state == "racing",delta,r.visual_yaw)
 	hud.queue_redraw()
 
 func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool = false, cell_input: bool = false) -> void:
@@ -452,18 +462,20 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		cancel_nitro()
 		drifting = false
 		return
-	gas = gas or nitro_input or (cell_input and vehicle.mode == "hybrid") or nitro_burst_left > 0
+	gas = gas or nitro_input or (cell_input and vehicle.mode == "hybrid") or nitro_burst_left > 0 or surface.pad_time > 0
+	var old_surface_position := Vector2(lane,distance)
 	elapsed += delta
 	if mode == "tour": time_left = maxf(0,time_left-delta)
 	for field in ["near_miss_flash","overtake_flash","checkpoint_flash","launch_flash"]:
 		set(field,maxf(0,float(get(field))-delta))
 	impact = maxf(0,impact-delta*3.5)
+	surface.tick(delta,brake,impact)
 	boost_kick = maxf(0,boost_kick-delta*2)
 	bump_cooldown = maxf(0,bump_cooldown-delta)
 	brake_armed = maxf(0,brake_armed-delta)
 	throttling = gas and not brake
 	braking = brake
-	steer = move_toward(steer,axis,delta*vehicle.steer_rate)
+	steer = move_toward(steer,axis,delta*vehicle.steer_rate*lerpf(1,0.75,surface.wetness))
 	if brake and not previous_brake and speed > 25: brake_armed = 0.45
 	var was_drifting := drifting
 	if not brake and speed > 25 and absf(steer) > 0.2 and (drift_input or (previous_brake and brake_armed > 0 and gas)):
@@ -471,7 +483,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		drift_latched = true
 	if brake or speed < 22: drift_latched = false
 	var curve := track.curvature(distance)
-	if drift_latched and absf(steer) < 0.14 and absf(curve)*speed*speed < vehicle.grip*0.75:
+	if drift_latched and absf(steer) < 0.14 and absf(curve)*speed*speed < vehicle.grip*surface.grip_factor*0.75:
 		drift_straight += delta
 		if drift_straight > 0.4: drift_latched = false
 	else: drift_straight = 0
@@ -482,7 +494,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		if drift_charge > 0.55 and absf(lane) < track.half_width(distance)-1:
 			drifts_completed += 1
 		drift_charge = 0
-	var desired_yaw := (-drift_sign*0.30-steer*0.30) if drifting else -steer*0.07
+	var desired_yaw := ((-drift_sign*0.30-steer*0.30) if drifting else -steer*0.07)-clampf(lane_velocity*0.022,-0.16,0.16)*surface.wetness
 	slip_angle = lerp_angle(slip_angle,desired_yaw,1-exp(-delta*6))
 	var old_gaps: Array[float] = []
 	drafting = false
@@ -493,19 +505,26 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	draft_charge = move_toward(draft_charge,1.0 if drafting else 0.0,delta*(1.0 if drafting else 1.2))
 	Nitro.update(self,delta,nitro_input,cell_input)
 	var was_boosting := boosting
-	boosting = nitro_active or (draft_charge > 0.65 and throttling and not drifting and impact < 0.15)
+	boosting = nitro_active or pad_active or (draft_charge > 0.65 and throttling and not drifting and impact < 0.15)
 	if boosting and not was_boosting: boost_kick = 0.35
 	if brake: speed = move_toward(speed,0,delta*vehicle.brake)
 	elif not gas: speed = move_toward(speed,0,delta*5)
-	elif drifting: speed = maxf(0,speed-delta*0.35)
-	else: speed = move_toward(speed,(vehicle.overdrive_speed if nitro_burst_left > 0 else vehicle.boost_speed) if nitro_active else vehicle.max_speed+draft_charge*8,delta*(vehicle.boost_accel if nitro_active else vehicle.accel))
-	var grip: float = vehicle.drift_grip if drifting else vehicle.grip
+	elif drifting:
+		speed = move_toward(speed,pad_speed_cap(),delta*(vehicle.boost_accel+12)*0.75) if pad_active else maxf(0,speed-delta*0.35)
+	else:
+		var cap: float = (vehicle.overdrive_speed if nitro_burst_left > 0 else vehicle.boost_speed) if nitro_active else vehicle.max_speed+draft_charge*8
+		var acceleration: float = vehicle.boost_accel if nitro_active else vehicle.accel
+		if pad_active:
+			cap = maxf(cap,pad_speed_cap())
+			acceleration = maxf(acceleration,vehicle.boost_accel+12)
+		speed = move_toward(speed,cap,delta*acceleration)
+	var grip: float = (vehicle.drift_grip if drifting else vehicle.grip)*surface.grip_factor
 	var demand := absf(curve) * speed * speed
 	var excess := maxf(0,demand-grip)
 	var authority := clampf(1-excess/(grip*2),0.38,1)
 	var outward := signf(curve) * (demand * 0.055 + excess * 1.6)
 	var lateral: float = steer * (vehicle.drift_steer_speed if drifting else vehicle.steer_speed) * minf(speed/20,1) * authority + outward
-	lane_velocity = move_toward(lane_velocity,lateral,delta*(vehicle.lateral_drift if drifting else vehicle.lateral_grip))
+	lane_velocity = move_toward(lane_velocity,lateral,delta*(vehicle.lateral_drift if drifting else vehicle.lateral_grip)*surface.lateral_factor)
 	lane += lane_velocity*delta
 	var limits := track.lane_limits(distance)
 	var radius := Contact.HALF_WIDTH * absf(cos(slip_angle)) + Contact.HALF_LENGTH * absf(sin(slip_angle))
@@ -521,6 +540,18 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			speed *= 0.72
 			register_impact(0.8,Vector2(-side,0))
 	distance += speed*delta
+	var surface_events := surface.contact(track.active,old_surface_position,Vector2(lane,distance),speed,brake,impact)
+	for event in surface_events:
+		if event == "boost":
+			speed = maxf(speed,minf(pad_speed_cap(),speed+8))
+			score += 50
+			boosting = true
+			boost_kick = 0.55
+		else:
+			speed *= 0.96
+			if DisplayServer.get_name() != "headless" and speed > 10:
+				var forward := (track.point(distance+2)-track.point(distance)).normalized()
+				water_effect.burst(track.point(distance,lane),forward,motion_reduced)
 	brain.tick(self,delta)
 	for i in range(rivals.size()):
 		var r: Dictionary = rivals[i]
@@ -551,7 +582,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	recommended_speed = vehicle.max_speed
 	for look in [15.0,45.0,85.0]:
 		var k: float = absf(track.curvature(distance+look))
-		recommended_speed = minf(recommended_speed,sqrt(vehicle.grip*1.25/maxf(k,0.0001)))
+		recommended_speed = minf(recommended_speed,sqrt(vehicle.grip*surface.grip_factor*1.25/maxf(k,0.0001)))
 	corner_warning = move_toward(corner_warning,clampf((speed-recommended_speed-4)/15,0,1),delta*3)
 	if mode == "track":
 		var finished_laps := int(maxf(0,distance-80)/track.length)
@@ -586,6 +617,9 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			cancel_nitro()
 			drifting = false
 			boosting = false
+
+func pad_speed_cap() -> float:
+	return maxf(vehicle.overdrive_speed+2,vehicle.max_speed+21)
 
 func advance_route() -> void:
 	var choice := 0 if lane < 0 else 1
@@ -652,12 +686,14 @@ func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
 		var impulse := absf(relative) * 0.6
 		if normal.y < 0:
 			speed = maxf(0,speed-impulse-4)
-			r.speed = minf(70,r.speed+impulse*0.35)
+			r.speed = maxf(r.speed,minf(r.pace+24,r.speed+impulse*0.35))
 		else:
-			speed = minf(88,speed+minf(5,impulse*0.3))
+			speed += minf(5,impulse*0.3)
 			r.speed = maxf(0,r.speed-impulse)
 	lane_velocity -= normal.x*(3+absf(relative)*0.12)
 	traffic_hits += 1
+	if r.has("surface"): r.surface.cancel_boost()
+	r.boosting = false
 	register_impact(clampf(absf(relative)/35+absf(lane_velocity)/15,0.3,1),-normal)
 
 func register_impact(strength: float, normal: Vector2) -> void:

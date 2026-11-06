@@ -23,3 +23,9 @@ No P0/P1 issue was identified in this scoped review. This is not a claim that ev
 ## Four-ability revision
 
 Vehicle cards now compare exactly top speed, acceleration, boost and handling on a common ten-point scale. Nitro activation/resource types remain separate. Armor and per-car impact-loss multipliers were removed; collision tests now require equal speed loss for identical impacts. The ability bars derive speed, acceleration and boost from driving parameters, with handling using the existing profile rating.
+
+## Road patch review — 2026-11-06
+
+P3: rear-contact resolution retained old hard-coded 70/88 m/s ceilings. A boosted car hit from behind could suddenly slow to 88 m/s despite receiving forward impulse. Removed these downward clamps and added a 112 m/s regression case. Contact still separates bodies and cancels active boosts.
+
+Road patches share their rendered placement with swept tire detection, including per-lap circuit coordinates. Brake and impact override automatic boost; wet-road effects recover and spawn only short entry sprays. CPU corner/traffic braking retains priority. See [road patch implementation and verification](ROAD_FEATURES.md).

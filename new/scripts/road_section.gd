@@ -1,12 +1,14 @@
 extends Node3D
 
 const WIDTH := 18.0
+const Features = preload("res://scripts/road_features.gd")
 const Scenery = preload("res://scripts/road_biome.gd")
 const Library = preload("res://scripts/route_library.gd")
 const ASPHALT = preload("res://assets/environment/asphalt.png")
 const ASPHALT_SHADER = preload("res://shaders/asphalt.gdshader")
 const PAINT_SHADER = preload("res://shaders/road_paint.gdshader")
 const SKID_SHADER = preload("res://shaders/skid_marks.gdshader")
+var features: Array[Dictionary] = []
 var closed_loop := false
 var scenery: Node3D
 var road_surface: MeshInstance3D
@@ -123,6 +125,7 @@ func paint(color: Color) -> ShaderMaterial:
 	return mat
 
 func _ready() -> void:
+	features = Features.layout(self)
 	rng.seed = 8417
 	var asphalt := ShaderMaterial.new()
 	asphalt.shader = ASPHALT_SHADER
@@ -130,6 +133,7 @@ func _ready() -> void:
 	strip(-10.5, 10.5, -0.15, material(Color("7e8477")))
 	road_surface = strip(-9, 9, 0, asphalt)
 	road_surface.name = "TexturedAsphalt"
+	Features.build(self)
 	strip(-8.6,-8.4,0.025,paint(Color("e7e6d6")),150 if entry_side > 0 else 0)
 	strip(8.4,8.6,0.025,paint(Color("e7e6d6")),150 if entry_side < 0 else 0)
 	var lane_marks: Array[Transform3D] = []
