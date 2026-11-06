@@ -18,6 +18,9 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 		["boost",gentle_distance(section,440+section.stage*35+section.route_node*13),side*0.24,22.0,3.4],
 		["water",section.length*0.47,-side*0.43,16.0,4.4]
 	]
+	if not section.closed_loop and section.stage == 0:
+		var opposite := maxf(specifications[0][1]+90,gentle_distance(section,specifications[0][1]+200))
+		specifications.append(["boost",opposite,-side*0.55,22.0,3.4])
 	if not section.closed_loop and section.stage%2 == 1:
 		specifications.append(["boost",gentle_distance(section,section.length*0.70),-side*0.60,22.0,3.4])
 		specifications.append(["water",section.length*0.84,side*0.46,18.0,4.2])

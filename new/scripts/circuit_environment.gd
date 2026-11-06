@@ -12,6 +12,7 @@ const WATER_HEIGHT := 0.0
 const SHORE_LANE := -18.0
 var theme := "fuji"
 var track: Node3D
+var landmarks: Node3D
 var water: MeshInstance3D
 var tree_positions: Array[Vector3] = []
 var tree_batches: Array[MultiMeshInstance3D] = []
@@ -56,6 +57,9 @@ func _ready() -> void:
 		mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		tree_materials.append(mat)
 	make_trees()
+	landmarks = preload("res://scripts/circuit_landmarks.gd").new()
+	landmarks.scenery = self
+	add_child(landmarks)
 	make_ridge_tunnel()
 
 func terrain_band(inner: float, outer: float, mat: Material) -> void:

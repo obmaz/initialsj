@@ -16,7 +16,7 @@ func run(tree: SceneTree) -> int:
 		for node in range(stage+1):
 			var section := Section.new(Vector3(0,6,0),-PI/2,stage,node)
 			var patches := Features.layout(section)
-			check(patches.size() == (2 if stage%2 == 0 else 4),"Road patches must remain occasional")
+			check(patches.size() == (3 if stage == 0 else (2 if stage%2 == 0 else 4)),"Road patches must remain occasional")
 			for patch in patches:
 				check(patch.distance-patch.length/2 > 280 and patch.distance+patch.length/2 < section.length-250,"Patches must leave entries and forks clear")
 				check(absf(patch.lane)+patch.width*0.55 < section.half_width(patch.distance)-0.5,"Every patch must leave a usable escape lane")

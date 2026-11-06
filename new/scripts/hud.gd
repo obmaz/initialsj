@@ -16,6 +16,10 @@ const PAUSE_BUTTON := Rect2(814,15,66,60)
 const HOME_TOUR := Rect2(225,535,390,110)
 const HOME_TRACK := Rect2(645,535,390,110)
 const HOME_SETTINGS := Rect2(1100,24,155,40)
+const COURSE_FUJI := Rect2(100,150,520,440)
+const COURSE_SEOCHO := Rect2(660,150,520,440)
+const FUJI_PHOTO = preload("res://assets/environment/fuji-lake-panorama.png")
+const SEOCHO_PHOTO = preload("res://assets/environment/seocho/maple-gate.jpg")
 const GARAGE_BACK := Rect2(100,40,150,40)
 const SETTINGS_SOUND := Rect2(430,270,420,70)
 const SETTINGS_MOTION := Rect2(430,352,420,70)
@@ -122,8 +126,13 @@ func handle_pointer(event: InputEvent) -> void:
 	var p := to_design(event.position)
 	if race.state == "menu":
 		if HOME_TOUR.has_point(p): race.choose_mode("tour")
-		elif HOME_TRACK.has_point(p): race.choose_mode("track")
+		elif HOME_TRACK.has_point(p): race.open_courses()
 		elif HOME_SETTINGS.has_point(p): race.open_settings()
+		return
+	if race.state == "courses":
+		if COURSE_FUJI.has_point(p): race.choose_mode("track",0)
+		elif COURSE_SEOCHO.has_point(p): race.choose_mode("track",1)
+		elif GARAGE_BACK.has_point(p): race.open_menu()
 		return
 	if race.state == "settings":
 		if SETTINGS_SOUND.has_point(p): race.sound_enabled = not race.sound_enabled
@@ -131,7 +140,9 @@ func handle_pointer(event: InputEvent) -> void:
 		elif SETTINGS_CLOSE.has_point(p): race.close_settings()
 		return
 	if race.state == "ready":
-		if GARAGE_BACK.has_point(p): race.open_menu()
+		if GARAGE_BACK.has_point(p):
+			if race.mode == "track": race.open_courses()
+			else: race.open_menu()
 		elif GARAGE_START.has_point(p): race.restart()
 		else:
 			for i in range(3):
@@ -249,6 +260,9 @@ func _draw() -> void:
 	if race == null:
 		return
 	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
+	if race.state == "courses":
+		draw_courses()
+		return
 	if race.state in ["menu","settings"]:
 		draw_home()
 		if race.state == "settings": draw_settings()
@@ -277,7 +291,7 @@ func draw_position(_rows: Array[Dictionary]) -> void:
 	text_at(Vector2.ZERO,str(race.race_position() if race.mode == "track" else race.stage_index+1),72,GOLD,true,POSITION_FONT)
 	draw_set_transform(ui_offset(),0,Vector2.ONE*ui_scale())
 	text_at(Vector2(151,67),"/8" if race.mode == "track" else "/5",40,WHITE,true,NUMBER_FONT)
-	var title := "FUJI LAKESIDE" if race.mode == "track" else Library.title(race.stage_index,race.route_node)
+	var title: String = race.course_title if race.mode == "track" else Library.title(race.stage_index,race.route_node)
 	slant(Rect2(13,89,190,25),Color("073d59c9"),6,true)
 	text_at(Vector2(24,107),title,14,CYAN)
 	slant(Rect2(13,123,190,42),Color("121520bd"),7,true)
@@ -352,7 +366,9 @@ func draw_minimap(_rows: Array[Dictionary]) -> void:
 
 func circuit_map_point(d: float) -> Vector2:
 	var p: Vector3 = race.track.point(d)
-	return Vector2(1180+p.x*0.14,149+p.z*0.12)
+	var bounds: Rect2 = race.track.map_bounds
+	var scale_factor := minf(152/maxf(bounds.size.x,1),100/maxf(bounds.size.y,1))
+	return Vector2(1180,143)+(Vector2(p.x,p.z)-bounds.get_center())*scale_factor
 
 func draw_circuit_map() -> void:
 	slant(Rect2(1087,83,185,132),Color("121b2ac2"),10)
@@ -363,7 +379,12 @@ func draw_circuit_map() -> void:
 		if r.active: draw_circle(circuit_map_point(r.distance),2.5,Color("ff9f68"))
 	draw_circle(circuit_map_point(race.distance),5,CYAN)
 	draw_rect(Rect2(circuit_map_point(80)-Vector2(3,3),Vector2(6,6)),WHITE)
-	text_at(Vector2(1124,210),"FUJI / CIRCUIT 01",11,Color("b4d1df"))
+	text_at(Vector2(1107,210),race.course_label,11,Color("b4d1df"))
+	if race.selected_course == 1:
+		var scenery: Node3D = race.track.scenery
+		var location: Dictionary = scenery.locations[maxi(0,scenery.active_photo)]
+		text_at(Vector2(24,189),location.name,11,CYAN)
+		text_at(Vector2(24,205),"Background: DNews 2017 / facade: Marusim" if scenery.active_photo == 1 else location.credit,9,Color("b4c9d1"))
 
 func draw_drift_score() -> void:
 	if drift_fade <= 0:
@@ -540,12 +561,46 @@ func draw_home() -> void:
 		slant(rect,Color("112334f2"),12)
 		draw_line(rect.position+Vector2(14,0),rect.position+Vector2(rect.size.x,0),accent,2,true)
 		text_at(Vector2(x+28,rect.position.y+43),"TOUR" if index == 0 else "TRACK",32,WHITE)
-		text_at(Vector2(x+28,rect.position.y+68),"BRANCHING COAST RUN" if index == 0 else "FUJI LAKESIDE CIRCUIT",14,accent)
-		text_at(Vector2(x+28,rect.position.y+91),"5 STAGES / 16 ROUTES" if index == 0 else "3 LAPS / 8 CARS",12,Color("98b5c8"))
+		text_at(Vector2(x+28,rect.position.y+68),"BRANCHING COAST RUN" if index == 0 else "CHOOSE YOUR CIRCUIT",14,accent)
+		text_at(Vector2(x+28,rect.position.y+91),"5 STAGES / 16 ROUTES" if index == 0 else "2 COURSES / 3 LAPS / 8 CARS",12,Color("98b5c8"))
 		text_at(Vector2(x+330,rect.position.y+64),">",35,accent)
 	slant(HOME_SETTINGS,Color("07111ed9"),6)
 	centered(Vector2(HOME_SETTINGS.get_center().x,50),"SETTINGS",15)
 	centered(Vector2(640,682),"1  TOUR     2  TRACK     TAB  SETTINGS",12,Color("91aab9"))
+
+func draw_courses() -> void:
+	draw_rect(Rect2(0,0,1280,720),Color("091522"))
+	slant(GARAGE_BACK,Color("20374a"),7)
+	centered(Vector2(175,67),"< BACK",16)
+	text_at(Vector2(100,121),"SELECT CIRCUIT",35)
+	for i in range(2):
+		var rect: Rect2 = COURSE_FUJI if i == 0 else COURSE_SEOCHO
+		var accent := CYAN if i == 0 else Color("ffbc72")
+		slant(rect,Color("142738"),10)
+		var texture: Texture2D = FUJI_PHOTO if i == 0 else SEOCHO_PHOTO
+		var image_box := Rect2(rect.position+Vector2(12,12),Vector2(496,240))
+		# Cover crop in the UI only; original location photographs stay intact.
+		var source := Rect2(Vector2.ZERO,texture.get_size())
+		var ratio := image_box.size.x/image_box.size.y
+		if source.size.x/source.size.y > ratio:
+			var width := source.size.y*ratio
+			source.position.x = (source.size.x-width)*0.5
+			source.size.x = width
+		else:
+			var height := source.size.x/ratio
+			source.position.y = (source.size.y-height)*0.5
+			source.size.y = height
+		draw_texture_rect_region(texture,image_box,source)
+		var x := rect.position.x+26
+		text_at(Vector2(x,440),"01 / FUJI LAKESIDE" if i == 0 else "02 / SEOCHO CITY LOOP",26,accent)
+		text_at(Vector2(x,471),"4.36 KM / RIDGE, HAIRPIN, TUNNEL" if i == 0 else "6.50 KM / REAL MAP PROTOTYPE",15,WHITE)
+		text_at(Vector2(x,500),"LAKESIDE STRAIGHT > RIDGE > DOWNHILL" if i == 0 else "MAPLE 2 > KIPARANG > MIDO > GYODAE",12,Color("adc2d0"))
+		text_at(Vector2(x,524),"3 LAPS / 8 CARS" if i == 0 else "TEMPORARY LOCATION PHOTOS / 3 LAPS",12,Color("adc2d0"))
+		draw_line(Vector2(x,545),Vector2(x+465,545),Color(accent,0.5),1)
+		text_at(Vector2(x,574),"CHOOSE / 1" if i == 0 else "CHOOSE / 2",19,accent)
+	centered(Vector2(640,637),"SELECT A CIRCUIT, THEN CHOOSE YOUR CAR",14,Color("91aab9"))
+	centered(Vector2(640,660),"Road geometry: OpenStreetMap contributors / ODbL",10,Color("688293"))
+	centered(Vector2(920,678),"Maple gate photo: Maeil Business, 2025.07",10,Color("688293"))
 
 func draw_settings() -> void:
 	draw_rect(Rect2(0,0,1280,720),Color("020812c9"))
@@ -610,7 +665,7 @@ func draw_menu() -> void:
 		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("060b168f"))
 		slant(Rect2(235, 100, 810, 525), Color("10121bf7"), 30)
 		glow_line(PackedVector2Array([Vector2(265, 100), Vector2(1045, 100)]), CYAN, 2)
-		text_at(Vector2(307,150),"INITIAL SJ / FUJI CIRCUIT" if race.mode == "track" else "INITIAL SJ / GRAND TOUR",22,CYAN)
+		text_at(Vector2(307,150),"INITIAL SJ / "+race.course_title if race.mode == "track" else "INITIAL SJ / GRAND TOUR",22,CYAN)
 		text_at(Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD)
 		var title := "GRAND TOUR" if race.state == "ready" else (("RACE PAUSED" if race.mode == "track" else "TOUR PAUSED") if race.state == "paused" else (("RACE FINISHED" if race.mode == "track" else "GOAL CLEAR!") if race.state == "finished" else "TIME OVER"))
 		text_at(Vector2(307, 224), title, 62)

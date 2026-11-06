@@ -24,6 +24,7 @@ func _ready() -> void:
 	if not THEMES.has(scenery.theme) and not URBAN_THEMES.has(scenery.theme): return
 	var road: Node3D = scenery.track
 	var urban: bool = URBAN_THEMES.has(scenery.theme)
+	var atlas: Texture2D = URBAN_ATLAS if urban else ATLAS
 	var region: Vector4 = URBAN_REGIONS[URBAN_THEMES[scenery.theme]] if urban else REGIONS[THEMES[scenery.theme]]
 	var poses: Array[Transform3D] = []
 	var regions: Array[Color] = []
@@ -36,7 +37,7 @@ func _ready() -> void:
 		var point: Vector3 = road.point(d,lane)
 		var closest: float = road.curve.get_closest_offset(point)
 		if point.distance_to(road.point(closest))-width*0.5 < 140: continue
-		var height := width*region.w/region.z
+		var height := width*region.w*atlas.get_height()/(region.z*atlas.get_width())
 		point.y = (-3.0 if coastal and side < 0 else road.point(d).y-12)+height*0.5
 		positions.append(point)
 		widths.append(width)
@@ -57,7 +58,7 @@ func _ready() -> void:
 	sprite_batch.multimesh = multi
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/roadside_sprite.gdshader")
-	material.set_shader_parameter("atlas",URBAN_ATLAS if urban else ATLAS)
+	material.set_shader_parameter("atlas",atlas)
 	sprite_batch.material_override = material
 	sprite_batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(sprite_batch)
