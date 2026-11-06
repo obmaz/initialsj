@@ -30,7 +30,8 @@ func tick(race: Node3D, delta: float) -> void:
 	for r in race.rivals:
 		if not r.active: continue
 		r.surface.tick(delta)
-		r.boosting = r.surface.pad_time > 0
+		r.surface.update_lane(race.track.active,Vector2(r.lane,r.distance),r.speed,false,0,not r.air.active)
+		r.boosting = r.surface.pad_time > 0 or r.surface.lane_active
 		if r.detached != null:
 			if is_instance_valid(r.detached):
 				r.distance += r.speed * delta
@@ -74,7 +75,7 @@ func tick(race: Node3D, delta: float) -> void:
 		r.drifting = race.mode == "track" and absf(current_curve)*r.speed*r.speed > race.vehicle.grip*r.surface.grip_factor*1.02 and r.speed > 26
 		var drift_yaw: float = signf(current_curve)*0.16 if r.drifting else 0
 		r.visual_yaw = lerp_angle(r.visual_yaw,drift_yaw-clampf((r.target_lane-r.lane)/2,-1,1)*0.07,1-exp(-delta*6))
-		var target: float = r.pace+(18 if r.surface.pad_time > 0 else 0)
+		var target: float = r.pace+(18 if r.surface.pad_time > 0 or r.surface.lane_active else 0)
 		for look in [0.0,35.0,80.0,130.0]:
 			var curve: float = absf(race.track.curvature(d+look))
 			var grip := 12.5
@@ -91,7 +92,7 @@ func tick(race: Node3D, delta: float) -> void:
 				target = minf(target,safe_follow)
 				if gap < 10: target = minf(target,maxf(0,other.speed-(10-gap)*2))
 		if target < r.speed: r.surface.cancel_boost()
-		r.boosting = r.surface.pad_time > 0
+		r.boosting = r.surface.pad_time > 0 or r.surface.lane_active
 		r.speed = move_toward(float(r.speed),target,delta*(44 if target < r.speed else (28 if r.boosting else 14)))
 		r.distance += r.speed*delta
 		var was_airborne: bool = r.air.active
@@ -99,6 +100,8 @@ func tick(race: Node3D, delta: float) -> void:
 		if r.air.active: r.drifting = false
 		var events: Array[String] = []
 		if not r.air.active and not was_airborne and flight_events.is_empty(): events = r.surface.contact(race.track.active,old_surface_position,Vector2(r.lane,r.distance),r.speed)
+		r.surface.update_lane(race.track.active,Vector2(r.lane,r.distance),r.speed,false,0,not r.air.active)
+		r.boosting = r.surface.pad_time > 0 or r.surface.lane_active
 		for event in events:
 			if event == "boost" and target >= r.speed:
 				r.speed = minf(r.pace+18,r.speed+8)

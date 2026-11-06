@@ -1,12 +1,13 @@
 extends RefCounted
-# An original coastal tri-oval; dimensions and layout are authored for this game.
+# An original coastal tri-oval. The pit straight stays low while the outer
+# turns climb coastal ridges and the back straight rolls down into the infield.
 const POINTS := [
 	Vector3(-490,8,400),Vector3(-240,8,510),Vector3(50,8,555),
-	Vector3(340,8,505),Vector3(590,8,380),Vector3(805,8,160),
-	Vector3(860,8,-120),Vector3(745,8,-360),Vector3(500,8,-475),
-	Vector3(150,8,-490),Vector3(-200,8,-490),Vector3(-540,8,-475),
-	Vector3(-790,8,-340),Vector3(-885,8,-90),Vector3(-815,8,175),
-	Vector3(-650,8,325)
+	Vector3(340,12,505),Vector3(590,24,380),Vector3(805,34,160),
+	Vector3(860,38,-120),Vector3(745,33,-360),Vector3(500,21,-475),
+	Vector3(150,10,-490),Vector3(-200,9,-490),Vector3(-540,16,-475),
+	Vector3(-790,28,-340),Vector3(-885,31,-90),Vector3(-815,22,175),
+	Vector3(-650,12,325)
 ]
 static func build(section: Node3D) -> void:
 	section.curve.clear_points()
