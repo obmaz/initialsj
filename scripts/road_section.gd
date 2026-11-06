@@ -89,6 +89,36 @@ func half_width(distance: float) -> float:
 	width -= 1.1*smoothstep(0.36,0.43,t)*(1-smoothstep(0.62,0.69,t))
 	return lerpf(9.0,clampf(width,6.2,11.5),blend)
 
+func rail_setback(distance: float, side: float) -> float:
+	if closed_loop and course_id == 1: return 1.5
+	var d := fposmod(distance,length) if closed_loop else clampf(distance,0,length)
+	if excavation_depth(d) > 0.05: return 1.5
+	var t := d/length
+	var first := smoothstep(0.15,0.20,t)*(1-smoothstep(0.30,0.35,t))
+	var second := smoothstep(0.40,0.45,t)*(1-smoothstep(0.60,0.65,t))
+	if closed_loop:
+		first = smoothstep(0.06,0.10,t)*(1-smoothstep(0.17,0.22,t))
+		second = smoothstep(0.73,0.77,t)*(1-smoothstep(0.86,0.91,t))
+	else:
+		if d < 260 or d > length-850: return 1.5
+		var tunnel := Library.tunnel_span(stage,route_node)
+		if tunnel.y > tunnel.x:
+			var shelter := smoothstep(tunnel.x-100,tunnel.x-30,d)*(1-smoothstep(tunnel.y+30,tunnel.y+100,d))
+			first *= 1-shelter
+			second *= 1-shelter
+	var width := first*(5.0 if side > 0 else 2.8)+second*(2.5 if side > 0 else 4.0)
+	return 1.5+width*(1.0 if closed_loop else (1.0-route_node*0.10))
+
+func roadside_point(distance: float, lane: float) -> Vector3:
+	var p: Vector3 = scenery.terrain_point(distance,lane)
+	if course_id == 1 or in_tunnel(distance) or excavation_depth(distance) > 0.05: return p
+	var side := signf(lane)
+	var flat_edge := half_width(distance)+rail_setback(distance,side)+1.3
+	if absf(lane) <= flat_edge+8:
+		var far: Vector3 = scenery.terrain_point(distance,side*(flat_edge+8))
+		p.y = maxf(p.y,lerpf(point(distance).y-0.025,far.y,clampf((absf(lane)-flat_edge)/8,0,1)))
+	return p
+
 func surface_lane(reference: float, distance: float) -> float:
 	return reference*half_width(distance)/9 if absf(reference) <= 9 else signf(reference)*(half_width(distance)+absf(reference)-9)
 
@@ -128,9 +158,10 @@ func box(parent: Node3D, pos: Vector3, size: Vector3, mat: Material) -> MeshInst
 func strip(left: float, right: float, height: float, mat: Material, begin: float = 0.0) -> MeshInstance3D:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for i in range(900):
-		var a := begin + (length-begin) * i / 900.0
-		var b := begin + (length-begin) * (i+1) / 900.0
+	var segments := int(ceil((length-begin)/2)) if closed_loop else 900
+	for i in range(segments):
+		var a := begin + (length-begin)*i/segments
+		var b := begin + (length-begin)*(i+1)/segments
 		var points := [point(a,surface_lane(left,a)),point(a,surface_lane(right,a)),point(b,surface_lane(left,b)),point(b,surface_lane(right,b))]
 		var uvs := [Vector2(left / 6, a / 6), Vector2(right / 6, a / 6), Vector2(left / 6, b / 6), Vector2(right / 6, b / 6)]
 		for index in [0, 2, 1, 1, 2, 3]:
@@ -162,46 +193,24 @@ func _ready() -> void:
 	Features.build(self)
 	strip(-8.6,-8.4,0.025,paint(Color("e7e6d6")),150 if entry_side > 0 else 0)
 	strip(8.4,8.6,0.025,paint(Color("e7e6d6")),150 if entry_side < 0 else 0)
-	var lane_marks: Array[Transform3D] = []
-	for i in range(int(length / 12)):
-		var d := i * 12.0 + 3
-		var f := (point(d+2)-point(d)).normalized()
-		var basis := Basis(Vector3.UP,heading(d)).rotated(Vector3(-f.z,0,f.x).normalized(),asin(f.y))
-		for center in [-0.5,0.0,0.5]: lane_marks.append(Transform3D(basis,point(d,center*half_width(d))+Vector3.UP*0.027))
-	box_batch(Vector3(0.11,0.015,5),paint(Color("e0e3df")),lane_marks)
-	var red := paint(Color("c94c48"))
 	var white := paint(Color("e9e7db"))
 	var steel := material(Color("8d9c9c"), 0.6)
-	var rail_transforms: Array[Transform3D] = []
 	var post_transforms: Array[Transform3D] = []
-	var red_transforms: Array[Transform3D] = []
-	var white_transforms: Array[Transform3D] = []
 	for i in range(int(length / 5)):
 		var d := i * 5.0
 		for side in [-1, 1]:
 			if d < 150 and side == -entry_side: continue
-			rail_transforms.append(Transform3D(Basis(Vector3.UP, heading(d)), point(d, side * (half_width(d)+1.5)) + Vector3.UP * 0.9))
 			if i % 3 == 0:
-				post_transforms.append(Transform3D(Basis.IDENTITY, point(d, side * (half_width(d)+1.5)) + Vector3.UP * 0.4))
-	for i in range(int(length / 3)):
-		var d := i * 3.0
-		for side in [-1, 1]:
-			if d < 150 and side == -entry_side: continue
-			var transform := Transform3D(Basis(Vector3.UP, heading(d)), point(d, side * (half_width(d)+0.1)))
-			if i % 2 == 0:
-				red_transforms.append(transform)
-			else:
-				white_transforms.append(transform)
-	box_batch(Vector3(0.18, 0.45, 5.15), steel, rail_transforms)
+				post_transforms.append(Transform3D(Basis.IDENTITY, point(d, side * (half_width(d)+rail_setback(d,side))) + Vector3.UP * 0.4))
+	preload("res://scripts/roadside_geometry.gd").build(self)
 	box_batch(Vector3(0.16, 1.0, 0.16), steel, post_transforms)
-	box_batch(Vector3(0.7, 0.13, 3.05), red, red_transforms)
-	box_batch(Vector3(0.7, 0.13, 3.05), white, white_transforms)
 	make_curve_markers()
 	make_skid_marks()
 	if course_id == 1: scenery = preload("res://scripts/seocho_environment.gd").new()
 	else: scenery = preload("res://scripts/circuit_environment.gd").new() if closed_loop else Scenery.new()
 	scenery.track = self
 	add_child(scenery)
+	preload("res://scripts/roadside_geometry.gd").shoulders(self)
 	if course_id != 1: make_course_banners()
 	var stripe_d := 80.0 if stage == 0 else length - 10
 	if stage == 0 or stage == 4:
@@ -319,7 +328,7 @@ func make_curve_markers() -> void:
 		if course_id == 1 and absf(bend) < 0.10: continue
 		var side := 1.0 if bend > 0 else -1.0
 		if d < 150 and side == -entry_side: continue
-		poses.append(Transform3D(Basis(Vector3.UP,heading(d)).scaled_local(Vector3(side,1,1)),point(d,side*(half_width(d)+3.3))+Vector3.UP*1.9))
+		poses.append(Transform3D(Basis(Vector3.UP,heading(d)).scaled_local(Vector3(side,1,1)),point(d,side*(half_width(d)+rail_setback(d,side)+1.8))+Vector3.UP*1.9))
 	var multi := MultiMesh.new()
 	multi.transform_format = MultiMesh.TRANSFORM_3D
 	multi.mesh = mesh
@@ -338,9 +347,9 @@ func make_course_banners() -> void:
 		var d := 55.0+i*95
 		for side in [-1.0,1.0]:
 			if d < 150 and side == -entry_side: continue
-			var base: Vector3 = scenery.terrain_point(d,side*(half_width(d)+4.8))
+			var base: Vector3 = roadside_point(d,side*(half_width(d)+rail_setback(d,side)+3.3))
 			poles.append(Transform3D(Basis.IDENTITY,base+Vector3.UP*3.8))
-			var center := point(d,side*(half_width(d)+4))
+			var center := point(d,side*(half_width(d)+rail_setback(d,side)+2.5))
 			center.y = base.y+4.3
 			poses.append(Transform3D(Basis(Vector3.UP,heading(d)).scaled_local(Vector3(-side,1,1)),center))
 	box_batch(Vector3(0.08,7.6,0.08),material(Color("899aa1"),0.6),poles)

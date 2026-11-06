@@ -27,9 +27,9 @@ func _ready() -> void:
 		if theme in ["hawaii","jeju","fuji"]: side = 1.0
 		var h: float = Catalog.HEIGHTS[theme]*random.randf_range(0.8,1.25)
 		var w := h*region.z/region.w
-		var lane: float = side*(road.half_width(d)+5+w*0.5+random.randf_range(0,12))
+		var lane: float = side*(road.half_width(d)+road.rail_setback(d,side)+3.5+w*0.5+random.randf_range(0,12))
 		if theme == "canyon": lane += side*28
-		var p: Vector3 = scenery.terrain_point(d,lane)
+		var p: Vector3 = road.roadside_point(d,lane)
 		positions.append(p)
 		var flip := -1.0 if i%3 == 0 else 1.0
 		multi.set_instance_transform(i,Transform3D(Basis.IDENTITY.scaled_local(Vector3(w,h,1)),p+Vector3.UP*(h*0.5-maxf(0.1,h*(0.05 if theme == "canyon" else 0.015)))))

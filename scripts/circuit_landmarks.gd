@@ -29,10 +29,10 @@ func _ready() -> void:
 		var side: float = spec[2]
 		var height: float = spec[3]
 		var width: float = height*region.z*ATLAS.get_width()/(region.w*ATLAS.get_height())
-		var lane: float = side*(road.half_width(d)+5+width*0.5)
-		var point: Vector3 = scenery.terrain_point(d,lane)
+		var lane: float = side*(road.half_width(d)+road.rail_setback(d,side)+3.5+width*0.5)
+		var point: Vector3 = road.roadside_point(d,lane)
 		var closest: float = road.curve.get_closest_offset(point)
-		if point.distance_to(road.point(closest))-width*0.5 < road.half_width(closest)+3: continue
+		if point.distance_to(road.point(closest))-width*0.5 < road.half_width(closest)+road.rail_setback(closest,side)+1.5: continue
 		if side < 0:
 			point.y = road.point(d).y-height*0.23
 			var foot_height := maxf(0.5,point.y-scenery.WATER_HEIGHT+0.12)

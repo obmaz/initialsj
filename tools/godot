@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+required_version="$(tr -d '[:space:]' < "$project_root/.godot-version")"
+candidate="${INITIALSJ_GODOT_BIN:-}"
+if [[ -z "$candidate" ]]; then
+  candidate="$HOME/.local/share/godot/engines/$required_version/Godot_v$required_version-stable_linux.x86_64"
+  if [[ ! -x "$candidate" ]]; then candidate="$(command -v godot || true)"; fi
+fi
+if [[ -z "$candidate" || ! -x "$candidate" ]]; then
+  echo "Install Godot $required_version or set INITIALSJ_GODOT_BIN to its executable." >&2
+  exit 2
+fi
+found_version="$("$candidate" --version)"
+case "$found_version" in
+  "$required_version".*) ;;
+  *) echo "Godot $required_version is required; found $found_version at $candidate." >&2; exit 2 ;;
+esac
+exec "$candidate" "$@"

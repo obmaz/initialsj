@@ -273,7 +273,7 @@ func make_street_lights() -> void:
 		var d: float = 260+i*80
 		var side := -1.0 if i%2 else 1.0
 		if track.entry_side != 0 and d < 650: side = float(track.entry_side)
-		var lane: float = side*(track.half_width(d)+6)
+		var lane: float = side*(track.half_width(d)+track.rail_setback(d,side)+4.5)
 		var height := 4.2 if theme == "ruins" else 7.5
 		stems.append(transform_at(d,lane,height/2,Vector3(0.16,height,0.16)))
 		arms.append(transform_at(d,lane-side*1.3,height,Vector3(2.8,0.16,0.16)))

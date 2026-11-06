@@ -1,6 +1,7 @@
 extends Node3D
 const Section = preload("res://scripts/road_section.gd")
 const Library = preload("res://scripts/route_library.gd")
+const Contact = preload("res://scripts/car_contact.gd")
 const WIDTH := 18.0
 var active: Section
 var previous: Section
@@ -98,8 +99,8 @@ func lane_centers(distance: float) -> Array[float]:
 	return [-w*0.72,-w*0.24,w*0.24,w*0.72]
 
 func lane_limits(distance: float) -> Vector2:
-	var edge := half_width(distance)+0.2
-	var limits := Vector2(-edge,edge)
+	var w := half_width(distance)
+	var limits := Vector2(-w-active.rail_setback(distance,-1)+Contact.HALF_WIDTH+0.2,w+active.rail_setback(distance,1)-Contact.HALF_WIDTH-0.2)
 	var f := (point(distance+2)-point(distance)).normalized()
 	var right := Vector3(-f.z,0,f.x).normalized()
 	if distance > active.length and previews.size() == 2:

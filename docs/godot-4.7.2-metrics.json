@@ -1,0 +1,20 @@
+{
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "template": "web_nothreads_release.zip",
+  "wasm_sha256": "fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0",
+  "linux_archive_sha256": "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4",
+  "templates_archive_sha256": "f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011",
+  "release_url": "https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable",
+  "checks": [
+    "native engine version pin",
+    "full race regression suite",
+    "native menu flow and touch targets",
+    "file audio clipping and mute",
+    "Web export",
+    "exported WASM equals verified official non-threaded template",
+    "compiled pack guardrails and shoulder slowdown",
+    "Fuji three-car three-lap finishes",
+    "Tour five skilled strategies finish and gas-only strategy fails",
+    "pinned launcher rejects installed 4.6.3"
+  ]
+}

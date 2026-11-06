@@ -76,16 +76,16 @@ TOUR의 시작 제한 시간은 70초이며, 각 구간 종료 전의 체크포�
 
 ```sh
 godot --path .
-godot --headless --path . --editor --import --quit
-godot --headless --path . --script res://tests/race_test.gd
-godot --headless --path . --script res://tests/garage_review.gd
-godot --headless --path . --script res://tests/contact_review.gd
-godot --headless --path . --script res://tests/tour_review.gd
-godot --headless --path . --script res://tests/circuit_drive_review.gd
-godot --headless --path . --script res://tests/traffic_pack_review.gd
+./tools/godot --headless --path . --editor --import --quit
+./tools/godot --headless --path . --script res://tests/race_test.gd
+./tools/godot --headless --path . --script res://tests/garage_review.gd
+./tools/godot --headless --path . --script res://tests/contact_review.gd
+./tools/godot --headless --path . --script res://tests/tour_review.gd
+./tools/godot --headless --path . --script res://tests/circuit_drive_review.gd
+./tools/godot --headless --path . --script res://tests/traffic_pack_review.gd
 ```
 
-요청 목표 버전은 Godot **4.7.2**, 현재 설치되어 실행·내보내기를 검증한 버전은 **4.6.3 stable / GL Compatibility**입니다. 4.7.2 실행 검증은 하지 않았습니다. 웹은 단일 스레드로 내보내 GitHub Pages에서 실행합니다. 실제 모바일 기기의 성능과 터치 감도는 별도 실기기 검증이 필요합니다.
+사용 엔진은 Godot **4.7.2 stable / GL Compatibility**입니다. 공식 실행 파일과 내보내기 템플릿을 설치하고 실행·검사·웹 내보내기를 검증했습니다. `.godot-version`으로 버전을 고정하고 `./tools/godot`과 CI의 버전 검사로 다른 버전의 빌드를 막습니다. 웹은 단일 스레드로 내보내 GitHub Pages에서 실행합니다. 실제 모바일 기기의 성능과 터치 감도는 별도 실기기 검증이 필요합니다.
 
 오디오는 엔진·타이어 **OGG 녹음 루프**와 충돌·안내 **WAV 파일**입니다. 웹의 연속 루프는 브라우저 AudioBufferSourceNode의 자체 반복을 사용해 렌더링 지연에 따른 루프 끊김을 피합니다. [음원 출처와 라이선스](assets/audio/LICENSE.txt): 엔진 qubodup, 타이어 audible-edge(Tom Haigh), 루프 편집 qubodup, CC BY 3.0.
 
@@ -118,11 +118,11 @@ GRAPHICS는 AUTO/HIGH/FAST를 제공합니다. AUTO는 웹에서 중간 설정�
 `main` 푸시 또는 **Deploy Initial SJ to GitHub Pages** 수동 실행으로 Godot 프로젝트만 검사·내보내기·배포합니다. 모든 런타임 주소는 상대 경로여서 저장소 이름 변경을 따라갑니다. `project.godot`을 열거나 아래 명령을 사용하세요.
 
 ```sh
-godot --headless --path . --editor --import --quit
-godot --headless --path . --script res://tests/race_test.gd
+./tools/godot --headless --path . --editor --import --quit
+./tools/godot --headless --path . --script res://tests/race_test.gd
 node tests/install_bridge_review.cjs
 mkdir -p build/site
-godot --headless --path . --export-release Web build/site/index.html
+./tools/godot --headless --path . --export-release Web build/site/index.html
 ```
 
 `legacy/`, `new/`, `site/` 선택 페이지는 더 이상 배포하지 않습니다. 이전 소스는 Git 이력에서 확인할 수 있습니다.
@@ -134,3 +134,11 @@ godot --headless --path . --export-release Web build/site/index.html
 체크포인트 뒤에는 720m 직선 안내 구간이 이어진 뒤 실제 갈림길이 나옵니다. 가장 빠른 차량의 부스트와 1.2배 템포에서도 분기까지 최소5.26초이며 평상시에는 더 길어질 수 있습니다. 큰 터치 카드에 좌우 테마·난이도·선택 상태를 표시합니다. 카드를 누르면 갈림길 직전 차선 안내를 돕고, 직접 조향하면 수동 조작이 즉시 우선합니다. 도로에도 큰 방향 화살표가 표시됩니다. 체크포인트 보상은 직선 시작에서 한 번만 지급하며 분기를 바꿔도 다시 지급하지 않습니다.
 
 메인 해안 배경, 차고 배경, 후지·서초 코스 카드를 생성형 이미지로 새로 만들었습니다. 메인과 차고의 차량은 게임과 동일한 3D 모델의 캐시 렌더를 사용합니다. [휴대폰 크기 검토와 경로 검사](docs/mobile-tour-review.md)를 참고하세요. 변경된 TOUR 코스 기록은 `tour_runup_v2_best_time_*`로 분리하며 기존 저장 파일은 보존합니다.
+
+### 곡선 가드레일과 갓길
+
+가드레일을 겹치는 직선 상자 대신 곡선을 따르는 연속 강판 메시로 바꿨습니다. 급한 코너는 더 촘촘하게 나누며 연석과 차선도 곡선을 따라 이어집니다. TOUR와 후지 코스의 일부 구간은 가드레일이 도로 밖 최대6.5m로 물러나고 그 사이에 생성형 흙·자갈 갓길이 있습니다. 갓길에서는 충돌하지 않고 저항과 낮은 접지력으로 감속합니다. 실제 가드레일에 닿았을 때 충돌 판정이 발생합니다. 아스팔트로 돌아오면 정상 가속을 회복합니다.
+
+먼지는 빠르게 갓길을 달릴 때만 짧은6개 입자 묶음으로 발생합니다. 평상시 도로 주행에는 새 입자를 뿌리지 않습니다. 배너·나무·표지판도 바깥 가드레일 기준으로 옮겼습니다. [화면·충돌·갓길 검토](docs/guardrail-shoulder-review.md)를 참고하세요.
+
+Godot4.7.2 전환과 공식 템플릿 검증은 [엔진 전환 검토](docs/godot-4.7.2-review.md)에 기록했습니다.
