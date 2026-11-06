@@ -133,13 +133,13 @@ func make_trees() -> void:
 		shadow_transforms.append(Transform3D(shadow_basis, p + Vector3(1.5, 0.04, 2.5)))
 	var quad := QuadMesh.new()
 	quad.size = Vector2.ONE
-	make_batch(quad, tree_materials[0], pine_transforms)
-	make_batch(quad, tree_materials[1], sakura_transforms)
+	make_batch(quad, tree_materials[0], pine_transforms, true)
+	make_batch(quad, tree_materials[1], sakura_transforms, true)
 	var shadow_plane := PlaneMesh.new()
 	shadow_plane.size = Vector2.ONE
 	make_batch(shadow_plane, shadow_mat, shadow_transforms)
 
-func make_batch(mesh: Mesh, mat: Material, transforms: Array[Transform3D]) -> void:
+func make_batch(mesh: Mesh, mat: Material, transforms: Array[Transform3D], shadows: bool = false) -> void:
 	var instances := MultiMesh.new()
 	instances.transform_format = MultiMesh.TRANSFORM_3D
 	instances.mesh = mesh
@@ -149,7 +149,7 @@ func make_batch(mesh: Mesh, mat: Material, transforms: Array[Transform3D]) -> vo
 	var node := MultiMeshInstance3D.new()
 	node.multimesh = instances
 	node.material_override = mat
-	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(node)
 	tree_batches.append(node)
 
