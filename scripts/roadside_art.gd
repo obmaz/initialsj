@@ -1,5 +1,5 @@
 extends Node3D
-# Retains the placement contract while the foreground is now opaque 3D geometry.
+# Place regional solid models outside the road using each model's full bounding radius.
 const Props = preload("res://scripts/regional_props_3d.gd")
 var scenery: Node3D
 var positions: Array[Vector3] = []

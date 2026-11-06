@@ -1,4 +1,5 @@
 extends RefCounted
+const Report = preload("res://tests/report.gd")
 const Contact = preload("res://scripts/car_contact.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
@@ -67,7 +68,7 @@ func run(tree: SceneTree) -> int:
 		race.step(1.0/60,0,false,true,false)
 		check(race.wall_hits == 1 and race.impact > 0,"The outer guardrail must still register a real collision")
 		rows.append({"mode":choice[0],"course":choice[1],"maximum_setback_m":widest,"minimum_inner_radius_margin_m":minimum_radius_margin})
-	FileAccess.open("res://docs/shoulder-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"cases":rows,"failures":failures},"\t")+"\n")
+	FileAccess.open(Report.path("shoulder-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"cases":rows,"failures":failures},"\t")+"\n")
 	print("Curved guardrails / wider dirt shoulders / matching collisions: ","PASS" if failures == 0 else "FAIL")
 	race.queue_free()
 	await tree.process_frame

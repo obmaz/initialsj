@@ -1,4 +1,5 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 func _initialize() -> void: call_deferred("run")
 func shot(race: Node3D, name: String) -> void:
 	race.place_cars()
@@ -8,7 +9,7 @@ func shot(race: Node3D, name: String) -> void:
 	race.camera.reset_physics_interpolation()
 	for frame in range(5): await process_frame
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://docs/"+name+".png")
+	root.get_texture().get_image().save_png(Report.path(name+".png"))
 func run() -> void:
 	var race = load("res://scenes/race.tscn").instantiate()
 	root.add_child(race)
@@ -54,7 +55,7 @@ func run() -> void:
 	race.camera.reset_physics_interpolation()
 	for frame in range(4): await process_frame
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://docs/guardrail-detail.png")
+	root.get_texture().get_image().save_png(Report.path("guardrail-detail.png"))
 	race.queue_free()
 	for frame in range(4): await process_frame
 	quit()

@@ -1,4 +1,5 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 # Native captures use the actual meshes, camera, HUD and pooled water particles.
 func _initialize() -> void: call_deferred("run")
 func capture(name: String, race: Node3D) -> void:
@@ -9,7 +10,7 @@ func capture(name: String, race: Node3D) -> void:
 	race.hud.queue_redraw()
 	for i in range(3): await process_frame
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://docs/"+name+".png")
+	root.get_texture().get_image().save_png(Report.path(name+".png"))
 func run() -> void:
 	Engine.time_scale = 0.1
 	var race = load("res://scenes/race.tscn").instantiate()

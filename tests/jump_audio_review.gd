@@ -1,4 +1,5 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	assert(DisplayServer.get_name() != "headless")
@@ -31,7 +32,7 @@ func run() -> void:
 	await create_timer(1.0).timeout
 	record.set_recording_active(false)
 	var recording := record.get_recording()
-	recording.save_to_wav("user://jump-audio-review.wav")
+	recording.save_to_wav(Report.path("jump-audio-review.wav"))
 	var stride := 4 if recording.stereo else 2
 	var frames := recording.data.size()/stride
 	var peak := 0.0
@@ -48,7 +49,7 @@ func run() -> void:
 	var passed := cue_used and peak > 0.02 and clipped == 0 and rms < 0.0001
 	var report := {"landing_file_cue_used":cue_used,"peak":peak,"clipped_frames":clipped,"muted_tail_rms":rms,"passed":passed}
 	print(JSON.stringify(report))
-	FileAccess.open("res://docs/jump-audio-metrics.json",FileAccess.WRITE).store_string(JSON.stringify(report,"\t")+"\n")
+	FileAccess.open(Report.path("jump-audio-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify(report,"\t")+"\n")
 	AudioServer.remove_bus_effect(0,0)
 	race.queue_free()
 	await process_frame

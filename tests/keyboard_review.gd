@@ -1,4 +1,5 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 # Drive with real input events; check gas, brake priority and brake-tap drifting.
 var held := {}
 func _initialize() -> void: call_deferred("run")
@@ -57,7 +58,7 @@ func run() -> void:
 		if race.braking: braked_speed = race.speed
 		if t > 3.4 and not captured:
 			await RenderingServer.frame_post_draw
-			root.get_texture().get_image().save_png("res://docs/tour/keyboard-drift.png")
+			root.get_texture().get_image().save_png(Report.path("tour/keyboard-drift.png"))
 			captured = true
 		if t > 6: break
 	for code in held.keys(): key(code,false)
@@ -85,7 +86,7 @@ func run() -> void:
 	var cell_key: bool = race.nitro_charges == 1 and race.nitro_active
 	var report := {"garage_selection_keys":selected_all,"hybrid_cell_key":cell_key,"gas_input":saw_gas,"nitro_input":saw_nitro,"brake_input":saw_brake,"brake_reduced_speed":braked_speed < entry_speed,"brake_tap_drift":saw_drift,"elapsed":snappedf(drive_elapsed,0.01)}
 	print(JSON.stringify(report))
-	var output := FileAccess.open("res://docs/keyboard-metrics.json",FileAccess.WRITE)
+	var output := FileAccess.open(Report.path("keyboard-metrics.json"),FileAccess.WRITE)
 	output.store_string(JSON.stringify(report,"\t")+"\n")
 	race.queue_free()
 	await process_frame

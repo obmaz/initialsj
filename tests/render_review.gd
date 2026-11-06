@@ -1,4 +1,5 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var race = load("res://scenes/race.tscn").instantiate()
@@ -20,7 +21,7 @@ func run() -> void:
 			await RenderingServer.frame_post_draw
 			rows.append({"mode":choice[0],"course":choice[1],"quality":"HIGH" if quality == 1 else "FAST","root_draw_calls":root.get_render_info(Viewport.RENDER_INFO_TYPE_VISIBLE,Viewport.RENDER_INFO_DRAW_CALLS_IN_FRAME),"viewport":str(root.size)})
 	print(JSON.stringify(rows))
-	FileAccess.open("res://docs/render-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"environment":"native GL Compatibility / Mesa llvmpipe / 1280x720 frozen starting view","note":"Draw submissions only; not a hardware FPS benchmark or before/after web speed claim","views":rows},"\t")+"\n")
+	FileAccess.open(Report.path("render-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"environment":"native GL Compatibility / Mesa llvmpipe / 1280x720 frozen starting view","note":"Draw submissions only; not a hardware FPS benchmark or before/after web speed claim","views":rows},"\t")+"\n")
 	race.queue_free()
 	for frame in range(3): await process_frame
 	quit()

@@ -1,6 +1,9 @@
 // Chromium touchscreen review of the actual exported game, in a phone landscape viewport.
 const {chromium}=require('playwright');
 const path=require('path');
+const fs=require('fs');
+const output=path.resolve(__dirname,'../build/reports/touch');
+fs.mkdirSync(output,{recursive:true});
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_BIN||'/usr/bin/chromium',headless:true,args:['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader']});
  try{
@@ -17,7 +20,7 @@ const path=require('path');
    await page.touchscreen.tap(point(x,596).x,point(x,596).y);
    await page.waitForTimeout(300);
   }
-  await page.screenshot({path:path.resolve(__dirname,'../docs/menu-mobile.png')});
+  await page.screenshot({path:path.join(output,'menu-mobile.png')});
   await page.touchscreen.tap(point(1050,670).x,point(1050,670).y);
   await page.waitForTimeout(10000);
   const cdp=await page.context().newCDPSession(page);
@@ -26,18 +29,18 @@ const path=require('path');
   await page.waitForTimeout(7000);
   await touch('touchStart',[[1,1150,617],[2,213,616]]);
   await page.waitForTimeout(350);
-  await page.screenshot({path:path.resolve(__dirname,'../docs/tour/mobile-gas.png')});
+  await page.screenshot({path:path.join(output,'mobile-gas.png')});
   await touch('touchEnd',[]);
   await touch('touchStart',[[3,1216,493]]);
   await page.waitForTimeout(2500);
-  await page.screenshot({path:path.resolve(__dirname,'../docs/tour/mobile-nitro.png')});
+  await page.screenshot({path:path.join(output,'mobile-nitro.png')});
   await touch('touchStart',[[3,1216,493],[4,1010,617]]);
   await page.waitForTimeout(1800);
-  await page.screenshot({path:path.resolve(__dirname,'../docs/tour/mobile-brake.png')});
+  await page.screenshot({path:path.join(output,'mobile-brake.png')});
   await touch('touchEnd',[]);
   await page.touchscreen.tap(point(847,45).x,point(847,45).y);
   await page.waitForTimeout(600);
-  await page.screenshot({path:path.resolve(__dirname,'../docs/tour/mobile-pause.png')});
+  await page.screenshot({path:path.join(output,'mobile-pause.png')});
   await page.touchscreen.tap(point(640,525).x,point(640,525).y);
   await page.waitForTimeout(600);
   const viewport=await page.evaluate(()=>({width:canvas.width,height:canvas.height,horizontalOverflow:document.documentElement.scrollWidth>innerWidth}));

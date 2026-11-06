@@ -1,5 +1,5 @@
 extends "res://scripts/track.gd"
-# One Fuji circuit: lakeside straight, climbing esses, ridge hairpin and downhill return.
+# Closed circuits share race rules: Fuji uses an elevated road; Suncoast builds a banked tri-oval.
 var course_id := 0
 var map_bounds := Rect2()
 const CONTROL_POINTS := [

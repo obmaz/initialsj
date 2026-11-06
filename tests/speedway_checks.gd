@@ -1,4 +1,5 @@
 extends RefCounted
+const Report = preload("res://tests/report.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
@@ -66,7 +67,7 @@ func run(tree: SceneTree) -> int:
 		race.step(1.0/60,0,false,false,false)
 		check(race.laps_completed == lap+1,"Speedway start line must count exactly one lap")
 	check(race.state == "finished","Speedway must finish after three laps")
-	FileAccess.open("res://docs/speedway-course-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"length_m":race.track.length,"max_bank_degrees":rad_to_deg(max_bank),"min_bank_degrees":rad_to_deg(min_bank),"max_bank_change_rad_per_m":max_step,"tightest_radius_m":radius,"failures":failures},"\t")+"\n")
+	FileAccess.open(Report.path("speedway-course-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"length_m":race.track.length,"max_bank_degrees":rad_to_deg(max_bank),"min_bank_degrees":rad_to_deg(min_bank),"max_bank_change_rad_per_m":max_step,"tightest_radius_m":radius,"failures":failures},"\t")+"\n")
 	race.queue_free()
 	await tree.process_frame
 	print("Speedway / banked geometry / touch selection / lap checks: ","PASS" if failures == 0 else "FAIL")

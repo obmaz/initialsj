@@ -3,7 +3,6 @@ extends Control
 const DESIGN := Vector2(1280, 720)
 const INK := Color("11121bc9")
 const CYAN := Color("19dcff")
-const BLUE := Color("087aff")
 const WHITE := Color("f6f7fa")
 const GOLD := Color("ffda22")
 const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
@@ -31,18 +30,14 @@ const SETTINGS_CLOSE := Rect2(365,542,550,82)
 const HOME_BG = preload("res://assets/ui/home-coast.png")
 const GARAGE_BG = preload("res://assets/ui/garage-bay.png")
 const GARAGE_START := Rect2(930,630,290,76)
-const GARAGE_MOTION := Rect2(205,604,160,40)
-const GARAGE_SOUND := Rect2(380,604,170,40)
 const MAIN_MENU_BUTTON := Rect2(390,578,500,78)
 const START_BUTTON := Rect2(390, 483, 500, 82)
 const MOTION_BUTTON := Rect2(307, 424, 300, 46)
 const SOUND_BUTTON := Rect2(630, 424, 330, 46)
 var race: Node3D
 var fingers: Dictionary = {}
-var font: Font = FONT
 var bottle_texture: Texture2D
 var drift_texture: Texture2D
-var coin_texture: Texture2D
 var install_note := ""
 var previous_vehicle := 0
 var selection_blend := 1.0
@@ -51,9 +46,6 @@ var rpm_ring: MeshInstance2D
 var rpm_material: ShaderMaterial
 var dial_cache: SubViewport
 var dial_backdrop: GradientTexture2D
-var minimap_route := Curve2D.new()
-var minimap_points := PackedVector2Array()
-var coin_balance := 0
 var drift_combo := 0.0
 var drift_fade := 0.0
 var last_score := 0.0
@@ -86,7 +78,6 @@ func _ready() -> void:
 		build_rpm_ring()
 	bottle_texture = load_icon("res://assets/ui/nitro-bottle.png")
 	drift_texture = load_icon("res://assets/ui/drift-car.png")
-	coin_texture = load_icon("res://assets/ui/coin.png")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
@@ -391,19 +382,6 @@ func comma_number(value: int) -> String:
 		result += digits[i]
 	return result
 
-func draw_coin(center: Vector2) -> void:
-	if draw_icon(coin_texture, center, Vector2(38, 38)):
-		return
-	draw_circle(center + Vector2(1, 2), 18, Color("4c310b99"))
-	draw_circle(center, 17, Color("e8a421"))
-	draw_circle(center - Vector2(1, 1), 14, Color("ffdb51"))
-	draw_arc(center, 13, 0, TAU, 40, Color("ad751a"), 1, true)
-	var star := PackedVector2Array()
-	for i in range(10):
-		star.append(center + Vector2.from_angle(-PI / 2 + i * PI / 5) * (11.0 if i % 2 == 0 else 5.0))
-	draw_colored_polygon(star, Color("fff49e"))
-	draw_polyline(star + PackedVector2Array([star[0]]), Color("d19622"), 1, true)
-
 func draw_lap_time() -> void:
 	if race.state in ["racing","countdown","paused"]:
 		slant(PAUSE_BUTTON,Color("15151ce6"),9)
@@ -607,12 +585,13 @@ func garage_card(index: int) -> Rect2:
 func draw_home() -> void:
 	draw_rect(Rect2(-ui_offset()/ui_scale(),get_viewport_rect().size/ui_scale()),Color("07111e"))
 	draw_texture_rect(HOME_BG,Rect2(0,0,1280,720),false)
+	draw_rect(Rect2(0,0,1280,218),Color("06152b3d"))
 	centered(Vector2(640,145),"INITIAL SJ",92,WHITE,NUMBER_FONT)
 	centered(Vector2(640,190),"C O A S T   R U S H",27,CYAN)
 	if race.previews != null:
 		draw_texture_rect(race.previews.textures[2],Rect2(0,243,450,221),false)
 		draw_texture_rect(race.previews.textures[1],Rect2(835,243,450,221),false)
-		draw_texture_rect(race.previews.textures[0],Rect2(315,194,650,319),false)
+		draw_texture_rect(race.previews.textures[0],Rect2(340,174,600,294),false)
 	draw_rect(Rect2(0,446,1280,274),Color("07111ee5"))
 	for index in range(2):
 		var rect: Rect2 = HOME_TOUR if index == 0 else HOME_TRACK
@@ -684,6 +663,7 @@ func draw_garage() -> void:
 	centered(Vector2(GARAGE_BACK.get_center().x,78),"< BACK",28,WHITE)
 	centered(Vector2(640,68),("TRACK" if race.mode == "track" else "TOUR")+" / GARAGE",22,Color("9db6c9"))
 	text_at(Vector2(1105,68),"%d / 3" % (race.selected_vehicle+1),16,color)
+	slant(Rect2(92,129,675,76),Color("07111ebd"),10)
 	text_at(Vector2(120,168),race.vehicle.name,48)
 	text_at(Vector2(123,195),race.vehicle["class"],21,color)
 	if race.previews != null:
@@ -691,6 +671,7 @@ func draw_garage() -> void:
 		if blend < 1:
 			draw_texture_rect(race.previews.textures[previous_vehicle],Rect2(80-24*blend,210,690,300),false,Color(1,1,1,1-blend))
 		draw_texture_rect(race.previews.textures[race.selected_vehicle],Rect2(80+28*(1-blend),210,690,300),false,Color(1,1,1,blend))
+	slant(Rect2(800,130,395,380),Color("07111eac"),10)
 	text_at(Vector2(826,162),"PERFORMANCE",20,Color("9db6c9"))
 	var abilities := Catalog.abilities(race.selected_vehicle)
 	for i in range(4):
@@ -702,6 +683,7 @@ func draw_garage() -> void:
 		draw_rect(Rect2(826,y+13,334*(shown_abilities[i] if shown_abilities.size() == 4 else rating)/10.0,5),color)
 	text_at(Vector2(826,455),race.vehicle.nitro_title,24,color)
 	text_at(Vector2(826,483),race.vehicle.nitro_help,19,Color("a1b8c9"))
+	draw_rect(Rect2(80,486,690,34),Color("07111ebd"))
 	text_at(Vector2(80,511),["AGILE CORNERS. RECHARGE NITRO THROUGH DRIFTING.","HIGH TOP SPEED. TIME YOUR POWERFUL NITRO SHOTS.","QUICK LAUNCH. COMBINE NITRO AND OVERDRIVE CELLS."][race.selected_vehicle],22,Color("9db6c9"))
 	for i in range(3):
 		var rect := garage_card(i)

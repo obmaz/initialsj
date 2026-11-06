@@ -1,6 +1,5 @@
 extends RefCounted
 # An original coastal tri-oval; dimensions and layout are authored for this game.
-const TITLE := "SUNCOAST SPEEDWAY"
 const POINTS := [
 	Vector3(-490,8,400),Vector3(-240,8,510),Vector3(50,8,555),
 	Vector3(340,8,505),Vector3(590,8,380),Vector3(805,8,160),

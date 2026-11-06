@@ -1,4 +1,5 @@
 extends RefCounted
+const Report = preload("res://tests/report.gd")
 var failures := 0
 var assertions := 0
 func check(ok: bool, message: String) -> void:
@@ -83,7 +84,7 @@ func run(tree: SceneTree) -> int:
 		budget.tick(race)
 	check(budget.level == 1,"Repeated one-second foreground frames must trigger automatic quality reduction")
 	check(race.hud.hit_button("pause",race.hud.PAUSE_BUTTON.position+Vector2(-5,30)),"The pause icon needs a phone-sized padded touch target")
-	FileAccess.open("res://docs/review-regression-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"assertions":assertions,"failures":failures,"checks":["CPU airborne landing versus grounded puddle crossing","incline world-height clearance in helper and actual collision step","pause breaks slow quality windows","foreground one-second frames lower AUTO quality","expanded mobile pause touch target"]},"\t")+"\n")
+	FileAccess.open(Report.path("review-regression-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"assertions":assertions,"failures":failures,"checks":["CPU airborne landing versus grounded puddle crossing","incline world-height clearance in helper and actual collision step","pause breaks slow quality windows","foreground one-second frames lower AUTO quality","expanded mobile pause touch target"]},"\t")+"\n")
 	race.queue_free()
 	await tree.process_frame
 	print("Review incline / CPU landing / quality / pause regressions: ","PASS" if failures == 0 else "FAIL (%d)" % failures)

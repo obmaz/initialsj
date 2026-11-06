@@ -1,4 +1,5 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 const Rig = preload("res://scripts/tunnel_lights.gd")
 var failures := 0
 func _initialize() -> void: call_deferred("run")
@@ -45,7 +46,7 @@ func run() -> void:
 			race.hud.queue_redraw()
 			for frame in range(5): await process_frame
 			await RenderingServer.frame_post_draw
-			root.get_texture().get_image().save_png("res://docs/tunnel-fixed-"+mode+".png")
+			root.get_texture().get_image().save_png(Report.path("tunnel-fixed-"+mode+".png"))
 			break
 	print("Tunnel covered warm-up / camera restoration / actual render transforms: ","PASS" if failures == 0 else "FAIL")
 	race.queue_free()

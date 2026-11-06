@@ -1,4 +1,5 @@
 extends RefCounted
+const Report = preload("res://tests/report.gd")
 const Props = preload("res://scripts/regional_props_3d.gd")
 const Library = preload("res://scripts/route_library.gd")
 var failures := 0
@@ -55,7 +56,7 @@ func run(tree: SceneTree) -> int:
  check(race.track.scenery.landmarks.models.kinds.size() >= 3,"Fuji landmarks need distinct solid structures")
  var forest: Node3D = race.track.scenery.get_node("FujiForest3D")
  check(forest.placements.size() > 70 and forest.kinds.has("sakura") and forest.kinds.has("pine"),"Fuji must mix pines and cherry trees")
- FileAccess.open("res://docs/scenery-3d-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"regions":rows,"unique_model_kinds":all_kinds.size(),"fuji_tree_count":forest.placements.size(),"failures":failures},"\t")+"\n")
+ FileAccess.open(Report.path("scenery-3d-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"regions":rows,"unique_model_kinds":all_kinds.size(),"fuji_tree_count":forest.placements.size(),"failures":failures},"\t")+"\n")
  race.queue_free()
  await tree.process_frame
  print("Regional 3D geometry / silhouettes / clearance / mobile budgets: ","PASS" if failures == 0 else "FAIL")

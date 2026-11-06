@@ -1,4 +1,4 @@
-name: Godot prototype checks
+name: Godot game checks
 
 on:
   push:
@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify repository references
+        run: python3 tools/verify_repository.py
       - name: Read pinned Godot version
         id: godot_version
         run: echo "version=$(tr -d '[:space:]' < .godot-version)" >> "$GITHUB_OUTPUT"
@@ -25,7 +27,7 @@ jobs:
         run: godot --headless --path . --script res://tests/verify_engine.gd
       - name: Import project
         run: godot --headless --path . --editor --import --quit
-      - name: Check race rules and install bridge
+      - name: Check gameplay and browser bridges
         run: |
           godot --headless --path . --script res://tests/race_test.gd
           node tests/install_bridge_review.cjs

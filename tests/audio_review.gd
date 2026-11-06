@@ -1,11 +1,12 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 # Run with a graphical display and Dummy audio; captures the real audio mixer.
 var failures := 0
 func _initialize():
 	call_deferred("run")
 func run():
 	if DisplayServer.get_name() == "headless":
-		push_error("Audio review needs a graphical display: DISPLAY=:99 godot --path . --script res://tests/audio_review.gd --audio-driver Dummy")
+		push_error("Audio review requires a graphical display and --audio-driver Dummy; run with ./tools/godot")
 		quit(2)
 		return
 	var race = load("res://scenes/race.tscn").instantiate()
@@ -35,7 +36,7 @@ func run():
 	await create_timer(0.7).timeout
 	record.set_recording_active(false)
 	var output := record.get_recording()
-	output.save_to_wav("user://audio-review.wav")
+	output.save_to_wav(Report.path("audio-review.wav"))
 	var stride := 4 if output.stereo else 2
 	var frames := int(output.data.size() / float(stride))
 	var data := output.data
@@ -64,7 +65,7 @@ func run():
 		failures += 1
 	var report := {"peak": snappedf(peak, 0.00001), "clipped_frames": clipped, "longest_active_silent_run_ms": snappedf(silence_ms, 0.001), "muted_tail_rms": snappedf(tail_rms, 0.00001), "failures": failures}
 	print(JSON.stringify(report))
-	var metrics := FileAccess.open("res://docs/audio-metrics.json", FileAccess.WRITE)
+	var metrics := FileAccess.open(Report.path("audio-metrics.json"), FileAccess.WRITE)
 	metrics.store_string(JSON.stringify(report, "\t") + "\n")
 	AudioServer.remove_bus_effect(0, 0)
 	race.queue_free()

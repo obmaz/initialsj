@@ -1,4 +1,5 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 var failures := 0
 var report := {}
 func _initialize() -> void: call_deferred("run")
@@ -74,7 +75,7 @@ func run() -> void:
 			push_error("Skilled braking and drifting must finish the tour while retaining high speed: " + strategy)
 			failures += 1
 	report.failures = failures
-	var output := FileAccess.open("res://docs/tour-metrics.json",FileAccess.WRITE)
+	var output := FileAccess.open(Report.path("tour-metrics.json"),FileAccess.WRITE)
 	output.store_string(JSON.stringify(report,"\t")+"\n")
 	race.queue_free()
 	await process_frame

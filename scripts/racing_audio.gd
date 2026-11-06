@@ -1,6 +1,6 @@
 extends AudioStreamPlayer
-# All voices play imported audio files. Web uses Web Audio sample playback,
-# independent of Godot's streamed mixer buffer and rendering frame rate.
+# OGG loops use native Web Audio looping in the browser; transient WAV cues use
+# Godot sample playback. Native builds use the streamed audio backend.
 var race: Node3D
 var gain := 0.0
 var web_audio

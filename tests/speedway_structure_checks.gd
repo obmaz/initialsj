@@ -1,4 +1,5 @@
 extends RefCounted
+const Report = preload("res://tests/report.gd")
 var failures := 0
 var assertions := 0
 func check(ok: bool, message: String) -> void:
@@ -61,7 +62,7 @@ func run(tree: SceneTree) -> int:
 				var p := frame*Vector3(x,0,z)
 				var at: float = race.track.active.curve.get_closest_offset(Vector3(p.x,8,p.z))
 				check(frame.origin.y+0.01 >= scenery.outer_ground_height(at,x),"Terrain must not bury the front seating tier")
-	FileAccess.open("res://docs/speedway-structure-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"assertions":assertions,"failures":failures,"exterior_mesh_probes":probes,"maximum_ground_mesh_error_m":worst_error,"grandstand_foundations":scenery.grandstand_anchors.size()},"\t")+"\n")
+	FileAccess.open(Report.path("speedway-structure-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"assertions":assertions,"failures":failures,"exterior_mesh_probes":probes,"maximum_ground_mesh_error_m":worst_error,"grandstand_foundations":scenery.grandstand_anchors.size()},"\t")+"\n")
 	race.queue_free()
 	await tree.process_frame
 	print("Speedway actual ground / light footings / rigid stand foundations: ","PASS" if failures == 0 else "FAIL")

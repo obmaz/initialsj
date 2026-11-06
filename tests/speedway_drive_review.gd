@@ -1,4 +1,5 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 var failures := 0
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
@@ -59,7 +60,7 @@ func run() -> void:
 				push_error("Circuit opponents must never recycle or teleport")
 				failures += 1
 		await process_frame
-	FileAccess.open("res://docs/speedway-drive-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"vehicles":report,"failures":failures},"\t")+"\n")
+	FileAccess.open(Report.path("speedway-drive-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"vehicles":report,"failures":failures},"\t")+"\n")
 	race.queue_free()
 	await process_frame
 	quit(1 if failures else 0)

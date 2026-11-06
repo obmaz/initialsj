@@ -1,4 +1,5 @@
 extends RefCounted
+const Report = preload("res://tests/report.gd")
 const Rig = preload("res://scripts/tunnel_lights.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
@@ -55,6 +56,6 @@ func run(tree: SceneTree) -> int:
 		report.append({"mode":mode,"wall_signs":count,"minimum_sign_to_wall_gap_m":closest_wall_gap,"light_count":rig.lights.size(),"active_lights":visible,"visibility_changes_over_120_stationary_updates":rig.visibility_changes-changes})
 	race.queue_free()
 	await tree.process_frame
-	FileAccess.open("res://docs/tunnel-render-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"cases":report,"failures":failures},"\t")+"\n")
+	FileAccess.open(Report.path("tunnel-render-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"cases":report,"failures":failures},"\t")+"\n")
 	print("Tunnel sign clearance / light visibility churn checks: ","PASS" if failures == 0 else "FAIL")
 	return failures

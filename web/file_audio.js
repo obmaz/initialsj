@@ -1,5 +1,5 @@
-// Imported OGG loops use native Web Audio looping. Godot 4.6's sample backend
-// restarts loops from a main-thread ended callback, leaving gaps when rendering stalls.
+// AudioBufferSourceNode.loop keeps OGG playback independent of render/physics
+// cadence. Encoded recordings are loaded from assets/audio/web-loops.json.
 window.InitialSJFileAudio = class {
   constructor(files) {
     this.context = new AudioContext({latencyHint: 'interactive'});

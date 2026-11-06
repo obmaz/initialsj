@@ -1,6 +1,5 @@
 extends Node3D
 
-const WIDTH := 18.0
 const Features = preload("res://scripts/road_features.gd")
 const Scenery = preload("res://scripts/road_biome.gd")
 const Library = preload("res://scripts/route_library.gd")
