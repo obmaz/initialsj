@@ -402,10 +402,11 @@ func draw_controls() -> void:
 		draw_colored_polygon(chevron,Color("ffffffe0"))
 	round_button("drift")
 	var c: Vector2 = buttons.drift.get_center()
-	if race.drift_charge > 0 and race.state == "racing":
-		glow_line(arc_points(c,51,-PI/2,-PI/2+TAU*clampf(race.drift_charge/2,0,1)),GOLD,2)
+	if race.drifting: draw_arc(c,49,0,TAU,64,CYAN,3,true)
 	car_icon(c+Vector2(0,-12))
-	centered(c+Vector2(0,35),"DRIFT",19)
+	centered(c+Vector2(0,35),"END DRIFT" if race.drifting else "DRIFT",14 if race.drifting else 19)
+	var drift_hint := "TAP TO END" if race.drifting else ("STEER NOW" if race.drift_pending > 0 else ("STEER + TAP" if race.speed > 25 else "90 km/h+"))
+	centered(c+Vector2(0,-60),drift_hint,12,CYAN if race.speed > 25 else Color("8ca0ac"))
 	round_button("nitro",true)
 	var nitro_center: Vector2 = buttons.nitro.get_center()
 	bottle(nitro_center+Vector2(0,-10),0.43)
@@ -476,13 +477,22 @@ func draw_speedometer() -> void:
 		var major := i % 4 == 0
 		var tint := Color("ff4964") if a > deg_to_rad(305) else Color("d7efff")
 		draw_line(c + Vector2.from_angle(a) * (radius - 3), c + Vector2.from_angle(a) * (radius - (14 if major else 8)), tint, 2.8 if major else 1.3, true)
+	var rpm_ratio: float = clampf(race.engine_rpm()/7500,0,1)
+	for segment in range(38):
+		if (segment+0.5)/38.0 > rpm_ratio: break
+		var a := lerpf(start,end,segment/38.0)
+		var b := lerpf(start,end,(segment+0.72)/38.0)
+		var tint := GOLD if segment >= 28 else CYAN
+		if segment >= 33: tint = Color("ff4f69")
+		draw_arc(c,radius-7,a,b,3,tint,6,true)
+	text_at(Vector2(1119,581),"RPM",12,Color("9ebfcd"))
 	var label_positions := [Vector2(1040, 653), Vector2(1048, 604), Vector2(1072, 569), Vector2(1115, 545), Vector2(1153, 538), Vector2(1195, 545), Vector2(1233, 570), Vector2(1239, 606)]
 	for i in range(8):
 		centered(label_positions[i], str(i), 18)
 	var speed_kmh := int(race.speed * 3.6)
 	centered(Vector2(1145, 630), str(speed_kmh), 64, WHITE, NUMBER_FONT)
 	centered(Vector2(1149, 655), "km/h", 20)
-	var gear := "N" if speed_kmh < 1 else str(clampi(ceili(race.speed / 13.0), 1, 6))
+	var gear := "N" if race.gear_number() == 0 else str(race.gear_number())
 	var g := rounded_polygon(PackedVector2Array([Vector2(1209, 628), Vector2(1255, 628), Vector2(1243, 669), Vector2(1198, 669)]), 4)
 	draw_colored_polygon(g, Color("15151b66"))
 	draw_polyline(g + PackedVector2Array([g[0]]), Color("ffffffe0"), 2, true)
@@ -604,16 +614,15 @@ func draw_menu() -> void:
 		text_at(Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD)
 		var title := "GRAND TOUR" if race.state == "ready" else (("RACE PAUSED" if race.mode == "track" else "TOUR PAUSED") if race.state == "paused" else (("RACE FINISHED" if race.mode == "track" else "GOAL CLEAR!") if race.state == "finished" else "TIME OVER"))
 		text_at(Vector2(307, 224), title, 62)
-		var touch_controls := DisplayServer.is_touchscreen_available()
-		var detail := "5 STAGES. CHOOSE YOUR ROAD."
-		if race.state == "paused":
-			detail = "TAP RESUME TO CONTINUE." if touch_controls else "P / ESC TO RESUME. R TO RESTART."
-		elif race.state == "finished":
-			detail = ("POS %d / 8  -  %s" % [race.race_position(),time_label(race.elapsed)]) if race.mode == "track" else ("TIME %s / SCORE %d" % [time_label(race.elapsed), int(race.score)])
-		text_at(Vector2(307, 277), detail, 25)
-		text_at(Vector2(307, 331), "LEFT: STEER    RIGHT: GAS / BRAKE" if touch_controls else "W / UP GAS    S / DOWN BRAKE", 24, Color("d1d9e4"))
-		text_at(Vector2(307, 366), "DRIFT / NITRO: RIGHT UPPER BUTTONS" if touch_controls else "A / D STEER    SPACE DRIFT SHORTCUT", 23, Color("d1d9e4"))
-		text_at(Vector2(307, 396), "BRAKE + STEER, THEN GAS TO DRIFT" if touch_controls else "SHIFT NITRO / BRAKE + STEER, THEN GAS TO DRIFT", 19, CYAN)
+		if race.state == "finished":
+			var detail := ("POS %d / 8" % race.race_position()) if race.mode == "track" else ("SCORE %d" % int(race.score))
+			text_at(Vector2(307,288),detail,32,GOLD)
+			text_at(Vector2(307,338),time_label(race.elapsed),42)
+		elif race.state == "failed":
+			text_at(Vector2(307,292),"SCORE %d" % int(race.score),32,GOLD)
+		elif race.state == "paused":
+			text_at(Vector2(307,294),race.vehicle.name,28,Color(race.vehicle.accent))
+			text_at(Vector2(307,338),time_label(race.elapsed),35,Color("b9cedb"))
 		for rect in [MOTION_BUTTON, SOUND_BUTTON]:
 			slant(rect, Color("253548"), 8)
 		var motion_label := "MOTION: LOW" if race.motion_reduced else "MOTION: FULL"
@@ -621,11 +630,11 @@ func draw_menu() -> void:
 		centered(Vector2(MOTION_BUTTON.get_center().x, 454), motion_label, 21, CYAN)
 		centered(Vector2(SOUND_BUTTON.get_center().x, 454), sound_label, 21, CYAN)
 		slant(START_BUTTON, CYAN, 13)
-		var cta := "RESUME" if race.state == "paused" else ("CHOOSE CAR / ENTER")
+		var cta := "RESUME" if race.state == "paused" else ("CHOOSE CAR")
 		centered(Vector2(640, 536), cta, 32, Color("0a1b2b"))
 		if race.state == "paused":
 			slant(CHANGE_CAR,Color("253548"),8)
-			centered(Vector2(640,602),"CHANGE CAR / G",19,CYAN)
+			centered(Vector2(640,602),"CHANGE CAR",19,CYAN)
 
 func draw_competitor_markers() -> void:
 	if race.mode != "track" or race.state not in ["racing","countdown"]: return

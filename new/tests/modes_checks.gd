@@ -28,6 +28,18 @@ func run(tree: SceneTree) -> int:
 	check(race.state == "ready" and race.mode == "track","Track selection must lead to the shared garage")
 	check(race.track.previews.is_empty() and race.track.scenery.theme == "fuji","The one circuit must use Fuji scenery and have no route forks")
 	var length: float = race.track.length
+	var low := INF
+	var high := -INF
+	var left_curve := 0.0
+	var right_curve := 0.0
+	for sample in range(500):
+		var d := length*sample/500
+		var y: float = race.track.point(d).y
+		low = minf(low,y); high = maxf(high,y)
+		var curve: float = race.track.curvature(d)
+		left_curve = minf(left_curve,curve); right_curve = maxf(right_curve,curve)
+	check(length > 4000 and high-low > 30 and left_curve < -0.02 and right_curve > 0.015,"Fuji must have a long elevated course and substantial bends in both directions")
+	check(race.track.active.in_tunnel(length*0.56+120) and not race.track.active.in_tunnel(80),"The ridge tunnel must have a bounded real road span")
 	for d in [-5.0,0.0,80.0,length-1]:
 		check(race.track.point(d).distance_to(race.track.point(d+length)) < 0.002,"Circuit positions must wrap continuously")
 	check(absf(wrapf(race.track.heading(-0.1)-race.track.heading(0.1),-PI,PI)) < 0.01,"Start/finish tangent must be continuous")

@@ -35,3 +35,9 @@ Roads, cars, rails, tunnels and large terrain remain 3D. Three-dimensional city 
 Hawaii and Jeju have low three-dimensional inland hills with a tapered outer edge and darker green terrain. Coastal fallback ground uses a water color so a green strip no longer surrounds the ocean. Water uses non-perpendicular swells, a world-space normal and a restrained grazing-angle sheen, replacing the old high-contrast sine/cosine checkerboard.
 
 Native captures for Hawaii, Jeju, desert and snow were compared during the pass. An initial hill shape was too tall and broad; its height and extent were reduced. Snow's repeated geometric cones were removed after comparison with the generated peaks. Existing gameplay, mode and road-surface checks pass; the changes do not alter road geometry or driving rules.
+
+## Urban skyline and lighting pass
+
+`urban-skylines.png` is a second untouched generated atlas for modern city, Seoul-inspired architecture, abandoned city and neon skyline. A generative edit removed two detached artifacts and improved cell padding; both generated originals remain in the workspace. UV regions sample the clean atlas directly with alpha scissor and mipmaps. The skyline batch supplements the existing six three-dimensional building shapes, rooftop details and near-road props.
+
+Urban ground uses paving instead of grass, with derivative-filtered joints to limit distant shimmer. Street lamps add three-dimensional poles and fixtures; neon lamps and longer Tour tunnels use actual nearby point lights. Night facade windows vary in warm/cool color and occupancy. Fill lighting is excluded from procedural-sky sun rendering. Reviewed captures for city, Seoul, ruins, neon and a long tunnel show the current HUD and fictional vehicle badge.

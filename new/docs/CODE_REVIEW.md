@@ -47,3 +47,11 @@ P3: the touch pause region did not cover the full rendered time panel, and pause
 P3: dynamic tire trails used a fixed 7.2 m lane cutoff despite variable road widths. Use the active road's half-width and a tire clearance; native wide-road and overhead captures confirm the paired trails are present on the outer lane.
 
 Projected circuit place badges use a deterministic tie order so matched grid rows do not receive duplicate places. Badges are limited and screened for overlap. Existing mode checks now cover unique grid places and the new touch pause control.
+
+## Fuji ridge / drift / lighting review — 2026-11-06
+
+P2: brake canceled the entire drift immediately, discarding corner grip during tight-turn deceleration. Keep a controlled drift when braking with steering; an explicit second drift tap or braking with unwound steering ends it. Entry/exit taps are edge-triggered and have no hidden cooldown. New tests cover pre-steering arming, holding taps, immediate reuse, opposite-direction entry and brake recovery.
+
+P3: collision orientation used a one-sided two-metre tangent and a sloped forward projection, while rendered cars use symmetric tangents. Newly added hairpin cases exposed up to 0.085 m² of residual world-space body overlap. Use the rendered symmetric lane tangent and a horizontal collision plane. Independent polygon intersections now pass 324 Tour/circuit cases, worst residual 0.002 m².
+
+RPM now has a real segmented fill driven by the same idle/gear/redline calculation as audio pitch. The pause dialog drops key explanations. The 4.36 km circuit adds elevation, straights, turns of both signs and a real shaded tunnel; mode tests cover those broad course requirements and tunnel bounds. Updated record keys preserve old course times without comparing them with the new layout.
