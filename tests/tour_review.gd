@@ -50,6 +50,7 @@ func run() -> void:
 				var demand: float = absf(curve)*race.speed*race.speed
 				var excess := maxf(0,demand-grip)
 				var authority := clampf(1-excess/(grip*2),0.38,1)
+				authority *= lerpf(1,0.72,smoothstep(0.45,1.2,demand/maxf(grip,1))*smoothstep(35,70,race.speed))
 				var outward := signf(curve)*(demand*0.055+excess*1.6)
 				var desired: float = clampf((desired_lane-race.lane)*2.1-race.lane_velocity*0.45,-8,8)
 				axis = clampf((desired-outward)/((race.vehicle.drift_steer_speed if race.drifting else race.vehicle.steer_speed)*authority*maxf(0.2,minf(race.speed/20,1))),-1,1)

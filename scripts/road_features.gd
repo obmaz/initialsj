@@ -1,6 +1,89 @@
 extends RefCounted
 const PAD_SHADER = preload("res://shaders/boost_pad.gdshader")
 const WATER_SHADER = preload("res://shaders/road_puddle.gdshader")
+const Library = preload("res://scripts/route_library.gd")
+
+static func tour_slot(section: Node3D, desired: float, extent: float, kind: String, occupied: Array[Vector2]) -> float:
+	var first := 320+extent*0.5
+	var last: float = section.length-Library.CHECKPOINT_RUNUP-100-extent*0.5-(160 if kind == "ramp" else 0)
+	var tunnel := Library.tunnel_span(section.stage,section.route_node)
+	var best := INF
+	var chosen := -1.0
+	var count := maxi(1,ceili((last-first)/10))
+	for i in range(count+1):
+		var d := lerpf(first,last,float(i)/count)
+		var bounds := Vector2(d-extent*0.5-20,d+extent*0.5+20)
+		var blocked := false
+		for span in occupied:
+			if bounds.x < span.y and bounds.y > span.x: blocked = true; break
+		if blocked: continue
+		if tunnel.y > tunnel.x:
+			var gap := Vector2(d-120,d+180) if kind == "ramp" else Vector2(bounds.x-40,bounds.y+40)
+			if kind in ["ramp","water"] and gap.x < tunnel.y+80 and gap.y > tunnel.x-40: continue
+		var grade: float = (section.point(d+4).y-section.point(d-4).y)/8
+		if kind == "ramp" and absf(grade) > 0.045: continue
+		var score: float = absf(d-desired)+absf(section.curvature(d))*(18000 if kind == "ramp" else 9000)
+		if kind == "ramp": score += absf(grade)*1000
+		if score < best: best = score; chosen = d
+	return chosen
+
+static func tour_patch(section: Node3D, kind: String, d: float, fraction: float, extent: float, width: float, height: float = 0.0) -> Dictionary:
+	var patch := {"kind":kind,"distance":d,"lane":fraction*section.half_width(d),"length":extent,"width":width}
+	if kind == "ramp": patch["height"] = height
+	if kind == "boost" and extent <= 12: patch["duration"] = 0.52
+	return patch
+
+static func tour_layout(section: Node3D) -> Array[Dictionary]:
+	var side := -1.0 if (section.stage+section.route_node)%2 == 0 else 1.0
+	var occupied: Array[Vector2] = []
+	var ramps: Array[Dictionary] = []
+	var water: Array[Dictionary] = []
+	var pads: Array[Dictionary] = []
+	var lanes: Array[Dictionary] = []
+	var tunnel := Library.tunnel_span(section.stage,section.route_node)
+	var ramp_count := 2 if section.stage >= 2 and (section.stage+section.route_node)%2 == 0 and tunnel.y-tunnel.x < 700 else 1
+	for i in range(ramp_count):
+		var desired: float = 180+(section.length-Library.CHECKPOINT_RUNUP-260)*(0.27 if i == 0 else 0.68)
+		var d := tour_slot(section,desired,18,"ramp",occupied)
+		if d < 0: continue
+		var fraction: float = side*(0.46 if i == 0 else -0.46)
+		ramps.append(tour_patch(section,"ramp",d,fraction,18,3.8,0.8+section.stage*0.05))
+		# The lead-in is deliberate; the launch and landing corridor stays free
+		# of every other surface gimmick, including opposite-side puddles.
+		pads.append(tour_patch(section,"boost",d-62,fraction,20,3.4))
+		occupied.append(Vector2(d-85,d+160))
+	if (section.stage+section.route_node)%2 == 1:
+		var d := tour_slot(section,section.length*0.58,180,"boost_lane",occupied)
+		if d >= 0:
+			lanes.append(tour_patch(section,"boost_lane",d,-side*0.42,180,3.4))
+			occupied.append(Vector2(d-110,d+110))
+	for i in range(2):
+		var d := tour_slot(section,section.length*(0.46 if i == 0 else 0.80),18,"water",occupied)
+		if d < 0: continue
+		water.append(tour_patch(section,"water",d,-side*(0.44 if i == 0 else -0.44),18,4.0))
+		occupied.append(Vector2(d-40,d+40))
+	var chains: Array[Dictionary] = []
+	for group in range(3):
+		var desired: float = [450+section.stage*20+section.route_node*12,section.length*0.39,section.length*0.69][group]
+		var middle := tour_slot(section,desired,112,"boost",occupied)
+		if middle < 0: continue
+		for i in range(2):
+			var d := middle-50+i*100
+			var fraction: float = side*(0.46 if (group+i)%2 == 0 else -0.46)
+			chains.append(tour_patch(section,"boost",d,fraction,12,3.0))
+		occupied.append(Vector2(middle-76,middle+76))
+	# Keep the introductory pad and puddle first for surface previews. IDs are
+	# unique per section and do not change when another route is instantiated.
+	var out: Array[Dictionary] = []
+	if not chains.is_empty(): out.append(chains.pop_front())
+	if not water.is_empty(): out.append(water.pop_front())
+	out.append_array(chains)
+	out.append_array(pads)
+	out.append_array(water)
+	out.append_array(ramps)
+	out.append_array(lanes)
+	for i in range(out.size()): out[i]["id"] = "%d:%d:%d" % [section.stage,section.route_node,i]
+	return out
 
 static func gentle_distance(section: Node3D, desired: float) -> float:
 	var best := INF
@@ -12,21 +95,15 @@ static func gentle_distance(section: Node3D, desired: float) -> float:
 	return chosen
 
 static func layout(section: Node3D) -> Array[Dictionary]:
+	if not section.closed_loop: return tour_layout(section)
 	var out: Array[Dictionary] = []
 	var side := -1.0 if (section.stage+section.route_node)%2 == 0 else 1.0
 	var specifications := [
 		["boost",gentle_distance(section,440+section.stage*35+section.route_node*13),side*0.24,22.0,3.4],
 		["water",section.length*0.47,-side*0.43,16.0,4.4]
 	]
-	if not section.closed_loop and section.stage == 0:
-		var opposite := maxf(specifications[0][1]+90,gentle_distance(section,specifications[0][1]+200))
-		specifications.append(["boost",opposite,-side*0.55,22.0,3.4])
-	if not section.closed_loop and section.stage%2 == 1:
-		specifications.append(["boost",gentle_distance(section,section.length*0.70),-side*0.60,22.0,3.4])
-		specifications.append(["water",section.length*0.84,side*0.46,18.0,4.2])
-	if section.closed_loop or section.stage%2 == 0:
-		var ramp_d := gentle_distance(section,section.length*0.33) if section.course_id == 1 else (220.0 if section.closed_loop else gentle_distance(section,950+section.stage*90+section.route_node*20))
-		specifications.append(["ramp",ramp_d,side*0.5,16.0,3.8])
+	var ramp_d := gentle_distance(section,section.length*0.33) if section.course_id == 1 else 220.0
+	specifications.append(["ramp",ramp_d,side*0.5,16.0,3.8])
 	if section.closed_loop and section.course_id == 0:
 		# Fuji: launch-straight, cutting approach, viaduct and return-road boosts.
 		# The paired pads leave enough run-up before each optional jump and an

@@ -1,7 +1,9 @@
 extends RefCounted
 # Shared by the player and CPU cars. Ballistic motion uses world height so an
 # ascending road can catch the car before the nominal flat-road landing time.
-const GRAVITY := 16.0
+const GRAVITY := 27.0
+const MIN_TRICK_LIFT := 6.2
+const MAX_TRICK_LIFT := 7.2
 var active := false
 var trick := false
 var height := 0.0
@@ -30,6 +32,15 @@ static func ramp_height(section: Node3D, at: Vector2) -> float:
 		var t: float = (d-(f.distance-f.length*0.5))/f.length
 		if t >= 0 and t <= 1: return f.height*t
 	return 0
+static func launch_velocity(section: Node3D, feature: Dictionary, edge: float, lane: float, speed: float) -> float:
+	# Carry the actual road grade into flight. A downhill launch must start
+	# descending with that road instead of hovering while the ground falls away.
+	var probe := clampf(float(feature.length)*0.25,1.0,4.0)
+	var grade: float = (section.point(edge+probe,lane).y-section.point(edge-probe,lane).y)/(probe*2)
+	var ramp_lift := maxf(0,speed)*float(feature.height)/maxf(1.0,float(feature.length))
+	var trick_lift := clampf(ramp_lift+3.0,MIN_TRICK_LIFT,MAX_TRICK_LIFT)
+	return speed*grade+trick_lift
+
 func flight(delta: float, ground_y: float) -> bool:
 	world_y += velocity*delta-0.5*GRAVITY*delta*delta
 	velocity -= GRAVITY*delta
@@ -69,7 +80,7 @@ func advance(section: Node3D, from: Vector2, to: Vector2, speed: float, delta: f
 			active = true
 			world_y = section.point(edge,lateral).y+f.height
 			trick = speed >= 20
-			velocity = clampf(6.2+speed*0.035,6.4,9) if trick else 0.0
+			velocity = launch_velocity(section,f,edge,lateral,speed) if trick else 0.0
 			if trick: launches += 1
 			events.append("launch" if trick else "drop")
 			if flight(delta*(1-t),ground_y): events.append("land" if trick else "settle")

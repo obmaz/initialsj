@@ -16,9 +16,13 @@ func run(tree: SceneTree) -> int:
 		for node in range(stage+1):
 			var section := Section.new(Vector3(0,6,0),-PI/2,stage,node)
 			var patches := Features.layout(section)
-			check(patches.size() == (4 if stage == 0 else (3 if stage%2 == 0 else 4)),"Road patches must remain occasional")
+			var short_pads: Array = patches.filter(func(f): return f.kind == "boost" and f.length <= 12)
+			var ramps: Array = patches.filter(func(f): return f.kind == "ramp")
+			check(patches.size() >= 10 and patches.size() <= 13 and short_pads.size() == 6,"Each Tour route needs three readable alternating pad pairs among spaced gimmicks")
+			check(ramps.size() >= 1 and ramps.size() <= 2,"Every Tour route needs one or two optional jumps")
+			check(patches.filter(func(f): return f.kind == "water").size() == 2,"Every Tour route needs two separate puddle choices")
 			for patch in patches:
-				check(patch.distance-patch.length/2 > 280 and patch.distance+patch.length/2 < section.length-250,"Patches must leave entries and forks clear")
+				check(patch.distance-patch.length/2 > 300 and patch.distance+patch.length/2 < section.checkpoint_distance()-80,"Patches must leave entries and the full checkpoint approach clear")
 				check(absf(patch.lane)+patch.width*0.55 < section.half_width(patch.distance)-0.5,"Every patch must leave a usable escape lane")
 				var from := Vector2(patch.lane,patch.distance-60)
 				var to := Vector2(patch.lane,patch.distance+60)

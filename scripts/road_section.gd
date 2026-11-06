@@ -7,6 +7,18 @@ const ASPHALT = preload("res://assets/environment/asphalt.png")
 const ASPHALT_SHADER = preload("res://shaders/asphalt.gdshader")
 const PAINT_SHADER = preload("res://shaders/road_paint.gdshader")
 const SKID_SHADER = preload("res://shaders/skid_marks.gdshader")
+# Height bias, first-ridge strength, first-ridge end and second-ridge start.
+# Both overlapping raised-cosine ridges finish before the checkpoint approach.
+const TOUR_ELEVATION := {
+	"hawaii":Vector4(0,0.82,0.54,0.32),"desert":Vector4(1,0.86,0.58,0.39),
+	"city":Vector4(-2,0.68,0.48,0.32),"pyramid":Vector4(2,0.75,0.55,0.36),
+	"amusement":Vector4(-1,0.92,0.50,0.35),"jeju":Vector4(1,0.78,0.57,0.38),
+	"ruins":Vector4(3,0.72,0.51,0.35),"seoul":Vector4(-2,0.68,0.48,0.32),
+	"fuji":Vector4(4,0.90,0.55,0.39),"neon":Vector4(-1,0.76,0.46,0.33),
+	"canyon":Vector4(4,0.88,0.58,0.36),"harbor":Vector4(-2,0.68,0.48,0.33),
+	"bamboo":Vector4(2,0.94,0.50,0.35),"snow":Vector4(2,0.86,0.56,0.38),
+	"volcano":Vector4(4,0.95,0.54,0.37)
+}
 var features: Array[Dictionary] = []
 var closed_loop := false
 var course_id := 0
@@ -42,6 +54,13 @@ func excavation_depth(distance: float) -> float:
 func ground_height(distance: float) -> float:
 	return point(distance).y+excavation_depth(distance)
 
+func tour_elevation(distance: float, span: float) -> float:
+	var u := clampf((distance-180)/(span-Library.CHECKPOINT_RUNUP-260),0,1)
+	var profile: Vector4 = TOUR_ELEVATION[Library.theme(stage,route_node)]
+	var first := sin(PI*clampf(u/profile.z,0,1))
+	var second := sin(PI*clampf((u-profile.w)/(1-profile.w),0,1))
+	return (37+stage*4+route_node*2+profile.x)*(profile.y*first*first+second*second)
+
 func _init(origin: Vector3 = Vector3(0,6,0), heading_angle: float = -PI / 2, stage_index: int = 0, node_index: int = 0, side: int = 0) -> void:
 	stage = stage_index
 	route_node = node_index
@@ -57,12 +76,12 @@ func _init(origin: Vector3 = Vector3(0,6,0), heading_angle: float = -PI / 2, sta
 		var d := i * 5.0
 		var t := d/span
 		var envelope := smoothstep(200,360,d)*(1-smoothstep(span-Library.CHECKPOINT_RUNUP-160,span-Library.CHECKPOINT_RUNUP-20,d))
-		var severity := 1.0+route_node*0.18
+		var severity := 1.12*(1.0+route_node*0.18)
 		var wave := (0.42+stage*0.025)*severity*sin(TAU*(2.0+route_node*0.18)*t)
 		wave += (0.14+route_node*0.025)*sin(TAU*(4.0+route_node*0.28)*t)*pow(sin(PI*t),2)
 		var angle := start_heading-side*0.38*smoothstep(0,180,d)+wave*envelope
 		if i > 0: p += Vector3(-sin(angle),0,-cos(angle))*5
-		p.y = origin.y+(28+stage*6+route_node*3)*pow(sin(PI*t),2)*smoothstep(160,300,d)
+		p.y = origin.y+tour_elevation(d,span)
 		curve.add_point(p)
 	length = curve.get_baked_length()
 

@@ -11,8 +11,8 @@ const POSITION_FONT = preload("res://assets/fonts/PositionNumeral.tres")
 const NUMBER_FONT = preload("res://assets/fonts/Roboto-BlackItalic.ttf")
 const Library = preload("res://scripts/route_library.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
-const ROUTE_LEFT := Rect2(270,106,350,132)
-const ROUTE_RIGHT := Rect2(660,106,350,132)
+const ROUTE_LEFT := Rect2(280,98,300,64)
+const ROUTE_RIGHT := Rect2(700,98,300,64)
 const PAUSE_BUTTON := Rect2(814,15,66,60)
 const HOME_TOUR := Rect2(100,470,520,170)
 const HOME_TRACK := Rect2(660,470,520,170)
@@ -216,8 +216,8 @@ func handle_pointer(event: InputEvent) -> void:
 			else: race.navigate(race.open_garage)
 		return
 	if race.route_choices_visible():
-		if ROUTE_LEFT.has_point(p): race.select_route(0); return
-		if ROUTE_RIGHT.has_point(p): race.select_route(1); return
+		if route_touch_rect(0).has_point(p): race.select_route(0); return
+		if route_touch_rect(1).has_point(p): race.select_route(1); return
 	if hit_button("pause",p) and race.state in ["racing","countdown"]:
 		race.pause_tour()
 	else: move_pointer(index,event.position)
@@ -848,26 +848,28 @@ func draw_boost_badge() -> void:
 		var points := PackedVector2Array([Vector2(x-side*7,y+12),Vector2(x+side*2,y+24),Vector2(x-side*7,y+36)])
 		draw_polyline(points,CYAN,2.5,true)
 
+# Single-line route chips stay above the road view; their larger invisible
+# touch areas are separate from the visuals so a phone remains easy to use.
+func route_touch_rect(side: int) -> Rect2:
+	return (ROUTE_LEFT if side == 0 else ROUTE_RIGHT).grow(8)
+
+func route_title_size(title: String) -> int:
+	for size_px in [26,25,24,23,22]:
+		if FONT.get_string_size(title,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px).x <= 224: return size_px
+	return 22
+
 func draw_route_choice() -> void:
 	if not race.route_choices_visible(): return
 	var names := Library.next_titles(race.stage_index,race.route_node)
-	centered(Vector2(640,91),"CHECKPOINT +%ds" % int(race.checkpoint_award) if race.checkpoint_flash > 0 else "CHOOSE YOUR ROUTE",27,GOLD if race.checkpoint_flash > 0 else WHITE)
 	var progress: float = clampf((race.distance-race.track.active.checkpoint_distance())/Library.CHECKPOINT_RUNUP,0,1)
 	for side in range(2):
 		var rect: Rect2 = ROUTE_LEFT if side == 0 else ROUTE_RIGHT
 		var selected: bool = race.route_preference == side
 		var accent := CYAN if side == 0 else Color("ffb95c")
-		slant(rect,Color("12384bf5") if selected else Color("0c1e2cf0"),12)
-		draw_line(rect.position+Vector2(12,0),Vector2(rect.end.x,rect.position.y),accent,4 if selected else 2,true)
+		var outline := slant(rect,Color("12384bdc") if selected else Color("0c1e2cd9"),8)
+		draw_polyline(outline+PackedVector2Array([outline[0]]),Color(accent,1 if selected else 0.45),2 if selected else 1,true)
+		text_at(rect.position+Vector2(13,43),"<" if side == 0 else ">",32,accent)
+		text_at(rect.position+Vector2(44,41),names[side],route_title_size(names[side]),WHITE)
 		if selected:
-			slant(rect,Color(accent,0.10+0.18*race.route_choice_flash/0.4),12)
-			draw_polyline(PackedVector2Array([rect.position+Vector2(311,27),rect.position+Vector2(318,34),rect.position+Vector2(332,19)]),accent,3,true)
-		var arrow := "<" if side == 0 else ">"
-		text_at(rect.position+Vector2(18,53),arrow,48,accent)
-		text_at(rect.position+Vector2(72,46),"LEFT / LV%d" % (race.route_node+1) if side == 0 else "RIGHT / LV%d" % (race.route_node+2),23,accent)
-		text_at(rect.position+Vector2(22,87),names[side],29,WHITE)
-		text_at(rect.position+Vector2(23,115),"SELECTED" if selected else "TAP TO CHOOSE",20,accent if selected else Color("a8c3d2"))
-		draw_rect(Rect2(rect.position+Vector2(12,rect.size.y-4),Vector2((rect.size.x-12)*progress,4)),accent)
-	var to_fork: float = maxf(0,race.track.length-race.distance)
-	slant(Rect2(440,246,400,36),Color("0b1c2de8"),8)
-	centered(Vector2(640,271),"FORK AHEAD  %dm" % int(to_fork) if to_fork > 0 else "FOLLOW YOUR ROUTE",20,Color("d4e7ef"))
+			draw_polyline(PackedVector2Array([rect.position+Vector2(272,31),rect.position+Vector2(277,36),rect.position+Vector2(286,24)]),accent,2.5,true)
+		draw_rect(Rect2(rect.position+Vector2(8,rect.size.y-3),Vector2((rect.size.x-16)*progress,3)),Color(accent,0.75))
