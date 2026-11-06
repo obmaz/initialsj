@@ -1,8 +1,8 @@
 # Coast Rush loading screen
 
-The first page paint shows bright mobile-game key art with chunky stylized vehicles, simple color planes and a cheerful coastal road. The white Nimori hatch, orange Veltrix wedge and blue Ironvale fastback use fictional fascia and lamp designs rather than real manufacturer badges or a production-car rendering. The image contains the Initial SJ / Coast Rush title. It is splash illustration, not an in-game screenshot.
+The first page paint shows mature mobile-arcade key art with low, wide vehicle proportions, a restrained navy/teal palette and simplified digital materials along a coastal road. The white Nimori hatch, orange Veltrix wedge and blue Ironvale fastback use fictional fascia and lamp designs rather than real manufacturer badges or a production-car rendering. The image contains the Initial SJ / Coast Rush title. It is splash illustration, not an in-game screenshot.
 
-- `assets/ui/coast-rush-splash.png`: generated artwork copied without visual edits. The original is preserved in the workspace's `generated_images/exec-d9c6b25a-3ce3-49c7-93fc-2b6c267dc4c2.png`.
+- `assets/ui/coast-rush-splash.png`: generated artwork copied without visual edits. The original is preserved in the workspace's `generated_images/exec-f8ca0e4c-ea40-47f6-9609-f6671abd8917.png`.
 - `project.godot`: uses the same artwork for the engine boot splash and a custom chevron icon for exported browser icons.
 - `web/coast-rush-shell.html`: custom web export shell based on Godot's MIT-licensed template. The artwork appears before engine JS downloads. A real download progress bar changes to “Preparing your ride” when downloads finish, and the overlay is removed when startup succeeds. The image uses `object-fit: contain` to keep the title and cars visible across landscape aspect ratios. The art URL has a new version query so the previous realistic image is not reused from browser cache.
 - Failed engine initialization retains a readable notice. A listener limited to startup also handles an exhausted WASM download rejection that can escape the runtime's `startGame` promise; it is removed after successful startup or failure.
