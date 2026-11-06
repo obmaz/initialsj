@@ -49,7 +49,8 @@ func reset(stage: int = 0, node_index: int = 0) -> void:
 
 func update_ground() -> void:
 	if base_material != null:
-		base_material.albedo_color = Color(Library.PALETTES[Library.theme(active.stage,active.route_node)]).darkened(0.2)
+		var theme_id := Library.theme(active.stage,active.route_node)
+		base_material.albedo_color = Color("125a79") if Library.coastal(theme_id) else Color(Library.PALETTES[theme_id]).darkened(0.2)
 
 func build_previews() -> void:
 	if not previews.is_empty() or active.stage >= Library.STAGES - 1: return

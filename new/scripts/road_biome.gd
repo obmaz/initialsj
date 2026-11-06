@@ -9,6 +9,7 @@ var rotating: Array[Node3D] = []
 var tree_positions: Array[Vector3] = []
 var ground_nodes: Array[MeshInstance3D] = []
 var roadside_art: Node3D
+var distant_art: Node3D
 var water: MeshInstance3D
 
 func mat(color: Color, metal: float = 0, glow: float = 0) -> StandardMaterial3D:
@@ -53,6 +54,10 @@ func terrain_point(d: float, lane: float) -> Vector3:
 		p.y = road_y-0.3
 	elif Library.coastal(theme) and lane < -(track.half_width(d)+(71 if theme == "harbor" else 1)):
 		p.y = lerpf(0.12,road_y - 0.3,clampf((lane+track.half_width(d)+(80 if theme == "harbor" else 10))/9,0,1))
+	elif theme in ["hawaii","jeju"] and lane > 18:
+		var rise := smoothstep(30,160,lane)*(1-smoothstep(190,260,lane))
+		var folds := 12+8*sin(d*0.003+lane*0.008)+5*cos(d*0.008-lane*0.012)
+		p.y = road_y-0.3+rise*folds
 	else:
 		var rise := pow(clampf((absf(lane) - 18) / 140,0,1),1.5)
 		p.y = road_y - 0.3 + rise * (10 if theme in ["desert","pyramid","canyon","volcano"] else 5) * sin(d * 0.012 + lane * 0.035)
@@ -64,7 +69,8 @@ func _ready() -> void:
 	var ground := ShaderMaterial.new()
 	ground.shader = preload("res://shaders/biome_ground.gdshader")
 	ground.set_shader_parameter("grain",GRASS)
-	ground.set_shader_parameter("ground_color",Color(Library.PALETTES[theme]))
+	var ground_tint: String = {"hawaii":"527a48","jeju":"5d7c4c"}.get(theme,Library.PALETTES[theme])
+	ground.set_shader_parameter("ground_color",Color(ground_tint))
 	ground.set_shader_parameter("grassness",0.0 if theme in ["desert","pyramid","ruins","canyon","harbor","snow","volcano","neon"] else 1.0)
 	if Library.coastal(theme):
 		var beach := ground.duplicate()
@@ -73,7 +79,7 @@ func _ready() -> void:
 		ground_band(-80 if theme == "harbor" else -19,-10,beach)
 	else:
 		ground_band(-180,-10,ground)
-	ground_band(10,180,ground)
+	ground_band(10,260 if theme in ["hawaii","jeju"] else 180,ground)
 	if Library.coastal(theme):
 		make_water()
 	match theme:
@@ -82,11 +88,14 @@ func _ready() -> void:
 	if theme == "amusement": make_park()
 	if theme == "jeju": make_jeju()
 	if theme == "seoul": make_seoul()
-	if theme in ["fuji","snow"]: make_mountain()
+	if theme == "fuji": make_mountain()
 	if theme == "volcano": make_volcano()
 	roadside_art = preload("res://scripts/roadside_art.gd").new()
 	roadside_art.scenery = self
 	add_child(roadside_art)
+	distant_art = preload("res://scripts/distant_ridges.gd").new()
+	distant_art.scenery = self
+	add_child(distant_art)
 	make_cover()
 
 func ground_lane(d: float, lane: float) -> float:
@@ -114,6 +123,7 @@ func ground_band(left: float, right: float, material: Material) -> void:
 func set_ground_enabled(enabled: bool) -> void:
 	for node in ground_nodes: node.visible = enabled
 	if water != null: water.visible = enabled
+	if distant_art != null: distant_art.visible = enabled
 
 func make_water() -> void:
 	var surface := SurfaceTool.new()
