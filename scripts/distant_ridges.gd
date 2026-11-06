@@ -1,5 +1,5 @@
 extends Node3D
-# Untouched generated cutouts become distant world-space scenery, with real parallax.
+# Mountain horizons use generated cutouts; urban horizons use solid low-detail buildings.
 const ATLAS = preload("res://assets/environment/horizon-ridges.png")
 const URBAN_THEMES := {"city":0,"seoul":1,"ruins":2,"neon":3}
 const REGIONS := [

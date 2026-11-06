@@ -117,6 +117,9 @@ var route_confirm_title := ""
 var wall_hits := 0
 var traffic_hits := 0
 var impact := 0.0
+var impact_normal := Vector2.ZERO
+var impact_recoil := 0.0
+var impact_age := 1.0
 var boost_kick := 0.0
 var bump_cooldown := 0.0
 var launch_flash := 0.0
@@ -447,6 +450,10 @@ func restart() -> void:
 	wall_hits = 0
 	traffic_hits = 0
 	impact = 0
+	impact_normal = Vector2.ZERO
+	impact_recoil = 0
+	impact_age = 1
+	impacts.reset()
 	boost_kick = 0
 	bump_cooldown = 0
 	launch_flash = 0
@@ -617,7 +624,7 @@ func _physics_process(delta: float) -> void:
 	speed_effect.material.set_shader_parameter("high_quality",render_budget.level == 0)
 	update_camera(delta)
 	player.road_speed = speed if state == "racing" else 0.0
-	player.animate(steer,drifting and state == "racing",(nitro_active or pad_active) and state == "racing",delta,slip_angle,braking and state == "racing",impact)
+	player.animate(steer,drifting and state == "racing",(nitro_active or pad_active) and state == "racing",delta,slip_angle,braking and state == "racing",impact if state == "racing" and not motion_reduced else 0.0)
 	if offroad_amount > 0.2:
 		for particles in player.smoke: particles.emitting = false
 	if player.headlight != null: player.headlight.visible = track.active.in_tunnel(distance) or track.scenery.theme == "neon"
@@ -649,6 +656,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	for field in ["near_miss_flash","overtake_flash","checkpoint_flash","launch_flash","route_choice_flash","route_confirm_flash"]:
 		set(field,maxf(0,float(get(field))-delta))
 	impact = maxf(0,impact-delta*3.5)
+	impact_age += delta
 	surface.tick(delta,brake,impact)
 	boost_kick = maxf(0,boost_kick-delta*2)
 	bump_cooldown = maxf(0,bump_cooldown-delta)
@@ -731,8 +739,9 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		lane_velocity *= -0.28
 		if bump_cooldown <= 0:
 			wall_hits += 1
+			var scrape_speed := maxf(speed,absf(lane_velocity)*3)
 			speed *= 0.72
-			register_impact(0.8,Vector2(-side,0))
+			register_impact(smoothstep(2.5,72,scrape_speed)*0.9,Vector2(-side,0))
 	distance += speed*delta
 	var was_airborne := air.active
 	var flight_events: Array[String] = air.advance(track.active,old_surface_position,Vector2(lane,distance),speed,delta)
@@ -918,6 +927,8 @@ func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
 		if contact.is_empty(): break
 	if bump_cooldown > 0: return
 	var relative := speed-float(r.speed)
+	var contact_speed := maxf(absf(relative),absf(lane_velocity)*2.5)
+	if absf(normal.x) > 0.65: contact_speed = maxf(contact_speed,speed*0.18)
 	if absf(normal.x) > 0.65:
 		speed *= 0.87
 		r.speed *= 0.91
@@ -933,20 +944,28 @@ func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
 	traffic_hits += 1
 	if r.has("surface"): r.surface.cancel_boost()
 	r.boosting = false
-	register_impact(clampf(absf(relative)/35+absf(lane_velocity)/15,0.3,1),-normal)
+	register_impact(smoothstep(1.5,36,contact_speed),-normal)
 
 func register_impact(strength: float, normal: Vector2) -> void:
+	# Separation and speed loss happen at the contact site. Feedback is emitted
+	# once per cooldown, and parked/gentle contacts do not create a crash burst.
+	if bump_cooldown > 0: return
+	strength = clampf(strength,0,1)
+	if strength < 0.07: strength = 0
 	impact = maxf(impact,strength)
+	impact_normal = normal.normalized()
+	impact_recoil = strength
+	impact_age = 0
 	cancel_nitro()
 	drifting = false
 	drift_charge = 0
 	drift_latched = false
 	drift_pending = 0
 	bump_cooldown = 0.45
-	if DisplayServer.get_name() != "headless":
+	if strength > 0 and DisplayServer.get_name() != "headless":
 		var f := (track.point(distance+2)-track.point(distance)).normalized()
 		var right := Vector3(-f.z,0,f.x)
-		impacts.burst(track.point(distance,lane) + Vector3.UP*0.65 - right*normal.x*1.25 + f*normal.y*2.0, right*normal.x-f*normal.y,motion_reduced)
+		impacts.burst(track.point(distance,lane) + Vector3.UP*0.55 - right*normal.x*1.25 + f*normal.y*2.0, -right*normal.x+f*normal.y-f*0.7,motion_reduced,strength)
 
 func place_cars(delta: float = 1.0) -> void:
 	var pitch := atan2(air.velocity,maxf(1,speed))*0.22 if air.active else (atan2(0.75,16) if air.height > 0 else 0.0)
@@ -981,6 +1000,13 @@ func set_car_frame(car: Node3D, p: Vector3, forward: Vector3, delta: float, pitc
 func _process(_delta: float) -> void:
 	render_budget.tick(self)
 
+func collision_camera_offset(forward: Vector3, right: Vector3) -> Vector3:
+	if state != "racing" or motion_reduced or impact_age > 0.42: return Vector3.ZERO
+	# A quick directional compression and a single diminishing rebound rather
+	# than an arbitrary shake that looks identical for left and right impacts.
+	var pulse := impact_recoil*exp(-impact_age*16)*cos(impact_age*22)
+	return (right*impact_normal.x*0.48-forward*impact_normal.y*0.36+Vector3.UP*0.055)*pulse
+
 func update_camera(delta: float) -> void:
 	camera_intro = maxf(0,camera_intro-delta*0.8)
 	var forward := (track.point(distance+3)-track.point(distance)).normalized()
@@ -988,16 +1014,17 @@ func update_camera(delta: float) -> void:
 	var pace := clampf(speed/88,0,1)
 	var active := state == "racing"
 	camera_time += delta if active else 0
-	var shake := (0.012*pace*pace + impact*0.24 + offroad_amount*pace*0.022) if active and not motion_reduced else 0.0
+	var shake := (0.012*pace*pace + impact*0.10 + offroad_amount*pace*0.022) if active and not motion_reduced else 0.0
 	var vibration := right*sin(camera_time*53)*shake + Vector3.UP*cos(camera_time*67)*shake*0.55
 	var desired := -forward*(5.3+pace*0.25+(boost_kick*0.55 if not motion_reduced else 0.0)-(0.25 if braking else 0.0)) + Vector3.UP*((2.75 if motion_reduced else 2.60)-pace*0.30) + vibration
 	if camera_intro > 0: desired += -forward*camera_intro*3.5+Vector3.UP*camera_intro*2.0
 	if not motion_reduced: desired.y -= air.landing_flash*air.landing_strength*0.32
 	if drifting and not motion_reduced: desired += right*steer*0.9
 	camera_offset = camera_offset.lerp(desired,1-exp(-delta*9))
-	camera.position = player.position+camera_offset
+	var collision_offset := collision_camera_offset(forward,right)
+	camera.position = player.position+camera_offset+collision_offset
 	camera.look_at(player.position+forward*(2.5+pace*0.8)+right*steer*(0 if motion_reduced else 0.7)+Vector3.UP*0.7)
-	if not motion_reduced: camera.rotate_object_local(Vector3.FORWARD,-steer*pace*(0.024 if drifting else 0.01))
+	if not motion_reduced: camera.rotate_object_local(Vector3.FORWARD,-steer*pace*(0.024 if drifting else 0.01)+collision_offset.dot(right)*0.035)
 	var target_fov: float = (68.0 if motion_reduced else 64+pace*20.4) + (7.2 if boosting and active and not motion_reduced else 0)
 	camera.fov = lerpf(camera.fov,target_fov,1-exp(-delta*(8 if boosting else 4)))
 

@@ -3,10 +3,11 @@ const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
+const {startTour}=require('./browser_helpers.cjs');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_BIN||'/usr/bin/chromium',headless:true,args:['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader']});
  const url=process.env.INITIALSJ_REVIEW_URL||'http://127.0.0.1:8787/';
- const output=process.env.INITIALSJ_LOADING_OUTPUT||path.resolve(__dirname,'../docs/loading');
+ const output=process.env.INITIALSJ_LOADING_OUTPUT||path.resolve(__dirname,'../build/reports/loading');
  fs.mkdirSync(output,{recursive:true});
  try{
   const page=await browser.newPage({viewport:{width:1280,height:720}});
@@ -59,15 +60,11 @@ const path=require('node:path');
   await page.waitForFunction(()=>typeof engine!=='undefined'&&!document.querySelector('#status'),{},{timeout:90000});
   assert.equal(await page.locator('#canvas').count(),1);
   assert.equal(await page.locator('#landscape-guide').isVisible(),false);
-  await page.locator('#canvas').focus();
-  await page.keyboard.press('Enter');
-  await page.waitForTimeout(400);
-  await page.keyboard.press('Enter');
-  // Give the first rendered game frames time to consume the start input.
-  await page.waitForTimeout(1500);
+  await startTour(page);
   await page.setViewportSize({width:390,height:844});
   await page.waitForFunction(()=>window.__orientationEvents.at(-1)===true);
   assert(await page.locator('#landscape-guide').isVisible());
+  await page.waitForFunction(()=>!window.initialsjFileAudio.target.active);
   await page.waitForTimeout(500);
   await page.setViewportSize({width:896,height:414});
   await page.waitForFunction(()=>window.__orientationEvents.at(-1)===false);

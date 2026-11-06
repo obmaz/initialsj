@@ -1,4 +1,5 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 func _initialize() -> void: call_deferred("run")
 func capture(name: String, race: Node3D) -> void:
 	race.update_atmosphere(2)
@@ -10,7 +11,7 @@ func capture(name: String, race: Node3D) -> void:
 	race.hud.queue_redraw()
 	for frame in range(5): await process_frame
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://docs/"+name+".png")
+	root.get_texture().get_image().save_png(Report.path(name+".png"))
 func run() -> void:
 	var race=load("res://scenes/race.tscn").instantiate()
 	root.add_child(race)

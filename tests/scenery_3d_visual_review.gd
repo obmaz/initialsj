@@ -1,4 +1,5 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 var rows := []
 func _initialize() -> void: call_deferred("run")
 func capture(race: Node3D, name: String) -> void:
@@ -10,7 +11,7 @@ func capture(race: Node3D, name: String) -> void:
  race.hud.queue_redraw()
  for frame in range(5): await process_frame
  await RenderingServer.frame_post_draw
- root.get_texture().get_image().save_png("res://docs/"+name+".png")
+ root.get_texture().get_image().save_png(Report.path(name+".png"))
  rows.append({"scene":name,"draw_calls":root.get_render_info(Viewport.RENDER_INFO_TYPE_VISIBLE,Viewport.RENDER_INFO_DRAW_CALLS_IN_FRAME),"viewport":str(root.size)})
 func run() -> void:
  var race = load("res://scenes/race.tscn").instantiate()
@@ -28,7 +29,7 @@ func run() -> void:
   race.camera_intro = 0
   for rival in race.rivals: rival.active = false
   await capture(race,shot[4])
- FileAccess.open("res://docs/scenery-3d-render-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"environment":"Godot 4.7.2 native Compatibility / Mesa llvmpipe / frozen 1280x720 views","note":"Draw submissions, not an Android/browser FPS measurement","views":rows},"\t")+"\n")
+ FileAccess.open(Report.path("scenery-3d-render-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"environment":"Godot 4.7.2 native Compatibility / Mesa llvmpipe / frozen 1280x720 views","note":"Draw submissions, not an Android/browser FPS measurement","views":rows},"\t")+"\n")
  race.queue_free()
  for frame in range(3): await process_frame
  quit()

@@ -1,61 +1,33 @@
-# Core gameplay review — 2026-11-05
+# 현재 검토 범위
 
-Scope: `new/` race state, deadline/checkpoint ordering, focus/input handling, impacts, vehicle selection, three nitro resource models and exported web controls. `legacy/` and root workflows were not edited.
+## 이번 정리
 
-| Priority | Reproduced problem | Fix | Regression evidence |
-| --- | --- | --- | --- |
-| P2 | With 0.001 s left, 80 m/s speed and a checkpoint 0.2 m ahead, a 1/60 s step moved past the deadline and awarded 60 s. A finish could similarly count too late. | Limit simulation movement to the remaining time before resolving checkpoint/finish. A line genuinely reached before the deadline still counts. | `garage_checks.gd`: late checkpoint, late finish, valid last-instant checkpoint. Baseline printed `DEADLINE racing time 60.0 checkpoints 1`. |
-| P2 | Losing focus during countdown left the state as `countdown`; it could enter a timed race in the background. | Pause both countdown and racing, preserve the phase, clear touch holds and resume the saved phase. Touch pause and P/Esc use the same helpers. | Countdown at 2 s remains frozen after focus loss; resume continues at 1.5 s after a 0.5 s step. Baseline printed `FOCUS countdown`. |
-| P3 | Impact cleared `nitro_active` but left `boosting`, producing stale slipstream/FOV feedback after a nitro crash. | Cancel boost, burst and pending requests synchronously; prevent draft boost during an impact. | Impact during hybrid overdrive immediately clears both gameplay and feedback state without refunding a cell. Baseline printed `IMPACT boosting true`. |
+실제 게임 진입점에서 도달하는 소스·에셋과 유지하는 검사 도구를 기준으로 저장소를 정리합니다. 과거 구현 전용 코드, 중복 미리보기, 오래된 리뷰·스크린샷·수치 보고서는 제거하며 변경 이력은 Git에서 확인합니다. 제품 규칙과 개발 명령은 [GAMEPLAY.md](GAMEPLAY.md)와 [DEVELOPMENT.md](DEVELOPMENT.md)로 통합합니다.
 
-No P0/P1 issue was identified in this scoped review. This is not a claim that every code path is defect-free.
+실행 중인 3D 전경과 관계없는 이전 2D 오브젝트·도시 이미지 및 전용 카탈로그를 제거하고, 불필요한 HUD 필드·리소스와 오래된 주석을 정리합니다. 이후 다시 쌓이지 않도록 [저장소 검사기](../tools/verify_repository.py)로 참조·사이드카·문서 링크를 검증합니다. 검사 산출물은 `build/reports/`에만 생성합니다.
 
-## Vehicle implementation checks
+로딩·홈·차고·두 코스의 생성형 아트를 현재 차량·지역 콘셉트로 갱신합니다. 차고와 주행 차량은 계속 같은 3D 모델을 사용합니다. 충돌 피드백은 강도·방향에 따라 짧게 반응하고, 정지·미세 접촉에서는 과한 이펙트를 억제합니다. 고정 풀을 재사용하고 움직임 줄이기에서는 카메라·차체 진동과 파편을 생략합니다.
 
-- Three real 3D bodies with fictional product names, separate acceleration, grip, steering, braking and best-time keys.
-- Hold gauge, three edge-triggered prepaid shots, and gauge plus two independent overdrive cells. Holding cannot spend successive shots/cells. Brake/drift/impact cancels a burst without refund. Checkpoints restore one shot/cell up to capacity.
-- Three-card selection and start hit regions are checked in supported landscape viewports (1280×720, phone 896×414 and wide 2340×1080). Portrait now shows a rotation guide and pauses an active countdown/tour. Selection is blocked during a tour.
-- `race_test.gd` runs the shared `garage_checks.gd` regression suite, so the existing CI checks include these cases without changing root workflows.
-- Existing world-space collision review passes 144 cases, maximum residual overlap 0.002 m².
-- Scripted driving finishes the hardest all-right route with each car. These are controller simulations, not human playtest times; see `tour-metrics.json`.
-- Native keyboard and exported Chromium touch checks cover selection and driving. Browser emulation does not establish physical-phone performance.
+## 유지하는 회귀 검사
 
-## Four-ability revision
+| 범위 | 확인하는 동작 |
+| --- | --- |
+| 경기 진행·입력 | 시간 만료 전 체크포인트·종료 처리, 포커스·회전·정지, 중복 화면 이동 |
+| 차량·니트로 | 서로 다른 능력, 세 자원 방식, 새 누름 감지, 취소·회복·기록 분리 |
+| 충돌·피드백 | 방향별 차체 겹침 해소, 경사와 공중 높이, 강도별 반동·입자 상한·재시작 초기화 |
+| CPU·노면·점프 | 앞차·차선 안전, 지상 노면 효과, 공중 통과 후 착지, 중복 패드 소비 방지 |
+| 투어·터널 | 직선 안내 시간, 터치 선택·수동 우선, 표지판 벽 간격, 제한된 조명·숨겨진 렌더 준비 |
+| 배경·서킷 | 실제 3D 모델과 도로 간격, 지역 다양성, 랩 수, 뱅킹 연결과 관중석 기초 |
+| 웹·품질 | 설치 안내, Back·Forward history, 중단 시 품질 표본 초기화와 느린 프레임 대응 |
 
-Vehicle cards now compare exactly top speed, acceleration, boost and handling on a common ten-point scale. Nitro activation/resource types remain separate. Armor and per-car impact-loss multipliers were removed; collision tests now require equal speed loss for identical impacts. The ability bars derive speed, acceleration and boost from driving parameters, with handling using the existing profile rating.
+기본 검토 명령은 다음과 같습니다.
 
-## Road patch review — 2026-11-06
+```sh
+python3 tools/verify_repository.py
+./tools/godot --headless --path . --editor --import --quit
+./tools/godot --headless --path . --script res://tests/race_test.gd
+node tests/install_bridge_review.cjs
+node tests/back_bridge_review.cjs
+```
 
-P3: rear-contact resolution retained old hard-coded 70/88 m/s ceilings. A boosted car hit from behind could suddenly slow to 88 m/s despite receiving forward impulse. Removed these downward clamps and added a 112 m/s regression case. Contact still separates bodies and cancels active boosts.
-
-Road patches share their rendered placement with swept tire detection, including per-lap circuit coordinates. Brake and impact override automatic boost; wet-road effects recover and spawn only short entry sprays. CPU corner/traffic braking retains priority. See [road patch implementation and verification](ROAD_FEATURES.md).
-
-## CPU traffic review — 2026-11-06
-
-| Priority | Finding | Change | Verification |
-| --- | --- | --- | --- |
-| P2 | Following logic waited until 18 m regardless of closing speed. A CPU approaching a stopped queue at 80 m/s passed through the lead car. | Preview stopping distance over 170 m with a body-length margin and a lower safety deceleration than the available brake force. | The controlled three-second case went from nine overlapping frames to zero; the follower stops 7.73 m behind. Tour and lapped circuit traffic use the same rule. |
-| P3 | A previously chosen merge continued while another car occupied its path; simultaneous merges could overlap. | Re-check the lateral sweep each tick, hold an unsafe move and request a new lane decision. | Moving blocked/simultaneous merge cases went from 26/27 overlapping frames to zero while retaining forward progress. |
-| P3 | Lane movement did not depend on forward speed, so stopped cars could slide sideways. | Scale lane-change speed below 12 m/s. | A stationary car remains in its lane; normal-speed merges continue. |
-
-`traffic_checks.gd` runs seven queue/merge cases in the normal CI entry point, plus stopped-car checks. `traffic_pack_review.gd` checks seven NPCs continuously for 150 simulated seconds under each vehicle profile. Complete Tour and Fuji drives are also rerun to check progress and race completion; these scripted controls do not substitute for human playtesting.
-
-## HUD feedback review — 2026-11-06
-
-P3: the touch pause region did not cover the full rendered time panel, and pause was discoverable only by knowing that the timer was a button. Match its bounds to the panel and add a visible pause target. Circuit pause text now identifies TRACK rather than TOUR, with touch-specific resume guidance.
-
-P3: dynamic tire trails used a fixed 7.2 m lane cutoff despite variable road widths. Use the active road's half-width and a tire clearance; native wide-road and overhead captures confirm the paired trails are present on the outer lane.
-
-Projected circuit place badges use a deterministic tie order so matched grid rows do not receive duplicate places. Badges are limited and screened for overlap. Existing mode checks now cover unique grid places and the new touch pause control.
-
-## Fuji ridge / drift / lighting review — 2026-11-06
-
-P2: brake canceled the entire drift immediately, discarding corner grip during tight-turn deceleration. Keep a controlled drift when braking with steering; an explicit second drift tap or braking with unwound steering ends it. Entry/exit taps are edge-triggered and have no hidden cooldown. New tests cover pre-steering arming, holding taps, immediate reuse, opposite-direction entry and brake recovery.
-
-P3: collision orientation used a one-sided two-metre tangent and a sloped forward projection, while rendered cars use symmetric tangents. Newly added hairpin cases exposed up to 0.085 m² of residual world-space body overlap. Use the rendered symmetric lane tangent and a horizontal collision plane. Independent polygon intersections now pass 324 Tour/circuit cases, worst residual 0.002 m².
-
-RPM now has a real segmented fill driven by the same idle/gear/redline calculation as audio pitch. The pause dialog drops key explanations. The 4.36 km circuit adds elevation, straights, turns of both signs and a real shaded tunnel; mode tests cover those broad course requirements and tunnel bounds. Updated record keys preserve old course times without comparing them with the new layout.
-
-## Browser audio verification follow-up
-
-P3: the audio review still pressed Enter once after the mode menu was added, so it could record a silent garage and pass merely because loop sources existed. Enter home and garage separately, wait for active driving gain before recording, require changing engine playback rate, and verify both gains fall to zero on mute. Recording timestamps now share the recorder-start callback. The public-page capture's recorded driving interval passes peak/clipping and 100 ms continuity analysis; intentional mute is excluded.
+시각·오디오·긴 주행 검사는 해당 변경에 맞춰 별도로 실행합니다. 결과는 실행 시 생성하는 보고서와 CI 로그에서 확인합니다. 과거 날짜의 성공 수치나 캡처를 현재 빌드 검증으로 대신하지 않습니다. 네이티브·모의 브라우저 검사는 실제 안드로이드 기기의 프레임률을 보장하지 않습니다.

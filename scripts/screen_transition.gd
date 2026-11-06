@@ -33,7 +33,9 @@ func play(action: Callable) -> void:
 	await get_tree().physics_frame
 	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
-	if race.warming_world: await preload("res://scripts/tunnel_lights.gd").prewarm_scene(race)
+	if race.warming_world:
+		await race.impacts.prewarm(race.camera)
+		await preload("res://scripts/tunnel_lights.gd").prewarm_scene(race)
 	race.warming_world = false
 	race.hud.modulate.a = 0
 	race.hud.position.x = 0 if race.motion_reduced else 22

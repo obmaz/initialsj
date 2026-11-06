@@ -1,4 +1,5 @@
 extends RefCounted
+const Report = preload("res://tests/report.gd")
 const Air = preload("res://scripts/air_state.gd")
 const Surface = preload("res://scripts/road_surface_state.gd")
 var failures := 0
@@ -69,7 +70,7 @@ func run(tree: SceneTree) -> int:
 	race.air.active = false
 	other.distance = race.distance+2.5
 	check(not race.contact_with(other).is_empty(),"Ground-level contact must remain active after landing")
-	FileAccess.open("res://docs/jump-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"cases":report,"failures":failures},"\t")+"\n")
+	FileAccess.open(Report.path("jump-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"cases":report,"failures":failures},"\t")+"\n")
 	print("Ramp / ballistic flight / landing / vertical collision checks: ","PASS" if failures == 0 else "FAIL (%d)" % failures)
 	race.queue_free()
 	await tree.process_frame

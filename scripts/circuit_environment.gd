@@ -2,7 +2,6 @@ extends Node3D
 
 const PANORAMA = preload("res://assets/environment/fuji-lake-panorama.png")
 const GRASS = preload("res://assets/environment/lakeside-grass.png")
-const ASPHALT = preload("res://assets/environment/asphalt.png")
 const SKY_SHADER = preload("res://shaders/fuji_sky.gdshader")
 const TERRAIN_SHADER = preload("res://shaders/lakeside_terrain.gdshader")
 const WATER_SHADER = preload("res://shaders/lake_water.gdshader")

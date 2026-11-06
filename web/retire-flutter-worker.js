@@ -1,4 +1,5 @@
-// Retirement worker for the old Flutter deployment at /initialsj/.
+// Keep this compatibility endpoint: returning browsers may still control the
+// game URL with a cached Flutter worker. Retire only those caches and unregister.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {

@@ -34,22 +34,6 @@ func run() -> void:
 	for stage in range(4):
 		for node in range(stage+1):
 			check(Library.theme(stage+1,node) != Library.theme(stage+1,node+1),"Every fork must lead to different left and right themes")
-	var catalog = load("res://scripts/route_prop_catalog.gd")
-	check(catalog.REGIONS.size() == 15,"Each theme must have generated roadside art")
-	for theme_id in themes:
-		check(catalog.REGIONS.has(theme_id),"Every route theme must resolve to its own art region")
-	var source: Texture2D = load("res://assets/environment/route-props.png")
-	var pixels := source.get_image()
-	for cell in range(15):
-		var transparent := 0
-		var samples := 0
-		for y in range(0,16):
-			for x in range(0,16):
-				var px := int((cell%4+(x+0.5)/16)*pixels.get_width()/4)
-				var py := int((cell/4+(y+0.5)/16)*pixels.get_height()/4)
-				if pixels.get_pixel(px,py).a < 0.1: transparent += 1
-				samples += 1
-		check(float(transparent)/samples > 0.3,"Generated props must have transparent surroundings rather than opaque paper backdrops")
 	var art = race.track.scenery.roadside_art
 	check(art.models.placements.size() > 30,"The actual starting road must instantiate a 3D regional foreground")
 	for i in range(art.positions.size()):
@@ -241,4 +225,5 @@ func run() -> void:
 	failures += await preload("res://tests/tunnel_render_checks.gd").new().run(self)
 	failures += await preload("res://tests/scenery_3d_checks.gd").new().run(self)
 	failures += await preload("res://tests/speedway_structure_checks.gd").new().run(self)
+	failures += await preload("res://tests/collision_feedback_checks.gd").new().run(self)
 	quit(1 if failures else 0)

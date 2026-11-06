@@ -1,4 +1,5 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 var failures := 0
 var race: Node3D
 func _initialize() -> void: call_deferred("run")
@@ -21,7 +22,7 @@ func settled(expected: String) -> void:
 func shot(name: String) -> void:
 	for frame in range(3): await process_frame
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://docs/"+name+".png")
+	root.get_texture().get_image().save_png(Report.path(name+".png"))
 func run() -> void:
 	if DisplayServer.get_name() == "headless": quit(2); return
 	race = load("res://scenes/race.tscn").instantiate()

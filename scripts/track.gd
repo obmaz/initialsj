@@ -2,7 +2,6 @@ extends Node3D
 const Section = preload("res://scripts/road_section.gd")
 const Library = preload("res://scripts/route_library.gd")
 const Contact = preload("res://scripts/car_contact.gd")
-const WIDTH := 18.0
 var active: Section
 var previous: Section
 var sibling: Section

@@ -1,4 +1,5 @@
 extends RefCounted
+const Report = preload("res://tests/report.gd")
 const Library = preload("res://scripts/route_library.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
 var failures := 0
@@ -79,7 +80,7 @@ func run(tree: SceneTree) -> int:
 	race.distance = race.track.length-100
 	race.select_route(1)
 	check(is_equal_approx(race.route_axis(-0.8),-0.8) and race.route_preference == -1,"Manual steering must override optional route assistance immediately")
-	FileAccess.open("res://docs/fork-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"straight_routes":rows,"minimum_real_seconds_at_fastest_boost":Library.CHECKPOINT_RUNUP/(fastest*race.GAME_PACE),"failures":failures},"\t")+"\n")
+	FileAccess.open(Report.path("fork-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"straight_routes":rows,"minimum_real_seconds_at_fastest_boost":Library.CHECKPOINT_RUNUP/(fastest*race.GAME_PACE),"failures":failures},"\t")+"\n")
 	print("Checkpoint / straight approach / mobile route choice / manual override: ","PASS" if failures == 0 else "FAIL")
 	race.queue_free()
 	await tree.process_frame

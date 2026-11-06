@@ -1,4 +1,5 @@
 extends SceneTree
+const Report = preload("res://tests/report.gd")
 const Contact = preload("res://scripts/car_contact.gd")
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
@@ -37,7 +38,7 @@ func run() -> void:
 			push_error("CPU pack must keep non-overlapping footprints during sustained circuit driving")
 			failures += 1
 		await process_frame
-	FileAccess.open("res://docs/traffic-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"vehicles":report,"failures":failures},"\t")+"\n")
+	FileAccess.open(Report.path("traffic-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"vehicles":report,"failures":failures},"\t")+"\n")
 	race.queue_free()
 	await process_frame
 	quit(1 if failures else 0)

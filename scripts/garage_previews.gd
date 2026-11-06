@@ -26,12 +26,13 @@ func _ready() -> void:
 		var sun := DirectionalLight3D.new()
 		sun.rotation_degrees = Vector3(-42,-35,0)
 		sun.light_energy = 1.05
+		sun.light_color = Color("ffe3bd")
 		sun.shadow_enabled = true
 		sun.directional_shadow_max_distance = 25
 		viewport.add_child(sun)
 		var fill := DirectionalLight3D.new()
 		fill.rotation_degrees = Vector3(-20,140,0)
-		fill.light_color = Color("98cce8")
+		fill.light_color = Color("79c8f1")
 		fill.light_energy = 0.35
 		viewport.add_child(fill)
 		var platform := MeshInstance3D.new()
