@@ -10,6 +10,8 @@ const PAINT_SHADER = preload("res://shaders/road_paint.gdshader")
 const SKID_SHADER = preload("res://shaders/skid_marks.gdshader")
 var features: Array[Dictionary] = []
 var closed_loop := false
+var course_id := 0
+var map_widths: Array[Vector2] = []
 var scenery: Node3D
 var road_surface: MeshInstance3D
 var skid_meshes: Array[MeshInstance3D] = []
@@ -59,6 +61,14 @@ func point(distance: float, lane: float = 0) -> Vector3:
 	return p + Vector3(-forward.z,0,forward.x).normalized() * lane
 
 func half_width(distance: float) -> float:
+	if course_id == 1 and not map_widths.is_empty():
+		var d := fposmod(distance,length)
+		for i in range(map_widths.size()-1):
+			if d <= map_widths[i+1].x:
+				var a := map_widths[i]
+				var b := map_widths[i+1]
+				return lerpf(a.y,b.y,smoothstep(a.x,b.x,d))
+		return map_widths[-1].y
 	if closed_loop:
 		var t := fposmod(distance,length)/length
 		var straight := 1-smoothstep(0.14,0.21,t)
@@ -74,6 +84,7 @@ func surface_lane(reference: float, distance: float) -> float:
 	return reference*half_width(distance)/9 if absf(reference) <= 9 else signf(reference)*(half_width(distance)+absf(reference)-9)
 
 func in_tunnel(distance: float) -> bool:
+	if course_id == 1: return false
 	if closed_loop:
 		var d := fposmod(distance,length)
 		return d >= length*0.56 and d <= length*0.56+240
@@ -178,7 +189,8 @@ func _ready() -> void:
 	box_batch(Vector3(0.7, 0.13, 3.05), white, white_transforms)
 	make_curve_markers()
 	make_skid_marks()
-	scenery = preload("res://scripts/circuit_environment.gd").new() if closed_loop else Scenery.new()
+	if course_id == 1: scenery = preload("res://scripts/seocho_environment.gd").new()
+	else: scenery = preload("res://scripts/circuit_environment.gd").new() if closed_loop else Scenery.new()
 	scenery.track = self
 	add_child(scenery)
 	make_course_banners()
@@ -196,7 +208,7 @@ func _ready() -> void:
 	box(gantry,Vector3(0,8.5,0),Vector3(33,2.3,0.6),material(Color("173d46")))
 	var sign_label := Label3D.new()
 	var titles := Library.next_titles(stage,route_node)
-	sign_label.text = "FUJI LAKESIDE / START - FINISH" if closed_loop else ("< " + titles[0] + "   |   " + titles[1] + " >" if stage < 4 else "GRAND TOUR / GOAL")
+	sign_label.text = ("SEOCHO LOOP / START - FINISH" if course_id == 1 else "FUJI LAKESIDE / START - FINISH") if closed_loop else ("< " + titles[0] + "   |   " + titles[1] + " >" if stage < 4 else "GRAND TOUR / GOAL")
 	sign_label.font_size = 90
 	sign_label.pixel_size = 0.008
 	sign_label.position = Vector3(0,8.5,0.35)

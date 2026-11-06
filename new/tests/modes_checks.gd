@@ -25,6 +25,8 @@ func run(tree: SceneTree) -> int:
 	click(race,race.hud.SETTINGS_CLOSE)
 	check(race.state == "menu" and race.sound_enabled != initial_sound,"Settings must return to the mode menu and retain the chosen value")
 	click(race,race.hud.HOME_TRACK)
+	check(race.state == "courses","Track menu must offer both courses before the garage")
+	click(race,race.hud.COURSE_FUJI)
 	check(race.state == "ready" and race.mode == "track","Track selection must lead to the shared garage")
 	check(race.track.previews.is_empty() and race.track.scenery.theme == "fuji","The one circuit must use Fuji scenery and have no route forks")
 	var length: float = race.track.length

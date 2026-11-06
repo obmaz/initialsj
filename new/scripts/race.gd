@@ -11,6 +11,7 @@ const Factory = preload("res://scripts/vehicle_factory.gd")
 const Circuit = preload("res://scripts/circuit_track.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
 const Nitro = preload("res://scripts/nitro_system.gd")
+const GAME_PACE := 1.2
 const RECORD_GROUP := "coast_rush_v3"
 var selected_vehicle := 0
 var vehicle: Dictionary = Catalog.spec(0)
@@ -44,6 +45,11 @@ var water_effect: Node3D
 var pad_active: bool:
 	get: return state == "racing" and surface.pad_time > 0 and not braking and impact < 0.15
 var mode := "tour"
+var selected_course := 0
+var course_title: String:
+	get: return "SEOCHO CITY LOOP" if selected_course == 1 else "FUJI LAKESIDE"
+var course_label: String:
+	get: return "SEOCHO / CIRCUIT 02" if selected_course == 1 else "FUJI / CIRCUIT 01"
 var settings_return := "menu"
 var laps_completed := 0
 var lap_started := 0.0
@@ -214,6 +220,7 @@ func _on_web_orientation(args: Array) -> void:
 		pause_tour()
 
 func _exit_tree() -> void:
+	Engine.time_scale = 1.0
 	if OS.has_feature("web"):
 		JavaScriptBridge.get_interface("window").initialsjObserveOrientation(null)
 
@@ -228,11 +235,17 @@ func initialize_traffic() -> void:
 			r.speed = 0.0
 			r.pace = vehicle.max_speed*(0.94+r.id*0.018)
 
-func choose_mode(value: String) -> void:
+func open_courses() -> void:
+	hud.fingers.clear()
+	state = "courses"
+
+func choose_mode(value: String, course: int = 0) -> void:
 	mode = "track" if value == "track" else "tour"
+	selected_course = clampi(course,0,1)
 	remove_child(track)
 	track.queue_free()
 	track = Circuit.new() if mode == "track" else Track.new()
+	if mode == "track": track.course_id = selected_course
 	add_child(track)
 	if mode == "track":
 		atmosphere.sky = track.scenery.make_sky()
@@ -352,14 +365,20 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if state == "menu":
 			if event.keycode in [KEY_ENTER,KEY_1,KEY_T]: choose_mode("tour")
-			elif event.keycode in [KEY_2,KEY_C]: choose_mode("track")
+			elif event.keycode in [KEY_2,KEY_C]: open_courses()
 			elif event.keycode == KEY_TAB: open_settings()
+			return
+		if state == "courses":
+			if event.keycode in [KEY_1,KEY_ENTER]: choose_mode("track",0)
+			elif event.keycode == KEY_2: choose_mode("track",1)
+			elif event.keycode == KEY_ESCAPE: open_menu()
 			return
 		if state == "settings":
 			if event.keycode in [KEY_ESCAPE,KEY_TAB]: close_settings()
 			return
 		if state == "ready" and event.keycode == KEY_ESCAPE:
-			open_menu()
+			if mode == "track": open_courses()
+			else: open_menu()
 			return
 		if event.keycode == KEY_ENTER:
 			if state == "ready": restart()
@@ -398,7 +417,7 @@ func resume_tour() -> void:
 func load_record() -> void:
 	best_time = 0
 	var saved := ConfigFile.new()
-	if saved.load("user://records.cfg") == OK: best_time = float(saved.get_value(RECORD_GROUP,Catalog.record_key(selected_vehicle,mode),0))
+	if saved.load("user://records.cfg") == OK: best_time = float(saved.get_value(RECORD_GROUP,Catalog.record_key(selected_vehicle,mode,selected_course),0))
 
 func select_vehicle(index: int) -> void:
 	if state != "ready": return
@@ -443,7 +462,7 @@ func gear_number() -> int:
 	return clampi(ceili(speed/(vehicle.max_speed/5.8)),1,6)
 
 func engine_rpm() -> float:
-	if state in ["menu","ready","settings","finished","failed"]: return 0
+	if state in ["menu","courses","ready","settings","finished","failed"]: return 0
 	var band: float = vehicle.max_speed/5.8
 	var gear := maxi(1,gear_number())
 	var progress := clampf((speed-(gear-1)*band)/band,0,1)
@@ -454,6 +473,7 @@ func nitro_ratio() -> float:
 	return nitro/100
 
 func _physics_process(delta: float) -> void:
+	Engine.time_scale = GAME_PACE if state in ["racing","countdown"] else 1.0
 	update_atmosphere(delta)
 	if state == "countdown":
 		countdown -= delta
@@ -469,7 +489,7 @@ func _physics_process(delta: float) -> void:
 		var brake := Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake")
 		step(delta,axis,Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift"),gas,brake,nitro_input,cell_input)
 	place_cars(delta)
-	var world_visible := state not in ["menu","ready","settings"]
+	var world_visible := state not in ["menu","courses","ready","settings"]
 	track.visible = world_visible
 	player.visible = world_visible
 	tire_trails.visible = world_visible
@@ -478,7 +498,7 @@ func _physics_process(delta: float) -> void:
 	tire_trails.update(self)
 	speed_ambience.update(self)
 	speed_effect.visible = state == "racing" and not motion_reduced and speed > 35
-	speed_effect.material.set_shader_parameter("strength",clampf((speed-35)/53,0,1))
+	speed_effect.material.set_shader_parameter("strength",clampf((speed-35)/53*1.2,0,1))
 	update_camera(delta)
 	player.road_speed = speed if state == "racing" else 0.0
 	player.animate(steer,drifting and state == "racing",(nitro_active or pad_active) and state == "racing",delta,slip_angle,braking and state == "racing",impact)
@@ -695,7 +715,7 @@ func finish() -> void:
 		if save_records:
 			var saved := ConfigFile.new()
 			saved.load("user://records.cfg")
-			saved.set_value(RECORD_GROUP,Catalog.record_key(selected_vehicle,mode),best_time)
+			saved.set_value(RECORD_GROUP,Catalog.record_key(selected_vehicle,mode,selected_course),best_time)
 			saved.save("user://records.cfg")
 
 func contact_with(r: Dictionary) -> Dictionary:
@@ -791,17 +811,18 @@ func update_camera(delta: float) -> void:
 	camera_time += delta if active else 0
 	var shake := (0.012*pace*pace + impact*0.24) if active and not motion_reduced else 0.0
 	var vibration := right*sin(camera_time*53)*shake + Vector3.UP*cos(camera_time*67)*shake*0.55
-	var desired := -forward*(5.3+pace*0.25+(boost_kick*0.55 if not motion_reduced else 0.0)-(0.25 if braking else 0.0)) + Vector3.UP*(2.75-pace*0.30) + vibration
+	var desired := -forward*(5.3+pace*0.25+(boost_kick*0.55 if not motion_reduced else 0.0)-(0.25 if braking else 0.0)) + Vector3.UP*((2.75 if motion_reduced else 2.60)-pace*0.30) + vibration
 	if drifting and not motion_reduced: desired += right*steer*0.9
 	camera_offset = camera_offset.lerp(desired,1-exp(-delta*9))
 	camera.position = player.position+camera_offset
 	camera.look_at(player.position+forward*(2.5+pace*0.8)+right*steer*(0 if motion_reduced else 0.7)+Vector3.UP*0.7)
 	if not motion_reduced: camera.rotate_object_local(Vector3.FORWARD,-steer*pace*(0.024 if drifting else 0.01))
-	var target_fov := (68.0 if motion_reduced else 64+pace*17) + (6 if boosting and active and not motion_reduced else 0)
+	var target_fov: float = (68.0 if motion_reduced else 64+pace*20.4) + (7.2 if boosting and active and not motion_reduced else 0)
 	camera.fov = lerpf(camera.fov,target_fov,1-exp(-delta*(8 if boosting else 4)))
 
 func update_atmosphere(delta: float) -> void:
 	if mode == "track":
+		if selected_course == 1: track.scenery.update_photo(distance,delta)
 		var sheltered: bool = track.active.in_tunnel(distance)
 		var blend := 1-exp(-delta*3)
 		atmosphere.ambient_light_energy = lerpf(atmosphere.ambient_light_energy,0.12 if sheltered else 0.28,blend)

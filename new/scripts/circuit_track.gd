@@ -1,5 +1,7 @@
 extends "res://scripts/track.gd"
 # One Fuji circuit: lakeside straight, climbing esses, ridge hairpin and downhill return.
+var course_id := 0
+var map_bounds := Rect2()
 const CONTROL_POINTS := [
 	Vector3(-300,8,350),Vector3(0,8,350),Vector3(360,10,350),
 	Vector3(540,18,280),Vector3(620,28,100),Vector3(570,38,-30),
@@ -21,6 +23,7 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 	sibling = null
 	active = Section.new()
 	active.closed_loop = true
+	active.course_id = course_id
 	active.curve.clear_points()
 	for i in range(CONTROL_POINTS.size()+1):
 		var index := i%CONTROL_POINTS.size()
@@ -29,9 +32,14 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 		var tangent := (after-before)/6
 		active.curve.add_point(CONTROL_POINTS[index],-tangent,tangent)
 	active.length = active.curve.get_baked_length()
+	if course_id == 1: preload("res://scripts/seocho_course.gd").build(active)
+	map_bounds = Rect2(Vector2(active.point(0).x,active.point(0).z),Vector2.ZERO)
+	for sample in range(800):
+		var p := active.point(active.length*sample/800)
+		map_bounds = map_bounds.expand(Vector2(p.x,p.z))
 	add_child(active)
 	update_ground()
 func build_previews() -> void: pass
 func maintain(_distance: float) -> void: pass
 func update_ground() -> void:
-	if base_material != null: base_material.albedo_color = Color("617f65")
+	if base_material != null: base_material.albedo_color = Color("777e7b") if course_id == 1 else Color("617f65")
