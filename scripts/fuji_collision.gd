@@ -31,7 +31,7 @@ static func build(section: Node3D) -> Node3D:
 	# Read only authored drivable geometry. Water and decorative terrain do not
 	# create a phantom horizontal floor across the bridge or beneath a tunnel.
 	for child in section.get_children():
-		if child is MeshInstance3D and (child == section.road_surface or child.name == "RoadBase" or child.name == "DirtShoulders" or child.name == "JumpRamp"):
+		if child is MeshInstance3D and (child == section.road_surface or child.name == "RoadBase" or child.name == "DirtShoulders" or child.get_meta("world_ground",false)):
 			append_mesh(ground,child.mesh,relative*child.global_transform)
 	collect_scenery(section.scenery,section,ground,walls)
 	var template := BoxMesh.new()

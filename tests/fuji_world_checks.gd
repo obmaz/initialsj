@@ -177,6 +177,40 @@ func recovery_regression(tree: SceneTree, race: Node3D) -> Dictionary:
 	check(body.grounded and body.feet_position().distance_to(safe_point) < 0.3,"A truly fallen world car must recover onto its last safe physical road position")
 	check(tracker.gates_passed == gates and tracker.laps == laps and tracker.next_gate == next and race.laps_completed == laps,"Physical fall recovery must preserve lap and gate progress without awarding an extra gate")
 	return {"gates_preserved":gates,"laps_preserved":laps,"recovered_distance":tracker.distance,"safe_distance":safe,"lowest_y":lowest}
+func ramp_regressions(tree: SceneTree, race: Node3D) -> Array:
+	var rows := []
+	var ramps: Array = race.track.active.features.filter(func(f): return f.kind == "ramp")
+	for choice in range(3):
+		race.open_garage()
+		race.select_vehicle(choice)
+		for ramp in ramps:
+			race.restart()
+			await quiet_race(tree,race)
+			var session: Node3D = race.world_race
+			var body: CharacterBody3D = session.player_body
+			var lead_pad: Dictionary = race.track.active.features.filter(func(f): return f.kind == "boost" and f.distance < ramp.distance and ramp.distance-f.distance < 120 and absf(f.lane-ramp.lane) < 1)[0]
+			session.teleport(0,lead_pad.distance-35,ramp.lane)
+			await tree.physics_frame
+			seed_speed(race,race.vehicle.max_speed)
+			var peak := 0.0
+			var air_frames := 0
+			var landed := false
+			var edge: float = ramp.distance+ramp.length*0.5
+			for frame in range(200):
+				await tick(tree,race,ramp.lane)
+				peak = maxf(peak,race.air.height)
+				if race.distance > edge-1 and not body.grounded: air_frames += 1
+				if air_frames > 3 and body.grounded and race.distance > edge+5:
+					landed = true
+					break
+			check(air_frames > 3 and peak > float(ramp.height)+0.08,"Every vehicle must physically launch from every Fuji ramp at boosted speed")
+			check(race.surface.boosts_hit == 1,"Each jump approach must activate its real preceding pad through ground contact")
+			check(landed and race.wall_hits == 0 and race.speed > 20,"%s / ramp %dm: each boosted jump must land without a rail or roof impact (walls=%d, speed=%.1f, landed=%s)" % [race.vehicle.id,ramp.distance,race.wall_hits,race.speed,landed])
+			if ramp.distance < race.track.active.underpass_span().x and ramp.distance > 2000:
+				check(race.distance < race.track.active.underpass_span().x-30,"The cutting jump must land before entering the tunnel")
+			rows.append({"vehicle":race.vehicle.id,"pad_m":lead_pad.distance,"ramp_m":ramp.distance,"peak_height_m":peak,"air_frames":air_frames,"landed":landed,"landing_distance_m":race.distance,"wall_hits":race.wall_hits,"pads_hit":race.surface.boosts_hit})
+	return rows
+
 func run(tree: SceneTree) -> int:
 	var race = load("res://scenes/race.tscn").instantiate()
 	tree.root.add_child(race)
@@ -236,12 +270,13 @@ func run(tree: SceneTree) -> int:
 	var traffic := await traffic_regression(tree,race)
 	var passes := await pass_regression(tree,race)
 	var recovery := await recovery_regression(tree,race)
+	var ramps := await ramp_regressions(tree,race)
 	# Both game modes still select their own independent movement system.
 	race.choose_mode("track",1)
 	check(race.world_race == null,"Suncoast must retain its current arcade road controller")
 	race.choose_mode("tour")
 	check(race.world_race == null and not race.track.active.closed_loop,"Tour must retain its existing branching controller")
-	FileAccess.open(Report.path("fuji-world-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"crossing_car_heights_m":heights,"failures":failures,"world_telemetry_does_not_move_car":true,"shoulders":shoulders,"traffic":traffic,"passes":passes,"recovery":recovery},"\t")+"\n")
+	FileAccess.open(Report.path("fuji-world-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"crossing_car_heights_m":heights,"failures":failures,"world_telemetry_does_not_move_car":true,"shoulders":shoulders,"traffic":traffic,"passes":passes,"recovery":recovery,"ramps":ramps},"\t")+"\n")
 	race.queue_free()
 	await tree.process_frame
 	print("Fuji real world driving / deck contacts / independent telemetry / pause / reverse / shoulders / traffic / recovery: ","PASS" if failures == 0 else "FAIL")
