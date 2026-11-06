@@ -235,4 +235,8 @@ func run() -> void:
 	failures += await preload("res://tests/boost_feedback_checks.gd").new().run(self)
 	failures += await preload("res://tests/corner_feel_checks.gd").new().run(self)
 	failures += await preload("res://tests/tour_geometry_checks.gd").new().run(self)
+	failures += await preload("res://tests/crash_recovery_checks.gd").new().run(self)
+	failures += await preload("res://tests/recovery_ui_checks.gd").new().run(self)
+	failures += await preload("res://tests/world_crash_checks.gd").new().run(self)
+	failures += await preload("res://tests/fullscreen_checks.gd").new().run(self)
 	quit(1 if failures else 0)

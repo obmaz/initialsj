@@ -30,6 +30,10 @@ func _init() -> void:
 	contact_shape.shape = box
 	add_child(contact_shape)
 
+static func steering_scale(speed: float) -> float:
+	# Keep parking/reverse responsive while giving fast touch inputs more margin.
+	return lerpf(1.0,0.80,smoothstep(25.0,85.0,absf(speed)))
+
 func configure(spec: Dictionary) -> void:
 	specification = spec
 	corner_grip = float(specification.get("grip",14.5))
@@ -119,16 +123,17 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 		surface_normal = surface_normal.lerp(support.normal,1-exp(-delta*18)).normalized()
 		ground_height = support.position.y
 	var speed := velocity.slide(surface_normal).length()
-	var input_rate: float = float(specification.get("steer_rate",7.0))
+	var high_speed_scale := steering_scale(speed)
+	var input_rate: float = float(specification.get("steer_rate",7.0))*high_speed_scale
 	steering = move_toward(steering,clampf(axis,-1,1),delta*input_rate)
 	var handling: float = float(specification.get("handling",7.0))
-	var wheel_angle := steering*(0.46+handling*0.007)/(1+speed*0.035)
+	var wheel_angle := steering*(0.46+handling*0.007)/(1+speed*0.035)*high_speed_scale
 	var signed_speed := velocity.dot(forward_direction())
 	var desired_rate := -signed_speed*tan(wheel_angle)/2.7
-	var max_rate := (1.20 if drifting else 0.88)*lerpf(0.82,1.12,handling/10.0)
+	var max_rate := (1.20 if drifting else 0.88)*lerpf(0.82,1.12,handling/10.0)*high_speed_scale
 	desired_rate = clampf(desired_rate,-max_rate,max_rate)
 	if not grounded: desired_rate *= 0.22
-	yaw_rate = move_toward(yaw_rate,desired_rate,delta*(5.5 if grounded else 1.2))
+	yaw_rate = move_toward(yaw_rate,desired_rate,delta*(5.5*high_speed_scale if grounded else 1.2))
 	var forward := forward_direction().rotated(surface_normal,yaw_rate*delta).slide(surface_normal).normalized()
 	if forward.length_squared() < 0.5: forward = Vector3.FORWARD
 	global_basis = Basis.looking_at(forward,surface_normal)
@@ -164,17 +169,22 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 			remaining = Vector3.ZERO
 			break
 		if is_floor:
-			grounded = true
+			grounded = velocity.dot(normal) <= 2.0
 			surface_normal = surface_normal.lerp(normal,0.6).normalized()
 			ground_height = collision.get_position().y
-			velocity = velocity.slide(normal)
+			if velocity.dot(normal) < 0: velocity = velocity.slide(normal)
 		else:
 			var closing := maxf(0,-before.dot(normal))
 			if closing > 0.2:
-				last_contacts.append({"normal":normal,"point":collision.get_position(),"collider":collider,"speed":closing})
+				var incoming_speed := before.slide(surface_normal).length()
+				var barrier: bool = collider is CollisionObject3D and collider.get_collision_layer_value(2) and not collider.get_collision_layer_value(1)
+				var severe: bool = barrier and closing >= 28.0 and incoming_speed >= 55.0 and absf(normal.y) < 0.65
+				last_contacts.append({"normal":normal,"point":collision.get_position(),"collider":collider,"speed":closing,"closing_speed":closing,"incoming_speed":incoming_speed,"barrier":barrier,"severe":severe,"severity":clampf(closing/65.0,0,1)})
 				var tangent := velocity.slide(normal)
-				velocity = tangent*0.86+normal*minf(closing*0.10,3.5)
-			else: velocity = velocity.slide(normal)
+				velocity = tangent*0.86+normal*minf(closing*0.32,14.0)
+			# Recovery contacts can repeat on adjacent rail triangles after the
+			# impact. Preserve the normal impulse when already separating.
+			elif velocity.dot(normal) < 0: velocity = velocity.slide(normal)
 		remaining = collision.get_remainder().slide(normal)
 		if not is_floor: remaining *= 0.86
 	if grounded:

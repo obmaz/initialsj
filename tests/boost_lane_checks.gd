@@ -72,7 +72,7 @@ func run(tree:SceneTree)->int:
    var axis:=clampf((float(chain[next].lane)-race.lane)*0.6-race.lane_velocity*0.12,-1,1)
    race.step(1.0/60,axis,false,true,false)
    if race.distance>chain[-1].distance+20:break
-  check(race.surface.boosts_hit==6 and race.wall_hits==0,"All vehicles must be able to collect the six alternating pads by steering, without lane teleports or wall hits")
+  check(race.surface.boosts_hit==6 and race.wall_hits==0,"%s: six alternating pads must remain steerable without lane teleports (hits=%d, walls=%d)" % [race.vehicle.id,race.surface.boosts_hit,race.wall_hits])
  race.queue_free()
  await tree.process_frame
  print("Short slalom pads / boost-lane occupancy / brakes / airborne / all vehicles: ","PASS" if failures==0 else "FAIL")

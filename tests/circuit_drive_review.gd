@@ -41,7 +41,7 @@ func run() -> void:
    var look := clampf(race.speed*0.65,14,46)
    var to: Vector3 = race.track.point(race.distance+look,target_lane)-body.feet_position()
    var angle := atan2(to.dot(right),to.dot(forward))
-   var wheel: float = (0.46+race.vehicle.handling*0.007)/(1+race.speed*0.035)
+   var wheel: float = (0.46+race.vehicle.handling*0.007)/(1+race.speed*0.035)*race.world_race.WorldCar.steering_scale(race.speed)
    var axis := clampf(atan(5.4*sin(angle)/look)/wheel,-1,1)
    var safe: float = race.vehicle.max_speed
    for ahead in [0.0,25.0,55.0,95.0,145.0]:

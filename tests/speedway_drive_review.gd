@@ -41,7 +41,9 @@ func run() -> void:
 			var outward := signf(curve)*(demand*0.055+excess*1.6)
 			var desired: float = clampf((target_lane-race.lane)*2-race.lane_velocity*0.45,-8,8)
 			var lateral: float = race.vehicle.drift_steer_speed if race.drifting else race.vehicle.steer_speed
-			var axis := clampf((desired-outward)/(lateral*authority*maxf(0.2,minf(race.speed/20,1))),-1,1)
+			var sensitivity := lerpf(1,0.86,smoothstep(35,85,race.speed))
+			var axis := clampf((desired-outward)/(lateral*authority*sensitivity*maxf(0.2,minf(race.speed/20,1))),-1,1)
+			axis = signf(axis)*pow(absf(axis),1.0/1.22)
 			if slide and not race.drifting and absf(axis) < 0.25: axis = -signf(curve)*0.35
 			var nitro: bool = not slide and not brake and allowed > race.vehicle.max_speed+5 and race.nitro > (2 if race.nitro_active else 20)
 			if race.vehicle.mode == "charges": nitro = not slide and not brake and allowed > race.vehicle.max_speed+5 and race.nitro_burst_left <= 0 and race.nitro_cooldown <= 0 and race.nitro_charges > 0

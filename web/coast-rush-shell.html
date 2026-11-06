@@ -5,6 +5,8 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 		<meta name="theme-color" content="#07111e">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 		<title>$GODOT_PROJECT_NAME</title>
 		<style>
 :root { color-scheme: dark; font-family: Arial, Helvetica, sans-serif; }
@@ -13,6 +15,12 @@ html, body { width: 100%; height: 100%; }
 body { color: #f3f8ff; background: #07111e; overflow: hidden; touch-action: none; }
 #canvas { display: block; }
 #canvas:focus { outline: none; }
+html:fullscreen, html:-webkit-full-screen { width:100%; height:100%; }
+html.installed-game, html.installed-game body { height:100dvh; }
+#fullscreen-control { position:fixed; z-index:3; margin:0; padding:0; border:0; color:transparent; background:transparent; cursor:pointer; font-size:0; }
+#fullscreen-control[hidden] { display:none; }
+#fullscreen-control:focus-visible { outline:3px solid #ffbc59; outline-offset:-4px; }
+#fullscreen-notice { position:fixed; z-index:5; left:50%; bottom:max(24px,env(safe-area-inset-bottom)); transform:translateX(-50%); width:max-content; max-width:min(640px,85vw); box-sizing:border-box; padding:12px 18px; border:1px solid #49d9f180; border-radius:6px; color:#e9f6fd; background:#0b2032f2; font:600 15px/1.5 system-ui,sans-serif; text-align:center; box-shadow:0 8px 32px #0005; }
 #status { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: $GODOT_SPLASH_COLOR; z-index: 2; }
 #landscape-guide { display: none; position: fixed; inset: 0; z-index: 4; background: #07111e; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center; padding: 24px; box-sizing: border-box; }
 #landscape-guide svg { width: 168px; height: 120px; }
@@ -148,6 +156,8 @@ noscript { position: fixed; z-index: 3; bottom: 20px; left: 20px; right: 20px; p
 }());
 		</script>
 
+<button id="fullscreen-control" type="button" aria-label="Enter fullscreen" hidden></button>
+<div id="fullscreen-notice" lang="ko" role="status" aria-live="polite" hidden></div>
 <dialog lang="ko" id="install-dialog" aria-labelledby="install-title">
   <h2 id="install-title">INITIAL SJ 설치</h2>
   <p id="install-message"></p>
@@ -206,6 +216,107 @@ const engine = new Engine(GODOT_CONFIG);
   dialog.addEventListener('keydown', function (event) { event.stopPropagation(); });
 }());
 
+
+// Fullscreen controls use a real DOM click over the drawn settings button.
+// Installed launch mode comes from the PWA manifest, without a blocked auto-request.
+(function () {
+  const root = document.documentElement;
+  const canvas = document.getElementById('canvas');
+  const control = document.getElementById('fullscreen-control');
+  const notice = document.getElementById('fullscreen-notice');
+  const fullscreenMode = window.matchMedia('(display-mode: fullscreen)');
+  const standaloneMode = window.matchMedia('(display-mode: standalone)');
+  let rect = null;
+  let busy = false;
+  let noticeTimer = null;
+  let observer = null;
+  let lastFullscreen = null;
+  let lastDomFullscreen = null;
+  function activeElement() { return document.fullscreenElement || document.webkitFullscreenElement; }
+  function appMode() { return fullscreenMode.matches || standaloneMode.matches || navigator.standalone === true; }
+  function showNotice(message) {
+    clearTimeout(noticeTimer);
+    notice.textContent = message;
+    notice.hidden = false;
+    noticeTimer = setTimeout(function () { notice.hidden = true; }, 4200);
+  }
+  window.initialsjIsFullscreen = function () { return !!activeElement() || fullscreenMode.matches; };
+  window.initialsjFullscreenLabel = function () {
+    if (activeElement()) return 'EXIT FULLSCREEN';
+    if (fullscreenMode.matches) return 'FULLSCREEN / APP';
+    if (appMode() && !root.requestFullscreen && !root.webkitRequestFullscreen) return 'APP DISPLAY';
+    return 'ENTER FULLSCREEN';
+  };
+  window.initialsjObserveFullscreen = function (callback) {
+    observer = callback;
+    lastFullscreen = null;
+    lastDomFullscreen = null;
+    positionControl();
+  };
+  function positionControl() {
+    const fullscreen = window.initialsjIsFullscreen();
+    const domFullscreen = !!activeElement();
+    if (observer && (fullscreen !== lastFullscreen || domFullscreen !== lastDomFullscreen)) {
+      lastFullscreen = fullscreen;
+      lastDomFullscreen = domFullscreen;
+      observer(fullscreen,domFullscreen);
+    }
+    root.classList.toggle('installed-game',appMode());
+    control.setAttribute('aria-label',window.initialsjFullscreenLabel());
+    if (!rect || control.hidden) return;
+    const bounds = canvas.getBoundingClientRect();
+    control.style.left = (bounds.left+rect.x*bounds.width)+'px';
+    control.style.top = (bounds.top+rect.y*bounds.height)+'px';
+    control.style.width = (rect.width*bounds.width)+'px';
+    control.style.height = (rect.height*bounds.height)+'px';
+  }
+  window.initialsjFullscreenControl = function (enabled,x,y,width,height) {
+    control.hidden = !enabled;
+    rect = enabled ? {x,y,width,height} : null;
+    positionControl();
+  };
+  window.initialsjToggleFullscreen = async function () {
+    if (busy) return;
+    busy = true;
+    control.disabled = true;
+    try {
+      const request = root.requestFullscreen || root.webkitRequestFullscreen;
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (activeElement()) {
+        if (exit) await exit.call(document);
+        else showNotice('이 브라우저에서는 전체 화면을 해제할 수 없어요.');
+      } else if (fullscreenMode.matches) {
+        showNotice('설치된 게임은 기본 전체 화면으로 실행됩니다.');
+      } else if (!request) {
+        showNotice(appMode() ? '홈 화면 앱 모드입니다. 이 기기에서는 시스템 상태 막대가 남을 수 있어요.' : '이 브라우저는 전체 화면 전환을 지원하지 않아요. 홈 화면에 설치하면 주소창 없이 플레이할 수 있어요.');
+      } else {
+        await request.call(root,{navigationUI:'hide'});
+      }
+    } catch (_) {
+      showNotice('전체 화면으로 전환할 수 없어요. 브라우저 설정을 확인해 주세요.');
+    } finally {
+      busy = false;
+      control.disabled = false;
+      positionControl();
+      if (canvas.focus) canvas.focus({preventScroll:true});
+    }
+  };
+  control.addEventListener('click',function (event) {
+    event.preventDefault();
+    event.stopPropagation();
+    window.initialsjToggleFullscreen();
+  });
+  for (const name of ['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','keydown','keyup']) {
+    control.addEventListener(name,function (event) { event.stopPropagation(); });
+  }
+  for (const name of ['fullscreenchange','webkitfullscreenchange']) document.addEventListener(name,positionControl);
+  for (const name of ['resize','appinstalled']) window.addEventListener(name,positionControl);
+  for (const query of [fullscreenMode,standaloneMode]) {
+    if (query.addEventListener) query.addEventListener('change',positionControl);
+    else if (query.addListener) query.addListener(positionControl);
+  }
+  positionControl();
+}());
 
 // Android/browser Back stays inside the game until the main menu is reached.
 (function () {

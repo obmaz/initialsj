@@ -37,6 +37,7 @@ python3 tools/verify_repository.py
 ./tools/godot --headless --fixed-fps 60 --path . --script res://tests/race_test.gd
 node tests/install_bridge_review.cjs
 node tests/back_bridge_review.cjs
+node tests/fullscreen_bridge_review.cjs
 ```
 
 검사 보고서와 화면 캡처는 Git에서 제외하는 `build/reports/`에 생성합니다. `main` 푸시는 자동 검사 후 GitHub Pages의 `/initialsj/`에 배포됩니다. 자세한 내보내기 명령과 검사 범위는 [개발 문서](docs/DEVELOPMENT.md)를 참고하세요.
