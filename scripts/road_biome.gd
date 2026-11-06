@@ -11,13 +11,15 @@ var ground_nodes: Array[MeshInstance3D] = []
 var roadside_art: Node3D
 var distant_art: Node3D
 var local_lights: Array[OmniLight3D] = []
+var building_manifest: Array[Dictionary] = []
 var water: MeshInstance3D
 
 func mat(color: Color, metal: float = 0, glow: float = 0) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = color
 	m.metallic = metal
-	m.roughness = 0.75 if metal == 0 else 0.3
+	m.roughness = 0.9 if metal == 0 else 0.3
+	if metal == 0: m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 	if glow > 0:
 		m.emission_enabled = true
 		m.emission = color
@@ -149,49 +151,6 @@ func make_water() -> void:
 	water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(water)
 
-func make_trees() -> void:
-	var trunks: Array[Transform3D] = []
-	var crowns: Array[Transform3D] = []
-	for i in range(100):
-		var start := 230.0 if track.entry_side != 0 else 40.0
-		var d: float = start + i*(track.length-start-40)/100 + rng.randf_range(-5,5)
-		var side := -1.0 if i % 3 == 0 else 1.0
-		var lane := side * rng.randf_range(15,55)
-		var height := rng.randf_range(9,16)
-		trunks.append(transform_at(d,lane,height / 2,Vector3(0.65,height,0.65)))
-		crowns.append(transform_at(d,lane,height,Vector3.ONE * rng.randf_range(0.8,1.3),rng.randf_range(0,TAU)))
-		tree_positions.append(terrain_point(d,lane))
-	var trunk_mesh := CylinderMesh.new()
-	trunk_mesh.top_radius = 0.3
-	trunk_mesh.bottom_radius = 0.5
-	trunk_mesh.height = 1
-	trunk_mesh.radial_segments = 7
-	batch(trunk_mesh,mat(Color("75604a")),trunks)
-	if theme == "hawaii":
-		var leaf := SurfaceTool.new()
-		leaf.begin(Mesh.PRIMITIVE_TRIANGLES)
-		for direction in range(8):
-			var forward := Vector3(cos(direction * TAU / 8),0,sin(direction * TAU / 8))
-			var across := Vector3(-forward.z,0,forward.x)
-			for i in range(5):
-				var t := i / 5.0
-				var u := (i + 1) / 5.0
-				var a := forward * t * 5 + Vector3.UP * (sin(t * PI) - t * 2)
-				var b := forward * u * 5 + Vector3.UP * (sin(u * PI) - u * 2)
-				var points := [a - across * (1-t) * 0.65,a + across * (1-t) * 0.65,b - across * (1-u) * 0.65,b + across * (1-u) * 0.65]
-				for index in [0,2,1,1,2,3]: leaf.add_vertex(points[index])
-		leaf.generate_normals()
-		var material := mat(Color("27834c"))
-		material.cull_mode = BaseMaterial3D.CULL_DISABLED
-		batch(leaf.commit(),material,crowns)
-	else:
-		var crown := SphereMesh.new()
-		crown.radius = 3.5
-		crown.height = 6
-		crown.radial_segments = 9
-		crown.rings = 5
-		batch(crown,mat(Color("3f8248")),crowns)
-
 func make_city() -> void:
 	var groups: Array[Dictionary] = []
 	for i in range(6): groups.append({"poses":[],"dimensions":[]})
@@ -204,13 +163,17 @@ func make_city() -> void:
 		var side := -1.0 if i%2 == 0 else 1.0
 		if theme == "seoul" and side > 0 and d > 450 and d < 1050: continue
 		if track.entry_side != 0 and d < 600: side = float(track.entry_side)
-		var lane: float = side*(track.half_width(d)+rng.randf_range(18,56))
 		var style: int = (i*5+track.route_node)%6
+		if theme == "seoul" and i%7 == 0: style = 2
+		if theme == "neon" and i%7 == 0: style = 1
 		var height: float = rng.randf_range(10,23) if style in [0,5] else rng.randf_range(35,95)
 		if style == 4: height = rng.randf_range(20,38)
 		if theme == "ruins": height *= 0.65
 		var width := rng.randf_range(12,24)
 		var depth := rng.randf_range(14,32)
+		var radius := Vector2(width,depth).length()*0.55
+		var lane: float = side*(track.half_width(d)+track.rail_setback(d,side)+4+radius+rng.randf_range(0,32))
+		building_manifest.append({"distance":d,"lane":lane,"radius":radius,"style":style,"height":height})
 		var variant := rng.randf()
 		var tiers := 3 if style == 2 else 1
 		var base := 0.0
@@ -254,6 +217,7 @@ func make_city() -> void:
 		material.set_shader_parameter("ruined",theme == "ruins")
 		material.set_shader_parameter("facade_style",style)
 		material.set_shader_parameter("night_city",theme == "neon")
+		material.set_shader_parameter("regional_style",1 if theme == "seoul" else (2 if theme == "neon" else 0))
 		var node := MultiMeshInstance3D.new()
 		node.multimesh = multi
 		node.material_override = material

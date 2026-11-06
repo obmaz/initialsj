@@ -33,7 +33,7 @@ static func build(section: Node3D) -> void:
 	markings(section,samples)
 
 static func shoulders(section: Node3D) -> void:
-	if section.course_id == 1: return # The real-map city keeps its paved sidewalks.
+	if section.closed_loop and section.course_id == 1: return # Speedway has a paved apron and safety walls.
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var steps := int(ceil(section.length/5))
@@ -50,8 +50,9 @@ static func shoulders(section: Node3D) -> void:
 			var points := [section.point(a,side*left)-Vector3.UP*0.025,section.point(a,side*outer_a)-Vector3.UP*0.025,section.point(b,side*right)-Vector3.UP*0.025,section.point(b,side*outer_b)-Vector3.UP*0.025]
 			for bank in range(2):
 				if bank == 1:
-					points = [points[1],section.scenery.terrain_point(a,side*(outer_a+8)),points[3],section.scenery.terrain_point(b,side*(outer_b+8))]
+					points = [points[1],section.scenery.terrain_point(a,side*(outer_a+section.shoulder_bank_span(a,side))),points[3],section.scenery.terrain_point(b,side*(outer_b+section.shoulder_bank_span(b,side)))]
 				for index in ([0,2,1,1,2,3] if side > 0 else [0,1,2,1,3,2]):
+					st.set_color(Color.WHITE if bank == 1 and section.closed_loop else Color.BLACK)
 					st.set_uv(Vector2(points[index].x,points[index].z)/5)
 					st.add_vertex(points[index])
 	st.generate_normals()
@@ -61,6 +62,7 @@ static func shoulders(section: Node3D) -> void:
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/dirt_shoulder.gdshader")
 	material.set_shader_parameter("dirt_texture",preload("res://assets/environment/dirt-shoulder.png"))
+	material.set_shader_parameter("grass_texture",preload("res://assets/environment/lakeside-grass.png"))
 	node.material_override = material
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	section.add_child(node)

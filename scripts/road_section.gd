@@ -11,11 +11,15 @@ const SKID_SHADER = preload("res://shaders/skid_marks.gdshader")
 var features: Array[Dictionary] = []
 var closed_loop := false
 var course_id := 0
-var map_widths: Array[Vector2] = []
+var bank_samples := PackedFloat32Array()
 var scenery: Node3D
 var road_surface: MeshInstance3D
 var skid_meshes: Array[MeshInstance3D] = []
 var prop_batches: Array[MultiMeshInstance3D] = []
+var curve_marker_distances: Array[float] = []
+var curve_marker_tunnel: Array[bool] = []
+var curve_marker_transforms: Array[Transform3D] = []
+var curve_markers: MultiMeshInstance3D
 var curve := Curve3D.new()
 var length := 0.0
 var rng := RandomNumberGenerator.new()
@@ -67,17 +71,22 @@ func point(distance: float, lane: float = 0) -> Vector3:
 	var b := curve.sample_baked(fposmod(d+2,length) if closed_loop else clampf(d+2,0,length),false)
 	var forward := (b-a).normalized()
 	if distance != d and not closed_loop: p += forward * (distance-d)
-	return p + Vector3(-forward.z,0,forward.x).normalized() * lane
+	var bank := bank_at(d)
+	# Anchor the inner edge above the infield instead of burying it in the ground.
+	var bank_height := lane*tan(bank)+half_width(d)*absf(tan(bank)) if not bank_samples.is_empty() else 0.0
+	return p + Vector3(-forward.z,0,forward.x).normalized() * lane + Vector3.UP*bank_height
+
+func bank_at(distance: float) -> float:
+	if bank_samples.is_empty(): return 0
+	var sample := fposmod(distance,length)/length*(bank_samples.size()-1)
+	var index := mini(int(sample),bank_samples.size()-2)
+	return lerpf(bank_samples[index],bank_samples[index+1],sample-index)
+
+func banking_grip(distance: float) -> float:
+	return 9.81*absf(tan(bank_at(distance)))
 
 func half_width(distance: float) -> float:
-	if course_id == 1 and not map_widths.is_empty():
-		var d := fposmod(distance,length)
-		for i in range(map_widths.size()-1):
-			if d <= map_widths[i+1].x:
-				var a := map_widths[i]
-				var b := map_widths[i+1]
-				return lerpf(a.y,b.y,smoothstep(a.x,b.x,d))
-		return map_widths[-1].y
+	if closed_loop and course_id == 1: return 14.5
 	if closed_loop:
 		var t := fposmod(distance,length)/length
 		var straight := 1-smoothstep(0.14,0.21,t)
@@ -114,10 +123,18 @@ func roadside_point(distance: float, lane: float) -> Vector3:
 	if course_id == 1 or in_tunnel(distance) or excavation_depth(distance) > 0.05: return p
 	var side := signf(lane)
 	var flat_edge := half_width(distance)+rail_setback(distance,side)+1.3
-	if absf(lane) <= flat_edge+8:
-		var far: Vector3 = scenery.terrain_point(distance,side*(flat_edge+8))
-		p.y = maxf(p.y,lerpf(point(distance).y-0.025,far.y,clampf((absf(lane)-flat_edge)/8,0,1)))
+	var span := shoulder_bank_span(distance,side)
+	if absf(lane) <= flat_edge+span:
+		var far: Vector3 = scenery.terrain_point(distance,side*(flat_edge+span))
+		p.y = maxf(p.y,lerpf(point(distance).y-0.025,far.y,clampf((absf(lane)-flat_edge)/span,0,1)))
 	return p
+
+func shoulder_bank_span(distance: float, side: float) -> float:
+	if closed_loop and course_id == 0 and side < 0:
+		# Broad natural lakeside slopes; tight hairpins cannot fold a bank across
+		# the centre of their own curve. Steep constrained parts use rock shading.
+		return clampf(0.35/maxf(absf(curvature(distance)),0.0001),12,80)
+	return 8.0
 
 func surface_lane(reference: float, distance: float) -> float:
 	return reference*half_width(distance)/9 if absf(reference) <= 9 else signf(reference)*(half_width(distance)+absf(reference)-9)
@@ -193,7 +210,6 @@ func _ready() -> void:
 	Features.build(self)
 	strip(-8.6,-8.4,0.025,paint(Color("e7e6d6")),150 if entry_side > 0 else 0)
 	strip(8.4,8.6,0.025,paint(Color("e7e6d6")),150 if entry_side < 0 else 0)
-	var white := paint(Color("e9e7db"))
 	var steel := material(Color("8d9c9c"), 0.6)
 	var post_transforms: Array[Transform3D] = []
 	for i in range(int(length / 5)):
@@ -206,7 +222,7 @@ func _ready() -> void:
 	box_batch(Vector3(0.16, 1.0, 0.16), steel, post_transforms)
 	make_curve_markers()
 	make_skid_marks()
-	if course_id == 1: scenery = preload("res://scripts/seocho_environment.gd").new()
+	if course_id == 1: scenery = preload("res://scripts/speedway_environment.gd").new()
 	else: scenery = preload("res://scripts/circuit_environment.gd").new() if closed_loop else Scenery.new()
 	scenery.track = self
 	add_child(scenery)
@@ -214,12 +230,9 @@ func _ready() -> void:
 	if course_id != 1: make_course_banners()
 	var stripe_d := 80.0 if stage == 0 else length - 10
 	if stage == 0 or stage == 4:
-		for i in range(18):
-			for row in range(2):
-				var tile := box(self,point(stripe_d + row * 1.2,i-8.5) + Vector3.UP * 0.035,Vector3(1,0.025,1.2),white if (i+row)%2 == 0 else asphalt)
-				tile.rotation.y = heading(stripe_d)
+		make_finish_stripe(stripe_d)
 	if closed_loop:
-		make_gantry(80,"SEOCHO LOOP / START - FINISH" if course_id == 1 else "FUJI LAKESIDE / START - FINISH")
+		make_gantry(80,"SUNCOAST SPEEDWAY / START - FINISH" if course_id == 1 else "FUJI LAKESIDE / START - FINISH")
 	elif stage < 4:
 		make_gantry(checkpoint_distance(),"CHECKPOINT",Color("e3ad38"))
 		var titles := Library.next_titles(stage,route_node)
@@ -229,6 +242,33 @@ func _ready() -> void:
 
 func checkpoint_distance() -> float:
 	return maxf(80,length-Library.CHECKPOINT_RUNUP)
+
+func make_finish_stripe(at: float) -> MeshInstance3D:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var columns := int(ceil(half_width(at)*2))
+	for row in range(2):
+		var a := at-0.6+row*1.2
+		var b := a+1.2
+		for i in range(columns):
+			var left := -1.0+2.0*i/columns
+			var right := -1.0+2.0*(i+1)/columns
+			var points := [point(a,left*half_width(a)),point(a,right*half_width(a)),point(b,left*half_width(b)),point(b,right*half_width(b))]
+			var uv := [Vector2(i,row),Vector2(i+1,row),Vector2(i,row+1),Vector2(i+1,row+1)]
+			for index in [0,2,1,1,2,3]:
+				st.set_uv(uv[index])
+				st.add_vertex(points[index]+Vector3.UP*0.035)
+	st.generate_normals()
+	var node := MeshInstance3D.new()
+	node.name = "FinishStripe"
+	node.mesh = st.commit()
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/finish_stripe.gdshader")
+	mat.set_shader_parameter("asphalt_texture",ASPHALT)
+	node.material_override = mat
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(node)
+	return node
 
 func make_gantry(at: float, title: String, tint: Color = Color("173d46")) -> void:
 	var gantry := Node3D.new()
@@ -328,23 +368,36 @@ func make_curve_markers() -> void:
 		if course_id == 1 and absf(bend) < 0.10: continue
 		var side := 1.0 if bend > 0 else -1.0
 		if d < 150 and side == -entry_side: continue
-		poses.append(Transform3D(Basis(Vector3.UP,heading(d)).scaled_local(Vector3(side,1,1)),point(d,side*(half_width(d)+rail_setback(d,side)+1.8))+Vector3.UP*1.9))
+		var wall_mounted := in_tunnel(d) or excavation_depth(d) > 0.05
+		var offset := rail_setback(d,side)+1.8
+		var angle := heading(d)
+		if wall_mounted:
+			# Exterior boards cross the shell when placed across the road. Mount
+			# these parallel to the inside face, with a real gap from the wall.
+			offset = 1.10 if closed_loop else 2.15
+			angle -= side*PI/2
+		poses.append(Transform3D(Basis(Vector3.UP,angle).scaled_local(Vector3(side,1,1)),point(d,side*(half_width(d)+offset))+Vector3.UP*1.9))
+		curve_marker_distances.append(d)
+		curve_marker_tunnel.append(wall_mounted)
 	var multi := MultiMesh.new()
 	multi.transform_format = MultiMesh.TRANSFORM_3D
 	multi.mesh = mesh
 	multi.instance_count = poses.size()
 	for i in range(poses.size()): multi.set_instance_transform(i,poses[i])
-	var node := MultiMeshInstance3D.new()
-	node.multimesh = multi
-	node.material_override = mat
-	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(node)
+	curve_marker_transforms.assign(poses)
+	curve_markers = MultiMeshInstance3D.new()
+	curve_markers.name = "CurveDirectionSigns"
+	curve_markers.multimesh = multi
+	curve_markers.material_override = mat
+	curve_markers.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(curve_markers)
 
 func make_course_banners() -> void:
 	var poles: Array[Transform3D] = []
 	var poses: Array[Transform3D] = []
 	for i in range(int(length/95)):
 		var d := 55.0+i*95
+		if in_tunnel(d) or excavation_depth(d) > 0.05: continue
 		for side in [-1.0,1.0]:
 			if d < 150 and side == -entry_side: continue
 			var base: Vector3 = roadside_point(d,side*(half_width(d)+rail_setback(d,side)+3.3))

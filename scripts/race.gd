@@ -59,14 +59,17 @@ var warming_world := false
 var camera_intro := 0.0
 var selected_course := 0
 var course_title: String:
-	get: return "SEOCHO CITY LOOP" if selected_course == 1 else "FUJI LAKESIDE"
+	get: return "SUNCOAST SPEEDWAY" if selected_course == 1 else "FUJI LAKESIDE"
 var course_label: String:
-	get: return "SEOCHO / CIRCUIT 02" if selected_course == 1 else "FUJI / CIRCUIT 01"
+	get: return "SUNCOAST / CIRCUIT 02" if selected_course == 1 else "FUJI / CIRCUIT 01"
 var settings_return := "menu"
 var laps_completed := 0
 var lap_started := 0.0
 var last_lap := 0.0
-var state := "menu"
+var state := "menu":
+	set(value):
+		state = value
+		_sync_web_back()
 var distance := 80.0
 var completed_distance := 0.0
 var lane := -3.2
@@ -119,6 +122,7 @@ var bump_cooldown := 0.0
 var launch_flash := 0.0
 var web_portrait := false
 var web_orientation_callback: JavaScriptObject
+var web_back_callback: JavaScriptObject
 var motion_reduced := false
 var sound_enabled := true
 var camera_time := 0.0
@@ -239,6 +243,32 @@ func _ready() -> void:
 	if OS.has_feature("web"):
 		web_orientation_callback = JavaScriptBridge.create_callback(_on_web_orientation)
 		JavaScriptBridge.get_interface("window").initialsjObserveOrientation(web_orientation_callback)
+		web_back_callback = JavaScriptBridge.create_callback(_on_web_back)
+		JavaScriptBridge.get_interface("window").initialsjObserveBack(web_back_callback,state != "menu")
+	elif OS.has_feature("android"):
+		get_tree().quit_on_go_back = false
+
+func _sync_web_back() -> void:
+	if web_back_callback != null:
+		var transitioning: bool = screen_transition != null and screen_transition.busy
+		JavaScriptBridge.get_interface("window").initialsjSetBackEnabled(state != "menu" or transitioning)
+
+func _on_web_back(_args: Array) -> void:
+	navigate_back()
+
+# Keep hardware/browser Back consistent with the visible screen's back action.
+# Repeated Back during a transition is consumed rather than queued.
+func navigate_back() -> bool:
+	if screen_transition != null and screen_transition.busy: return true
+	match state:
+		"racing", "countdown": pause_tour()
+		"paused": resume_tour()
+		"ready": navigate(open_courses if mode == "track" else open_menu)
+		"courses": navigate(open_menu)
+		"settings": navigate(close_settings)
+		"finished", "failed": navigate(open_garage)
+		_: return false
+	return true
 
 func _on_web_orientation(args: Array) -> void:
 	web_portrait = bool(args[0])
@@ -250,6 +280,8 @@ func _exit_tree() -> void:
 	Engine.time_scale = 1.0
 	if OS.has_feature("web"):
 		JavaScriptBridge.get_interface("window").initialsjObserveOrientation(null)
+		JavaScriptBridge.get_interface("window").initialsjObserveBack(null,false)
+		web_back_callback = null
 
 func initialize_traffic() -> void:
 	brain.initialize(rivals)
@@ -264,7 +296,10 @@ func initialize_traffic() -> void:
 
 func navigate(action: Callable) -> void:
 	if screen_transition == null: action.call()
-	else: screen_transition.play(action)
+	else:
+		if web_back_callback != null: JavaScriptBridge.get_interface("window").initialsjSetBackEnabled(true)
+		await screen_transition.play(action)
+		_sync_web_back()
 
 func start_race() -> void:
 	navigate(func():
@@ -466,6 +501,8 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT): hud.move_pointer(-1,event.position)
 
 func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		if not navigate_back() and OS.has_feature("android"): get_tree().quit()
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		if hud != null: hud.fingers.clear()
 		pause_tour()
@@ -674,7 +711,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		cap *= lerpf(1,0.58,offroad_amount)
 		speed = move_toward(speed,cap,delta*acceleration)
 	speed = maxf(0,speed-delta*10*offroad_amount)
-	var grip: float = (vehicle.drift_grip if drifting else vehicle.grip)*surface.grip_factor*lerpf(1,0.72,offroad_amount)
+	var grip: float = ((vehicle.drift_grip if drifting else vehicle.grip)+track.active.banking_grip(distance))*surface.grip_factor*lerpf(1,0.72,offroad_amount)
 	var demand := absf(curve) * speed * speed
 	var excess := maxf(0,demand-grip)
 	var authority := clampf(1-excess/(grip*2),0.38,1)
@@ -698,7 +735,8 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			register_impact(0.8,Vector2(-side,0))
 	distance += speed*delta
 	var was_airborne := air.active
-	for event in air.advance(track.active,old_surface_position,Vector2(lane,distance),speed,delta):
+	var flight_events: Array[String] = air.advance(track.active,old_surface_position,Vector2(lane,distance),speed,delta)
+	for event in flight_events:
 		if event in ["launch","drop"]:
 			drifting = false
 			drift_latched = false
@@ -709,7 +747,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		elif event == "settle" and DisplayServer.get_name() != "headless":
 			landing_dust.burst(track.point(distance,lane),true)
 	var surface_events: Array[String] = []
-	if not air.active and not was_airborne: surface_events = surface.contact(track.active,old_surface_position,Vector2(lane,distance),speed,brake,impact)
+	if not air.active and not was_airborne and flight_events.is_empty(): surface_events = surface.contact(track.active,old_surface_position,Vector2(lane,distance),speed,brake,impact)
 	for event in surface_events:
 		if event == "boost":
 			speed = maxf(speed,minf(pad_speed_cap(),speed+8))
@@ -735,12 +773,12 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		var other_forward := track.traffic_point(r.distance+2,r.lane,r.route_side)-other_world
 		var other_yaw := wrapf(atan2(-other_forward.x,-other_forward.z)-track.heading(distance),-PI,PI)
 		other_yaw += r.visual_yaw
-		var contact: Dictionary = Contact.overlap(relative_world.dot(forward),lateral_gap,slip_angle,other_yaw) if absf(air.height-float(r.air.height)) <= 1.65 else {}
+		var contact: Dictionary = Contact.overlap(relative_world.dot(forward),lateral_gap,slip_angle,other_yaw) if absf(relative_world.y+float(r.air.height)-air.height) <= 1.65 else {}
 		if old_gaps[i] > 0 and gap <= 0:
 			overtakes += 1
 			overtake_flash = 1
 			score += 100
-			if contact.is_empty() and absf(lateral_gap) < 3.8 and absf(air.height-float(r.air.height)) < 1.5:
+			if contact.is_empty() and absf(lateral_gap) < 3.8 and absf(relative_world.y+float(r.air.height)-air.height) < 1.5:
 				near_misses += 1
 				near_miss_flash = 1.1
 				nitro = minf(100,nitro+12)
@@ -751,7 +789,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	recommended_speed = vehicle.max_speed
 	for look in [15.0,45.0,85.0]:
 		var k: float = absf(track.curvature(distance+look))
-		recommended_speed = minf(recommended_speed,sqrt(vehicle.grip*surface.grip_factor*1.25/maxf(k,0.0001)))
+		recommended_speed = minf(recommended_speed,sqrt((vehicle.grip+track.active.banking_grip(distance+look))*surface.grip_factor*1.25/maxf(k,0.0001)))
 	corner_warning = move_toward(corner_warning,clampf((speed-recommended_speed-4)/15,0,1),delta*3)
 	if mode == "track":
 		var finished_laps := int(maxf(0,distance-80)/track.length)
@@ -851,13 +889,14 @@ func finish() -> void:
 			saved.save("user://records.cfg")
 
 func contact_with(r: Dictionary) -> Dictionary:
-	if absf(air.height-float(r.air.height)) > 1.65: return {}
+	var own: Vector3 = track.point(distance,lane)
+	var other: Vector3 = track.traffic_point(r.distance,r.lane,r.route_side)
+	if absf(other.y+float(r.air.height)-own.y-air.height) > 1.65: return {}
 	var forward := track.point(distance+2,lane)-track.point(distance-2,lane)
 	forward.y = 0
 	forward = forward.normalized()
 	var right := Vector3(-forward.z,0,forward.x).normalized()
-	var other := track.traffic_point(r.distance,r.lane,r.route_side)
-	var delta := other-track.point(distance,lane)
+	var delta := other-own
 	var direction := track.traffic_point(r.distance+2,r.lane,r.route_side)-track.traffic_point(r.distance-2,r.lane,r.route_side)
 	var yaw := wrapf(atan2(-direction.x,-direction.z)-atan2(-forward.x,-forward.z),-PI,PI)+float(r.visual_yaw)
 	return Contact.overlap(delta.dot(forward),delta.dot(right),slip_angle,yaw)
@@ -911,7 +950,7 @@ func register_impact(strength: float, normal: Vector2) -> void:
 
 func place_cars(delta: float = 1.0) -> void:
 	var pitch := atan2(air.velocity,maxf(1,speed))*0.22 if air.active else (atan2(0.75,16) if air.height > 0 else 0.0)
-	set_car_frame(player,track.point(distance,lane)+Vector3.UP*air.height,track.point(distance+2,lane)-track.point(distance-2,lane),delta,pitch)
+	set_car_frame(player,track.point(distance,lane)+Vector3.UP*air.height,track.point(distance+2,lane)-track.point(distance-2,lane),delta,pitch,track.active.bank_at(distance))
 	player.body.rotation.y = slip_angle
 	for r in rivals:
 		if not r.active:
@@ -926,16 +965,17 @@ func place_cars(delta: float = 1.0) -> void:
 			p = track.traffic_point(r.distance,r.lane,r.route_side)
 			f = track.traffic_point(r.distance+2,r.lane,r.route_side)-track.traffic_point(r.distance-2,r.lane,r.route_side)
 		var pitch_npc: float = atan2(r.air.velocity,maxf(1,r.speed))*0.22 if r.air.active else (atan2(0.75,16) if r.air.height > 0 else 0.0)
-		set_car_frame(r.car,p+Vector3.UP*r.air.height,f,delta,pitch_npc)
+		set_car_frame(r.car,p+Vector3.UP*r.air.height,f,delta,pitch_npc,track.active.bank_at(r.distance))
 		r.car.body.rotation.y = r.visual_yaw
 		var gap := p.distance_to(player.position)
 		r.car.visible = gap < 460
 		r.car.set_detail(gap)
 
-func set_car_frame(car: Node3D, p: Vector3, forward: Vector3, delta: float, pitch_extra: float = 0) -> void:
+func set_car_frame(car: Node3D, p: Vector3, forward: Vector3, delta: float, pitch_extra: float = 0, bank: float = 0) -> void:
 	car.position = p + Vector3.UP*0.12
 	var f := forward.normalized()
 	car.rotation.y = lerp_angle(car.rotation.y,atan2(-f.x,-f.z),1-exp(-delta*13))
+	car.rotation.z = lerp_angle(car.rotation.z,bank,1-exp(-delta*10))
 	car.rotation.x = lerp_angle(car.rotation.x,asin(clampf(f.y,-1,1))+pitch_extra,1-exp(-delta*10))
 
 func _process(_delta: float) -> void:
@@ -963,7 +1003,6 @@ func update_camera(delta: float) -> void:
 
 func update_atmosphere(delta: float) -> void:
 	if mode == "track":
-		if selected_course == 1: track.scenery.update_landmark(distance,delta)
 		var sheltered: bool = track.active.in_tunnel(distance)
 		var blend := 1-exp(-delta*3)
 		atmosphere.ambient_light_energy = lerpf(atmosphere.ambient_light_energy,0.12 if sheltered else 0.28,blend)

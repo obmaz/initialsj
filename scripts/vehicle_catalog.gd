@@ -10,7 +10,7 @@ const SPECS := [
 static func spec(index: int) -> Dictionary:
 	return SPECS[clampi(index,0,SPECS.size()-1)]
 static func record_key(index: int, mode: String = "tour", course: int = 0) -> String:
-	if mode == "track" and course == 1: return "track_seocho_map_v1_best_time_"+str(spec(index).id)
+	if mode == "track" and course == 1: return "track_suncoast_v1_best_time_"+str(spec(index).id)
 	return ("track_fuji_ridge_v1_best_time_" if mode == "track" else "tour_runup_v2_best_time_")+str(spec(index).id)
 
 # Shared ten-point ranges: 60–92 m/s cruise, 0–36 m/s² launch, 0–60 m/s² boost.

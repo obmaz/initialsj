@@ -1,0 +1,73 @@
+extends RefCounted
+const Catalog = preload("res://scripts/vehicle_catalog.gd")
+var failures := 0
+func check(ok: bool, message: String) -> void:
+	if not ok: failures += 1; push_error(message)
+func run(tree: SceneTree) -> int:
+	var race = load("res://scenes/race.tscn").instantiate()
+	tree.root.add_child(race)
+	race.set_physics_process(false)
+	race.save_records = false
+	race.open_courses()
+	var tap := InputEventScreenTouch.new()
+	tap.pressed = true
+	tap.position = race.hud.COURSE_SPEEDWAY.get_center()*race.hud.ui_scale()+race.hud.ui_offset()
+	race.hud.handle_pointer(tap)
+	tap.pressed = false
+	race.hud.handle_pointer(tap)
+	check(race.selected_course == 1 and race.track.scenery.theme == "speedway","Second course touch must select the speedway")
+	check(race.track.length > 4300 and race.track.length < 5200,"Speedway must have a full-size high speed lap")
+	check(race.track.previews.is_empty(),"A circuit must never spawn Tour forks")
+	var max_bank := 0.0
+	var min_bank := INF
+	var max_step := 0.0
+	var radius := INF
+	for i in range(1600):
+		var d: float = race.track.length*i/1600
+		var bank: float = race.track.active.bank_at(d)
+		max_bank = maxf(max_bank,absf(bank))
+		min_bank = minf(min_bank,absf(bank))
+		max_step = maxf(max_step,absf(bank-race.track.active.bank_at(d-1)))
+		radius = minf(radius,1/maxf(absf(race.track.curvature(d)),0.000001))
+		check(race.track.half_width(d) >= 14,"The oval needs a genuinely wide multi-lane surface")
+		check(not race.track.active.in_tunnel(d),"Open speedway must not inherit the Fuji tunnel")
+		var cross: Vector3 = race.track.point(d,10)-race.track.point(d,-10)
+		check(absf(cross.y-20*tan(bank)) < 0.001,"The bank must be actual 3D road geometry")
+	check(rad_to_deg(max_bank) > 24 and rad_to_deg(min_bank) < 2,"Turns must bank steeply and the back straight must flatten")
+	check(max_step < 0.009 and radius > 110,"Bank transitions and curvature must support high speed racing")
+	for lane in [-14.5,0.0,14.5]:
+		check(race.track.point(-0.01,lane).distance_to(race.track.point(race.track.length-0.01,lane)) < 0.002,"Every banked lane must close seamlessly")
+	check(absf(race.track.active.bank_at(-0.01)-race.track.active.bank_at(0.01)) < 0.001,"Banking must close without a roll jump")
+	for path in ["SpeedwayInfield","InfieldLake","SpeedwaySafetyWalls","CatchFence","GrandstandSeats0","PitLane","PitGarages","RaceControlTower"]:
+		check(race.track.scenery.has_node(path),"Missing actual speedway geometry: "+path)
+	var stripe: MeshInstance3D = race.track.active.make_finish_stripe(race.track.length*0.793)
+	var stripe_vertices: PackedVector3Array = stripe.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var lowest_stripe := INF
+	var highest_stripe := -INF
+	for p in stripe_vertices:
+		lowest_stripe = minf(lowest_stripe,p.y)
+		highest_stripe = maxf(highest_stripe,p.y)
+	check(highest_stripe-lowest_stripe > 10,"Full-width finish stripe must follow a real steep bank without flat tiles")
+	check(stripe_vertices.size() >= 29*2*6,"Finish stripe must cover all speedway lanes with joined geometry")
+	stripe.free()
+	for index in range(3):
+		check(Catalog.record_key(index,"track",1).begins_with("track_suncoast_"),"Replacement circuit needs its own record namespace")
+		check(Catalog.record_key(index,"track",1) != Catalog.record_key(index,"track",0),"Speedway records must remain separate from Fuji")
+	race.restart()
+	race.state = "racing"
+	var active := 0
+	for r in race.rivals:
+		if r.active: active += 1
+	check(active == 7,"Speedway must keep a fixed eight-car grid")
+	for r in race.rivals: r.active = false
+	for lap in range(3):
+		race.distance = 80+race.track.length*(lap+1)-0.4
+		race.speed = 60
+		race.step(1.0/60,0,false,false,false)
+		check(race.laps_completed == lap+1,"Speedway start line must count exactly one lap")
+	check(race.state == "finished","Speedway must finish after three laps")
+	FileAccess.open("res://docs/speedway-course-metrics.json",FileAccess.WRITE).store_string(JSON.stringify({"length_m":race.track.length,"max_bank_degrees":rad_to_deg(max_bank),"min_bank_degrees":rad_to_deg(min_bank),"max_bank_change_rad_per_m":max_step,"tightest_radius_m":radius,"failures":failures},"\t")+"\n")
+	race.queue_free()
+	await tree.process_frame
+	print("Speedway / banked geometry / touch selection / lap checks: ","PASS" if failures == 0 else "FAIL")
+	return failures

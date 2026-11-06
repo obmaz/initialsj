@@ -14,7 +14,7 @@ func run() -> void:
 	race.set_physics_process(false)
 	race.save_records = false
 	race.sound_enabled = false
-	for choice in [["tour",0,"jump-tour"],["track",0,"jump-fuji"],["track",1,"jump-seocho"]]:
+	for choice in [["tour",0,"jump-tour"],["track",0,"jump-fuji"],["track",1,"jump-speedway"]]:
 		race.choose_mode(choice[0],choice[1])
 		race.state = "racing"
 		for r in race.rivals: r.active = false
