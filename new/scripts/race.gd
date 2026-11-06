@@ -78,6 +78,8 @@ var impact := 0.0
 var boost_kick := 0.0
 var bump_cooldown := 0.0
 var launch_flash := 0.0
+var web_portrait := false
+var web_orientation_callback: JavaScriptObject
 var motion_reduced := false
 var sound_enabled := true
 var camera_time := 0.0
@@ -175,6 +177,19 @@ func _ready() -> void:
 	reset_nitro()
 	place_cars()
 	update_camera(1)
+	if OS.has_feature("web"):
+		web_orientation_callback = JavaScriptBridge.create_callback(_on_web_orientation)
+		JavaScriptBridge.get_interface("window").initialsjObserveOrientation(web_orientation_callback)
+
+func _on_web_orientation(args: Array) -> void:
+	web_portrait = bool(args[0])
+	if web_portrait:
+		hud.fingers.clear()
+		pause_tour()
+
+func _exit_tree() -> void:
+	if OS.has_feature("web"):
+		JavaScriptBridge.get_interface("window").initialsjObserveOrientation(null)
 
 func restart() -> void:
 	if state != "ready": track.reset()
@@ -225,6 +240,7 @@ func restart() -> void:
 	update_camera(1)
 
 func _input(event: InputEvent) -> void:
+	if web_portrait: return
 	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION: return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ENTER:
@@ -256,6 +272,7 @@ func pause_tour() -> void:
 		if hud != null: hud.fingers.clear()
 
 func resume_tour() -> void:
+	if web_portrait: return
 	if state == "paused":
 		hud.fingers.clear()
 		state = resume_state
