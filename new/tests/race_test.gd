@@ -225,4 +225,5 @@ func run() -> void:
 	await process_frame
 	failures += await preload("res://tests/garage_checks.gd").new().run(self)
 	failures += await preload("res://tests/modes_checks.gd").new().run(self)
+	failures += await preload("res://tests/road_feature_checks.gd").new().run(self)
 	quit(1 if failures else 0)

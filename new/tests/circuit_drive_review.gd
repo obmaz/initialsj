@@ -19,7 +19,7 @@ func run() -> void:
 			if frame%20 == 0:
 				var best := INF
 				for candidate in race.track.lane_centers(race.distance):
-					var cost: float = absf(candidate-race.lane)*0.15
+					var cost: float = absf(candidate-race.lane)*0.1+race.Features.lane_cost(race.track.active,race.distance,candidate)
 					for other in race.rivals:
 						if not other.active: continue
 						var gap: float = race.relative_gap(other.distance,race.distance)
@@ -29,11 +29,11 @@ func run() -> void:
 			var curve: float = race.track.curvature(race.distance)
 			var allowed: float = race.vehicle.overdrive_speed
 			for look in [0.0,25.0,55.0,90.0,135.0]:
-				var safe: float = sqrt(race.vehicle.drift_grip/maxf(absf(race.track.curvature(race.distance+look)),0.0001))
+				var safe: float = sqrt(race.vehicle.drift_grip*race.surface.grip_factor/maxf(absf(race.track.curvature(race.distance+look)),0.0001))
 				allowed = minf(allowed,sqrt(safe*safe+2*36*look))
 			var brake: bool = race.speed > allowed+0.7
 			var slide: bool = absf(curve)*race.speed*race.speed > race.vehicle.grip*0.9 and race.speed > 38 and not brake
-			var grip: float = race.vehicle.drift_grip if race.drifting else race.vehicle.grip
+			var grip: float = (race.vehicle.drift_grip if race.drifting else race.vehicle.grip)*race.surface.grip_factor
 			var demand: float = absf(curve)*race.speed*race.speed
 			var excess := maxf(0,demand-grip)
 			var authority := clampf(1-excess/(grip*2),0.38,1)
@@ -47,7 +47,7 @@ func run() -> void:
 			race.step(1.0/60,axis,slide,true,brake,nitro,nitro and race.vehicle.mode == "hybrid" and race.nitro_burst_left <= 0 and race.nitro_cooldown <= 0)
 			peak = maxf(peak,race.speed)
 			if race.state == "finished": break
-		var entry := {"vehicle":race.vehicle.id,"state":race.state,"laps":race.laps_completed,"seconds":snappedf(race.elapsed,0.01),"position":race.race_position(),"peak_kmh":snappedf(peak*3.6,0.1),"walls":race.wall_hits,"contacts":race.traffic_hits}
+		var entry := {"vehicle":race.vehicle.id,"state":race.state,"laps":race.laps_completed,"seconds":snappedf(race.elapsed,0.01),"position":race.race_position(),"peak_kmh":snappedf(peak*3.6,0.1),"walls":race.wall_hits,"contacts":race.traffic_hits,"boost_pads":race.surface.boosts_hit,"puddles":race.surface.puddles_hit}
 		print(JSON.stringify(entry))
 		report.append(entry)
 		if race.state != "finished" or race.laps_completed != 3 or race.elapsed > 300:

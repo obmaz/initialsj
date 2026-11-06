@@ -7,6 +7,7 @@ var web_audio
 var tires := AudioStreamPlayer.new()
 var cue := AudioStreamPlayer.new()
 var impact_sound := AudioStreamPlayer.new()
+var last_pads := 0
 var last_count := 0
 var last_launch := 0.0
 var last_drifts := 0
@@ -47,6 +48,8 @@ func _process(delta: float) -> void:
 			tone = COUNT_TONE
 		elif race.launch_flash > last_launch + 0.05:
 			tone = LAUNCH_TONE
+		elif race.surface.boosts_hit > last_pads:
+			tone = LAUNCH_TONE
 		elif race.checkpoint_flash > last_checkpoint + 0.05:
 			tone = LAP_TONE
 		elif race.drifts_completed > last_drifts or race.near_misses > last_misses or race.overtakes > last_overtakes:
@@ -59,6 +62,7 @@ func _process(delta: float) -> void:
 	else:
 		cue.stop()
 		impact_sound.stop()
+	last_pads = race.surface.boosts_hit
 	last_count = number
 	last_launch = race.launch_flash
 	last_drifts = race.drifts_completed
@@ -71,7 +75,7 @@ func _process(delta: float) -> void:
 	var target_pitch := 0.82 + rpm * 0.38 + (gear - 1) * 0.075
 	if OS.has_feature("web"):
 		if web_audio != null:
-			web_audio.update(active, target_pitch, (0.075 if race.state == "countdown" else (0.21 if race.boosting else 0.18)), 0.038 if race.drifting else 0.0)
+			web_audio.update(active, target_pitch, (0.075 if race.state == "countdown" else (0.21 if race.boosting else 0.18)), 0.038 if race.drifting else (0.018 if race.surface.wet_time > 0 else 0.0))
 		return
 	gain = move_toward(gain, (0.30 if race.state == "countdown" else 0.70) if active else 0.0, delta * 2)
 	if gain <= 0 and not active:
@@ -80,7 +84,7 @@ func _process(delta: float) -> void:
 		return
 	pitch_scale = lerpf(pitch_scale, target_pitch, 1 - exp(-delta * 9))
 	volume_db = -12 + (1.5 if race.boosting else 0.0) + linear_to_db(maxf(gain, 0.0001))
-	tires.volume_db = -20 + linear_to_db(maxf(gain * (0.55 if race.drifting else 0.0), 0.0001))
+	tires.volume_db = -20 + linear_to_db(maxf(gain * (0.55 if race.drifting else (0.25 if race.surface.wet_time > 0 else 0.0)), 0.0001))
 	if not playing:
 		play()
 		tires.play()

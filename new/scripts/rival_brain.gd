@@ -1,4 +1,6 @@
 extends RefCounted
+const SurfaceState = preload("res://scripts/road_surface_state.gd")
+const Features = preload("res://scripts/road_features.gd")
 # Reusable road traffic: lane planning, safe gaps, preview braking and off-screen recycling.
 func initialize(rivals: Array[Dictionary]) -> void:
 	for i in range(rivals.size()):
@@ -14,6 +16,7 @@ func initialize(rivals: Array[Dictionary]) -> void:
 		r.decision = i * 0.07
 		r.route_side = i % 2
 		r.detached = null
+		r.surface = SurfaceState.new()
 		r.boosting = false
 		r.visual_yaw = 0.0
 
@@ -22,6 +25,8 @@ func tick(race: Node3D, delta: float) -> void:
 	traffic.append_array(race.rivals)
 	for r in race.rivals:
 		if not r.active: continue
+		r.surface.tick(delta)
+		r.boosting = r.surface.pad_time > 0
 		if r.detached != null:
 			if is_instance_valid(r.detached):
 				r.distance += r.speed * delta
@@ -38,7 +43,7 @@ func tick(race: Node3D, delta: float) -> void:
 			var best := INF
 			var chosen: float = r.lane
 			for candidate in race.track.lane_centers(d):
-				var cost: float = absf(candidate-r.lane) * 0.35
+				var cost: float = absf(candidate-r.lane) * 0.35+Features.lane_cost(race.track.active,d,candidate)
 				for other in traffic:
 					if other == r or not other.get("active",true) or other.get("detached") != null: continue
 					var gap: float = race.relative_gap(other.distance,d)
@@ -50,21 +55,39 @@ func tick(race: Node3D, delta: float) -> void:
 					best = cost
 					chosen = candidate
 			r.target_lane = chosen
-		r.lane = clampf(move_toward(float(r.lane),float(r.target_lane),delta*3.1),-edge,edge)
+		var old_surface_position := Vector2(r.lane,r.distance)
+		r.lane = clampf(move_toward(float(r.lane),float(r.target_lane),delta*3.1*lerpf(1,0.55,r.surface.wetness)),-edge,edge)
 		r.visual_yaw = lerp_angle(r.visual_yaw,-clampf((r.target_lane-r.lane)/2,-1,1)*0.07,1-exp(-delta*6))
-		var target: float = r.pace
+		var target: float = r.pace+(18 if r.surface.pad_time > 0 else 0)
 		for look in [0.0,35.0,80.0,130.0]:
 			var curve: float = absf(race.track.curvature(d+look))
-			var safe := sqrt((race.vehicle.grip*1.2 if race.mode == "track" else 12.5) / maxf(curve,0.0001))
+			var safe: float = sqrt((race.vehicle.grip*1.2 if race.mode == "track" else 12.5)*r.surface.grip_factor / maxf(curve,0.0001))
 			target = minf(target,sqrt(safe * safe + 2 * 40 * look))
 		for other in traffic:
 			if other == r or not other.get("active",true) or other.get("detached") != null or absf(other.lane-r.lane) > 2.3: continue
 			var gap: float = race.relative_gap(other.distance,d)
 			if gap > 0 and gap < 18: target = minf(target,maxf(0,other.speed-(18-gap) * 2))
-		r.speed = move_toward(float(r.speed),target,delta * (44 if target < r.speed else 14))
-		r.distance += r.speed * delta
+		if target < r.speed: r.surface.cancel_boost()
+		r.boosting = r.surface.pad_time > 0
+		r.speed = move_toward(float(r.speed),target,delta*(44 if target < r.speed else (28 if r.boosting else 14)))
+		r.distance += r.speed*delta
+		var events: Array[String] = r.surface.contact(race.track.active,old_surface_position,Vector2(r.lane,r.distance),r.speed)
+		for event in events:
+			if event == "boost" and target >= r.speed:
+				r.speed = minf(r.pace+18,r.speed+8)
+				r.boosting = true
+			elif event == "boost":
+				r.surface.cancel_boost()
+				r.boosting = false
+			elif event == "water":
+				r.speed *= 0.96
+				if DisplayServer.get_name() != "headless" and absf(race.relative_gap(r.distance,race.distance)) < 100 and r.speed > 10:
+					var forward: Vector3 = (race.track.point(r.distance+2)-race.track.point(r.distance)).normalized()
+					race.water_effect.burst(race.track.point(r.distance,r.lane),forward,race.motion_reduced)
 
 func recycle(race: Node3D, r: Dictionary) -> void:
+	r.surface.reset()
+	r.boosting = false
 	r.detached = null
 	r.respawns += 1
 	r.distance = race.distance+600-race.route_node*35+r.id*(38-race.route_node*4)+(int(r.respawns)%3)*11
