@@ -29,3 +29,13 @@ Vehicle cards now compare exactly top speed, acceleration, boost and handling on
 P3: rear-contact resolution retained old hard-coded 70/88 m/s ceilings. A boosted car hit from behind could suddenly slow to 88 m/s despite receiving forward impulse. Removed these downward clamps and added a 112 m/s regression case. Contact still separates bodies and cancels active boosts.
 
 Road patches share their rendered placement with swept tire detection, including per-lap circuit coordinates. Brake and impact override automatic boost; wet-road effects recover and spawn only short entry sprays. CPU corner/traffic braking retains priority. See [road patch implementation and verification](ROAD_FEATURES.md).
+
+## CPU traffic review — 2026-11-06
+
+| Priority | Finding | Change | Verification |
+| --- | --- | --- | --- |
+| P2 | Following logic waited until 18 m regardless of closing speed. A CPU approaching a stopped queue at 80 m/s passed through the lead car. | Preview stopping distance over 170 m with a body-length margin and a lower safety deceleration than the available brake force. | The controlled three-second case went from nine overlapping frames to zero; the follower stops 7.73 m behind. Tour and lapped circuit traffic use the same rule. |
+| P3 | A previously chosen merge continued while another car occupied its path; simultaneous merges could overlap. | Re-check the lateral sweep each tick, hold an unsafe move and request a new lane decision. | Moving blocked/simultaneous merge cases went from 26/27 overlapping frames to zero while retaining forward progress. |
+| P3 | Lane movement did not depend on forward speed, so stopped cars could slide sideways. | Scale lane-change speed below 12 m/s. | A stationary car remains in its lane; normal-speed merges continue. |
+
+`traffic_checks.gd` runs seven queue/merge cases in the normal CI entry point, plus stopped-car checks. `traffic_pack_review.gd` checks seven NPCs continuously for 150 simulated seconds under each vehicle profile. Complete Tour and Fuji drives are also rerun to check progress and race completion; these scripted controls do not substitute for human playtesting.

@@ -75,6 +75,7 @@ godot --headless --path new --script res://tests/garage_review.gd
 godot --headless --path new --script res://tests/contact_review.gd
 godot --headless --path new --script res://tests/tour_review.gd
 godot --headless --path new --script res://tests/circuit_drive_review.gd
+godot --headless --path new --script res://tests/traffic_pack_review.gd
 ```
 
 요청 목표 버전은 Godot **4.7.2**, 현재 설치되어 실행·내보내기를 검증한 버전은 **4.6.3 stable / GL Compatibility**입니다. 4.7.2 실행 검증은 하지 않았습니다. 웹은 단일 스레드로 내보내 GitHub Pages에서 실행합니다. 실제 모바일 기기의 성능과 터치 감도는 별도 실기기 검증이 필요합니다.
