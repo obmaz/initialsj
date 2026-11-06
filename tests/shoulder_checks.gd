@@ -29,6 +29,10 @@ func run(tree: SceneTree) -> int:
 				check(absf(limits.y+Contact.HALF_WIDTH+0.2-section.half_width(d)-section.rail_setback(d,1)) < 0.01,"Driving bounds must match the real rail offset")
 		check(minimum_radius_margin > 0.5,"Inner guardrails must not fold across themselves on sharp corners")
 		check(widest > 6,"Tour and Fuji must have visibly wider roadside runoff areas")
+		if choice[0] == "track":
+			check(section.has_node("FujiWorldCollision"),"Fuji shoulders and barriers must participate in the real collision world")
+			rows.append({"mode":choice[0],"course":choice[1],"maximum_setback_m":widest,"minimum_inner_radius_margin_m":minimum_radius_margin,"controller":"world-space"})
+			continue
 		for index in range(3):
 			race.open_garage()
 			race.select_vehicle(index)

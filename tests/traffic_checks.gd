@@ -12,7 +12,7 @@ func run(tree: SceneTree) -> int:
 	race.save_records = false
 	var report := []
 	for mode in ["tour","track"]:
-		race.choose_mode(mode)
+		race.choose_mode(mode,1 if mode == "track" else 0)
 		race.distance = 80 if mode == "tour" else 1200
 		race.lane = -6
 		for scenario in ["stopped_queue","merge_blocked","meeting_merge","lapped_queue"]:

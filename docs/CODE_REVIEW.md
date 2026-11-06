@@ -1,6 +1,14 @@
 # 현재 검토 범위
 
-## 이번 정리
+## 트랙 1의 월드 주행 변경
+
+FUJI LAKESIDE는 약 5.721km, 고저차 약 60.8m, 최대 뱅킹 약 11.82도의 코스입니다. 실제 위·아래 도로의 교차 높이 차이는 약 35.02m입니다. [world_car.gd](../scripts/world_car.gd)의 `CharacterBody3D`가 실제 차체 방향으로 움직이고, [fuji_collision.gd](../scripts/fuji_collision.gd)가 노면·장벽의 오목 삼각형 충돌체를 구성합니다. 도로 거리·차선 계측은 주행 몸체를 강제로 옮기는 용도로 사용하지 않습니다.
+
+[circuit_progress.gd](../scripts/circuit_progress.gd)는 12개 순차 게이트와 3랩을 검증합니다. 정지 상태의 브레이크 유지로 후진을 지원합니다. 투어와 SUNCOAST의 기존 컨트롤러는 별도로 유지합니다. 검토 대상은 실제 물리 프레임에서의 접지·조향·높이별 교차·장벽·후진·경기 진행이며, 차량 3대의 연속 주행은 고정 프레임 조건에서 별도로 확인합니다.
+
+갓길 복귀 중 낮은 노면 경계에 걸리던 문제는 실제 상·전방·하방 충돌 검사로 최대 22cm 단차만 넘도록 수정했습니다. 넓은 합법 갓길에서 진행도가 멈추는 문제와 무효 게이트 통과 후 랩이 영구 정지하는 문제도 수정했습니다. 무효 통과는 보상하지 않고 같은 게이트를 다음 바퀴에 다시 통과하도록 합니다. CPU는 빈 차선을 판단하며, 정체 시 후방 공간이 있을 때만 짧게 후진합니다. 교량 아래 차량은 상부의 회피·추월 보상에 영향을 주지 않습니다.
+
+## 저장소 정리
 
 실제 게임 진입점에서 도달하는 소스·에셋과 유지하는 검사 도구를 기준으로 저장소를 정리합니다. 과거 구현 전용 코드, 중복 미리보기, 오래된 리뷰·스크린샷·수치 보고서는 제거하며 변경 이력은 Git에서 확인합니다. 제품 규칙과 개발 명령은 [GAMEPLAY.md](GAMEPLAY.md)와 [DEVELOPMENT.md](DEVELOPMENT.md)로 통합합니다.
 
@@ -17,7 +25,7 @@
 | 충돌·피드백 | 방향별 차체 겹침 해소, 경사와 공중 높이, 강도별 반동·입자 상한·재시작 초기화 |
 | CPU·노면·점프 | 앞차·차선 안전, 지상 노면 효과, 공중 통과 후 착지, 중복 패드 소비 방지 |
 | 투어·터널 | 직선 안내 시간, 터치 선택·수동 우선, 표지판 벽 간격, 제한된 조명·숨겨진 렌더 준비 |
-| 배경·서킷 | 실제 3D 모델과 도로 간격, 지역 다양성, 랩 수, 뱅킹 연결과 관중석 기초 |
+| 배경·서킷 | 실제 3D 모델과 도로 간격, 지역 다양성, 순차 게이트·랩, 높이별 교차·물리 접지, 뱅킹과 관중석 기초 |
 | 웹·품질 | 설치 안내, Back·Forward history, 중단 시 품질 표본 초기화와 느린 프레임 대응 |
 
 기본 검토 명령은 다음과 같습니다.
@@ -25,7 +33,7 @@
 ```sh
 python3 tools/verify_repository.py
 ./tools/godot --headless --path . --editor --import --quit
-./tools/godot --headless --path . --script res://tests/race_test.gd
+./tools/godot --headless --fixed-fps 60 --path . --script res://tests/race_test.gd
 node tests/install_bridge_review.cjs
 node tests/back_bridge_review.cjs
 ```

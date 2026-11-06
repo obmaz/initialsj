@@ -37,7 +37,12 @@ func update(race: Node3D) -> void:
 	for wheel_index in [1, 3]:
 		var wheel: Node3D = race.player.wheels[wheel_index]
 		var p: Vector3 = race.player.body.to_global(wheel.position)
-		p.y = race.track.point(race.distance - wheel.position.z).y + 0.045
+		if race.world_race != null:
+			var query := PhysicsRayQueryParameters3D.create(p+Vector3.UP*0.5,p-Vector3.UP*1.5,1)
+			var hit := get_world_3d().direct_space_state.intersect_ray(query)
+			if hit.is_empty(): previous.clear(); return
+			p = hit.position+hit.normal*0.04
+		else: p.y = race.track.point(race.distance - wheel.position.z).y + 0.045
 		points.append(p)
 	if previous.is_empty():
 		previous = points

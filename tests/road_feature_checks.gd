@@ -101,7 +101,7 @@ func run(tree: SceneTree) -> int:
 	race.resolve_contact(rival,{"normal":Vector2(0,1),"depth":0.2})
 	check(race.speed >= 112,"Being hit from behind must not clamp a fast car to an obsolete cruise limit")
 	for emitter in race.water_effect.pool: check(not emitter.emitting,"Ordinary driving must not emit water particles")
-	race.choose_mode("track")
+	race.choose_mode("track",1)
 	section = race.track.active
 	pad = section.features[0]
 	point = Vector2(pad.lane,pad.distance)

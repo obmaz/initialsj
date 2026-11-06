@@ -29,7 +29,7 @@ func run() -> void:
 	var cases := 0
 	var worst := 0.0
 	for mode in ["tour","track"]:
-		race.choose_mode(mode)
+		race.choose_mode(mode,1 if mode == "track" else 0)
 		for d in ([80.0,450.0,850.0,1300.0] if mode == "tour" else [80.0,1567.0,1590.0,3480.0,3650.0]):
 			for lane in ([-7.5,0.0,7.5] if mode == "tour" else [2.2-race.track.half_width(d),0.0,race.track.half_width(d)-2.2]):
 				for yaw in [-0.5,0.0,0.5]:

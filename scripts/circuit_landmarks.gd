@@ -12,6 +12,7 @@ func _ready() -> void:
  var placements: Array[Dictionary] = []
  for spec in PLACEMENTS:
   var d: float = road.length*spec[0]
+  if road.on_bridge(d): continue
   var kind: String = spec[1]
   var side: float = spec[2]
   var scale: float = spec[3]/Props.model(kind).get_aabb().size.y

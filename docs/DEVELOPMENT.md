@@ -17,7 +17,9 @@ python3 tools/verify_repository.py
 | --- | --- |
 | [race.gd](../scripts/race.gd), [hud.gd](../scripts/hud.gd) | 화면 상태, 입력, 주행 진행, 카메라와 HUD |
 | [track.gd](../scripts/track.gd), [road_section.gd](../scripts/road_section.gd), [route_library.gd](../scripts/route_library.gd) | 투어 분기, 도로 좌표·폭·지형·테마 |
-| [circuit_track.gd](../scripts/circuit_track.gd), [speedway_course.gd](../scripts/speedway_course.gd) | 닫힌 서킷과 트랙 2 뱅킹 |
+| [circuit_track.gd](../scripts/circuit_track.gd), [fuji_course.gd](../scripts/fuji_course.gd), [speedway_course.gd](../scripts/speedway_course.gd) | 두 서킷의 형상·고저차·뱅킹 |
+| [world_race.gd](../scripts/world_race.gd), [world_car.gd](../scripts/world_car.gd), [fuji_collision.gd](../scripts/fuji_collision.gd) | 트랙 1의 월드 차량 이동과 실제 노면·장벽 충돌체 |
+| [circuit_progress.gd](../scripts/circuit_progress.gd) | 트랙 1 위치 계측과 순차 게이트·랩 판정 |
 | [rival_brain.gd](../scripts/rival_brain.gd), [car_contact.gd](../scripts/car_contact.gd) | CPU 간격·차선·속도 판단과 차체 겹침 |
 | [road_features.gd](../scripts/road_features.gd), [road_surface_state.gd](../scripts/road_surface_state.gd), [air_state.gd](../scripts/air_state.gd) | 패드·물·경사로의 배치, 노면 효과와 점프 |
 | [regional_props_3d.gd](../scripts/regional_props_3d.gd), [road_biome.gd](../scripts/road_biome.gd) | 지역별 입체 오브젝트·건축과 공간별 묶음 렌더링 |
@@ -25,18 +27,24 @@ python3 tools/verify_repository.py
 | [impact_effect.gd](../scripts/impact_effect.gd), [render_budget.gd](../scripts/render_budget.gd) | 재사용 충돌 이펙트와 자동 렌더 품질 |
 | [web/coast-rush-shell.html](../web/coast-rush-shell.html) | 다운로드·회전·설치 안내와 브라우저 뒤로가기 |
 
-차량은 도로의 거리·차선 오프셋으로 이동하는 아케이드 주행 모델입니다. 노면과 차체는 실제 3D이지만 `VehicleBody3D` 타이어 시뮬레이션은 사용하지 않습니다. 내부 속도 단위는 m/s이며 HUD에서 km/h로 변환합니다. 레이스·카운트다운의 엔진 시간 배율은 1.2이고 메뉴·정지·장면 종료에서는 1로 복원합니다.
+트랙 1은 `CharacterBody3D`의 실제 월드 위치·속도·차체 방향을 사용하며, `ConcavePolygonShape3D` 노면·장벽 충돌체와 접촉합니다. 도로 곡선 투영은 경기 정보용이고 일반 주행에서 차체를 곡선으로 이동시키지 않습니다. 고가 교차점의 위·아래 도로는 실제로 분리되어 있습니다. `circuit_progress.gd`는 높이와 순서가 있는 12개 게이트를 확인해 랩을 집계합니다.
+
+투어와 SUNCOAST는 거리·차선 오프셋으로 이동하는 기존 아케이드 컨트롤러를 유지합니다. 두 방식 모두 `VehicleBody3D` 타이어 시뮬레이션은 사용하지 않습니다. 내부 속도 단위는 m/s이며 HUD에서 km/h로 변환합니다. 레이스·카운트다운의 엔진 시간 배율은 1.2이고 메뉴·정지·장면 종료에서는 1로 복원합니다.
 
 ## 자동 검사
 
 ```sh
 python3 tools/verify_repository.py
-./tools/godot --headless --path . --script res://tests/race_test.gd
+./tools/godot --headless --fixed-fps 60 --path . --script res://tests/race_test.gd
 node tests/install_bridge_review.cjs
 node tests/back_bridge_review.cjs
 ```
 
 [저장소 검사기](../tools/verify_repository.py)는 실행 진입점에서의 리소스 도달성, 끊긴 참조, 짝이 없는 `.uid`/`.import`, 문서 링크와 `docs/`의 생성 산출물을 확인합니다. [race_test.gd](../tests/race_test.gd)는 투어·서킷·차량·니트로·충돌·CPU·노면·점프·드리프트·RPM·그래픽 품질·뒤로가기·3D 배치·터널·뱅킹 구조 회귀 검사를 실행합니다. Node 검사는 실제 HTML 셸의 설치·history 브리지를 DOM/history 모형으로 검사합니다.
+
+[fuji_geometry_checks.gd](../tests/fuji_geometry_checks.gd)는 실제 물리 공간의 광선으로 노면·교량·터널 충돌체를 검사합니다. [world_car_checks.gd](../tests/world_car_checks.gd)와 [fuji_world_checks.gd](../tests/fuji_world_checks.gd)는 실제 물리 프레임을 진행하며 조향·접지·입체 교차·정지·후진과 컨트롤러 분리를 확인합니다. 여러 차량을 연속 실행하는 검사는 `--fixed-fps 60`으로 시간 진행을 고정합니다. 수학적인 위치 샘플링만으로 물리 주행을 검증하지 않습니다.
+
+[world_rival_checks.gd](../tests/world_rival_checks.gd)는 정차 차량 추월·빈 차선 판단·후방 공간을 확인한 후진 복구를 실제 차체 간격과 함께 검사합니다. [circuit_drive_review.gd](../tests/circuit_drive_review.gd)는 세 차량을 직접 조향·제동해 각각 3랩을 달립니다. 명령 뒤 `-- 0`, `-- 1`, `-- 2`를 붙이면 차량별로 나누어 실행할 수 있습니다.
 
 검사 JSON과 캡처는 [report.gd](../tests/report.gd)를 통해 **`build/reports/`**에 생성하며 커밋하지 않습니다. 수치와 캡처가 필요하면 해당 검사로 다시 생성합니다. `tests/`의 독립 주행·오디오·시각 검사는 각 범위 확인용이며, 그래픽 검사는 실제 디스플레이가 필요합니다. 네이티브 렌더 제출 수나 브라우저 모의 검사를 휴대폰 프레임률로 해석하지 않습니다. 실제 안드로이드 뒤로가기·오디오·터널 프레임 간격은 실기기에서 추가로 확인합니다.
 

@@ -42,7 +42,7 @@ static func shoulders(section: Node3D) -> void:
 			var a: float = section.length*i/steps
 			var b: float = section.length*(i+1)/steps
 			if a < 150 and side == -section.entry_side: continue
-			if section.in_tunnel((a+b)*0.5) or section.excavation_depth((a+b)*0.5) > 0.05: continue
+			if section.in_tunnel((a+b)*0.5) or section.excavation_depth((a+b)*0.5) > 0.05 or section.on_bridge((a+b)*0.5): continue
 			var left: float = section.half_width(a)+0.42
 			var right: float = section.half_width(b)+0.42
 			var outer_a: float = section.half_width(a)+section.rail_setback(a,side)+1.3
