@@ -34,6 +34,15 @@ func run(tree: SceneTree) -> int:
 	await tree.physics_frame
 	await tree.physics_frame
 	var space: PhysicsDirectSpaceState3D = track.get_world_3d().direct_space_state
+	check(section.features.filter(func(f): return f.kind == "boost").size() >= 5,"Fuji must offer boost opportunities throughout the course")
+	var ramps: Array = section.features.filter(func(f): return f.kind == "ramp")
+	check(ramps.size() >= 3,"Fuji must include multiple optional jumps")
+	for ramp in ramps:
+		for fraction in [0.25,0.5,0.75]:
+			var d: float = ramp.distance-ramp.length*0.5+ramp.length*fraction
+			var p: Vector3 = section.point(d,ramp.lane)
+			var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(p+Vector3.UP*(ramp.height+1),p-Vector3.UP,1))
+			check(not hit.is_empty() and absf(hit.position.y-p.y-ramp.height*fraction-0.025) < 0.06,"Every separately named ramp must have a real sloping collision surface matching its visible mesh")
 	var samples := 0
 	for d in [80.0,section.length*0.22,section.underpass_span().x+120,section.bridge_lower_distance,section.bridge_upper_distance,section.length*0.9]:
 		for lane in [-4.0,0.0,4.0]:

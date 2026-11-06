@@ -27,11 +27,23 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 	if section.closed_loop or section.stage%2 == 0:
 		var ramp_d := gentle_distance(section,section.length*0.33) if section.course_id == 1 else (220.0 if section.closed_loop else gentle_distance(section,950+section.stage*90+section.route_node*20))
 		specifications.append(["ramp",ramp_d,side*0.5,16.0,3.8])
+	if section.closed_loop and section.course_id == 0:
+		# Fuji: launch-straight, cutting approach, viaduct and return-road boosts.
+		# The paired pads leave enough run-up before each optional jump and an
+		# unobstructed lane beside it. The cutting jump lands before the tunnel.
+		specifications.append_array([
+			["boost",150.0,-0.50,24.0,4.2],
+			["boost",2420.0,-0.34,26.0,4.2],
+			["ramp",2460.0,-0.34,20.0,4.6,1.35],
+			["boost",3950.0,0.36,26.0,4.2],
+			["ramp",4030.0,0.36,22.0,4.6,1.55],
+			["boost",4850.0,-0.42,26.0,4.2]
+		])
 	for i in range(specifications.size()):
 		var spec: Array = specifications[i]
 		var d: float = spec[1]
 		out.append({"id":"%d:%d:%d" % [section.stage,section.route_node,i],"kind":spec[0],"distance":d,"lane":float(spec[2])*section.half_width(d),"length":spec[3],"width":spec[4]})
-		if spec[0] == "ramp": out[-1]["height"] = 0.75
+		if spec[0] == "ramp": out[-1]["height"] = float(spec[5]) if spec.size() > 5 else 0.75
 	return out
 
 static func lane_cost(section: Node3D, distance: float, lane: float) -> float:
@@ -122,6 +134,7 @@ static func build_ramp(section: Node3D, feature: Dictionary) -> void:
 	st.generate_normals()
 	var node := MeshInstance3D.new()
 	node.name = "JumpRamp"
+	node.set_meta("world_ground",true)
 	node.mesh = st.commit()
 	node.material_override = section.material(Color("3a4447"))
 	section.add_child(node)
