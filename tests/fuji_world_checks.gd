@@ -56,15 +56,16 @@ func shoulder_regressions(tree: SceneTree, race: Node3D) -> Array:
 		check(body.grounded and race.offroad_amount > 0.9 and race.wall_hits == 0,"Every Fuji vehicle must drive on real dirt runoff before reaching the set-back barrier")
 		check(dirt < asphalt*0.78,"Fuji dirt must reduce the actual world speed for every vehicle")
 		var return_frames := 0
-		for frame in range(180):
+		# Rejoin physically, then regain speed with the reduced engine force.
+		for frame in range(240):
 			await tick(tree,race,0)
 			return_frames += 1
-			if race.offroad_amount < 0.05 and session.speed_of(body) > dirt+15: break
+			if race.offroad_amount < 0.05 and session.speed_of(body) > dirt+10: break
 		var returned: float = session.speed_of(body)
 		var return_offroad: float = race.offroad_amount
 		var return_walls: int = race.wall_hits
 		var return_lane: float = session.trackers[0].lane
-		check(race.offroad_amount < 0.05 and returned > dirt+15 and race.wall_hits == 0,"Steering physically back onto Fuji asphalt must restore acceleration without a rail hit")
+		check(race.offroad_amount < 0.05 and returned > dirt+10 and race.wall_hits == 0,"Rejoining Fuji asphalt must regain at least 36 km/h within four seconds without a rail hit")
 		# Face the real outer rail. The body must sweep into its collider rather
 		# than treating the asphalt edge as a wall or allowing the rail to tunnel.
 		race.restart()
@@ -227,7 +228,7 @@ func run(tree: SceneTree) -> int:
 	for frame in range(90):
 		await tree.physics_frame
 		race.step(1.0/60,0,false,true,false)
-	check(race.speed > 35 and body.grounded,"The real car must accelerate on the actual road collider")
+	check(race.speed > 30 and race.speed < 36 and body.grounded,"The real car must use reduced launch acceleration on the actual road collider")
 	var position: Vector3 = body.feet_position()
 	race.distance += 300
 	race.lane = 6

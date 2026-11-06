@@ -820,7 +820,24 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	boosting = nitro_active or pad_active or (draft_charge > 0.65 and throttling and not drifting and impact < 0.15)
 	if boosting and not was_boosting: boost_kick = 0.35
 	var grip: float = ((vehicle.drift_grip if drifting else vehicle.grip)+track.active.banking_grip(distance))*surface.grip_factor*lerpf(1,0.72,offroad_amount)
-	var corner_demand := absf(curve)*speed*speed
+	var demand := absf(curve) * speed * speed
+	var excess := maxf(0,demand-grip)
+	var authority := clampf(1-excess/(grip*2),0.38,1)
+	if mode == "tour":
+		# Loaded front tyres need braking before a fast bend. Straight slalom
+		# response and low-speed steering retain their full authority.
+		var loaded := smoothstep(0.45,1.2,demand/maxf(grip,1))*smoothstep(35,70,speed)
+		authority *= lerpf(1,0.72,loaded)
+	var outward := signf(curve) * (demand * 0.055 + excess * 1.6)
+	var steering_scale := lerpf(1,0.86,smoothstep(35,85,speed))
+	var lateral: float = steer * steering_scale * (vehicle.drift_steer_speed if drifting else vehicle.steer_speed) * minf(speed/20,1) * authority + outward
+	if air.active: lateral = lane_velocity+steer*delta*3.0
+	var next_lane_velocity := move_toward(lane_velocity,lateral,delta*(vehicle.lateral_drift if drifting else vehicle.lateral_grip)*surface.lateral_factor)
+	# Lane changes load the tyres while changing direction and sliding sideways.
+	# Use actual motion: an input at rest or an airborne turn adds no tyre drag.
+	var lane_load := Vector2(absf(next_lane_velocity-lane_velocity)/delta*0.4,absf(next_lane_velocity)*1.1).length()
+	var corner_demand := Vector2(demand,lane_load).length()
+	lane_velocity = next_lane_velocity
 	if brake: speed = move_toward(speed,0,delta*vehicle.brake)
 	elif not gas: speed = move_toward(speed,0,delta*5)
 	elif drifting:
@@ -839,20 +856,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		speed = move_toward(speed,cap,delta*acceleration)
 	speed = maxf(0,speed-delta*10*offroad_amount)
 	if not air.active:
-		speed = maxf(0,speed-delta*Corner.loss_rate(speed,absf(curve)*speed*speed,grip,slip_angle,drifting))
-	var demand := absf(curve) * speed * speed
-	var excess := maxf(0,demand-grip)
-	var authority := clampf(1-excess/(grip*2),0.38,1)
-	if mode == "tour":
-		# Loaded front tyres need braking before a fast bend. Straight slalom
-		# response and low-speed steering retain their full authority.
-		var loaded := smoothstep(0.45,1.2,demand/maxf(grip,1))*smoothstep(35,70,speed)
-		authority *= lerpf(1,0.72,loaded)
-	var outward := signf(curve) * (demand * 0.055 + excess * 1.6)
-	var steering_scale := lerpf(1,0.86,smoothstep(35,85,speed))
-	var lateral: float = steer * steering_scale * (vehicle.drift_steer_speed if drifting else vehicle.steer_speed) * minf(speed/20,1) * authority + outward
-	if air.active: lateral = lane_velocity+steer*delta*3.0
-	lane_velocity = move_toward(lane_velocity,lateral,delta*(vehicle.lateral_drift if drifting else vehicle.lateral_grip)*surface.lateral_factor)
+		speed = maxf(0,speed-delta*Corner.loss_rate(speed,corner_demand,grip,slip_angle,drifting))
 	lane += lane_velocity*delta
 	var limits := track.lane_limits(distance)
 	var radius := Contact.HALF_WIDTH * absf(cos(slip_angle)) + Contact.HALF_LENGTH * absf(sin(slip_angle))

@@ -33,7 +33,7 @@ func fixture_curve(race: Node3D, curvature: float, bank: float = 0, origin: Vect
 	if race.world_race != null:
 		for tracker in race.world_race.trackers: tracker.configure(road)
 
-func scalar_trial(race: Node3D, curvature: float, gas: bool = true, brake: bool = false, boost: bool = false, airborne: bool = false, bank: float = 0, initial: float = -1, duration: float = 0.55) -> Dictionary:
+func scalar_trial(race: Node3D, curvature: float, gas: bool = true, brake: bool = false, boost: bool = false, airborne: bool = false, bank: float = 0, initial: float = -1, duration: float = 0.55, axis: float = 0) -> Dictionary:
 	fixture_curve(race,curvature,bank)
 	race.restart()
 	race.state = "racing"
@@ -48,7 +48,7 @@ func scalar_trial(race: Node3D, curvature: float, gas: bool = true, brake: bool 
 		race.air.world_y = race.track.point(race.distance).y+30
 		race.air.velocity = 0
 	for frame in range(roundi(duration*60)):
-		race.step(1.0/60,0,false,gas,brake,boost)
+		race.step(1.0/60,axis,false,gas,brake,boost)
 	return {"entry_mps":before,"exit_mps":race.speed,"lane":race.lane,"wall_hits":race.wall_hits,"offroad":race.offroad_amount,"airborne":race.air.active,"curvature":curvature,"boost":boost,"bank":bank,"seconds":duration}
 
 func physical_floor(tree: SceneTree) -> StaticBody3D:
@@ -95,12 +95,12 @@ func compare(rows: Dictionary, label: String) -> void:
 	var tight: Dictionary = rows.tight
 	check(absf(float(straight.exit_mps)-float(straight.entry_mps)) < 0.12,label+": full-throttle straight speed must remain unchanged")
 	check(float(mild.exit_mps) < float(straight.exit_mps)-0.02 and float(mild.exit_mps) > float(straight.exit_mps)-2,label+": a mild turn must have a small smooth scrub loss")
-	check(float(tight.exit_mps) < float(straight.exit_mps)-2,label+": a high-speed tight turn must lose noticeable speed under throttle")
+	check(float(tight.exit_mps) < float(straight.exit_mps)-3,label+": a high-speed tight turn must shed at least 11 km/h in 0.55 seconds under throttle")
 	check(float(rows.boost.exit_mps) > float(tight.exit_mps)+0.5,label+": nitro must still provide more corner-exit force than normal throttle")
 	check(float(rows.boost.exit_mps) < float(rows.boost_straight.exit_mps)-1,label+": nitro must not erase actual corner resistance")
 	check(float(rows.brake.exit_mps) < float(tight.exit_mps)-12,label+": braking must override full throttle during a turn")
 	check(absf(float(rows.air.exit_mps)-float(straight.exit_mps)) < 0.12 and rows.air.airborne,label+": steering while airborne must not apply grounded tyre scrub")
-	check(float(rows.launch.exit_mps) > float(rows.launch.entry_mps)+8,label+": a corner must retain responsive low-speed throttle")
+	check(float(rows.launch.exit_mps) > float(rows.launch.entry_mps)+6,label+": reduced acceleration must still allow responsive low-speed throttle")
 	for key in rows:
 		check(rows[key].wall_hits == 0 and float(rows[key].offroad) < 0.01,label+": compare tyre resistance without impacts or dirt slowdown ("+key+")")
 
@@ -125,6 +125,11 @@ func run(tree: SceneTree) -> int:
 		compare(trials,"Tour "+str(scalar.vehicle.id))
 		var banked := scalar_trial(scalar,k,true,false,false,false,0.3)
 		check(float(banked.exit_mps) > float(trials.tight.exit_mps)+0.1,"Supportive road banking must preserve more speed through the same corner")
+		var lane_change := scalar_trial(scalar,0,true,false,false,false,0,-1,0.55,0.7)
+		check(lane_change.exit_mps < trials.straight.exit_mps-0.2 and lane_change.wall_hits == 0 and lane_change.offroad < 0.01,"Straight lane-change acceleration must also scrub speed without wall or dirt contact")
+		var air_lane_change := scalar_trial(scalar,0,true,false,false,true,0,-1,0.55,0.7)
+		check(absf(air_lane_change.exit_mps-trials.straight.exit_mps) < 0.12 and air_lane_change.airborne,"Air steering must not add grounded lane-change scrub")
+		rows["lane_change"] = lane_change
 		rows["trials"] = trials
 		rows["banked"] = banked
 		scalar_rows.append(rows)

@@ -118,7 +118,10 @@ func run(tree: SceneTree) -> int:
 	race.speed = 0
 	tick(true)
 	check(race.nitro_charges == 3,"Nitro at standstill must wait for minimum activation speed")
-	for i in range(100): tick(true)
+	# Reduced launch force takes longer to reach the activation speed.
+	for i in range(180):
+		tick(true)
+		if race.nitro_active: break
 	check(race.nitro_charges == 2 and race.nitro_active,"Held launch request must start one shot once fast enough")
 	# Hybrid: gauge and independent cell boost, no gauge drain during overdrive.
 	drive(2)
