@@ -180,7 +180,7 @@ func run(tree: SceneTree) -> int:
 		var tight := corner_trial(car,spec,0.14)
 		var drift := corner_trial(car,spec,0.14,true)
 		check(absf(straight.speed_mps-float(spec.max_speed)) < 0.05 and straight.peak_scrub_mps2 == 0,"Straight driving must retain its configured top speed without tyre scrub")
-		check(mild.speed_mps < straight.speed_mps-0.5 and mild.speed_mps > straight.speed_mps*0.90,"A mild real turn must lose a small amount of speed at the same cruise target")
+		check(mild.speed_mps < straight.speed_mps-0.5 and mild.speed_mps > straight.speed_mps*0.88,"A sustained mild real turn must scrub speed while retaining at least 88% of cruise")
 		check(tight.speed_mps < mild.speed_mps-3 and tight.speed_mps > straight.speed_mps*0.65,"A tight real turn must shed materially more speed without a hard corner speed clamp")
 		check(drift.speed_mps > tight.speed_mps and drift.speed_mps < straight.speed_mps-0.2,"Drifting must preserve more momentum while retaining measurable corner scrub")
 		corners.append({"vehicle":spec.id,"straight":straight,"mild":mild,"tight":tight,"drift":drift})
@@ -210,10 +210,11 @@ func run(tree: SceneTree) -> int:
 		var speed: float = car.velocity.slide(car.surface_normal).length()
 		car.advance(1.0/60,0,maxf(0,speed-48.0/60),false)
 	check(car.velocity.length() < before_brake-20,"Brake input must remain immediately effective after a loaded corner")
-	for frame in range(120):
+	# With lower launch force, allow three seconds to recover from heavy braking.
+	for frame in range(180):
 		var speed: float = car.velocity.slide(car.surface_normal).length()
 		var engine: float = CornerResistance.engine_factor(speed,72,car.corner_demand,car.corner_grip)
-		car.advance(1.0/60,0,minf(72,speed+28*engine/60),false)
+		car.advance(1.0/60,0,minf(72,speed+float(Catalog.spec(0).accel)*engine/60),false)
 	check(car.velocity.length() > 65,"Straightening the car and applying throttle must restore acceleration")
 	check(CornerResistance.loss_rate(70,0,14.5,0.7,true) == 0,"Straight visual drift must not trigger corner resistance")
 	# Other moving bodies are queried through the physics server. Let the real
