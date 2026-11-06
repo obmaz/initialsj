@@ -39,3 +39,7 @@ DRIFT/Space now toggles entry and exit, with a 0.55 s steering-entry window and 
 The tacho has a segmented RPM fill, bounded idle/redline and automatic gear changes. Gauge, gear display and audio pitch use the same shared calculation. Pause/result dialogs remove key instructions; the control reference remains in Settings.
 
 Lighting combines a warm shadowed key and a cool fill excluded from sky rendering. Exposure is restrained, and the ridge tunnel reduces ambient/fill while nearby warm lamps and the player's headlights illuminate actual geometry. Local lights are distance limited and do not cast extra dynamic shadows. Steep lakeside terrain uses rock shading. New course geometry is included in independent world-space contact review: 324 cases now pass, including hairpins and S bends.
+
+Pine and cherry sprites now cast alpha-cutout directional shadows onto the actual ground/road, while their soft contact shadows remain. Controlled start, climb and hairpin captures were reviewed with the existing key/fill lighting.
+
+The exported-browser audio review explicitly enters the race before recording and checks nonzero loop gain, changing pitch and actual mute gains. A public-page capture analyzed at 24 kHz had zero clipped samples and zero silent 100 ms windows across its recorded driving interval; see `audio-metrics.json`.

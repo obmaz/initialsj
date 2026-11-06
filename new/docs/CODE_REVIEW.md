@@ -55,3 +55,7 @@ P2: brake canceled the entire drift immediately, discarding corner grip during t
 P3: collision orientation used a one-sided two-metre tangent and a sloped forward projection, while rendered cars use symmetric tangents. Newly added hairpin cases exposed up to 0.085 m² of residual world-space body overlap. Use the rendered symmetric lane tangent and a horizontal collision plane. Independent polygon intersections now pass 324 Tour/circuit cases, worst residual 0.002 m².
 
 RPM now has a real segmented fill driven by the same idle/gear/redline calculation as audio pitch. The pause dialog drops key explanations. The 4.36 km circuit adds elevation, straights, turns of both signs and a real shaded tunnel; mode tests cover those broad course requirements and tunnel bounds. Updated record keys preserve old course times without comparing them with the new layout.
+
+## Browser audio verification follow-up
+
+P3: the audio review still pressed Enter once after the mode menu was added, so it could record a silent garage and pass merely because loop sources existed. Enter home and garage separately, wait for active driving gain before recording, require changing engine playback rate, and verify both gains fall to zero on mute. Recording timestamps now share the recorder-start callback. The public-page capture's recorded driving interval passes peak/clipping and 100 ms continuity analysis; intentional mute is excluded.
