@@ -46,6 +46,7 @@ func _ready() -> void:
 	landmarks.scenery = self
 	add_child(landmarks)
 	make_underpass()
+	make_bridge()
 
 func terrain_band(inner: float, outer: float, mat: Material) -> void:
 	var st := SurfaceTool.new()
@@ -53,6 +54,7 @@ func terrain_band(inner: float, outer: float, mat: Material) -> void:
 	for i in range(450):
 		var a: float = track.length * i / 450.0
 		var b: float = track.length * (i + 1) / 450.0
+		if track.on_bridge((a+b)*0.5): continue
 		var points := [terrain_point(a, inner), terrain_point(a, outer), terrain_point(b, inner), terrain_point(b, outer)]
 		for index in [0, 2, 1, 1, 2, 3]:
 			st.add_vertex(points[index])
@@ -60,6 +62,7 @@ func terrain_band(inner: float, outer: float, mat: Material) -> void:
 	var node := MeshInstance3D.new()
 	node.mesh = st.commit()
 	node.material_override = mat
+	node.set_meta("world_ground",true)
 	add_child(node)
 
 func make_water() -> void:
@@ -88,7 +91,7 @@ func make_trees() -> void:
 	var placements: Array[Dictionary] = []
 	for i in range(120):
 		var d: float = i*track.length/120+rng.randf_range(-3,3)
-		if track.in_tunnel(d) or track.excavation_depth(d) > 0.2: continue
+		if track.in_tunnel(d) or track.excavation_depth(d) > 0.2 or track.on_bridge(d): continue
 		var kind := "sakura" if i%4 == 0 else ("japanese_pine" if i%3 == 0 else "pine")
 		var scale := rng.randf_range(0.75,1.3)
 		var radius: float = Props.radius(kind)*scale
@@ -112,7 +115,7 @@ func make_underpass() -> void:
 	var walls: Array[Transform3D] = []
 	var roofs: Array[Transform3D] = []
 	var seams: Array[Transform3D] = []
-	var start: float = track.length*0.56
+	var start: float = track.underpass_span().x
 	for i in range(int(ceil(620.0/6))):
 		var d := start-190+i*6+3
 		var depth: float = track.excavation_depth(d)
@@ -150,6 +153,8 @@ func make_underpass() -> void:
 		var node := MultiMeshInstance3D.new()
 		node.multimesh = multi
 		node.material_override = group[1]
+		node.set_meta("world_barrier",true)
+		node.set_meta("collision_transforms",group[0])
 		add_child(node)
 	tunnel_light_rig = preload("res://scripts/tunnel_lights.gd").new()
 	tunnel_light_rig.track = track
@@ -168,3 +173,53 @@ func make_underpass() -> void:
 
 func set_shadow_quality(_enabled: bool) -> void:
 	for node in tree_batches: node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+# The viaduct remains open below; no terrain ribbon spans the lower road.
+func bridge_batch(label: String, transforms: Array[Transform3D], tint: Color) -> void:
+	var multi := MultiMesh.new()
+	multi.transform_format = MultiMesh.TRANSFORM_3D
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3.ONE
+	multi.mesh = mesh
+	multi.instance_count = transforms.size()
+	for i in range(transforms.size()): multi.set_instance_transform(i,transforms[i])
+	var node := MultiMeshInstance3D.new()
+	node.name = label
+	node.multimesh = multi
+	node.material_override = track.material(tint)
+	node.set_meta("world_barrier",true)
+	node.set_meta("collision_transforms",transforms)
+	add_child(node)
+func make_bridge() -> void:
+	var span: Vector2 = track.bridge_span
+	if span.y <= span.x: return
+	var decks: Array[Transform3D] = []
+	var piers: Array[Transform3D] = []
+	var edges: Array[Transform3D] = []
+	var steps := int(ceil((span.y-span.x)/6))
+	for i in range(steps):
+		var d: float = lerpf(span.x,span.y,(i+0.5)/steps)
+		var basis: Basis = preload("res://scripts/fuji_collision.gd").frame(track,d)
+		var width: float = track.half_width(d)+1.5
+		decks.append(Transform3D(basis.scaled_local(Vector3(width*2+0.7,1.4,(span.y-span.x)/steps+0.3)),track.point(d)-basis.y*0.92))
+		for side in [-1.0,1.0]:
+			edges.append(Transform3D(basis.scaled_local(Vector3(0.55,1.9,(span.y-span.x)/steps+0.3)),track.point(d,side*(width+0.6))-basis.y*1.1))
+		if i%8 != 0: continue
+		for side in [-1.0,1.0]:
+			var p: Vector3 = track.point(d,side*(width-0.5))
+			var clear := true
+			# Actual other road footprints decide pier clearance, not just the
+			# hand-authored crossing centre. This also protects nearby approaches.
+			for sample in range(500):
+				var at: float = track.length*sample/500
+				if at > span.x-80 and at < span.y+80: continue
+				var road: Vector3 = track.point(at)
+				if Vector2(p.x-road.x,p.z-road.z).length() < track.half_width(at)+5:
+					clear = false
+					break
+			if not clear: continue
+			var height := maxf(1,p.y-1.6+2)
+			piers.append(Transform3D(Basis.IDENTITY.scaled(Vector3(2.2,height,2.6)),Vector3(p.x,-2+height*0.5,p.z)))
+	bridge_batch("BridgeDeck",decks,Color("758087"))
+	bridge_batch("BridgeEdgeBeams",edges,Color("596b78"))
+	bridge_batch("BridgePiers",piers,Color("99a39b"))

@@ -1,0 +1,417 @@
+extends Node3D
+# Fuji alone uses world-space car bodies. Road coordinates are race telemetry.
+const WorldCar = preload("res://scripts/world_car.gd")
+const Progress = preload("res://scripts/circuit_progress.gd")
+const Nitro = preload("res://scripts/nitro_system.gd")
+var race: Node3D
+var player_body: CharacterBody3D
+var bodies: Array[CharacterBody3D] = []
+var trackers: Array[RefCounted] = []
+var reverse_wait := 0.0
+var reversing := false
+var recovery_clock := 0.0
+var safe_distance := 80.0
+var safe_lane := -3.2
+var airborne_time := 0.0
+var landing_velocity := 0.0
+var wrong_way_time := 0.0
+
+func setup() -> void:
+	for i in range(8):
+		var body: CharacterBody3D = WorldCar.new()
+		body.name = "PlayerWorldBody" if i == 0 else "RivalWorldBody"+str(i)
+		add_child(body)
+		bodies.append(body)
+		var tracker: RefCounted = Progress.new()
+		tracker.configure(race.track.active)
+		trackers.append(tracker)
+	player_body = bodies[0]
+
+func shutdown() -> void:
+	# A queued old scene must not leave colliders in the next mode's first frame.
+	for body in bodies:
+		body.collision_layer = 0
+		body.collision_mask = 0
+
+func road_up(d: float) -> Vector3:
+	var forward: Vector3 = (race.track.point(d+1)-race.track.point(d-1)).normalized()
+	var right: Vector3 = (race.track.point(d,1)-race.track.point(d,-1)).normalized()
+	return right.cross(forward).normalized()
+
+func reset() -> void:
+	reverse_wait = 0
+	reversing = false
+	recovery_clock = 0
+	airborne_time = 0
+	landing_velocity = 0
+	wrong_way_time = 0
+	safe_distance = 80
+	safe_lane = -3.2
+	for i in range(bodies.size()):
+		var d: float = 80 if i == 0 else race.rivals[i-1].distance
+		var lane: float = -3.2 if i == 0 else race.rivals[i-1].lane
+		bodies[i].configure(race.vehicle)
+		teleport(i,d,lane)
+
+func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = true) -> void:
+	var feet: Vector3 = race.track.point(d,lane)+road_up(d)*0.04
+	var forward: Vector3 = race.track.point(d+2,lane)-race.track.point(d-2,lane)
+	bodies[index].reset_pose(feet,forward,road_up(d))
+	if reset_progress: trackers[index].reset(d)
+	else: trackers[index].reposition(d)
+	trackers[index].lane = lane
+	if index == 0:
+		race.distance = d
+		race.lane = lane
+		race.speed = 0
+		race.air.reset()
+		airborne_time = 0
+		landing_velocity = 0
+		wrong_way_time = 0
+		race.player.reset_physics_interpolation()
+		race.camera.reset_physics_interpolation()
+	else:
+		var rival: Dictionary = race.rivals[index-1]
+		rival.distance = d
+		rival.lane = lane
+		rival.target_lane = lane
+		rival.decision = 0
+		rival.world_stuck = 0.0
+		rival.world_reverse = 0.0
+		rival.world_reverse_cooldown = 0.0
+		rival.world_reverse_axis = 0.0
+
+func speed_of(body: CharacterBody3D) -> float:
+	return Vector2(body.velocity.x,body.velocity.z).length()
+
+func frame(body: CharacterBody3D, visual: Node3D) -> Transform3D:
+	# Authored body offsets differ between selected cars and traffic models.
+	return Transform3D(body.global_basis,body.feet_position()-body.surface_normal*visual.ride_offset)
+
+func place_cars() -> void:
+	race.player.global_transform = frame(player_body,race.player)
+	race.player.body.rotation.y = 0
+	for i in range(1,bodies.size()):
+		var rival: Dictionary = race.rivals[i-1]
+		rival.car.global_transform = frame(bodies[i],rival.car)
+		rival.car.body.rotation.y = 0
+		rival.car.visible = rival.active and bodies[i].position.distance_to(player_body.position) < 460
+		rival.car.set_detail(bodies[i].position.distance_to(player_body.position))
+	for i in range(7,race.rivals.size()): race.rivals[i].car.visible = false
+
+func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool, cell_input: bool) -> void:
+	for i in range(1,bodies.size()):
+		var layer := 4 if race.rivals[i-1].active else 0
+		if bodies[i].collision_layer != layer:
+			bodies[i].collision_layer = layer
+			bodies[i].collision_mask = 7 if layer else 0
+	var old_position := Vector2(race.lane,race.distance)
+	var old_gaps: Array[float] = []
+	for i in range(7): old_gaps.append(race.relative_gap(race.rivals[i].distance,race.distance))
+	var was_airborne: bool = race.air.active
+	race.elapsed += delta
+	for field in ["near_miss_flash","overtake_flash","checkpoint_flash","launch_flash"]:
+		race.set(field,maxf(0,float(race.get(field))-delta))
+	race.impact = maxf(0,race.impact-delta*3.5)
+	race.impact_age += delta
+	race.bump_cooldown = maxf(0,race.bump_cooldown-delta)
+	race.boost_kick = maxf(0,race.boost_kick-delta*2)
+	race.surface.tick(delta,brake,race.impact)
+	gas = gas or nitro_input or (cell_input and race.vehicle.mode == "hybrid") or race.nitro_burst_left > 0 or race.surface.pad_time > 0
+	race.throttling = gas and not brake
+	race.braking = brake
+	race.steer = move_toward(race.steer,axis,delta*race.vehicle.steer_rate)
+	update_drift(delta,drift_input,brake,gas)
+	race.drafting = false
+	for i in range(1,bodies.size()):
+		if not race.rivals[i-1].active: continue
+		var relative := bodies[i].position-player_body.position
+		var forward: Vector3 = player_body.forward_direction()
+		if relative.dot(forward) > 8 and relative.dot(forward) < 65 and relative.cross(forward).length() < 2.4:
+			race.drafting = true
+	race.draft_charge = move_toward(race.draft_charge,1 if race.drafting else 0,delta)
+	Nitro.update(race,delta,nitro_input,cell_input)
+	var cap: float = race.vehicle.max_speed+race.draft_charge*8
+	var accel: float = race.vehicle.accel
+	if race.nitro_active:
+		cap = race.vehicle.overdrive_speed if race.nitro_burst_left > 0 else race.vehicle.boost_speed
+		accel = race.vehicle.boost_accel
+	if race.pad_active:
+		cap = maxf(cap,race.pad_speed_cap())
+		accel = maxf(accel,race.vehicle.boost_accel+12)
+	cap *= lerpf(1,0.58,race.offroad_amount)
+	var target: float = move_toward(race.speed,cap,accel*delta) if gas else maxf(0,race.speed-5*delta)
+	if race.drifting: target = maxf(0,race.speed-delta*0.35)
+	if brake: target = maxf(0,race.speed-race.vehicle.brake*delta)
+	reverse_wait = reverse_wait+delta if brake and race.speed < 1.5 else 0.0
+	if not brake: reversing = false
+	if reverse_wait > 0.45: reversing = true
+	if reversing: target = -10
+	var signed_speed: float = player_body.velocity.dot(player_body.forward_direction())
+	if not reversing and signed_speed < -0.5: target = move_toward(signed_speed,0,(race.vehicle.brake if gas else 5)*delta)
+	var grip: float = race.surface.grip_factor*lerpf(1,0.72,race.offroad_amount)
+	var contacts: Array = player_body.advance(delta,race.steer,target,race.drifting,grip)
+	var data: Dictionary = trackers[0].update(player_body.feet_position(),delta)
+	race.distance = float(data.distance)
+	race.lane = float(data.lane)
+	race.speed = speed_of(player_body)
+	race.lane_velocity = player_body.velocity.dot(player_body.global_basis.x)
+	race.slip_angle = player_body.slip_angle
+	var outside := clampf((absf(race.lane)+0.8-race.track.half_width(race.distance))/1.6,0,1) if player_body.grounded else 0.0
+	race.offroad_amount = move_toward(race.offroad_amount,outside,delta*6)
+	update_air(delta,was_airborne)
+	if player_body.grounded and not was_airborne and data.valid:
+		for event in race.surface.contact(race.track.active,old_position,Vector2(race.lane,race.distance),race.speed,brake,race.impact):
+			if event == "boost":
+				player_body.velocity += player_body.forward_direction()*8
+				race.score += 50
+				race.boost_kick = 0.55
+			else:
+				player_body.velocity *= 0.96
+				if DisplayServer.get_name() != "headless": race.water_effect.burst(player_body.feet_position(),player_body.forward_direction(),race.motion_reduced)
+	for hit in contacts: impact(hit)
+	update_rivals(delta)
+	update_passes(old_gaps,old_position.y)
+	var road_forward: Vector3 = (race.track.point(race.distance+2)-race.track.point(race.distance-2)).normalized()
+	wrong_way_time = wrong_way_time+delta if player_body.velocity.dot(road_forward) < -5 and player_body.grounded else 0.0
+	race.boosting = race.nitro_active or race.pad_active or (race.draft_charge > 0.65 and race.throttling)
+	if race.drifting and player_body.grounded and race.offroad_amount < 0.15:
+		race.score += delta*race.speed*(2+race.drift_charge)
+	var laps: int = int(data.finished_laps)
+	if laps > race.laps_completed:
+		race.laps_completed = laps
+		race.last_lap = race.elapsed-race.lap_started
+		race.lap_started = race.elapsed
+		race.checkpoint_flash = 2
+		race.nitro = minf(100,race.nitro+25)
+		race.nitro_charges = mini(race.vehicle.charges,race.nitro_charges+1)
+		if laps >= 3: race.finish()
+	update_recovery(delta,data)
+	var curve: float = absf(race.track.curvature(race.distance+35))
+	race.recommended_speed = minf(race.vehicle.max_speed,sqrt(race.vehicle.grip*1.4/maxf(curve,0.0001)))
+	race.corner_warning = move_toward(race.corner_warning,clampf((race.speed-race.recommended_speed-4)/15,0,1),delta*3)
+
+func update_drift(delta: float, pressed: bool, brake: bool, gas: bool) -> void:
+	var tap: bool = pressed and not race.drift_previous_input
+	race.drift_previous_input = pressed
+	race.drift_pending = maxf(0,race.drift_pending-delta)
+	var ended: bool = tap and race.drift_latched
+	if ended: race.drift_latched = false; race.drift_pending = 0
+	elif tap: race.drift_pending = 0.55
+	if brake and not race.previous_brake: race.brake_armed = 0.45
+	race.brake_armed = maxf(0,race.brake_armed-delta)
+	if not ended and race.speed > 25 and absf(race.steer) > 0.2 and (race.drift_pending > 0 or (race.previous_brake and race.brake_armed > 0 and gas)):
+		race.drift_latched = true
+		race.drift_sign = signf(race.steer)
+		race.drift_pending = 0
+	if not player_body.grounded or race.speed < 22 or brake and absf(race.steer) < 0.14: race.drift_latched = false
+	if absf(race.steer) < 0.12 and absf(player_body.slip_angle) < 0.12:
+		race.drift_straight += delta
+		if race.drift_straight > 0.4: race.drift_latched = false
+	else: race.drift_straight = 0
+	var was: bool = race.drifting
+	race.drifting = race.drift_latched
+	if race.drifting: race.drift_charge += delta
+	elif was:
+		if race.drift_charge > 0.55: race.drifts_completed += 1
+		race.drift_charge = 0
+	race.previous_brake = brake
+
+func update_air(delta: float, was_airborne: bool) -> void:
+	race.air.landing_flash = maxf(0,race.air.landing_flash-delta)
+	race.air.active = not player_body.grounded
+	race.air.world_y = player_body.feet_position().y
+	race.air.height = maxf(0,race.air.world_y-race.track.point(race.distance,race.lane).y)
+	race.air.velocity = player_body.velocity.y
+	if race.air.active:
+		airborne_time += delta
+		landing_velocity = minf(landing_velocity,player_body.velocity.y)
+	if not was_airborne and race.air.active:
+		race.air.trick = player_body.velocity.y > 1.5 and race.speed > 20
+		if race.air.trick: race.air.launches += 1
+	if was_airborne and not race.air.active:
+		race.air.landings += 1
+		if airborne_time > 0.12 and landing_velocity < -1.5:
+			race.air.landing_flash = 0.65
+			race.air.landing_strength = clampf(-landing_velocity/14,0.25,1)
+			race.score += 100
+			if DisplayServer.get_name() != "headless": race.landing_dust.burst(player_body.feet_position(),race.motion_reduced)
+		airborne_time = 0
+		landing_velocity = 0
+
+func update_passes(old_gaps: Array[float], previous_distance: float) -> void:
+	if race.distance <= previous_distance or player_body.velocity.dot(player_body.forward_direction()) < 10: return
+	for i in range(7):
+		var rival: Dictionary = race.rivals[i]
+		if not rival.active: continue
+		var gap: float = race.relative_gap(rival.distance,race.distance)
+		var relative := bodies[i+1].position-player_body.position
+		if old_gaps[i] <= 0 or gap > 0 or relative.length() > 9 or absf(relative.y) > 1.5: continue
+		race.overtakes += 1
+		race.overtake_flash = 1
+		race.score += 100
+		var lateral := absf(relative.dot(player_body.global_basis.x))
+		if lateral > 2.15 and lateral < 3.8 and race.bump_cooldown <= 0:
+			race.near_misses += 1
+			race.near_miss_flash = 1.1
+			race.nitro = minf(100,race.nitro+12)
+			race.score += 150
+
+func impact(hit: Dictionary) -> void:
+	if race.bump_cooldown > 0: return
+	var normal: Vector3 = hit.normal
+	var forward: Vector3 = player_body.forward_direction()
+	var local := Vector2(normal.dot(player_body.global_basis.x),-normal.dot(forward))
+	if hit.collider is CharacterBody3D: race.traffic_hits += 1
+	else: race.wall_hits += 1
+	race.register_impact(smoothstep(2.5,65,float(hit.speed)),local,hit.point)
+
+func rival_lane(index: int, d: float, look: float, delta: float) -> float:
+	var rival: Dictionary = race.rivals[index-1]
+	var edge: float = minf(race.track.half_width(d),race.track.half_width(d+look))-1.5
+	rival.target_lane = clampf(float(rival.target_lane),-edge,edge)
+	rival.decision -= delta
+	if rival.decision > 0: return rival.target_lane
+	rival.decision = 0.24
+	var body := bodies[index]
+	var current: float = trackers[index].lane
+	var chosen: float = rival.target_lane
+	var best := INF
+	# Keep the chosen line between decisions instead of crossing both grid
+	# columns towards two hard-coded lanes. Outer lanes leave a full car margin.
+	for candidate in [chosen,clampf(current,-edge,edge),-edge*0.75,-edge*0.25,edge*0.25,edge*0.75]:
+		var cost: float = absf(candidate-current)*0.65+absf(candidate-float(rival.target_lane))*0.5
+		for j in range(bodies.size()):
+			if j == index or (j > 0 and not race.rivals[j-1].active): continue
+			var other := bodies[j]
+			var relative := other.position-body.position
+			if absf(relative.y) > 3 or relative.length_squared() > 110*110: continue
+			var gap: float = race.relative_gap(trackers[j].distance,d)
+			if gap < -20 or gap > 80: continue
+			var other_lane: float = trackers[j].lane
+			var clearance := absf(candidate-other_lane)
+			# Reject a lane change through a car alongside, including a fast car
+			# arriving from behind. A nearby leader can still be passed by first
+			# reversing into free physical space when there is no turning room.
+			var rear_reach := 6+maxf(0,speed_of(other)-speed_of(body))*0.6
+			if gap > -rear_reach and gap < 5.2 and other_lane > minf(current,candidate)-2.5 and other_lane < maxf(current,candidate)+2.5:
+				if absf(candidate-current) > 0.6: cost += 10000
+			if gap >= 0 and clearance < 3.6:
+				cost += (80-gap)*(3.6-clearance)*(1+clampf((speed_of(body)-speed_of(other))/15,0,2))
+			elif gap < 0 and clearance < 3.2:
+				cost += maxf(0,20+gap)*(3.2-clearance)*4
+		if cost < best:
+			best = cost
+			chosen = candidate
+	rival.target_lane = chosen
+	return chosen
+
+func rival_rear_clear(index: int) -> bool:
+	var body := bodies[index]
+	var forward: Vector3 = body.forward_direction()
+	var right: Vector3 = body.global_basis.x
+	for j in range(bodies.size()):
+		if j == index or (j > 0 and not race.rivals[j-1].active): continue
+		var relative := bodies[j].position-body.position
+		if absf(relative.y) > 3: continue
+		var behind := relative.dot(forward)
+		if behind < 1 and behind > -12 and absf(relative.dot(right)) < 3.2: return false
+	return true
+
+func update_rivals(delta: float) -> void:
+	for i in range(1,bodies.size()):
+		var rival: Dictionary = race.rivals[i-1]
+		if not rival.active: continue
+		var body := bodies[i]
+		var was_airborne: bool = rival.air.active
+		var d: float = trackers[i].distance
+		var look := clampf(speed_of(body)*0.65,15,48)
+		var target_lane := rival_lane(i,d,look,delta)
+		var target: Vector3 = race.track.point(d+look,target_lane)
+		var direction: Vector3 = target-body.feet_position()
+		var forward: Vector3 = body.forward_direction()
+		var right := Vector3(-forward.z,0,forward.x).normalized()
+		var angle := atan2(direction.dot(right),direction.dot(forward))
+		var wheel: float = (0.46+race.vehicle.handling*0.007)/(1+speed_of(body)*0.035)
+		var axis := clampf(atan(5.4*sin(angle)/look)/wheel,-1,1)
+		if absf(angle) > 1.1: axis = signf(angle)
+		rival.surface.tick(delta)
+		var target_speed: float = rival.pace+(18 if rival.surface.pad_time > 0 else 0)
+		if absf(angle) > 1.1: target_speed = minf(target_speed,10)
+		var dirt := clampf((absf(rival.lane)+0.8-race.track.half_width(d))/1.6,0,1)
+		target_speed *= lerpf(1,0.58,dirt)
+		for ahead in [0.0,25.0,55.0,95.0,145.0]:
+			var curve: float = absf(race.track.curvature(d+ahead))
+			var safe: float = sqrt(race.vehicle.grip*0.82/maxf(curve,0.0001))
+			target_speed = minf(target_speed,sqrt(safe*safe+2*28*ahead))
+		var blocked := false
+		for j in range(bodies.size()):
+			if j == i: continue
+			if j > 0 and not race.rivals[j-1].active: continue
+			var relative := bodies[j].position-body.position
+			var gap := relative.dot(forward)
+			if gap > 0 and gap < 40 and absf(relative.dot(right)) < 2.4 and absf(relative.y) < 3:
+				blocked = true
+				target_speed = minf(target_speed,sqrt(speed_of(bodies[j])*speed_of(bodies[j])+2*30*maxf(0,gap-7)))
+		rival.world_reverse_cooldown = maxf(0,float(rival.get("world_reverse_cooldown",0))-delta)
+		var reversing_cpu: float = maxf(0,float(rival.get("world_reverse",0))-delta)
+		var stuck: float = float(rival.get("world_stuck",0))+delta if body.grounded and speed_of(body) < 1.5 and (blocked or target_speed > 5) else 0.0
+		if stuck > 1.25 and reversing_cpu <= 0 and rival.world_reverse_cooldown <= 0 and rival_rear_clear(i):
+			reversing_cpu = 1.0
+			rival.world_reverse_cooldown = 4.0
+			rival.world_reverse_axis = -signf(target_lane-float(rival.lane))*0.65 if absf(rival.lane) < race.track.half_width(d)-3 else 0.0
+			stuck = 0
+		rival.world_stuck = stuck
+		rival.world_reverse = reversing_cpu
+		var signed_speed: float = body.velocity.dot(forward)
+		var desired := move_toward(speed_of(body),target_speed,delta*(race.vehicle.brake if target_speed < speed_of(body) else race.vehicle.accel))
+		if reversing_cpu > 0:
+			# A bounded physical manoeuvre, never a curve reposition or teleport.
+			# Check rear clearance again every frame as other traffic keeps moving.
+			if not rival_rear_clear(i): rival.world_reverse = 0; desired = 0
+			else:
+				desired = move_toward(signed_speed,-7,race.vehicle.brake*delta)
+				axis = float(rival.world_reverse_axis)
+		elif signed_speed < -0.5: desired = move_toward(signed_speed,0,race.vehicle.brake*delta)
+		body.advance(delta,axis,desired,false,rival.surface.grip_factor*lerpf(1,0.72,dirt))
+		var old := Vector2(rival.lane,rival.distance)
+		var data: Dictionary = trackers[i].update(body.feet_position(),delta)
+		rival.distance = data.distance
+		rival.lane = data.lane
+		rival.speed = speed_of(body)
+		rival.air.active = not body.grounded
+		rival.air.height = maxf(0,body.feet_position().y-race.track.point(rival.distance,rival.lane).y)
+		rival.air.velocity = body.velocity.y
+		rival.drifting = false
+		rival.visual_yaw = 0
+		if body.grounded and not was_airborne and data.valid:
+			for event in rival.surface.contact(race.track.active,old,Vector2(rival.lane,rival.distance),rival.speed):
+				if event == "water": body.velocity *= 0.96
+		rival.boosting = rival.surface.pad_time > 0
+		if body.feet_position().y < race.track.point(d).y-25: teleport(i,d,0,false)
+
+func update_recovery(delta: float, data: Dictionary) -> void:
+	if data.valid and player_body.grounded and absf(race.lane) < race.track.half_width(race.distance)-1:
+		safe_distance = race.distance
+		safe_lane = race.lane
+	var fallen: bool = player_body.feet_position().y < race.track.point(race.distance).y-25
+	recovery_clock = recovery_clock+delta if fallen else 0.0
+	if recovery_clock > 0.8:
+		teleport(0,safe_distance,safe_lane,false)
+		race.tire_trails.reset()
+		race.cancel_nitro()
+		recovery_clock = 0
+
+func update_camera(delta: float) -> void:
+	var forward: Vector3 = player_body.forward_direction()
+	var right := Vector3(-forward.z,0,forward.x).normalized()
+	var pace := clampf(race.speed/88,0,1)
+	var up := Vector3.UP.lerp(player_body.surface_normal,0.3).normalized()
+	var desired: Vector3 = -forward*(7.1+pace*0.9)+Vector3.UP*(3.0+race.camera_intro*1.5)
+	race.camera_intro = maxf(0,race.camera_intro-delta*0.8)
+	race.camera_offset = race.camera_offset.lerp(desired,1-exp(-delta*7))
+	var recoil: Vector3 = race.collision_camera_offset(forward,right)
+	race.camera.position = race.player.position+race.camera_offset+recoil
+	race.camera.look_at(race.player.position+forward*(5.0+pace*3.0)+up*0.8,up)
+	var fov: float = 68 if race.motion_reduced else 66+pace*17+(6 if race.boosting else 0)
+	race.camera.fov = lerpf(race.camera.fov,fov,1-exp(-delta*5))

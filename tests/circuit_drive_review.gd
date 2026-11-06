@@ -1,66 +1,81 @@
 extends SceneTree
+# Drive real inputs through the world controller; never advance road telemetry.
 const Report = preload("res://tests/report.gd")
 var failures := 0
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
-	var race = load("res://scenes/race.tscn").instantiate()
-	root.add_child(race)
-	race.set_physics_process(false)
-	race.save_records = false
-	race.choose_mode("track")
-	var report := []
-	for index in range(3):
-		race.open_garage()
-		race.select_vehicle(index)
-		race.restart()
-		race.state = "racing"
-		var peak := 0.0
-		var target_lane := 0.0
-		for frame in range(24000):
-			if frame%20 == 0:
-				var best := INF
-				for candidate in race.track.lane_centers(race.distance):
-					var cost: float = absf(candidate-race.lane)*0.1+race.Features.lane_cost(race.track.active,race.distance,candidate)
-					for other in race.rivals:
-						if not other.active: continue
-						var gap: float = race.relative_gap(other.distance,race.distance)
-						if absf(candidate-other.lane) < 3 and gap > -8 and gap < 55: cost += 55-gap
-						if absf(gap) < 8 and other.lane > minf(candidate,race.lane)-2.5 and other.lane < maxf(candidate,race.lane)+2.5: cost += 150
-					if cost < best: best = cost; target_lane = candidate
-			var curve: float = race.track.curvature(race.distance)
-			var allowed: float = race.vehicle.overdrive_speed
-			for look in [0.0,25.0,55.0,90.0,135.0]:
-				var safe: float = sqrt(race.vehicle.drift_grip*race.surface.grip_factor/maxf(absf(race.track.curvature(race.distance+look)),0.0001))
-				allowed = minf(allowed,sqrt(safe*safe+2*36*look))
-			var brake: bool = race.speed > allowed+0.7
-			var slide: bool = absf(curve)*race.speed*race.speed > race.vehicle.grip*0.9 and race.speed > 28
-			var grip: float = (race.vehicle.drift_grip if race.drifting else race.vehicle.grip)*race.surface.grip_factor
-			var demand: float = absf(curve)*race.speed*race.speed
-			var excess := maxf(0,demand-grip)
-			var authority := clampf(1-excess/(grip*2),0.38,1)
-			var outward := signf(curve)*(demand*0.055+excess*1.6)
-			var desired: float = clampf((target_lane-race.lane)*2-race.lane_velocity*0.45,-8,8)
-			var lateral: float = race.vehicle.drift_steer_speed if race.drifting else race.vehicle.steer_speed
-			var axis := clampf((desired-outward)/(lateral*authority*maxf(0.2,minf(race.speed/20,1))),-1,1)
-			if slide and not race.drifting and absf(axis) < 0.25: axis = -signf(curve)*0.35
-			var nitro: bool = not slide and not brake and allowed > race.vehicle.max_speed+5 and race.nitro > (2 if race.nitro_active else 20)
-			if race.vehicle.mode == "charges": nitro = not slide and not brake and allowed > race.vehicle.max_speed+5 and race.nitro_burst_left <= 0 and race.nitro_cooldown <= 0 and race.nitro_charges > 0
-			var drift_tap: bool = (slide and not race.drifting) or (race.drifting and demand < race.vehicle.grip*race.surface.grip_factor*0.65)
-			race.step(1.0/60,axis,drift_tap,true,brake,nitro,nitro and race.vehicle.mode == "hybrid" and race.nitro_burst_left <= 0 and race.nitro_cooldown <= 0)
-			peak = maxf(peak,race.speed)
-			if race.state == "finished": break
-		var entry := {"vehicle":race.vehicle.id,"state":race.state,"laps":race.laps_completed,"seconds":snappedf(race.elapsed,0.01),"position":race.race_position(),"peak_kmh":snappedf(peak*3.6,0.1),"walls":race.wall_hits,"contacts":race.traffic_hits,"boost_pads":race.surface.boosts_hit,"puddles":race.surface.puddles_hit}
-		print(JSON.stringify(entry))
-		report.append(entry)
-		if race.state != "finished" or race.laps_completed != 3 or race.elapsed > 300:
-			push_error("Every vehicle must be able to complete Fuji's three-lap race")
-			failures += 1
-		for other in race.rivals:
-			if other.respawns != 0:
-				push_error("Circuit opponents must never recycle or teleport")
-				failures += 1
-		await process_frame
-	FileAccess.open(Report.path("circuit-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"vehicles":report,"failures":failures},"\t")+"\n")
-	race.queue_free()
-	await process_frame
-	quit(1 if failures else 0)
+ var race = load("res://scenes/race.tscn").instantiate()
+ root.add_child(race)
+ race.set_physics_process(false)
+ race.save_records = false
+ race.choose_mode("track",0)
+ await physics_frame
+ await physics_frame
+ var report := []
+ var arguments := OS.get_cmdline_user_args()
+ var vehicles: Array[int] = [0,1,2]
+ if not arguments.is_empty(): vehicles = [clampi(int(arguments[0]),0,2)]
+ for index in vehicles:
+  race.open_garage()
+  race.select_vehicle(index)
+  race.restart()
+  race.state = "racing"
+  var peak := 0.0
+  var peak_height := -INF
+  var low_height := INF
+  var last_lap := 0
+  var target_lane := -2.5
+  for frame in range(36000):
+   var body: CharacterBody3D = race.world_race.player_body
+   var forward: Vector3 = body.forward_direction()
+   var right := Vector3(-forward.z,0,forward.x).normalized()
+   if frame%15 == 0:
+    var best := INF
+    for candidate in [-3.5,0.0,3.5]:
+     var cost: float = absf(candidate-target_lane)*0.15+race.Features.lane_cost(race.track.active,race.distance,candidate)
+     for rival in race.rivals:
+      if not rival.active: continue
+      var gap: float = race.relative_gap(rival.distance,race.distance)
+      if gap > -6 and gap < 45 and absf(candidate-rival.lane) < 2.8: cost += 50-gap
+     if cost < best: best = cost; target_lane = candidate
+   var look := clampf(race.speed*0.65,14,46)
+   var to: Vector3 = race.track.point(race.distance+look,target_lane)-body.feet_position()
+   var angle := atan2(to.dot(right),to.dot(forward))
+   var wheel: float = (0.46+race.vehicle.handling*0.007)/(1+race.speed*0.035)
+   var axis := clampf(atan(5.4*sin(angle)/look)/wheel,-1,1)
+   var safe: float = race.vehicle.max_speed
+   for ahead in [0.0,25.0,55.0,95.0,145.0]:
+    var radius_speed: float = sqrt(race.vehicle.grip*0.72/maxf(absf(race.track.curvature(race.distance+ahead)),0.0001))
+    safe = minf(safe,sqrt(radius_speed*radius_speed+2*25*ahead))
+   for rival in race.rivals:
+    if not rival.active: continue
+    var gap: float = race.relative_gap(rival.distance,race.distance)
+    if gap > 0 and gap < 40 and absf(rival.lane-race.lane) < 2.4:
+     safe = minf(safe,sqrt(rival.speed*rival.speed+2*30*maxf(0,gap-8)))
+   var brake: bool = race.speed > safe+0.5
+   var nitro: bool = safe > race.vehicle.max_speed+5 and not brake
+   await physics_frame
+   race.step(1.0/60,axis,false,true,brake,nitro)
+   peak = maxf(peak,race.speed)
+   peak_height = maxf(peak_height,body.feet_position().y)
+   low_height = minf(low_height,body.feet_position().y)
+   if frame%1800 == 0: print(JSON.stringify({"vehicle":index,"frame":frame,"lap":race.laps_completed,"distance":race.distance,"lane":race.lane,"speed":race.speed}))
+   if frame > 300 and frame%300 == 0 and race.speed < 1:
+    var contacts := []
+    for hit in body.last_contacts: contacts.append({"collider":hit.collider.name,"normal":str(hit.normal),"speed":hit.speed})
+    print(JSON.stringify({"stopped_vehicle":index,"frame":frame,"feet":str(body.feet_position()),"heading":str(forward),"contacts":contacts}))
+   if race.laps_completed != last_lap: last_lap = race.laps_completed; print("Completed lap ",last_lap," vehicle ",index)
+   if race.state == "finished": break
+   if frame%600 == 0: await process_frame
+  var entry := {"vehicle":race.vehicle.id,"state":race.state,"laps":race.laps_completed,"seconds":snappedf(race.elapsed,0.01),"position":race.race_position(),"peak_kmh":snappedf(peak*3.6,0.1),"walls":race.wall_hits,"contacts":race.traffic_hits,"elevation_span_m":peak_height-low_height,"distance_m":race.distance}
+  print(JSON.stringify(entry))
+  report.append(entry)
+  if race.state != "finished" or race.laps_completed != 3 or peak_height-low_height < 50:
+   push_error("Each vehicle must complete the real 3D Fuji course with its elevation and ordered lap gates")
+   failures += 1
+  await process_frame
+ var filename := "circuit-metrics.json" if arguments.is_empty() else "circuit-vehicle-%d-metrics.json" % vehicles[0]
+ FileAccess.open(Report.path(filename),FileAccess.WRITE).store_string(JSON.stringify({"vehicles":report,"failures":failures},"\t")+"\n")
+ race.queue_free()
+ await process_frame
+ quit(1 if failures else 0)

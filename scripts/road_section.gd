@@ -11,6 +11,9 @@ var features: Array[Dictionary] = []
 var closed_loop := false
 var course_id := 0
 var bank_samples := PackedFloat32Array()
+var bridge_span := Vector2.ZERO
+var bridge_lower_distance := 0.0
+var bridge_upper_distance := 0.0
 var scenery: Node3D
 var road_surface: MeshInstance3D
 var skid_meshes: Array[MeshInstance3D] = []
@@ -33,7 +36,7 @@ var surface_lift := 0.0
 func excavation_depth(distance: float) -> float:
 	if not closed_loop or course_id != 0: return 0
 	var d := fposmod(distance,length)
-	var start := length*0.56
+	var start := underpass_span().x
 	return 6.5*smoothstep(start-190,start+12,d)*(1-smoothstep(start+228,start+430,d))
 
 func ground_height(distance: float) -> float:
@@ -71,8 +74,10 @@ func point(distance: float, lane: float = 0) -> Vector3:
 	var forward := (b-a).normalized()
 	if distance != d and not closed_loop: p += forward * (distance-d)
 	var bank := bank_at(d)
-	# Anchor the inner edge above the infield instead of burying it in the ground.
-	var bank_height := lane*tan(bank)+half_width(d)*absf(tan(bank)) if not bank_samples.is_empty() else 0.0
+	# Speedway camber lifts its inner edge above the infield; Fuji rolls about
+	# its centreline so the elevated crossing has a consistent deck height.
+	var bank_height := lane*tan(bank)
+	if closed_loop and course_id == 1: bank_height += half_width(d)*absf(tan(bank))
 	return p + Vector3(-forward.z,0,forward.x).normalized() * lane + Vector3.UP*bank_height
 
 func bank_at(distance: float) -> float:
@@ -115,6 +120,9 @@ func rail_setback(distance: float, side: float) -> float:
 			first *= 1-shelter
 			second *= 1-shelter
 	var width := first*(5.0 if side > 0 else 2.8)+second*(2.5 if side > 0 else 4.0)
+	if closed_loop and course_id == 0 and bridge_span.y > bridge_span.x:
+		var viaduct := smoothstep(bridge_span.x-90,bridge_span.x,d)*(1-smoothstep(bridge_span.y,bridge_span.y+90,d))
+		width *= 1-viaduct
 	return 1.5+width*(1.0 if closed_loop else (1.0-route_node*0.10))
 
 func roadside_point(distance: float, lane: float) -> Vector3:
@@ -138,11 +146,20 @@ func shoulder_bank_span(distance: float, side: float) -> float:
 func surface_lane(reference: float, distance: float) -> float:
 	return reference*half_width(distance)/9 if absf(reference) <= 9 else signf(reference)*(half_width(distance)+absf(reference)-9)
 
+func underpass_span() -> Vector2:
+	return Vector2(length*0.46,length*0.46+240) if closed_loop and course_id == 0 else Vector2.ZERO
+
+func on_bridge(distance: float) -> bool:
+	if not closed_loop or course_id != 0 or bridge_span.y <= bridge_span.x: return false
+	var d := fposmod(distance,length)
+	return d >= bridge_span.x and d <= bridge_span.y
+
 func in_tunnel(distance: float) -> bool:
 	if course_id == 1: return false
 	if closed_loop:
 		var d := fposmod(distance,length)
-		return d >= length*0.56 and d <= length*0.56+240
+		var span := underpass_span()
+		return d >= span.x and d <= span.y
 	var span := Library.tunnel_span(stage,route_node)
 	return span.y > span.x and distance >= span.x and distance <= span.y
 
@@ -203,7 +220,7 @@ func _ready() -> void:
 	var asphalt := ShaderMaterial.new()
 	asphalt.shader = ASPHALT_SHADER
 	asphalt.set_shader_parameter("asphalt_texture", ASPHALT)
-	strip(-10.5, 10.5, -0.15, material(Color("7e8477")))
+	strip(-10.5, 10.5, -0.15, material(Color("7e8477"))).name = "RoadBase"
 	road_surface = strip(-9, 9, 0, asphalt)
 	road_surface.name = "TexturedAsphalt"
 	Features.build(self)

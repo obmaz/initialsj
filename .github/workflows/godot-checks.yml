@@ -29,6 +29,6 @@ jobs:
         run: godot --headless --path . --editor --import --quit
       - name: Check gameplay and browser bridges
         run: |
-          godot --headless --path . --script res://tests/race_test.gd
+          godot --headless --fixed-fps 60 --path . --script res://tests/race_test.gd
           node tests/install_bridge_review.cjs
           node tests/back_bridge_review.cjs

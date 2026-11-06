@@ -46,9 +46,10 @@ func run(tree: SceneTree) -> int:
 		var surface := Surface.new()
 		var from_ramp := Vector2(ramp.lane,ramp.distance-20)
 		check(surface.contact(section,from_ramp,from_ramp+Vector2(0,40),65).is_empty() and surface.boosts_hit == 0,"A ramp must not accidentally act as a free nitro pad")
-	# Airborne vertical clearance must govern the real step collision path as well
+	# The retained road-space controller must apply vertical clearance in the real
+	# step as well
 	# as the contact helper. Cars at the same height must still collide.
-	race.choose_mode("track",0)
+	race.choose_mode("track",1)
 	race.restart()
 	race.state = "racing"
 	for r in race.rivals: r.active = false

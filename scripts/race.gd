@@ -13,6 +13,7 @@ const Circuit = preload("res://scripts/circuit_track.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
 const Nitro = preload("res://scripts/nitro_system.gd")
 const RenderBudget = preload("res://scripts/render_budget.gd")
+const WorldRace = preload("res://scripts/world_race.gd")
 const GAME_PACE := 1.2
 const RECORD_GROUP := "coast_rush_v3"
 var selected_vehicle := 0
@@ -58,6 +59,7 @@ var screen_transition: CanvasLayer
 var warming_world := false
 var camera_intro := 0.0
 var selected_course := 0
+var world_race: Node3D
 var course_title: String:
 	get: return "SUNCOAST SPEEDWAY" if selected_course == 1 else "FUJI LAKESIDE"
 var course_label: String:
@@ -329,6 +331,11 @@ func choose_mode(value: String, course: int = 0) -> void:
 		open_garage()
 		load_record()
 		return
+	if world_race != null:
+		world_race.shutdown()
+		remove_child(world_race)
+		world_race.queue_free()
+		world_race = null
 	mode = "track" if value == "track" else "tour"
 	selected_course = clampi(course,0,1)
 	remove_child(track)
@@ -349,6 +356,11 @@ func choose_mode(value: String, course: int = 0) -> void:
 		sky.radiance_size = Sky.RADIANCE_SIZE_128
 		atmosphere.sky = sky
 		visual_theme = ""
+	if mode == "track" and selected_course == 0:
+		world_race = WorldRace.new()
+		world_race.race = self
+		add_child(world_race)
+		world_race.setup()
 	render_budget.apply(self)
 	state = "ready"
 	open_garage()
@@ -461,6 +473,7 @@ func restart() -> void:
 	camera_intro = 0
 	state = "countdown"
 	initialize_traffic()
+	if world_race != null: world_race.reset()
 	tire_trails.reset()
 	place_cars()
 	update_camera(1)
@@ -544,6 +557,7 @@ func select_vehicle(index: int) -> void:
 	add_child(player)
 	reset_nitro()
 	load_record()
+	if world_race != null: world_race.reset()
 	place_cars()
 	update_camera(1)
 	if previews != null: previews.show_vehicle(selected_vehicle)
@@ -573,6 +587,7 @@ func cancel_nitro() -> void:
 	boosting = false
 
 func gear_number() -> int:
+	if world_race != null and world_race.reversing: return -1
 	if speed < 0.3: return 0
 	return clampi(ceili(speed/(vehicle.max_speed/5.8)),1,6)
 
@@ -614,7 +629,7 @@ func _physics_process(delta: float) -> void:
 	shoulder_dust.visible = world_visible and state == "racing"
 	if state == "racing" and offroad_amount > 0.25 and speed > 12 and not air.active:
 		if shoulder_dust_clock <= 0:
-			shoulder_dust.burst(track.point(distance-2,lane),true)
+			shoulder_dust.burst(player.position if world_race != null else track.point(distance-2,lane),true)
 			shoulder_dust_clock = 0.24
 	else: shoulder_dust.particles.emitting = false
 	tire_trails.update(self)
@@ -624,7 +639,7 @@ func _physics_process(delta: float) -> void:
 	speed_effect.material.set_shader_parameter("high_quality",render_budget.level == 0)
 	update_camera(delta)
 	player.road_speed = speed if state == "racing" else 0.0
-	player.animate(steer,drifting and state == "racing",(nitro_active or pad_active) and state == "racing",delta,slip_angle,braking and state == "racing",impact if state == "racing" and not motion_reduced else 0.0)
+	player.animate(steer,drifting and state == "racing",(nitro_active or pad_active) and state == "racing",delta,0.0 if world_race != null else slip_angle,braking and state == "racing",impact if state == "racing" and not motion_reduced else 0.0)
 	if offroad_amount > 0.2:
 		for particles in player.smoke: particles.emitting = false
 	if player.headlight != null: player.headlight.visible = track.active.in_tunnel(distance) or track.scenery.theme == "neon"
@@ -639,6 +654,9 @@ func _physics_process(delta: float) -> void:
 	hud.queue_redraw()
 
 func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool = false, cell_input: bool = false) -> void:
+	if world_race != null:
+		world_race.step(delta,axis,drift_input,gas,brake,nitro_input,cell_input)
+		return
 	# Advance only the time still available; a later checkpoint cannot revive an expired run.
 	if mode == "tour": delta = minf(delta,time_left)
 	if delta <= 0:
@@ -946,7 +964,7 @@ func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
 	r.boosting = false
 	register_impact(smoothstep(1.5,36,contact_speed),-normal)
 
-func register_impact(strength: float, normal: Vector2) -> void:
+func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vector3.INF) -> void:
 	# Separation and speed loss happen at the contact site. Feedback is emitted
 	# once per cooldown, and parked/gentle contacts do not create a crash burst.
 	if bump_cooldown > 0: return
@@ -964,10 +982,16 @@ func register_impact(strength: float, normal: Vector2) -> void:
 	bump_cooldown = 0.45
 	if strength > 0 and DisplayServer.get_name() != "headless":
 		var f := (track.point(distance+2)-track.point(distance)).normalized()
+		if world_race != null: f = world_race.player_body.forward_direction()
 		var right := Vector3(-f.z,0,f.x)
-		impacts.burst(track.point(distance,lane) + Vector3.UP*0.55 - right*normal.x*1.25 + f*normal.y*2.0, -right*normal.x+f*normal.y-f*0.7,motion_reduced,strength)
+		var at := track.point(distance,lane) + Vector3.UP*0.55 - right*normal.x*1.25 + f*normal.y*2.0
+		if world_at.is_finite(): at = world_at
+		impacts.burst(at,-right*normal.x+f*normal.y-f*0.7,motion_reduced,strength)
 
 func place_cars(delta: float = 1.0) -> void:
+	if world_race != null:
+		world_race.place_cars()
+		return
 	var pitch := atan2(air.velocity,maxf(1,speed))*0.22 if air.active else (atan2(0.75,16) if air.height > 0 else 0.0)
 	set_car_frame(player,track.point(distance,lane)+Vector3.UP*air.height,track.point(distance+2,lane)-track.point(distance-2,lane),delta,pitch,track.active.bank_at(distance))
 	player.body.rotation.y = slip_angle
@@ -1008,6 +1032,9 @@ func collision_camera_offset(forward: Vector3, right: Vector3) -> Vector3:
 	return (right*impact_normal.x*0.48-forward*impact_normal.y*0.36+Vector3.UP*0.055)*pulse
 
 func update_camera(delta: float) -> void:
+	if world_race != null:
+		world_race.update_camera(delta)
+		return
 	camera_intro = maxf(0,camera_intro-delta*0.8)
 	var forward := (track.point(distance+3)-track.point(distance)).normalized()
 	var right := Vector3(-forward.z,0,forward.x)

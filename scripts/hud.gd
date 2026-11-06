@@ -438,7 +438,16 @@ func draw_circuit_map() -> void:
 	draw_polyline(points,Color("d1e2ee"),3,true)
 	for r in race.rivals:
 		if r.active: draw_circle(circuit_map_point(r.distance),2.5,Color("ff9f68"))
-	draw_circle(circuit_map_point(race.distance),5,CYAN)
+	if race.world_race != null:
+		var body: CharacterBody3D = race.world_race.player_body
+		var bounds: Rect2 = race.track.map_bounds
+		var factor := minf(152/maxf(bounds.size.x,1),100/maxf(bounds.size.y,1))
+		var p := Vector2(1180,143)+(Vector2(body.position.x,body.position.z)-bounds.get_center())*factor
+		var forward: Vector3 = body.forward_direction()
+		var direction := Vector2(forward.x,forward.z).normalized()
+		var side := Vector2(-direction.y,direction.x)
+		draw_colored_polygon(PackedVector2Array([p+direction*8,p-direction*5+side*5,p-direction*5-side*5]),GOLD)
+	else: draw_circle(circuit_map_point(race.distance),5,CYAN)
 	draw_rect(Rect2(circuit_map_point(80)-Vector2(3,3),Vector2(6,6)),WHITE)
 	text_at(Vector2(1107,210),race.course_label,11,Color("b4d1df"))
 
@@ -548,7 +557,7 @@ func draw_speedometer() -> void:
 		draw_texture_rect(dial_cache.get_texture(),Rect2(c-Vector2(150,150),Vector2(300,300)),false)
 	var speed_kmh := int(race.speed * 3.6)
 	centered(Vector2(1145, 630), str(speed_kmh), 64, WHITE, NUMBER_FONT)
-	var gear := "N" if race.gear_number() == 0 else str(race.gear_number())
+	var gear := "N" if race.gear_number() == 0 else ("R" if race.gear_number() < 0 else str(race.gear_number()))
 	centered(Vector2(1225, 663), gear, 38, WHITE, NUMBER_FONT)
 
 	draw_set_transform(ui_offset(),0,Vector2.ONE*ui_scale())
@@ -631,8 +640,8 @@ func draw_courses() -> void:
 		draw_texture_rect_region(texture,image_box,source)
 		var x := rect.position.x+26
 		text_at(Vector2(x,428),"01 / FUJI LAKESIDE" if i == 0 else "02 / SUNCOAST SPEEDWAY",32,accent)
-		text_at(Vector2(x,467),"RIDGE / HAIRPIN / UNDERPASS" if i == 0 else "TRI-OVAL / BANKING / PIT LANE",22,WHITE)
-		text_at(Vector2(x,501),"4.36 KM   /   3 LAPS" if i == 0 else "4.57 KM   /   3 LAPS",22,Color("adc2d0"))
+		text_at(Vector2(x,467),"VIADUCT / RIDGE / UNDERPASS" if i == 0 else "TRI-OVAL / BANKING / PIT LANE",22,WHITE)
+		text_at(Vector2(x,501),"5.72 KM   /   3 LAPS" if i == 0 else "4.57 KM   /   3 LAPS",22,Color("adc2d0"))
 		var cta := Rect2(rect.position+Vector2(12,367),Vector2(496,61))
 		slant(cta,Color(accent,0.18),8)
 		centered(Vector2(rect.get_center().x,558),"CHOOSE TRACK  >",29,accent)
@@ -765,6 +774,8 @@ func draw_competitor_markers() -> void:
 
 func draw_pace_feedback() -> void:
 	if race.state != "racing": return
+	if race.world_race != null and race.world_race.wrong_way_time > 0.65:
+		centered(Vector2(640,177),"WRONG WAY",32,GOLD)
 	if race.launch_flash > 0: centered(Vector2(640,350),"GO!",76,Color(GOLD,minf(1,race.launch_flash*4)))
 	if race.checkpoint_flash > 0 and not race.route_choices_visible():
 		centered(Vector2(640,222),("LAP %d / 3" % mini(3,race.laps_completed+1)) if race.mode == "track" else ("CHECKPOINT +%ds" % int(race.checkpoint_award)),40,Color(GOLD,minf(1,race.checkpoint_flash*3)))

@@ -7,7 +7,7 @@ func run() -> void:
 	root.add_child(race)
 	race.set_physics_process(false)
 	race.save_records = false
-	race.choose_mode("track")
+	race.choose_mode("track",1)
 	var report := []
 	var failures := 0
 	for vehicle in range(3):

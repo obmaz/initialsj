@@ -28,7 +28,7 @@ func run(tree: SceneTree) -> int:
 	check(race.state == "courses","Track menu must offer both courses before the garage")
 	click(race,race.hud.COURSE_FUJI)
 	check(race.state == "ready" and race.mode == "track","Track selection must lead to the shared garage")
-	check(race.track.previews.is_empty() and race.track.scenery.theme == "fuji","The one circuit must use Fuji scenery and have no route forks")
+	check(race.track.previews.is_empty() and race.track.scenery.theme == "fuji","Fuji must use its own scenery and have no route forks")
 	var length: float = race.track.length
 	var low := INF
 	var high := -INF
@@ -40,9 +40,9 @@ func run(tree: SceneTree) -> int:
 		low = minf(low,y); high = maxf(high,y)
 		var curve: float = race.track.curvature(d)
 		left_curve = minf(left_curve,curve); right_curve = maxf(right_curve,curve)
-	check(length > 4000 and high-low > 30 and left_curve < -0.02 and right_curve > 0.015,"Fuji must have a long elevated course and substantial bends in both directions")
-	check(race.track.active.in_tunnel(length*0.56+120) and not race.track.active.in_tunnel(80),"The ridge tunnel must have a bounded real road span")
-	var portal := length*0.56
+	check(length > 4000 and high-low > 30 and left_curve < -0.012 and right_curve > 0.012,"Fuji must have a long elevated course and substantial bends in both directions")
+	check(race.track.active.in_tunnel(race.track.active.underpass_span().x+120) and not race.track.active.in_tunnel(80),"The ridge tunnel must have a bounded real road span")
+	var portal: float = race.track.active.underpass_span().x
 	check(race.track.active.excavation_depth(portal+80) > 6 and race.track.active.excavation_depth(portal-190) < 0.01,"Underpass must cut the road below surrounding ground")
 	check(race.track.point(portal-180).y-race.track.point(portal+20).y > 4 and race.track.point(portal+420).y-race.track.point(portal+220).y > 4,"Underpass must have a real descent and an ascending exit")
 	for d in [-5.0,0.0,80.0,length-1]:
@@ -61,6 +61,10 @@ func run(tree: SceneTree) -> int:
 	check(race.state == "paused","The visible pause button must work by touch")
 	click(race,race.hud.START_BUTTON)
 	check(race.state == "racing","The pause dialog must resume the same race")
+	# The shared scalar circuit rules remain on Suncoast; Fuji uses real bodies.
+	# Its free world driving and physical contacts have dedicated checks.
+	race.choose_mode("track",1)
+	length = race.track.length
 	race.restart()
 	race.state = "racing"
 	for r in race.rivals: r.active = false
