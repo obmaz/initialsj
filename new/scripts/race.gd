@@ -5,9 +5,11 @@ const HUD = preload("res://scripts/hud.gd")
 const Library = preload("res://scripts/route_library.gd")
 const Contact = preload("res://scripts/car_contact.gd")
 const Brain = preload("res://scripts/rival_brain.gd")
+const Factory = preload("res://scripts/vehicle_factory.gd")
+const Circuit = preload("res://scripts/circuit_track.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
 const Nitro = preload("res://scripts/nitro_system.gd")
-const RECORD_GROUP := "coast_rush_v2"
+const RECORD_GROUP := "coast_rush_v3"
 var selected_vehicle := 0
 var vehicle: Dictionary = Catalog.spec(0)
 var previews: Node
@@ -34,7 +36,12 @@ var tire_trails: Node3D
 var speed_ambience: Node3D
 var impacts: Node3D
 var rivals: Array[Dictionary] = []
-var state := "ready"
+var mode := "tour"
+var settings_return := "menu"
+var laps_completed := 0
+var lap_started := 0.0
+var last_lap := 0.0
+var state := "menu"
 var distance := 80.0
 var completed_distance := 0.0
 var lane := -3.2
@@ -134,10 +141,7 @@ func _ready() -> void:
 	add_child(speed_ambience)
 	impacts = preload("res://scripts/impact_effect.gd").new()
 	add_child(impacts)
-	player = Car.new()
-	player.model = vehicle.model
-	player.paint = Color(vehicle.paint)
-	player.nitro_tint = Color(vehicle.accent)
+	player = Factory.create(selected_vehicle)
 	add_child(player)
 	var colors := ["e7c456","91aabe","aaa3b7","e8e5dc","4c9c97","ad6f55","62798c"]
 	for i in range(16):
@@ -146,7 +150,7 @@ func _ready() -> void:
 		car.paint = Color(colors[i % colors.size()])
 		add_child(car)
 		rivals.append({"car":car})
-	brain.initialize(rivals)
+	initialize_traffic()
 	camera = Camera3D.new()
 	camera.far = 1800
 	camera.fov = 68
@@ -173,6 +177,7 @@ func _ready() -> void:
 		add_child(audio)
 		if OS.has_feature("web"):
 			motion_reduced = bool(JavaScriptBridge.eval("window.matchMedia('(prefers-reduced-motion: reduce)').matches"))
+	load_preferences()
 	load_record()
 	reset_nitro()
 	place_cars()
@@ -191,6 +196,73 @@ func _exit_tree() -> void:
 	if OS.has_feature("web"):
 		JavaScriptBridge.get_interface("window").initialsjObserveOrientation(null)
 
+func initialize_traffic() -> void:
+	brain.initialize(rivals)
+	if mode == "track":
+		for r in rivals:
+			r.active = r.id < 7
+			r.distance = 95.0+int(r.id/2)*10
+			r.lane = -2.0 if r.id%2 == 0 else 2.0
+			r.target_lane = r.lane
+			r.speed = 0.0
+			r.pace = vehicle.max_speed*(0.80+r.id*0.025)
+
+func choose_mode(value: String) -> void:
+	mode = "track" if value == "track" else "tour"
+	remove_child(track)
+	track.queue_free()
+	track = Circuit.new() if mode == "track" else Track.new()
+	add_child(track)
+	if mode == "track":
+		atmosphere.sky = track.scenery.make_sky()
+		atmosphere.fog_light_color = Color("b3d3df")
+		sun_light.light_energy = 0.95
+		atmosphere.ambient_light_energy = 0.35
+	else:
+		var sky := Sky.new()
+		sky.sky_material = sky_colors
+		sky.radiance_size = Sky.RADIANCE_SIZE_128
+		atmosphere.sky = sky
+		visual_theme = ""
+	state = "ready"
+	open_garage()
+	load_record()
+
+func open_menu() -> void:
+	restart()
+	state = "menu"
+
+func open_settings() -> void:
+	settings_return = state
+	hud.fingers.clear()
+	state = "settings"
+
+func close_settings() -> void:
+	state = settings_return
+	save_preferences()
+
+func load_preferences() -> void:
+	var config := ConfigFile.new()
+	if config.load("user://settings.cfg") == OK:
+		sound_enabled = bool(config.get_value("preferences","sound",true))
+		motion_reduced = bool(config.get_value("preferences","reduced_motion",motion_reduced))
+
+func save_preferences() -> void:
+	if not save_records: return
+	var config := ConfigFile.new()
+	config.set_value("preferences","sound",sound_enabled)
+	config.set_value("preferences","reduced_motion",motion_reduced)
+	config.save("user://settings.cfg")
+
+func relative_gap(other: float, reference: float) -> float:
+	return wrapf(other-reference,-track.length/2,track.length/2) if mode == "track" else other-reference
+
+func race_position() -> int:
+	var place := 1
+	for r in rivals:
+		if r.active and r.distance > distance: place += 1
+	return place
+
 func restart() -> void:
 	if state != "ready": track.reset()
 	distance = 80
@@ -201,6 +273,9 @@ func restart() -> void:
 	steer = 0
 	slip_angle = 0
 	elapsed = 0
+	laps_completed = 0
+	lap_started = 0
+	last_lap = 0
 	countdown = 3
 	time_left = Library.START_TIME
 	score = 0
@@ -234,7 +309,7 @@ func restart() -> void:
 	launch_flash = 0
 	camera_offset = Vector3.ZERO
 	state = "countdown"
-	brain.initialize(rivals)
+	initialize_traffic()
 	tire_trails.reset()
 	place_cars()
 	update_camera(1)
@@ -243,6 +318,17 @@ func _input(event: InputEvent) -> void:
 	if web_portrait: return
 	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION: return
 	if event is InputEventKey and event.pressed and not event.echo:
+		if state == "menu":
+			if event.keycode in [KEY_ENTER,KEY_1,KEY_T]: choose_mode("tour")
+			elif event.keycode in [KEY_2,KEY_C]: choose_mode("track")
+			elif event.keycode == KEY_TAB: open_settings()
+			return
+		if state == "settings":
+			if event.keycode in [KEY_ESCAPE,KEY_TAB]: close_settings()
+			return
+		if state == "ready" and event.keycode == KEY_ESCAPE:
+			open_menu()
+			return
 		if event.keycode == KEY_ENTER:
 			if state == "ready": restart()
 			elif state in ["finished","failed"]: open_garage()
@@ -280,7 +366,7 @@ func resume_tour() -> void:
 func load_record() -> void:
 	best_time = 0
 	var saved := ConfigFile.new()
-	if saved.load("user://records.cfg") == OK: best_time = float(saved.get_value(RECORD_GROUP,Catalog.record_key(selected_vehicle),0))
+	if saved.load("user://records.cfg") == OK: best_time = float(saved.get_value(RECORD_GROUP,Catalog.record_key(selected_vehicle,mode),0))
 
 func select_vehicle(index: int) -> void:
 	if state != "ready": return
@@ -288,19 +374,18 @@ func select_vehicle(index: int) -> void:
 	vehicle = Catalog.spec(selected_vehicle)
 	remove_child(player)
 	player.queue_free()
-	player = Car.new()
-	player.model = vehicle.model
-	player.paint = Color(vehicle.paint)
-	player.nitro_tint = Color(vehicle.accent)
+	player = Factory.create(selected_vehicle)
 	add_child(player)
 	reset_nitro()
 	load_record()
 	place_cars()
 	update_camera(1)
+	if previews != null: previews.show_vehicle(selected_vehicle)
 
 func open_garage() -> void:
 	restart()
 	state = "ready"
+	if previews != null: previews.show_vehicle(selected_vehicle)
 
 func reset_nitro() -> void:
 	nitro = vehicle.energy_start
@@ -340,6 +425,12 @@ func _physics_process(delta: float) -> void:
 		var brake := Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake")
 		step(delta,axis,Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift"),gas,brake,nitro_input,cell_input)
 	place_cars(delta)
+	var world_visible := state not in ["menu","ready","settings"]
+	track.visible = world_visible
+	player.visible = world_visible
+	tire_trails.visible = world_visible
+	if not world_visible:
+		for r in rivals: r.car.visible = false
 	tire_trails.update(self)
 	speed_ambience.update(self)
 	speed_effect.visible = state == "racing" and not motion_reduced and speed > 35
@@ -355,7 +446,7 @@ func _physics_process(delta: float) -> void:
 
 func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool = false, cell_input: bool = false) -> void:
 	# Advance only the time still available; a later checkpoint cannot revive an expired run.
-	delta = minf(delta,time_left)
+	if mode == "tour": delta = minf(delta,time_left)
 	if delta <= 0:
 		state = "failed"
 		cancel_nitro()
@@ -363,7 +454,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		return
 	gas = gas or nitro_input or (cell_input and vehicle.mode == "hybrid") or nitro_burst_left > 0
 	elapsed += delta
-	time_left = maxf(0,time_left-delta)
+	if mode == "tour": time_left = maxf(0,time_left-delta)
 	for field in ["near_miss_flash","overtake_flash","checkpoint_flash","launch_flash"]:
 		set(field,maxf(0,float(get(field))-delta))
 	impact = maxf(0,impact-delta*3.5)
@@ -380,7 +471,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		drift_latched = true
 	if brake or speed < 22: drift_latched = false
 	var curve := track.curvature(distance)
-	if drift_latched and absf(curve) < 0.0008 and absf(steer) < 0.14:
+	if drift_latched and absf(steer) < 0.14 and absf(curve)*speed*speed < vehicle.grip*0.75:
 		drift_straight += delta
 		if drift_straight > 0.4: drift_latched = false
 	else: drift_straight = 0
@@ -396,7 +487,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	var old_gaps: Array[float] = []
 	drafting = false
 	for r in rivals:
-		var gap: float = r.distance-distance
+		var gap: float = relative_gap(r.distance,distance)
 		old_gaps.append(gap)
 		if r.active and r.detached == null and gap > 8 and gap < 75 and absf(r.lane-lane) < 2.1: drafting = true
 	draft_charge = move_toward(draft_charge,1.0 if drafting else 0.0,delta*(1.0 if drafting else 1.2))
@@ -434,7 +525,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	for i in range(rivals.size()):
 		var r: Dictionary = rivals[i]
 		if not r.active or r.detached != null: continue
-		var gap: float = r.distance-distance
+		var gap: float = relative_gap(r.distance,distance)
 		if absf(gap) > 8: continue
 		var forward := (track.point(distance+2)-track.point(distance)).normalized()
 		var right := Vector3(-forward.z,0,forward.x).normalized()
@@ -462,28 +553,39 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		var k: float = absf(track.curvature(distance+look))
 		recommended_speed = minf(recommended_speed,sqrt(vehicle.grip*1.25/maxf(k,0.0001)))
 	corner_warning = move_toward(corner_warning,clampf((speed-recommended_speed-4)/15,0,1),delta*3)
-	var reconsidered := track.reconsider(distance,lane)
-	if not reconsidered.is_empty():
-		var old_section = track.sibling
-		distance = reconsidered.distance
-		lane = reconsidered.lane
-		for r in rivals:
-			if r.detached == track.active: r.detached = null
-			elif r.detached == null and r.distance > 0: r.detached = old_section
-		var corrected_bonus := Library.checkpoint_bonus(route_node)
-		time_left += corrected_bonus-checkpoint_award
-		checkpoint_award = corrected_bonus
-		brain.stage_changed(self)
-	track.maintain(distance)
-	if stage_index == Library.STAGES-1 and distance >= track.length:
-		finish()
-	elif stage_index < Library.STAGES-1 and distance >= track.length+Library.FORK_COMMIT:
-		advance_route()
-	if time_left <= 0 and state != "finished":
-		state = "failed"
-		cancel_nitro()
-		drifting = false
-		boosting = false
+	if mode == "track":
+		var finished_laps := int(maxf(0,distance-80)/track.length)
+		if finished_laps > laps_completed:
+			laps_completed = finished_laps
+			last_lap = elapsed-lap_started
+			lap_started = elapsed
+			checkpoint_flash = 2
+			nitro = minf(100,nitro+25)
+			nitro_charges = mini(vehicle.charges,nitro_charges+1)
+			if laps_completed >= 3: finish()
+	else:
+		var reconsidered := track.reconsider(distance,lane)
+		if not reconsidered.is_empty():
+			var old_section = track.sibling
+			distance = reconsidered.distance
+			lane = reconsidered.lane
+			for r in rivals:
+				if r.detached == track.active: r.detached = null
+				elif r.detached == null and r.distance > 0: r.detached = old_section
+			var corrected_bonus := Library.checkpoint_bonus(route_node)
+			time_left += corrected_bonus-checkpoint_award
+			checkpoint_award = corrected_bonus
+			brain.stage_changed(self)
+		track.maintain(distance)
+		if stage_index == Library.STAGES-1 and distance >= track.length:
+			finish()
+		elif stage_index < Library.STAGES-1 and distance >= track.length+Library.FORK_COMMIT:
+			advance_route()
+		if time_left <= 0 and state != "finished":
+			state = "failed"
+			cancel_nitro()
+			drifting = false
+			boosting = false
 
 func advance_route() -> void:
 	var choice := 0 if lane < 0 else 1
@@ -508,13 +610,13 @@ func finish() -> void:
 	cancel_nitro()
 	drifting = false
 	boosting = false
-	score += int(time_left)*100
+	if mode == "tour": score += int(time_left)*100
 	if best_time == 0 or elapsed < best_time:
 		best_time = elapsed
 		if save_records:
 			var saved := ConfigFile.new()
 			saved.load("user://records.cfg")
-			saved.set_value(RECORD_GROUP,Catalog.record_key(selected_vehicle),best_time)
+			saved.set_value(RECORD_GROUP,Catalog.record_key(selected_vehicle,mode),best_time)
 			saved.save("user://records.cfg")
 
 func contact_with(r: Dictionary) -> Dictionary:
@@ -615,6 +717,7 @@ func update_camera(delta: float) -> void:
 	camera.fov = lerpf(camera.fov,target_fov,1-exp(-delta*(8 if boosting else 4)))
 
 func update_atmosphere(delta: float) -> void:
+	if mode == "track": return
 	var theme_id: String = track.scenery.theme
 	if visual_theme != theme_id:
 		visual_theme = theme_id

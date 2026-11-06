@@ -20,6 +20,10 @@ func run() -> void:
 	race.save_records = false
 	race.sound_enabled = false
 	await process_frame
+	key(KEY_1,true)
+	await process_frame
+	key(KEY_1,false)
+	await process_frame
 	var selected_all := true
 	for code in [KEY_2,KEY_3,KEY_1]:
 		key(code,true)

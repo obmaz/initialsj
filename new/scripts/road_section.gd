@@ -7,7 +7,8 @@ const ASPHALT = preload("res://assets/environment/asphalt.png")
 const ASPHALT_SHADER = preload("res://shaders/asphalt.gdshader")
 const PAINT_SHADER = preload("res://shaders/road_paint.gdshader")
 const SKID_SHADER = preload("res://shaders/skid_marks.gdshader")
-var scenery: Scenery
+var closed_loop := false
+var scenery: Node3D
 var road_surface: MeshInstance3D
 var skid_meshes: Array[MeshInstance3D] = []
 var prop_batches: Array[MultiMeshInstance3D] = []
@@ -47,15 +48,16 @@ func _init(origin: Vector3 = Vector3(0,6,0), heading_angle: float = -PI / 2, sta
 	length = curve.get_baked_length()
 
 func point(distance: float, lane: float = 0) -> Vector3:
-	var d := clampf(distance,0,length)
+	var d := fposmod(distance,length) if closed_loop else clampf(distance,0,length)
 	var p := curve.sample_baked(d,false)
-	var a := curve.sample_baked(clampf(d-2,0,length),false)
-	var b := curve.sample_baked(clampf(d+2,0,length),false)
+	var a := curve.sample_baked(fposmod(d-2,length) if closed_loop else clampf(d-2,0,length),false)
+	var b := curve.sample_baked(fposmod(d+2,length) if closed_loop else clampf(d+2,0,length),false)
 	var forward := (b-a).normalized()
-	if distance != d: p += forward * (distance-d)
+	if distance != d and not closed_loop: p += forward * (distance-d)
 	return p + Vector3(-forward.z,0,forward.x).normalized() * lane
 
 func half_width(distance: float) -> float:
+	if closed_loop: return 8.5+0.4*sin(TAU*fposmod(distance,length)/length)
 	var t := clampf(distance/length,0,1)
 	var blend := smoothstep(180,360,distance)*(1-smoothstep(length-360,length-180,distance))
 	var width := 9.8-route_node*0.50+1.5*sin(TAU*(1.5+route_node*0.12)*t+stage*0.7)
@@ -66,6 +68,7 @@ func surface_lane(reference: float, distance: float) -> float:
 	return reference*half_width(distance)/9 if absf(reference) <= 9 else signf(reference)*(half_width(distance)+absf(reference)-9)
 
 func in_tunnel(distance: float) -> bool:
+	if closed_loop: return false
 	var span := Library.tunnel_span(stage,route_node)
 	return span.y > span.x and distance >= span.x and distance <= span.y
 
@@ -165,7 +168,7 @@ func _ready() -> void:
 	box_batch(Vector3(0.7, 0.13, 3.05), white, white_transforms)
 	make_curve_markers()
 	make_skid_marks()
-	scenery = Scenery.new()
+	scenery = preload("res://scripts/circuit_environment.gd").new() if closed_loop else Scenery.new()
 	scenery.track = self
 	add_child(scenery)
 	make_course_banners()
@@ -177,13 +180,13 @@ func _ready() -> void:
 				tile.rotation.y = heading(stripe_d)
 	var gantry := Node3D.new()
 	add_child(gantry)
-	gantry.position = point(length + Library.FORK_COMMIT if stage < 4 else length - 10)
-	gantry.rotation.y = heading(length)
+	gantry.position = point(80 if closed_loop else (length + Library.FORK_COMMIT if stage < 4 else length - 10))
+	gantry.rotation.y = heading(80 if closed_loop else length)
 	for side in [-1,1]: box(gantry,Vector3(side * 16,4.5,0),Vector3(0.5,9,0.5),steel)
 	box(gantry,Vector3(0,8.5,0),Vector3(33,2.3,0.6),material(Color("173d46")))
 	var sign_label := Label3D.new()
 	var titles := Library.next_titles(stage,route_node)
-	sign_label.text = "< " + titles[0] + "   |   " + titles[1] + " >" if stage < 4 else "GRAND TOUR / GOAL"
+	sign_label.text = "FUJI LAKESIDE / START - FINISH" if closed_loop else ("< " + titles[0] + "   |   " + titles[1] + " >" if stage < 4 else "GRAND TOUR / GOAL")
 	sign_label.font_size = 90
 	sign_label.pixel_size = 0.008
 	sign_label.position = Vector3(0,8.5,0.35)

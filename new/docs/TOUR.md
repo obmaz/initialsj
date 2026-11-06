@@ -26,9 +26,9 @@ Normal driving emits no pollen, dust or confetti. Tire smoke is limited to drift
 
 The garage exposes exactly four abilities: top speed, acceleration, boost and handling. Its shared ten-point bars derive speed/acceleration/boost from actual driving values; boost rates nitro acceleration. Nitro resource type is a separate mechanic. Collision speed-loss factors are identical for all vehicles.
 
-Vehicle profiles live in `vehicle_catalog.gd`: Nimori cruises at 273.6 km/h and boosts to 334.8; Veltrix cruises at 306 and fires 385.2 km/h shots; Ironvale cruises at 284.4, holds gauge boost at 331.2 and reaches 367.2 with a cell. Slipstream adds up to 28.8 km/h to cruise. Actual attained speed depends on acceleration, cornering and traffic.
+Vehicle profiles live in `vehicle_catalog.gd`: Nimori cruises at 259.2 km/h and boosts to 313.2; Veltrix cruises at 331.2 and fires 403.2 km/h shots; Ironvale cruises at 288, holds gauge boost at 360 and reaches 388.8 with a cell. Slipstream adds up to 28.8 km/h to cruise. Actual attained speed depends on acceleration, cornering and traffic.
 
-Nimori holds Shift/NITRO to drain 19 fuel/s, recharging 3/s normally or 9/s drifting. Veltrix starts with three 2.4 s prepaid shots, triggered once per tap. Ironvale holds Shift for a 24 fuel/s gauge or presses E/CELL for an independent 1.6 s overdrive (two cells). Hybrid recharge is 2/s normally, 7/s drifting. Overdrive does not drain gauge fuel. Every checkpoint restores one shot/cell up to capacity and adds 25 gauge fuel; close passes add 12. Gauge lockout ends at 12 units.
+Nimori holds Shift/NITRO to drain 15 fuel/s, recharging 4/s normally or 10/s drifting. Veltrix starts with three 2.4 s prepaid shots, triggered once per tap. Ironvale holds Shift for a 24 fuel/s gauge or presses E/CELL for an independent 1.6 s overdrive (two cells). Hybrid recharge is 2/s normally, 7/s drifting. Overdrive does not drain gauge fuel. Every checkpoint restores one shot/cell up to capacity and adds 25 gauge fuel; close passes add 12. Gauge lockout ends at 12 units.
 
 Nitro also supplies gas for touch driving. BRAKE overrides it. Drift/impact cancels any running burst without refund. Holding a shot/cell never spends the next one automatically. Best-time keys are per vehicle, preserving existing record entries. The garage renders each model once in a separate viewport and reuses its texture.
 
@@ -38,7 +38,7 @@ Starting time is 70 s. Checkpoints add 60 minus twice the accumulated number of 
 
 - `tests/race_test.gd`: open roads, fork/world-position continuity, actual changing mesh widths, upward map orientation, nitro acceleration/fuel/brake override/lockout, sparse canopies, long tunnel coverage, denser hard-route traffic, road difficulty and resized touch controls.
 - `tests/contact_review.gd`: independent world-space polygon intersections after actual collision resolution on bends, across lane positions and drift angles.
-- `tests/tour_review.gd`: braking/drifting/planned nitro controllers finish left, right and mixed Nimori routes, and all-right routes in Veltrix and Ironvale. The gas-only controller times out in stage two. These are scripted simulations, not human playtest timings. Raw results: `tour-metrics.json`.
+- `tests/tour_review.gd`: braking/drifting/planned nitro controllers finish left, right and mixed Nimori routes, and all-right routes in Veltrix and Ironvale. The gas-only controller does not finish. These are scripted simulations, not human playtest timings. Raw results: `tour-metrics.json`.
 - `tests/garage_review.gd` / `garage_checks.gd`: three-car selection, resized landscape touch regions, portrait-induced pause, different acceleration and uniform collision loss, gauge/shot/hybrid resource rules, checkpoint refill and the P2/P3 regressions in [CODE_REVIEW.md](CODE_REVIEW.md). The main `race_test.gd` also invokes this suite for CI.
 - `tests/keyboard_review.gd`: real input events for gas, braking, brake-tap drift and Shift nitro.
 - `tests/preview_tour.gd`: controlled rendered fixtures; pass scene names after `--` to review selected views. New views include `long-tunnel`, `narrow`, `wide`, `city`, `canopy`, `speed` and `fork`.
@@ -50,3 +50,5 @@ All source changes are under `new/`. Godot version verified is 4.6.3; 4.7.2 rema
 ## Fifteen distinct destinations
 
 Every route node now has its own theme. All sixteen possible full tours visit five distinct themes, and every fork has different left and right destinations. [THEMES.md](THEMES.md) lists the complete map and generated roadside-art pipeline. The theme layout preserves route lengths and cumulative right-branch difficulty. Current vehicle tuning and deadline behavior are covered by the new tour metrics.
+
+The latest mode menu, single Fuji circuit, shared-model showroom, balance changes and mode-specific records are documented in [MODES.md](MODES.md).

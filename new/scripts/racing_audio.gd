@@ -40,7 +40,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var active: bool = race.state in ["countdown", "racing"] and race.sound_enabled
-	var number: int = ceili(race.countdown) if race.state == "countdown" else (ceili(race.time_left) if race.state == "racing" and race.time_left <= 10 else 0)
+	var number: int = ceili(race.countdown) if race.state == "countdown" else (ceili(race.time_left) if race.state == "racing" and race.mode == "tour" and race.time_left <= 10 else 0)
 	if active:
 		var tone: AudioStream
 		if number > 0 and number != last_count:

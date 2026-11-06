@@ -61,6 +61,8 @@ const path=require('node:path');
   assert.equal(await page.locator('#landscape-guide').isVisible(),false);
   await page.locator('#canvas').focus();
   await page.keyboard.press('Enter');
+  await page.waitForTimeout(400);
+  await page.keyboard.press('Enter');
   // Give the first rendered game frames time to consume the start input.
   await page.waitForTimeout(1500);
   await page.setViewportSize({width:390,height:844});
