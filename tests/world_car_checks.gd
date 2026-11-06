@@ -1,6 +1,7 @@
 extends RefCounted
 const Car = preload("res://scripts/world_car.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
+const CornerResistance = preload("res://scripts/corner_resistance.gd")
 const Report = preload("res://tests/report.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
@@ -18,6 +19,18 @@ func box(parent: Node3D, size: Vector3, at: Vector3, layer: int, rotation: Vecto
 	body.position = at
 	body.rotation = rotation
 	return body
+func corner_trial(car: CharacterBody3D, spec: Dictionary, axis: float, drift: bool = false, gas: bool = true, frames: int = 720, initial_speed: float = -1.0) -> Dictionary:
+	car.configure(spec)
+	car.reset_pose(Vector3(400,0,400),Vector3.FORWARD)
+	car.velocity = Vector3.FORWARD*(float(spec.max_speed) if initial_speed < 0 else initial_speed)
+	var loss := 0.0
+	for frame in range(frames):
+		var speed: float = car.velocity.slide(car.surface_normal).length()
+		var engine: float = CornerResistance.engine_factor(speed,float(spec.max_speed),car.corner_demand,car.corner_grip)
+		var target: float = move_toward(speed,float(spec.max_speed),spec.accel*engine/60.0) if gas else maxf(0,speed-5.0/60)
+		car.advance(1.0/60,axis,target,drift)
+		loss = maxf(loss,car.last_corner_loss)
+	return {"speed_mps":car.velocity.slide(car.surface_normal).length(),"peak_scrub_mps2":loss,"demand_mps2":car.corner_demand,"slip_radians":car.slip_angle}
 func run(tree: SceneTree) -> int:
 	var scene := Node3D.new()
 	tree.root.add_child(scene)
@@ -25,7 +38,7 @@ func run(tree: SceneTree) -> int:
 	ground.collision_layer = 1
 	ground.collision_mask = 4
 	var mesh_shape := ConcavePolygonShape3D.new()
-	mesh_shape.set_faces(PackedVector3Array([Vector3(-250,0,-250),Vector3(250,0,-250),Vector3(-250,0,250),Vector3(250,0,-250),Vector3(250,0,250),Vector3(-250,0,250)]))
+	mesh_shape.set_faces(PackedVector3Array([Vector3(-1500,0,-1500),Vector3(1500,0,-1500),Vector3(-1500,0,1500),Vector3(1500,0,-1500),Vector3(1500,0,1500),Vector3(-1500,0,1500)]))
 	var ground_shape := CollisionShape3D.new()
 	ground_shape.shape = mesh_shape
 	ground.add_child(ground_shape)
@@ -109,6 +122,50 @@ func run(tree: SceneTree) -> int:
 			ramp_launch_speed = maxf(ramp_launch_speed,car.velocity.y)
 	check(ramp_launch_speed > 1.5 and ramp_peak > 0.9,"A physical ramp must launch the car using slope momentum without an artificial jump impulse")
 	check(car.grounded and absf(car.feet_position().y) < 0.12,"The ramp jump must land on the physical floor")
+	var corners := []
+	for choice in range(3):
+		var spec := Catalog.spec(choice)
+		var straight := corner_trial(car,spec,0)
+		var mild := corner_trial(car,spec,0.065)
+		var tight := corner_trial(car,spec,0.14)
+		var drift := corner_trial(car,spec,0.14,true)
+		check(absf(straight.speed_mps-float(spec.max_speed)) < 0.05 and straight.peak_scrub_mps2 == 0,"Straight driving must retain its configured top speed without tyre scrub")
+		check(mild.speed_mps < straight.speed_mps-0.5 and mild.speed_mps > straight.speed_mps*0.90,"A mild real turn must lose a small amount of speed at the same cruise target")
+		check(tight.speed_mps < mild.speed_mps-3 and tight.speed_mps > straight.speed_mps*0.65,"A tight real turn must shed materially more speed without a hard corner speed clamp")
+		check(drift.speed_mps > tight.speed_mps and drift.speed_mps < straight.speed_mps-0.2,"Drifting must preserve more momentum while retaining measurable corner scrub")
+		corners.append({"vehicle":spec.id,"straight":straight,"mild":mild,"tight":tight,"drift":drift})
+	var overspeed := corner_trial(car,Catalog.spec(0),0.065,false,true,60,87)
+	check(overspeed.speed_mps < 72.5 and overspeed.speed_mps > 65,"An expired boost in a loaded corner must retain engine braking toward the normal cruise speed")
+	car.configure(Catalog.spec(0))
+	var bank_corner_grip := []
+	for axis in [-0.3,0.3]:
+		car.reset_pose(top,Vector3.FORWARD,slope.global_basis.y)
+		car.velocity = Vector3.FORWARD*20
+		for frame in range(20): car.advance(1.0/60,axis,20,false)
+		bank_corner_grip.append(car.corner_grip)
+	check(bank_corner_grip[0] > 15.5 and bank_corner_grip[1] < 13.5,"The real support bank must assist downhill turns and reduce grip for adverse uphill turns")
+	car.configure(Catalog.spec(0))
+	car.reset_pose(Vector3(400,0,400),Vector3.FORWARD)
+	for frame in range(60): car.advance(1.0/60,1,0,false)
+	check(car.last_corner_loss == 0 and car.velocity.slide(car.surface_normal).length() < 0.001,"Stationary steering must not invent cornering drag or motion")
+	car.reset_pose(Vector3(400,20,400),Vector3.FORWARD)
+	car.velocity = Vector3(30,0,-40)
+	for frame in range(20): car.advance(1.0/60,0.8,80,true)
+	check(not car.grounded and car.last_corner_loss == 0 and absf(Vector2(car.velocity.x,car.velocity.z).length()-50) < 0.001,"Airborne steering must preserve horizontal momentum and apply no tyre scrub")
+	var throttle := corner_trial(car,Catalog.spec(0),0.14,false,true,180)
+	var coast := corner_trial(car,Catalog.spec(0),0.14,false,false,180)
+	check(throttle.speed_mps > coast.speed_mps+8,"Throttle must still counter corner drag compared with coasting through the same turn")
+	var before_brake: float = car.velocity.length()
+	for frame in range(30):
+		var speed: float = car.velocity.slide(car.surface_normal).length()
+		car.advance(1.0/60,0,maxf(0,speed-48.0/60),false)
+	check(car.velocity.length() < before_brake-20,"Brake input must remain immediately effective after a loaded corner")
+	for frame in range(120):
+		var speed: float = car.velocity.slide(car.surface_normal).length()
+		var engine: float = CornerResistance.engine_factor(speed,72,car.corner_demand,car.corner_grip)
+		car.advance(1.0/60,0,minf(72,speed+28*engine/60),false)
+	check(car.velocity.length() > 65,"Straightening the car and applying throttle must restore acceleration")
+	check(CornerResistance.loss_rate(70,0,14.5,0.7,true) == 0,"Straight visual drift must not trigger corner resistance")
 	# Other moving bodies are queried through the physics server. Let the real
 	# physics tick flush their transforms between frames, as the game does.
 	var pack: Array[CharacterBody3D] = []
@@ -129,8 +186,8 @@ func run(tree: SceneTree) -> int:
 		pack_error = maxf(pack_error,absf(pack[index].feet_position().z-expected))
 		check(pack[index].velocity.length() > 49 and pack[index].last_contacts.is_empty(),"An eight-car formation must keep moving without stale spawn-position collisions")
 	check(pack_error < 0.05,"All eight cars must travel their world distance after physics-frame synchronization")
-	FileAccess.open(Report.path("world-car-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"failures":failures,"wall_contacts":contacts,"air_momentum_x_at_half_second":air_x,"bank_normal_alignment":bank_alignment,"eight_car_max_position_error":pack_error,"ramp_peak_height":ramp_peak,"ramp_launch_speed":ramp_launch_speed,"low_step_height":curb_height,"tall_ledge_contacts":ledge_contacts,"low_roof_contacts":roof_contacts},"\t")+"\n")
+	FileAccess.open(Report.path("world-car-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"failures":failures,"wall_contacts":contacts,"air_momentum_x_at_half_second":air_x,"bank_normal_alignment":bank_alignment,"eight_car_max_position_error":pack_error,"ramp_peak_height":ramp_peak,"ramp_launch_speed":ramp_launch_speed,"low_step_height":curb_height,"tall_ledge_contacts":ledge_contacts,"low_roof_contacts":roof_contacts,"corner_trials":corners,"corner_throttle_mps":throttle.speed_mps,"corner_coast_mps":coast.speed_mps,"overspeed_recovery_mps":overspeed.speed_mps,"bank_corner_grip":bank_corner_grip},"\t")+"\n")
 	scene.queue_free()
 	await tree.process_frame
-	print("World car / physical sweep / free heading / airborne momentum / banking / reverse / ramp / low steps / eight-car formation: ","PASS" if failures == 0 else "FAIL")
+	print("World car / physical sweep / free heading / airborne momentum / banking / reverse / ramp / low steps / corner scrub / eight-car formation: ","PASS" if failures == 0 else "FAIL")
 	return failures

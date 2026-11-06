@@ -14,6 +14,7 @@ const Catalog = preload("res://scripts/vehicle_catalog.gd")
 const Nitro = preload("res://scripts/nitro_system.gd")
 const RenderBudget = preload("res://scripts/render_budget.gd")
 const WorldRace = preload("res://scripts/world_race.gd")
+const Corner = preload("res://scripts/corner_resistance.gd")
 const GAME_PACE := 1.2
 const RECORD_GROUP := "coast_rush_v3"
 var selected_vehicle := 0
@@ -725,6 +726,8 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	var was_boosting := boosting
 	boosting = nitro_active or pad_active or (draft_charge > 0.65 and throttling and not drifting and impact < 0.15)
 	if boosting and not was_boosting: boost_kick = 0.35
+	var grip: float = ((vehicle.drift_grip if drifting else vehicle.grip)+track.active.banking_grip(distance))*surface.grip_factor*lerpf(1,0.72,offroad_amount)
+	var corner_demand := absf(curve)*speed*speed
 	if brake: speed = move_toward(speed,0,delta*vehicle.brake)
 	elif not gas: speed = move_toward(speed,0,delta*5)
 	elif drifting:
@@ -736,9 +739,14 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			cap = maxf(cap,pad_speed_cap())
 			acceleration = maxf(acceleration,vehicle.boost_accel+12)
 		cap *= lerpf(1,0.58,offroad_amount)
+		# Loaded tyres spend some of the available force turning. Near top speed
+		# the engine cannot replace all corner scrub each frame; boost still has
+		# its own higher cap and stronger acceleration when exiting the bend.
+		if not air.active: acceleration *= Corner.engine_factor(speed,cap,corner_demand,grip)
 		speed = move_toward(speed,cap,delta*acceleration)
 	speed = maxf(0,speed-delta*10*offroad_amount)
-	var grip: float = ((vehicle.drift_grip if drifting else vehicle.grip)+track.active.banking_grip(distance))*surface.grip_factor*lerpf(1,0.72,offroad_amount)
+	if not air.active:
+		speed = maxf(0,speed-delta*Corner.loss_rate(speed,absf(curve)*speed*speed,grip,slip_angle,drifting))
 	var demand := absf(curve) * speed * speed
 	var excess := maxf(0,demand-grip)
 	var authority := clampf(1-excess/(grip*2),0.38,1)
