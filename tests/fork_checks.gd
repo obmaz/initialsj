@@ -11,6 +11,18 @@ func run(tree: SceneTree) -> int:
 	race.set_physics_process(false)
 	race.save_records = false
 	var rows := []
+	# Visual chips are small, but hit areas retain a phone-sized target. Neither
+	# target may steal pause/map touches or cover the central forward road view.
+	var phone_scale := minf(896.0/1280,414.0/720)
+	for side in [0,1]:
+		var visual: Rect2 = race.hud.ROUTE_LEFT if side == 0 else race.hud.ROUTE_RIGHT
+		var touch: Rect2 = race.hud.route_touch_rect(side)
+		check(visual.size.y <= 64 and touch.size.y*phone_scale >= 44,"Compact route chips must retain a usable phone touch height")
+		check(not touch.intersects(race.hud.pause_touch_rect()),"A route choice must not overlap the pause target")
+		check(not touch.intersects(Rect2(1087,83,185,132)),"Route choices must leave the minimap clear")
+		check(not visual.intersects(Rect2(230,175,820,325)),"Route choices must leave the central forward road view unobstructed")
+		for title in Library.TITLES.values():
+			check(race.hud.FONT.get_string_size(title,HORIZONTAL_ALIGNMENT_LEFT,-1,race.hud.route_title_size(title)).x <= 224,"Every route name must fit beside its arrow and selection tick")
 	for stage in range(4):
 		for node in range(stage+1):
 			race.track.reset(stage,node)
@@ -26,7 +38,7 @@ func run(tree: SceneTree) -> int:
 	for index in range(3):
 		var v := Catalog.spec(index)
 		fastest = maxf(fastest,maxf(v.overdrive_speed+2,v.max_speed+21))
-	check(Library.CHECKPOINT_RUNUP/(fastest*race.GAME_PACE) >= 5,"Even the fastest boost must leave at least five real seconds before the split")
+	check(Library.CHECKPOINT_RUNUP/(fastest*race.GAME_PACE) >= 3 and Library.CHECKPOINT_RUNUP < 500,"The shorter approach must retain three seconds of mobile choice time at maximum boost")
 	race.track.reset()
 	race.restart()
 	race.state = "racing"
@@ -36,10 +48,10 @@ func run(tree: SceneTree) -> int:
 	for frame in range(4): race.step(1.0/60,0,false,true,false)
 	check(race.checkpoints == 1 and race.stage_index == 0 and race.route_choices_visible(),"Checkpoint must award time and expose route choices before changing stage")
 	var checkpoint_time: float = race.time_left
-	for frame in range(300):
+	for frame in range(180):
 		race.speed = fastest
 		race.step(race.GAME_PACE/60,0,false,false,false)
-	check(race.stage_index == 0 and race.distance < race.track.length,"Five real seconds after checkpoint must still be a straight road")
+	check(race.stage_index == 0 and race.distance < race.track.length,"Three real seconds after checkpoint must still leave the car on the straight approach")
 	check(race.checkpoints == 1 and race.time_left < checkpoint_time,"The straight approach must not award a checkpoint twice")
 	for index in range(3):
 		for side in [0,1]:
@@ -56,10 +68,11 @@ func run(tree: SceneTree) -> int:
 			var tap := InputEventScreenTouch.new()
 			tap.index = 7
 			tap.pressed = true
-			var rect: Rect2 = race.hud.ROUTE_LEFT if side == 0 else race.hud.ROUTE_RIGHT
-			tap.position = rect.get_center()*race.hud.ui_scale()+race.hud.ui_offset()
+			var rect: Rect2 = race.hud.route_touch_rect(side)
+			# A near-edge tap uses the padded target outside the visible chip.
+			tap.position = (rect.position+Vector2(4,rect.size.y*0.5))*race.hud.ui_scale()+race.hud.ui_offset()
 			race.hud.handle_pointer(tap)
-			check(race.route_preference == side,"Large route cards must select the intended side by touch")
+			check(race.route_preference == side,"Padded compact route choices must select the intended side by touch")
 			tap.pressed = false
 			race.hud.handle_pointer(tap)
 			check(race.hud.held("gas") and not race.hud.fingers.has(7),"Choosing a route with a second finger must preserve the held gas control")
