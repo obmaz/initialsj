@@ -3,6 +3,7 @@ const SurfaceState = preload("res://scripts/road_surface_state.gd")
 const AirState = preload("res://scripts/air_state.gd")
 const Contact = preload("res://scripts/car_contact.gd")
 const Features = preload("res://scripts/road_features.gd")
+const Corner = preload("res://scripts/corner_resistance.gd")
 # Reusable road traffic: lane planning, safe gaps, preview braking and off-screen recycling.
 func initialize(rivals: Array[Dictionary]) -> void:
 	for i in range(rivals.size()):
@@ -93,7 +94,13 @@ func tick(race: Node3D, delta: float) -> void:
 				if gap < 10: target = minf(target,maxf(0,other.speed-(10-gap)*2))
 		if target < r.speed: r.surface.cancel_boost()
 		r.boosting = r.surface.pad_time > 0 or r.surface.lane_active
-		r.speed = move_toward(float(r.speed),target,delta*(44 if target < r.speed else (28 if r.boosting else 14)))
+		var acceleration: float = 28 if r.boosting else 14
+		var corner_grip: float = (race.vehicle.drift_grip if r.drifting else race.vehicle.grip)+race.track.active.banking_grip(d)
+		corner_grip *= r.surface.grip_factor
+		var corner_demand: float = absf(current_curve)*r.speed*r.speed
+		if not r.air.active: acceleration *= Corner.engine_factor(r.speed,target,corner_demand,corner_grip)
+		r.speed = move_toward(float(r.speed),target,delta*(44 if target < r.speed else acceleration))
+		if not r.air.active: r.speed = maxf(0,r.speed-delta*Corner.loss_rate(r.speed,corner_demand,corner_grip,r.visual_yaw,r.drifting))
 		r.distance += r.speed*delta
 		var was_airborne: bool = r.air.active
 		var flight_events: Array[String] = r.air.advance(race.track.active,old_surface_position,Vector2(r.lane,r.distance),r.speed,delta)

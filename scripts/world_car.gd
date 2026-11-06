@@ -1,6 +1,7 @@
 extends CharacterBody3D
 # World-space arcade motor. Track progress is telemetry owned by the race;
 # this controller knows only its chassis, input and real physics contacts.
+const CornerResistance = preload("res://scripts/corner_resistance.gd")
 const SUPPORT_HEIGHT := 0.65
 const GRAVITY := 24.0
 const GROUND_LAYER := 1
@@ -14,6 +15,9 @@ var slip_angle := 0.0
 var steering := 0.0
 var yaw_rate := 0.0
 var last_contacts: Array[Dictionary] = []
+var corner_demand := 0.0
+var corner_grip := 14.5
+var last_corner_loss := 0.0
 var contact_shape: CollisionShape3D
 
 func _init() -> void:
@@ -28,6 +32,7 @@ func _init() -> void:
 
 func configure(spec: Dictionary) -> void:
 	specification = spec
+	corner_grip = float(specification.get("grip",14.5))
 
 func reset_pose(feet: Vector3, forward: Vector3, up: Vector3 = Vector3.UP) -> void:
 	surface_normal = up.normalized()
@@ -40,6 +45,8 @@ func reset_pose(feet: Vector3, forward: Vector3, up: Vector3 = Vector3.UP) -> vo
 	slip_angle = 0
 	grounded = false
 	ground_height = feet.y
+	corner_demand = 0
+	last_corner_loss = 0
 	last_contacts.clear()
 	reset_physics_interpolation()
 
@@ -102,6 +109,8 @@ func _step_over(motion: Vector3, collider: Object, normal: Vector3) -> bool:
 
 func advance(delta: float, axis: float, target_speed: float, drifting: bool, grip_factor: float = 1.0) -> Array[Dictionary]:
 	last_contacts.clear()
+	corner_demand = 0
+	last_corner_loss = 0
 	if delta <= 0 or not is_inside_tree(): return last_contacts
 	target_speed = clampf(target_speed,-12,maxf(float(specification.get("overdrive_speed",112))+10,float(specification.get("max_speed",80))+24))
 	var support := _support()
@@ -131,6 +140,12 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 		var planar: Vector3 = forward*target_speed+right*lateral
 		# Steering must not create kinetic energy from the retained lateral speed.
 		if planar.length() > absf(target_speed): planar = planar.limit_length(absf(target_speed))
+		corner_demand = speed*absf(yaw_rate)
+		var bank_assist := (Vector3.DOWN*9.81).dot(right)*-signf(yaw_rate)
+		corner_grip = maxf(3.0,grip+bank_assist)
+		var actual_slip := atan2(absf(planar.dot(right)),maxf(absf(planar.dot(forward)),0.01))
+		last_corner_loss = CornerResistance.loss_rate(speed,corner_demand,corner_grip,actual_slip,drifting)
+		planar = planar.move_toward(Vector3.ZERO,last_corner_loss*delta)
 		velocity = planar-surface_normal*2.0
 	else:
 		# No road heading, throttle snap or lateral reset during a jump.

@@ -3,6 +3,7 @@ extends Node3D
 const WorldCar = preload("res://scripts/world_car.gd")
 const Progress = preload("res://scripts/circuit_progress.gd")
 const Nitro = preload("res://scripts/nitro_system.gd")
+const Corner = preload("res://scripts/corner_resistance.gd")
 var race: Node3D
 var player_body: CharacterBody3D
 var bodies: Array[CharacterBody3D] = []
@@ -140,6 +141,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		cap = maxf(cap,race.pad_speed_cap())
 		accel = maxf(accel,race.vehicle.boost_accel+12)
 	cap *= lerpf(1,0.58,race.offroad_amount)
+	if player_body.grounded: accel *= Corner.engine_factor(race.speed,cap,player_body.corner_demand,player_body.corner_grip)
 	var target: float = move_toward(race.speed,cap,accel*delta) if gas else maxf(0,race.speed-5*delta)
 	if race.drifting: target = maxf(0,race.speed-delta*0.35)
 	if brake: target = maxf(0,race.speed-race.vehicle.brake*delta)
@@ -364,7 +366,9 @@ func update_rivals(delta: float) -> void:
 		rival.world_stuck = stuck
 		rival.world_reverse = reversing_cpu
 		var signed_speed: float = body.velocity.dot(forward)
-		var desired := move_toward(speed_of(body),target_speed,delta*(race.vehicle.brake if target_speed < speed_of(body) else race.vehicle.accel))
+		var acceleration: float = race.vehicle.accel
+		if body.grounded: acceleration *= Corner.engine_factor(speed_of(body),target_speed,body.corner_demand,body.corner_grip)
+		var desired := move_toward(speed_of(body),target_speed,delta*(race.vehicle.brake if target_speed < speed_of(body) else acceleration))
 		if reversing_cpu > 0:
 			# A bounded physical manoeuvre, never a curve reposition or teleport.
 			# Check rear clearance again every frame as other traffic keeps moving.
