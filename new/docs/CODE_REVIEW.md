@@ -39,3 +39,11 @@ Road patches share their rendered placement with swept tire detection, including
 | P3 | Lane movement did not depend on forward speed, so stopped cars could slide sideways. | Scale lane-change speed below 12 m/s. | A stationary car remains in its lane; normal-speed merges continue. |
 
 `traffic_checks.gd` runs seven queue/merge cases in the normal CI entry point, plus stopped-car checks. `traffic_pack_review.gd` checks seven NPCs continuously for 150 simulated seconds under each vehicle profile. Complete Tour and Fuji drives are also rerun to check progress and race completion; these scripted controls do not substitute for human playtesting.
+
+## HUD feedback review — 2026-11-06
+
+P3: the touch pause region did not cover the full rendered time panel, and pause was discoverable only by knowing that the timer was a button. Match its bounds to the panel and add a visible pause target. Circuit pause text now identifies TRACK rather than TOUR, with touch-specific resume guidance.
+
+P3: dynamic tire trails used a fixed 7.2 m lane cutoff despite variable road widths. Use the active road's half-width and a tire clearance; native wide-road and overhead captures confirm the paired trails are present on the outer lane.
+
+Projected circuit place badges use a deterministic tie order so matched grid rows do not receive duplicate places. Badges are limited and screened for overlap. Existing mode checks now cover unique grid places and the new touch pause control.

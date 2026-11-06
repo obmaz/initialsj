@@ -266,9 +266,15 @@ func relative_gap(other: float, reference: float) -> float:
 	return wrapf(other-reference,-track.length/2,track.length/2) if mode == "track" else other-reference
 
 func race_position() -> int:
+	return competitor_position(-1)
+
+func competitor_position(id: int) -> int:
+	var progress: float = distance if id < 0 else rivals[id].distance
 	var place := 1
+	if id >= 0 and distance > progress+0.001: place += 1
 	for r in rivals:
-		if r.active and r.distance > distance: place += 1
+		if not r.active or r.id == id: continue
+		if r.distance > progress+0.001 or (absf(r.distance-progress) <= 0.001 and r.id > id): place += 1
 	return place
 
 func restart() -> void:
