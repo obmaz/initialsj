@@ -50,7 +50,7 @@ func _init(origin: Vector3 = Vector3(0,6,0), heading_angle: float = -PI / 2, sta
 	for i in range(int(span/5)+1):
 		var d := i * 5.0
 		var t := d/span
-		var envelope := smoothstep(200,360,d)*(1-smoothstep(span-280,span-100,d))
+		var envelope := smoothstep(200,360,d)*(1-smoothstep(span-Library.CHECKPOINT_RUNUP-160,span-Library.CHECKPOINT_RUNUP-20,d))
 		var severity := 1.0+route_node*0.18
 		var wave := (0.42+stage*0.025)*severity*sin(TAU*(2.0+route_node*0.18)*t)
 		wave += (0.14+route_node*0.025)*sin(TAU*(4.0+route_node*0.28)*t)*pow(sin(PI*t),2)
@@ -209,19 +209,55 @@ func _ready() -> void:
 			for row in range(2):
 				var tile := box(self,point(stripe_d + row * 1.2,i-8.5) + Vector3.UP * 0.035,Vector3(1,0.025,1.2),white if (i+row)%2 == 0 else asphalt)
 				tile.rotation.y = heading(stripe_d)
+	if closed_loop:
+		make_gantry(80,"SEOCHO LOOP / START - FINISH" if course_id == 1 else "FUJI LAKESIDE / START - FINISH")
+	elif stage < 4:
+		make_gantry(checkpoint_distance(),"CHECKPOINT",Color("e3ad38"))
+		var titles := Library.next_titles(stage,route_node)
+		make_gantry(length-55,"< "+titles[0]+"     "+titles[1]+" >")
+		make_fork_guides()
+	else: make_gantry(length-10,"GRAND TOUR / GOAL")
+
+func checkpoint_distance() -> float:
+	return maxf(80,length-Library.CHECKPOINT_RUNUP)
+
+func make_gantry(at: float, title: String, tint: Color = Color("173d46")) -> void:
 	var gantry := Node3D.new()
 	add_child(gantry)
-	gantry.position = point(80 if closed_loop else (length + Library.FORK_COMMIT if stage < 4 else length - 10))
-	gantry.rotation.y = heading(80 if closed_loop else length)
-	for side in [-1,1]: box(gantry,Vector3(side * 16,4.5,0),Vector3(0.5,9,0.5),steel)
-	box(gantry,Vector3(0,8.5,0),Vector3(33,2.3,0.6),material(Color("173d46")))
-	var sign_label := Label3D.new()
-	var titles := Library.next_titles(stage,route_node)
-	sign_label.text = ("SEOCHO LOOP / START - FINISH" if course_id == 1 else "FUJI LAKESIDE / START - FINISH") if closed_loop else ("< " + titles[0] + "   |   " + titles[1] + " >" if stage < 4 else "GRAND TOUR / GOAL")
-	sign_label.font_size = 90
-	sign_label.pixel_size = 0.008
-	sign_label.position = Vector3(0,8.5,0.35)
-	gantry.add_child(sign_label)
+	gantry.position = point(at)
+	gantry.rotation.y = heading(at)
+	var steel := material(Color("8d9c9c"),0.6)
+	for side in [-1,1]: box(gantry,Vector3(side*16,4.5,0),Vector3(0.5,9,0.5),steel)
+	box(gantry,Vector3(0,8.5,0),Vector3(33,2.3,0.6),material(tint))
+	var label := Label3D.new()
+	label.text = title
+	label.font_size = 100
+	label.pixel_size = 0.008
+	label.position = Vector3(0,8.5,0.35)
+	label.modulate = Color("142431") if title == "CHECKPOINT" else Color.WHITE
+	gantry.add_child(label)
+
+func make_fork_guides() -> void:
+	var mesh := SurfaceTool.new()
+	mesh.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for remaining in [180.0,95.0,30.0]:
+		var d: float = length-remaining
+		var forward := (point(d+2)-point(d-2)).normalized()
+		var right := Vector3(-forward.z,0,forward.x).normalized()
+		for side in [-1.0,1.0]:
+			var origin := point(d,side*half_width(d)*0.52)+Vector3.UP*0.05
+			var direction: Vector3 = (forward+right*side*0.38).normalized()
+			var across := Vector3(-direction.z,0,direction.x).normalized()
+			var points := [Vector2(-0.4,-3),Vector2(0.4,-3),Vector2(-0.4,1),Vector2(0.4,1),Vector2(-1.6,1),Vector2(1.6,1),Vector2(0,4)]
+			for index in [0,2,1,1,2,3,4,6,5]:
+				mesh.add_vertex(origin+across*points[index].x+direction*points[index].y)
+	mesh.generate_normals()
+	var node := MeshInstance3D.new()
+	node.name = "ForkRoadArrows"
+	node.mesh = mesh.commit()
+	node.material_override = paint(Color("f1eee4"))
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(node)
 
 func make_skid_marks() -> void:
 	var mat := ShaderMaterial.new()

@@ -1,6 +1,8 @@
 extends RefCounted
 const STAGES := 5
 const FORK_COMMIT := 80.0
+# More than five wall-clock seconds even at 114 m/s and the 1.2x arcade tempo.
+const CHECKPOINT_RUNUP := 720.0
 const CHECKPOINT_BONUS := 60.0
 const START_TIME := 70.0
 const THEMES := [
