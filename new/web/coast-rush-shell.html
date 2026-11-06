@@ -17,6 +17,9 @@ body { color: #f3f8ff; background: #07111e; overflow: hidden; touch-action: none
 #landscape-guide { display: none; position: fixed; inset: 0; z-index: 4; background: #07111e; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center; padding: 24px; box-sizing: border-box; }
 #landscape-guide svg { width: 168px; height: 120px; }
 #landscape-guide h2 { margin: 0; font-size: clamp(22px,6vw,30px); font-style: italic; letter-spacing: .04em; }
+#landscape-start { min-height: 52px; width: min(280px,80vw); border: 1px solid #a9f2ff; border-radius: 5px; background: #39d7f3; color: #07111e; font: 800 16px system-ui,sans-serif; cursor: pointer; }
+#landscape-start:focus-visible { outline: 3px solid #ff9756; outline-offset: 5px; }
+#landscape-start:disabled { opacity: .65; cursor: wait; }
 #landscape-guide p { margin: 0; max-width: 290px; color: #bad1df; font-size: 15px; line-height: 1.6; }
 @media (orientation: portrait) { #landscape-guide { display: flex; } }
 #status-splash { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
@@ -61,12 +64,16 @@ noscript { position: fixed; z-index: 3; bottom: 20px; left: 20px; right: 20px; p
 		<div id="landscape-guide" role="status" aria-label="Landscape orientation required">
 			<svg viewBox="0 0 168 120" aria-hidden="true"><rect x="24" y="42" width="120" height="64" rx="12" fill="#163045" stroke="#42dcff" stroke-width="4"/><path d="M63 62l13 12-13 12M85 62l13 12-13 12" fill="none" stroke="#ff9756" stroke-width="7"/><path d="M42 24c26-19 65-12 80 8M120 17l3 16-17-1" fill="none" stroke="#dff8ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
 			<h2>ROTATE TO RACE</h2>
-			<p>Turn your device sideways to play.</p>
+			<p id="landscape-status" lang="ko" aria-live="polite">버튼을 누르거나 기기를 가로로 돌려 주세요.</p>
+			<button id="landscape-start" type="button" lang="ko" aria-describedby="landscape-status">가로로 시작</button>
 		</div>
 		<script>
 // Keep the active tour paused while the landscape-only layout is covered.
 (function () {
 	const portrait = window.matchMedia('(orientation: portrait)');
+	const button = document.getElementById('landscape-start');
+	const message = document.getElementById('landscape-status');
+	const prompt = message.textContent;
 	let observer = null;
 	window.initialsjObserveOrientation = function (callback) {
 		observer = callback;
@@ -74,6 +81,57 @@ noscript { position: fixed; z-index: 3; bottom: 20px; left: 20px; right: 20px; p
 	};
 	portrait.addEventListener('change', function (event) {
 		if (observer) observer(event.matches);
+		if (!event.matches || !button.disabled) message.textContent = prompt;
+	});
+	function waitForLandscape() {
+		if (!portrait.matches) return Promise.resolve(true);
+		return new Promise(function (resolve) {
+			function changed(event) { if (!event.matches) finish(true); }
+			function finish(ok) {
+				clearTimeout(timeout);
+				portrait.removeEventListener('change', changed);
+				resolve(ok);
+			}
+			const timeout = setTimeout(function () { finish(false); }, 2000);
+			portrait.addEventListener('change', changed);
+		});
+	}
+	button.addEventListener('click', async function (event) {
+		event.preventDefault();
+		event.stopPropagation();
+		if (button.disabled) return;
+		button.disabled = true;
+		button.textContent = '전환 중…';
+		message.textContent = '가로 화면으로 전환하고 있어요.';
+		let enteredFullscreen = false;
+		try {
+			const root = document.documentElement;
+			const request = root.requestFullscreen || root.webkitRequestFullscreen;
+			if (!document.fullscreenElement && !document.webkitFullscreenElement && request) {
+				try {
+					await request.call(root, {navigationUI: 'hide'});
+					enteredFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+				} catch (_) { /* A standalone browser may still support orientation lock. */ }
+			}
+			let locked = false;
+			if (screen.orientation && typeof screen.orientation.lock === 'function') {
+				try { await screen.orientation.lock('landscape'); locked = true; } catch (_) { /* Manual rotation remains available. */ }
+			}
+			const landscape = !portrait.matches || (locked && await waitForLandscape());
+			if (landscape) {
+				message.textContent = prompt;
+			} else {
+				// Restore browser controls if fullscreen did not achieve rotation.
+				const exit = document.exitFullscreen || document.webkitExitFullscreen;
+				if (enteredFullscreen && exit) { try { await exit.call(document); } catch (_) {} }
+				message.textContent = '자동 전환을 사용할 수 없어요. 기기를 직접 가로로 돌려 주세요.';
+			}
+		} catch (_) {
+			message.textContent = '기기를 직접 가로로 돌려 주세요.';
+		} finally {
+			button.disabled = false;
+			button.textContent = '가로로 시작';
+		}
 	});
 }());
 		</script>
