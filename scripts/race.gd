@@ -51,7 +51,7 @@ var shoulder_dust_clock := 0.0
 var landing_dust: Node3D
 var water_effect: Node3D
 var pad_active: bool:
-	get: return state == "racing" and surface.pad_time > 0 and not braking and impact < 0.15
+	get: return state == "racing" and (surface.pad_time > 0 or surface.lane_active) and not braking and impact < 0.15
 var mode := "tour"
 var graphics_mode := 0
 var render_budget := RenderBudget.new()
@@ -667,7 +667,8 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	axis = route_axis(axis)
 	var shoulder := clampf((absf(lane)+0.8-track.half_width(distance))/1.6,0,1) if not air.active else 0.0
 	offroad_amount = move_toward(offroad_amount,shoulder,delta*6)
-	gas = gas or nitro_input or (cell_input and vehicle.mode == "hybrid") or nitro_burst_left > 0 or surface.pad_time > 0
+	surface.update_lane(track.active,Vector2(lane,distance),speed,brake,impact,not air.active)
+	gas = gas or nitro_input or (cell_input and vehicle.mode == "hybrid") or nitro_burst_left > 0 or surface.pad_time > 0 or surface.lane_active
 	var old_surface_position := Vector2(lane,distance)
 	elapsed += delta
 	if mode == "tour": time_left = maxf(0,time_left-delta)
@@ -775,6 +776,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			landing_dust.burst(track.point(distance,lane),true)
 	var surface_events: Array[String] = []
 	if not air.active and not was_airborne and flight_events.is_empty(): surface_events = surface.contact(track.active,old_surface_position,Vector2(lane,distance),speed,brake,impact)
+	surface.update_lane(track.active,Vector2(lane,distance),speed,brake,impact,not air.active)
 	for event in surface_events:
 		if event == "boost":
 			speed = maxf(speed,minf(pad_speed_cap(),speed+8))
@@ -786,6 +788,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			if DisplayServer.get_name() != "headless" and speed > 10:
 				var forward := (track.point(distance+2)-track.point(distance)).normalized()
 				water_effect.burst(track.point(distance,lane),forward,motion_reduced)
+	boosting = nitro_active or pad_active or (draft_charge > 0.65 and throttling and not drifting and impact < 0.15)
 	brain.tick(self,delta)
 	for i in range(rivals.size()):
 		var r: Dictionary = rivals[i]

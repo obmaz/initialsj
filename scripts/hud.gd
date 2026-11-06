@@ -343,6 +343,7 @@ func _draw() -> void:
 	if race.state == "ready":
 		draw_garage()
 		return
+	draw_boost_feedback()
 	draw_competitor_markers()
 	draw_pace_feedback()
 	var rows := standings()
@@ -640,7 +641,7 @@ func draw_courses() -> void:
 		draw_texture_rect_region(texture,image_box,source)
 		var x := rect.position.x+26
 		text_at(Vector2(x,428),"01 / FUJI LAKESIDE" if i == 0 else "02 / SUNCOAST SPEEDWAY",32,accent)
-		text_at(Vector2(x,467),"VIADUCT / RIDGE / UNDERPASS" if i == 0 else "TRI-OVAL / BANKING / PIT LANE",22,WHITE)
+		text_at(Vector2(x,467),"VIADUCT / RIDGE / UNDERPASS" if i == 0 else "HILLS / BOOST SLALOM / BANKING",22,WHITE)
 		text_at(Vector2(x,501),"5.72 KM   /   3 LAPS" if i == 0 else "4.57 KM   /   3 LAPS",22,Color("adc2d0"))
 		var cta := Rect2(rect.position+Vector2(12,367),Vector2(496,61))
 		slant(cta,Color(accent,0.18),8)
@@ -794,13 +795,58 @@ func draw_pace_feedback() -> void:
 	if race.impact > 0: draw_rect(Rect2(0,0,1280,720),Color(1,0.35,0.10,race.impact*0.07))
 	if race.air.active and race.air.trick: centered(Vector2(640,568),"AIR TIME!",26,GOLD)
 	elif race.air.landing_flash > 0.35 and race.air.trick: centered(Vector2(640,568),"LANDED / +100",21,Color("b7e9ff"))
-	elif race.surface.pad_flash > 0: centered(Vector2(640,568),"BOOST PAD!",26,GOLD)
+	elif race.pad_active: draw_boost_badge()
 	elif race.surface.water_flash > 0: centered(Vector2(640,568),"WET ROAD / LOW GRIP",21,Color("a9dfff"))
 	elif race.near_miss_flash > 0: centered(Vector2(640,568),"CLOSE PASS +150",23,GOLD)
 	elif race.overtake_flash > 0: centered(Vector2(640,568),"PASS!",24,CYAN)
-	elif race.boosting: centered(Vector2(640,568),("BOOST PAD!" if race.pad_active else ("OVERDRIVE!" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO!")) if race.nitro_active or race.pad_active else "SLIPSTREAM",23,CYAN)
+	elif race.boosting: centered(Vector2(640,568),("OVERDRIVE!" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO!") if race.nitro_active else "SLIPSTREAM",23,CYAN)
 	if race.corner_warning > 0.15:
 		centered(Vector2(640,606),"BRAKE / CORNER %d km/h" % int(race.recommended_speed*3.6),19,Color(1,0.66,0.38,race.corner_warning))
+
+# Road boosts get one short activation pulse, separate from nitro fuel and
+# ordinary speed lines. Motion reduction keeps only the informative badge.
+func boost_feedback_strength() -> float:
+	if race == null or race.state != "racing" or not race.pad_active or race.motion_reduced: return 0
+	var lane_active: bool = race.surface.lane_active
+	var duration := 0.65 if lane_active else 1.1
+	var pulse: float = pow(clampf(race.surface.pad_flash/duration,0,1),2)
+	return pulse if lane_active else pulse*smoothstep(0,0.25,race.surface.pad_time)
+
+func boost_feedback_label() -> String:
+	if race == null or race.state != "racing" or not race.pad_active: return ""
+	return "BOOST LANE" if race.surface.lane_active else "BOOST PAD"
+
+func draw_boost_feedback() -> void:
+	var pulse := boost_feedback_strength()
+	if pulse <= 0: return
+	# Keep the centre of the road and touch controls clear; no full-screen flash.
+	for side in [-1.0,1.0]:
+		var edge := 0.0 if side < 0 else 1280.0
+		var inner: float = edge-side*78
+		var points := PackedVector2Array([Vector2(edge,170),Vector2(inner,320),Vector2(inner,430),Vector2(edge,570)])
+		draw_polygon(points,PackedColorArray([Color(CYAN,pulse*0.16),Color(CYAN,0),Color(CYAN,0),Color(CYAN,pulse*0.12)]))
+		for i in range(4):
+			var y := 212.0+i*76
+			var direction := (Vector2(edge,y)-Vector2(640,330)).normalized()
+			var start := Vector2(inner,330+(y-330)*0.85)+direction*(1-pulse)*48
+			var end := start+direction*(32+pulse*52)
+			var across := Vector2(-direction.y,direction.x)*(1.6+pulse*0.8)
+			var color := GOLD if i%3 == 0 else CYAN
+			draw_polygon(PackedVector2Array([start-across,start+across,end]),PackedColorArray([Color(color,pulse*0.65),Color(color,pulse*0.65),Color(color,0)]))
+
+func draw_boost_badge() -> void:
+	var label := boost_feedback_label()
+	if label.is_empty(): return
+	var y := 246.0
+	var rect := Rect2(488,y,304,48)
+	slant(rect,Color("082d3aeb"),10)
+	var edge := PackedVector2Array([Vector2(498,y),Vector2(792,y),Vector2(782,y+48)])
+	draw_polyline(edge,Color(CYAN,0.82),2,true)
+	centered(Vector2(640,y+35),label,28,GOLD)
+	for side in [-1.0,1.0]:
+		var x: float = 640+side*126
+		var points := PackedVector2Array([Vector2(x-side*7,y+12),Vector2(x+side*2,y+24),Vector2(x-side*7,y+36)])
+		draw_polyline(points,CYAN,2.5,true)
 
 func draw_route_choice() -> void:
 	if not race.route_choices_visible(): return

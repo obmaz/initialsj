@@ -4,6 +4,9 @@ var track: Node3D
 var theme := "speedway"
 var batches: Array[MultiMeshInstance3D] = []
 var grandstand_anchors: Array[Transform3D] = []
+const BASE_HEIGHT := 6.5
+const OUTER_SLOPE_END := 240.0
+const INNER_SLOPE_END := 180.0
 func make_sky() -> Sky:
 	var sky := Sky.new()
 	var material := ProceduralSkyMaterial.new()
@@ -17,11 +20,25 @@ func make_sky() -> Sky:
 	return sky
 func outer_ground_height(d: float, lane: float) -> float:
 	var platform: float = maxf(7.4,track.point(d,track.half_width(d)+2).y)
-	return lerpf(platform,6.5,smoothstep(120,160,lane))
+	return lerpf(platform,BASE_HEIGHT,smoothstep(120,OUTER_SLOPE_END,lane))
+func inner_ground_height(d: float, lane: float) -> float:
+	var platform: float = maxf(BASE_HEIGHT,track.point(d,-track.half_width(d)-2).y-0.15)
+	return lerpf(platform,BASE_HEIGHT,smoothstep(90,INNER_SLOPE_END,absf(lane)))
 func terrain_point(d: float, lane: float) -> Vector3:
 	var p: Vector3 = track.point(d,lane)
-	p.y = 6.5 if lane < 0 else outer_ground_height(d,lane)
+	p.y = inner_ground_height(d,lane) if lane < 0 else outer_ground_height(d,lane)
 	return p
+func distance_at_xz(p: Vector3) -> float:
+	# Prop footprints project onto the road in plan view. A fixed low Y would
+	# pull the closest point downhill after the circuit gains real elevation.
+	var d: float = track.curve.get_closest_offset(p)
+	for iteration in range(4):
+		var q: Vector3 = track.point(d)
+		var tangent: Vector3 = (track.point(d+1)-track.point(d-1))*0.5
+		var derivative := Vector2(tangent.x,tangent.z)
+		var offset := Vector2(p.x-q.x,p.z-q.z)
+		d = fposmod(d+clampf(offset.dot(derivative)/maxf(0.01,derivative.length_squared()),-80,80),track.length)
+	return d
 func batch(label: String, size: Vector3, color: Color, poses: Array[Transform3D]) -> void:
 	if poses.is_empty(): return
 	var mesh := BoxMesh.new()
@@ -39,7 +56,7 @@ func batch(label: String, size: Vector3, color: Color, poses: Array[Transform3D]
 	batches.append(node)
 func pose(d: float, lane: float, height: float, scale: Vector3 = Vector3.ONE) -> Transform3D:
 	var p: Vector3 = track.point(d,lane)
-	p.y = (maxf(7.4,track.point(d,track.half_width(d)+2).y) if lane > 0 else 7.4)+height
+	p.y = (outer_ground_height(d,lane) if lane > 0 else inner_ground_height(d,lane))+height
 	return Transform3D(Basis(Vector3.UP,track.heading(d)).scaled_local(scale),p)
 func _ready() -> void:
 	make_infield()
@@ -61,6 +78,7 @@ func make_infield() -> void:
 	floor_node.position.y = 6.5
 	add_child(floor_node)
 	make_outer_ground(grass)
+	make_inner_ground(grass)
 	var lake := MeshInstance3D.new()
 	lake.name = "InfieldLake"
 	var disk := CylinderMesh.new()
@@ -79,10 +97,11 @@ func make_outer_ground(grass: Material) -> void:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var steps := int(ceil(track.length/8))
+	var lanes: Array[float] = [16.0,16.5,120.0]
+	for lane in range(125,int(OUTER_SLOPE_END)+1,5): lanes.append(float(lane))
 	for i in range(steps):
 		var a: float = track.length*i/steps
 		var b: float = track.length*(i+1)/steps
-		var lanes := [16.0,16.5,120.0,128.0,136.0,144.0,152.0,160.0]
 		for band in range(lanes.size()-1):
 			var points := [track.point(a,lanes[band]),track.point(a,lanes[band+1]),track.point(b,lanes[band]),track.point(b,lanes[band+1])]
 			for corner in range(4):
@@ -94,6 +113,30 @@ func make_outer_ground(grass: Material) -> void:
 	surface.generate_normals()
 	var terrain := MeshInstance3D.new()
 	terrain.name = "SpeedwayOuterGround"
+	terrain.mesh = surface.commit()
+	terrain.material_override = grass
+	terrain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(terrain)
+# An elevated inside shoulder needs a continuous bank down to the flat lake
+# and lawn; props and the pit lane share the same authored ground profile.
+func make_inner_ground(grass: Material) -> void:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var steps := int(ceil(track.length/8))
+	var lanes: Array[float] = [-16.0,-16.5,-90.0]
+	for lane in range(95,int(INNER_SLOPE_END)+1,5): lanes.append(-float(lane))
+	for i in range(steps):
+		var a: float = track.length*i/steps
+		var b: float = track.length*(i+1)/steps
+		for band in range(lanes.size()-1):
+			var points := [terrain_point(a,lanes[band]),terrain_point(a,lanes[band+1]),terrain_point(b,lanes[band]),terrain_point(b,lanes[band+1])]
+			for corner in [0,2]:
+				if band == 0: points[corner].y = track.point(a if corner == 0 else b,lanes[band]).y-0.16
+			for index in [0,1,2,1,3,2]: surface.add_vertex(points[index])
+	surface.index()
+	surface.generate_normals()
+	var terrain := MeshInstance3D.new()
+	terrain.name = "SpeedwayInnerGround"
 	terrain.mesh = surface.commit()
 	terrain.material_override = grass
 	terrain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -150,7 +193,7 @@ func make_stands() -> void:
 		for x in [34.3,47.55,60.8,78.0]:
 			for z in range(-64,65,8):
 				var p := frame*Vector3(x,0,z)
-				var at: float = track.curve.get_closest_offset(Vector3(p.x,8,p.z))
+				var at := distance_at_xz(p)
 				base = maxf(base,outer_ground_height(at,x))
 		frame.origin.y = base+0.08
 		grandstand_anchors.append(frame)
@@ -167,7 +210,7 @@ func make_stands() -> void:
 		for x in [48.0,76.0]:
 			for z in [-50.0,50.0]:
 				var p := frame*Vector3(x,0,z)
-				var at: float = track.curve.get_closest_offset(Vector3(p.x,8,p.z))
+				var at := distance_at_xz(p)
 				var bottom := outer_ground_height(at,x)
 				var column_height := frame.origin.y+14-bottom
 				p.y = bottom+column_height*0.5
@@ -189,7 +232,7 @@ func make_pits() -> void:
 		var pts := [track.point(a,-18),track.point(a,-32),track.point(b,-18),track.point(b,-32)]
 		for n in [0,2,1,1,2,3]:
 			var p: Vector3 = pts[n]
-			p.y = 7.4
+			p.y = inner_ground_height(a if n < 2 else b,-18 if n%2 == 0 else -32)+0.03
 			st.add_vertex(p)
 	st.generate_normals()
 	var apron := MeshInstance3D.new()
@@ -202,10 +245,10 @@ func make_pits() -> void:
 	for i in range(20):
 		var d := 30.0+i*28
 		var p: Vector3 = track.point(d,-45)
-		p.y = 11
+		p.y = inner_ground_height(d,-45)+3.5
 		garages.append(Transform3D(Basis(Vector3.UP,track.heading(d)),p))
 		p = track.point(d,-34.7)
-		p.y = 9.8
+		p.y = inner_ground_height(d,-34.7)+2.4
 		doors.append(Transform3D(Basis(Vector3.UP,track.heading(d)),p))
 	batch("PitGarages",Vector3(20,7,26),Color("d4dbd8"),garages)
 	batch("PitDoors",Vector3(0.2,4,20),Color("235565"),doors)
@@ -213,7 +256,7 @@ func make_pits() -> void:
 	tower.name = "RaceControlTower"
 	add_child(tower)
 	tower.position = track.point(170,-70)
-	tower.position.y = 7
+	tower.position.y = inner_ground_height(170,-70)+0.05
 	tower.rotation.y = track.heading(170)
 	track.box(tower,Vector3(0,10,0),Vector3(15,20,20),track.material(Color("cbd6d4")))
 	track.box(tower,Vector3(0,21,0),Vector3(21,5,27),track.material(Color("28566c"),0.4))
@@ -238,8 +281,9 @@ func make_palms() -> void:
 	var placements: Array[Dictionary] = []
 	for i in range(32):
 		var d: float = track.length*(i+0.35)/32
-		var p: Vector3 = track.point(d,-95 if d < 650 else -48)
-		p.y = 6.6
+		var lane := -95.0 if d < 650 else -48.0
+		var p: Vector3 = track.point(d,lane)
+		p.y = inner_ground_height(d,lane)+0.1
 		placements.append({"position":p,"yaw":i*1.7,"scale":0.85+(i%4)*0.09,"variant":i})
 	var palms := preload("res://scripts/regional_props_3d.gd").new()
 	palms.name = "SpeedwayPalms"

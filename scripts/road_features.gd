@@ -39,11 +39,19 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 			["ramp",4030.0,0.36,22.0,4.6,1.55],
 			["boost",4850.0,-0.42,26.0,4.2]
 		])
+	if section.closed_loop and section.course_id == 1:
+		# Two readable slaloms: a neutral line misses the alternating pads.
+		for start in [560.0,2490.0]:
+			for index in range(6):
+				specifications.append(["boost",start+index*78.0,-0.24 if index%2 == 0 else 0.24,12.0,3.6])
+		specifications.append(["boost_lane",1050.0,0.42,240.0,4.4])
+		specifications.append(["boost_lane",2070.0,-0.42,280.0,4.4])
 	for i in range(specifications.size()):
 		var spec: Array = specifications[i]
 		var d: float = spec[1]
 		out.append({"id":"%d:%d:%d" % [section.stage,section.route_node,i],"kind":spec[0],"distance":d,"lane":float(spec[2])*section.half_width(d),"length":spec[3],"width":spec[4]})
 		if spec[0] == "ramp": out[-1]["height"] = float(spec[5]) if spec.size() > 5 else 0.75
+		if section.closed_loop and section.course_id == 1 and spec[0] == "boost" and float(spec[3]) <= 12: out[-1]["duration"] = 0.48
 	return out
 
 static func lane_cost(section: Node3D, distance: float, lane: float) -> float:
@@ -86,13 +94,14 @@ static func build(section: Node3D) -> void:
 			continue
 		var surface := SurfaceTool.new()
 		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-		if feature.kind == "boost":
-			for i in range(10):
-				var a: float = feature.distance-feature.length*0.5+feature.length*i/10.0
-				var b: float = feature.distance-feature.length*0.5+feature.length*(i+1)/10.0
+		if feature.kind in ["boost","boost_lane"]:
+			var segments := maxi(10,ceili(float(feature.length)/3))
+			for i in range(segments):
+				var a: float = feature.distance-feature.length*0.5+feature.length*i/segments
+				var b: float = feature.distance-feature.length*0.5+feature.length*(i+1)/segments
 				var lanes := [feature.lane-feature.width*0.5,feature.lane+feature.width*0.5]
 				var points := [section.point(a,lanes[0]),section.point(a,lanes[1]),section.point(b,lanes[0]),section.point(b,lanes[1])]
-				var uv := [Vector2(0,i/10.0),Vector2(1,i/10.0),Vector2(0,(i+1)/10.0),Vector2(1,(i+1)/10.0)]
+				var uv := [Vector2(0,float(i)/segments),Vector2(1,float(i)/segments),Vector2(0,float(i+1)/segments),Vector2(1,float(i+1)/segments)]
 				for index in [0,2,1,1,2,3]: add_vertex(surface,points[index],uv[index])
 		else:
 			var center: Vector3 = section.point(feature.distance,feature.lane)
@@ -104,10 +113,13 @@ static func build(section: Node3D) -> void:
 					var p: Vector3 = section.point(feature.distance+cos(angle)*feature.length*0.5*radius,feature.lane+sin(angle)*feature.width*0.5*radius)
 					add_vertex(surface,p,Vector2(0.5+sin(angle)*0.5,0.5+cos(angle)*0.5))
 		var node := MeshInstance3D.new()
-		node.name = "BoostPad" if feature.kind == "boost" else "RoadPuddle"
+		node.name = "BoostLane" if feature.kind == "boost_lane" else ("BoostPad" if feature.kind == "boost" else "RoadPuddle")
 		node.mesh = surface.commit()
 		var material := ShaderMaterial.new()
-		material.shader = PAD_SHADER if feature.kind == "boost" else WATER_SHADER
+		material.shader = PAD_SHADER if feature.kind in ["boost","boost_lane"] else WATER_SHADER
+		if feature.kind == "boost_lane":
+			material.set_shader_parameter("lane_mode",true)
+			material.set_shader_parameter("arrow_count",feature.length/9.0)
 		node.material_override = material
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		section.add_child(node)
