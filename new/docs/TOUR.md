@@ -1,6 +1,6 @@
 # Coast Rush route revision
 
-The current game is a five-stage branching open-road tour with three selectable original vehicle bodies: Nimori H, Veltrix S and Ironvale V8. Older Fuji/circuit documentation and earlier route screenshots are historical.
+The current game is a five-stage branching open-road tour with three selectable original vehicle bodies: Nimori H, Veltrix S and Ironvale V8. The separate redesigned Fuji ridge circuit is documented in MODES.md; earlier route screenshots are historical.
 
 ## Longer roads with changing width
 
@@ -52,3 +52,5 @@ All source changes are under `new/`. Godot version verified is 4.6.3; 4.7.2 rema
 Every route node now has its own theme. All sixteen possible full tours visit five distinct themes, and every fork has different left and right destinations. [THEMES.md](THEMES.md) lists the complete map and generated roadside-art pipeline. The theme layout preserves route lengths and cumulative right-branch difficulty. Current vehicle tuning and deadline behavior are covered by the new tour metrics.
 
 The latest mode menu, single Fuji circuit, shared-model showroom, balance changes and mode-specific records are documented in [MODES.md](MODES.md).
+
+Drift entry is now a tap toggle rather than an indefinite button hold: steer and tap at 90 km/h, tap again to end, with no cooldown. A tap can precede steering by 0.55 s. Braking while steering can retain drift control; unwinding steering while braking settles it. The old progress-like drift-button ring is removed. Scripted controllers issue entry/exit taps and retain their existing braking/line-planning limits. RPM, gear display and engine pitch share one automatic gearbox calculation.

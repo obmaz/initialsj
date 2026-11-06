@@ -41,6 +41,12 @@ void fragment() {
 	METALLIC = pane * 0.65;
 	ROUGHNESS = mix(0.83,0.24,pane);
 	EMISSION = glass*pane*(night_city ? 0.7 : 0.07);
-	if (night_city) { EMISSION += vec3(0.20,0.02,0.30)*floor_line; }
+	if (night_city) {
+		float room = fract(sin(dot(floor(vec2(u/3.2,v/4.0)),vec2(12.98,78.23))+dimensions.a*17.0)*43758.5);
+		vec3 window_light = mix(vec3(0.85,0.42,0.12),vec3(0.08,0.55,0.85),step(0.5,dimensions.a));
+		ALBEDO *= 0.38;
+		EMISSION = window_light*pane*step(0.42,room)*0.95;
+		EMISSION += mix(vec3(0.15,0.03,0.24),vec3(0.02,0.25,0.34),dimensions.a)*floor_line;
+	}
 	}
 }

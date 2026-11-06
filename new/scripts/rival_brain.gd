@@ -19,6 +19,7 @@ func initialize(rivals: Array[Dictionary]) -> void:
 		r.detached = null
 		r.surface = SurfaceState.new()
 		r.boosting = false
+		r.drifting = false
 		r.visual_yaw = 0.0
 
 func tick(race: Node3D, delta: float) -> void:
@@ -62,16 +63,19 @@ func tick(race: Node3D, delta: float) -> void:
 			if other == r or not other.get("active",true) or other.get("detached") != null: continue
 			var gap: float = race.relative_gap(other.distance,d)+(other.speed-r.speed)*delta
 			var clearance := absf(proposed_lane-float(other.lane))
-			if absf(gap) < Contact.HALF_LENGTH*2+1.6 and clearance < Contact.HALF_WIDTH*2+0.6 and clearance < absf(r.lane-float(other.lane)):
+			if absf(gap) < Contact.HALF_LENGTH*2+1.6 and clearance < Contact.HALF_WIDTH*2+1.0 and clearance < absf(r.lane-float(other.lane)):
 				proposed_lane = r.lane
 				r.decision = minf(r.decision,0.06)
 				break
 		r.lane = proposed_lane
-		r.visual_yaw = lerp_angle(r.visual_yaw,-clampf((r.target_lane-r.lane)/2,-1,1)*0.07,1-exp(-delta*6))
+		var current_curve: float = race.track.curvature(d)
+		r.drifting = race.mode == "track" and absf(current_curve)*r.speed*r.speed > race.vehicle.grip*r.surface.grip_factor*1.02 and r.speed > 26
+		var drift_yaw: float = signf(current_curve)*0.16 if r.drifting else 0
+		r.visual_yaw = lerp_angle(r.visual_yaw,drift_yaw-clampf((r.target_lane-r.lane)/2,-1,1)*0.07,1-exp(-delta*6))
 		var target: float = r.pace+(18 if r.surface.pad_time > 0 else 0)
 		for look in [0.0,35.0,80.0,130.0]:
 			var curve: float = absf(race.track.curvature(d+look))
-			var safe: float = sqrt((race.vehicle.grip*1.2 if race.mode == "track" else 12.5)*r.surface.grip_factor / maxf(curve,0.0001))
+			var safe: float = sqrt((maxf(race.vehicle.grip*1.15,race.vehicle.drift_grip*(0.83+(r.id%4)*0.02)) if race.mode == "track" else 12.5)*r.surface.grip_factor / maxf(curve,0.0001))
 			target = minf(target,sqrt(safe * safe + 2 * 40 * look))
 		for other in traffic:
 			if other == r or not other.get("active",true) or other.get("detached") != null or absf(other.lane-r.lane) > 2.3: continue
@@ -102,6 +106,7 @@ func tick(race: Node3D, delta: float) -> void:
 func recycle(race: Node3D, r: Dictionary) -> void:
 	r.surface.reset()
 	r.boosting = false
+	r.drifting = false
 	r.detached = null
 	r.respawns += 1
 	r.distance = race.distance+600-race.route_node*35+r.id*(38-race.route_node*4)+(int(r.respawns)%3)*11

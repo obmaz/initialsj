@@ -1,6 +1,14 @@
 extends Node3D
 # Untouched generated cutouts become distant world-space scenery, with real parallax.
 const ATLAS = preload("res://assets/environment/horizon-ridges.png")
+const URBAN_ATLAS = preload("res://assets/environment/urban-skylines.png")
+const URBAN_THEMES := {"city":0,"seoul":1,"ruins":2,"neon":3}
+const URBAN_REGIONS := [
+	Vector4(0.03776776,0.18263811,0.42671928,0.24013529),
+	Vector4(0.53833145,0.14092446,0.42671928,0.28523112),
+	Vector4(0.03382187,0.65163472,0.42220970,0.23562570),
+	Vector4(0.53325817,0.64825254,0.43573844,0.23788050)
+]
 const REGIONS := [
 	Vector4(0.02029312,0.20067644,0.46392334,0.17361894),
 	Vector4(0.51578354,0.24351747,0.46843292,0.13190530),
@@ -13,9 +21,10 @@ var positions: Array[Vector3] = []
 var widths: Array[float] = []
 var sprite_batch: MultiMeshInstance3D
 func _ready() -> void:
-	if not THEMES.has(scenery.theme): return
+	if not THEMES.has(scenery.theme) and not URBAN_THEMES.has(scenery.theme): return
 	var road: Node3D = scenery.track
-	var region: Vector4 = REGIONS[THEMES[scenery.theme]]
+	var urban: bool = URBAN_THEMES.has(scenery.theme)
+	var region: Vector4 = URBAN_REGIONS[URBAN_THEMES[scenery.theme]] if urban else REGIONS[THEMES[scenery.theme]]
 	var poses: Array[Transform3D] = []
 	var regions: Array[Color] = []
 	for i in range(4):
@@ -48,7 +57,7 @@ func _ready() -> void:
 	sprite_batch.multimesh = multi
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/roadside_sprite.gdshader")
-	material.set_shader_parameter("atlas",ATLAS)
+	material.set_shader_parameter("atlas",URBAN_ATLAS if urban else ATLAS)
 	sprite_batch.material_override = material
 	sprite_batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(sprite_batch)

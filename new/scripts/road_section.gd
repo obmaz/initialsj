@@ -59,7 +59,11 @@ func point(distance: float, lane: float = 0) -> Vector3:
 	return p + Vector3(-forward.z,0,forward.x).normalized() * lane
 
 func half_width(distance: float) -> float:
-	if closed_loop: return 8.5+0.4*sin(TAU*fposmod(distance,length)/length)
+	if closed_loop:
+		var t := fposmod(distance,length)/length
+		var straight := 1-smoothstep(0.14,0.21,t)
+		var hairpin := smoothstep(0.27,0.32,t)*(1-smoothstep(0.39,0.44,t))
+		return 8.7+straight*1.1-hairpin*1.1+0.3*sin(TAU*t)
 	var t := clampf(distance/length,0,1)
 	var blend := smoothstep(180,360,distance)*(1-smoothstep(length-360,length-180,distance))
 	var width := 9.8-route_node*0.50+1.5*sin(TAU*(1.5+route_node*0.12)*t+stage*0.7)
@@ -70,7 +74,9 @@ func surface_lane(reference: float, distance: float) -> float:
 	return reference*half_width(distance)/9 if absf(reference) <= 9 else signf(reference)*(half_width(distance)+absf(reference)-9)
 
 func in_tunnel(distance: float) -> bool:
-	if closed_loop: return false
+	if closed_loop:
+		var d := fposmod(distance,length)
+		return d >= length*0.56 and d <= length*0.56+240
 	var span := Library.tunnel_span(stage,route_node)
 	return span.y > span.x and distance >= span.x and distance <= span.y
 

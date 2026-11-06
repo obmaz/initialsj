@@ -44,7 +44,7 @@ func run() -> void:
 					var corner_speed := sqrt(race.vehicle.drift_grip*race.surface.grip_factor/maxf(k,0.0001))
 					allowed = minf(allowed,sqrt(corner_speed*corner_speed+2*36*look))
 				brake = race.speed > allowed+0.7
-				slide = absf(curve)*race.speed*race.speed > race.vehicle.grip*0.9 and race.speed > 40 and not brake
+				slide = absf(curve)*race.speed*race.speed > race.vehicle.grip*0.9 and race.speed > 28
 				var grip: float = (race.vehicle.drift_grip if race.drifting else race.vehicle.grip)*race.surface.grip_factor
 				var demand: float = absf(curve)*race.speed*race.speed
 				var excess := maxf(0,demand-grip)
@@ -55,7 +55,8 @@ func run() -> void:
 				if slide and not race.drifting and absf(axis) < 0.25: axis = -signf(curve)*0.35
 				nitro_input = not slide and not brake and allowed > race.vehicle.max_speed+5 and race.nitro > (2 if race.nitro_active else 20)
 				if race.vehicle.mode == "charges": nitro_input = not slide and not brake and allowed > 95 and race.nitro_burst_left <= 0 and race.nitro_cooldown <= 0 and race.nitro_charges > 0
-			race.step(1.0/60,axis,slide,true,brake,nitro_input,nitro_input and race.vehicle.mode == "hybrid" and race.nitro_burst_left <= 0 and race.nitro_cooldown <= 0)
+			var drift_tap: bool = (slide and not race.drifting) or (strategy != "gas_only" and race.drifting and absf(curve)*race.speed*race.speed < race.vehicle.grip*race.surface.grip_factor*0.65)
+			race.step(1.0/60,axis,drift_tap,true,brake,nitro_input,nitro_input and race.vehicle.mode == "hybrid" and race.nitro_burst_left <= 0 and race.nitro_cooldown <= 0)
 			peak_speed = maxf(peak_speed,race.speed)
 			if race.drifting: drift_seconds += 1.0/60
 			if race.checkpoints != checkpoint:

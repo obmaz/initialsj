@@ -10,6 +10,7 @@ var tree_positions: Array[Vector3] = []
 var ground_nodes: Array[MeshInstance3D] = []
 var roadside_art: Node3D
 var distant_art: Node3D
+var local_lights: Array[OmniLight3D] = []
 var water: MeshInstance3D
 
 func mat(color: Color, metal: float = 0, glow: float = 0) -> StandardMaterial3D:
@@ -69,9 +70,10 @@ func _ready() -> void:
 	var ground := ShaderMaterial.new()
 	ground.shader = preload("res://shaders/biome_ground.gdshader")
 	ground.set_shader_parameter("grain",GRASS)
-	var ground_tint: String = {"hawaii":"527a48","jeju":"5d7c4c"}.get(theme,Library.PALETTES[theme])
+	var ground_tint: String = {"hawaii":"527a48","jeju":"5d7c4c","city":"515861","seoul":"66645e","ruins":"5d6254","neon":"242932"}.get(theme,Library.PALETTES[theme])
 	ground.set_shader_parameter("ground_color",Color(ground_tint))
-	ground.set_shader_parameter("grassness",0.0 if theme in ["desert","pyramid","ruins","canyon","harbor","snow","volcano","neon"] else 1.0)
+	ground.set_shader_parameter("grassness",0.0 if theme in ["desert","pyramid","ruins","canyon","harbor","snow","volcano","neon","city","seoul"] else 1.0)
+	ground.set_shader_parameter("urban_paving",theme in ["city","seoul","neon"])
 	if Library.coastal(theme):
 		var beach := ground.duplicate()
 		beach.set_shader_parameter("ground_color",Color("747c80") if theme == "harbor" else Color("dccb9c"))
@@ -260,6 +262,28 @@ func make_city() -> void:
 	boxes(mat(Color("5d666b")),plinths)
 	boxes(mat(Color("78868a"),0.3),roof_details)
 	if not rubble.is_empty(): boxes(mat(Color("6d695a")),rubble)
+	make_street_lights()
+
+func make_street_lights() -> void:
+	var stems: Array[Transform3D] = []
+	var arms: Array[Transform3D] = []
+	var lamps: Array[Transform3D] = []
+	var feet: Array[Transform3D] = []
+	for i in range(int((track.length-400)/80)):
+		var d: float = 260+i*80
+		var side := -1.0 if i%2 else 1.0
+		if track.entry_side != 0 and d < 650: side = float(track.entry_side)
+		var lane: float = side*(track.half_width(d)+6)
+		var height := 4.2 if theme == "ruins" else 7.5
+		stems.append(transform_at(d,lane,height/2,Vector3(0.16,height,0.16)))
+		arms.append(transform_at(d,lane-side*1.3,height,Vector3(2.8,0.16,0.16)))
+		lamps.append(transform_at(d,lane-side*2.4,height-0.1,Vector3(0.9,0.18,0.48)))
+		feet.append(transform_at(d,lane,0.3,Vector3(0.5,0.6,0.5)))
+		if theme == "neon": add_local_light(terrain_point(d,lane-side*2.4)+Vector3.UP*6.5,Color("ffd49a"),1.8,28)
+	boxes(mat(Color("495663")),stems,false)
+	boxes(mat(Color("495663")),arms,false)
+	boxes(mat(Color("c7d6e2"),0,1.2 if theme == "neon" else 0),lamps,false)
+	boxes(mat(Color("5a6063")),feet,false)
 
 func make_desert() -> void:
 	var dunes: Array[Transform3D] = []
@@ -461,13 +485,8 @@ func make_tunnel(span: Vector2) -> void:
 		var basis := Basis(Vector3.UP,track.heading(d)).rotated(Vector3(-f.z,0,f.x).normalized(),asin(f.y))
 		for side in [-1,1]: lamps.append(Transform3D(basis.scaled_local(Vector3(0.16,0.08,24)),track.point(d,side*(track.half_width(d)-0.4))+Vector3.UP*5.8))
 	boxes(mat(Color("b9def1"),0,1.5),lamps,false)
-	for ratio in [0.08,0.5,0.92]:
-		var light := OmniLight3D.new()
-		light.position = track.point(lerpf(span.x,span.y,ratio))+Vector3.UP*5
-		light.light_color = Color("c9e7f3")
-		light.light_energy = 0.7
-		light.omni_range = 65
-		add_child(light)
+	for i in range(int((span.y-span.x)/80)):
+		add_local_light(track.point(span.x+40+i*80)+Vector3.UP*5,Color("c9e7f3"),1.4,45)
 	var sign := Label3D.new()
 	sign.text = "TUNNEL / %d m" % int(span.y-span.x)
 	sign.font_size = 72
@@ -476,5 +495,19 @@ func make_tunnel(span: Vector2) -> void:
 	sign.rotation.y = track.heading(span.x)
 	add_child(sign)
 
+func add_local_light(point: Vector3, color: Color, energy: float, radius: float) -> void:
+	var light := OmniLight3D.new()
+	light.position = point
+	light.light_color = color
+	light.light_energy = energy
+	light.omni_range = radius
+	light.shadow_enabled = false
+	add_child(light)
+	local_lights.append(light)
+
 func _process(delta: float) -> void:
+	var camera := get_viewport().get_camera_3d()
+	if camera != null:
+		for light in local_lights:
+			light.visible = light.global_position.distance_to(camera.global_position) < light.omni_range+40
 	for node in rotating: node.rotate_object_local(Vector3.FORWARD,delta * 0.16)

@@ -32,7 +32,7 @@ func run() -> void:
 				var safe: float = sqrt(race.vehicle.drift_grip*race.surface.grip_factor/maxf(absf(race.track.curvature(race.distance+look)),0.0001))
 				allowed = minf(allowed,sqrt(safe*safe+2*36*look))
 			var brake: bool = race.speed > allowed+0.7
-			var slide: bool = absf(curve)*race.speed*race.speed > race.vehicle.grip*0.9 and race.speed > 38 and not brake
+			var slide: bool = absf(curve)*race.speed*race.speed > race.vehicle.grip*0.9 and race.speed > 28
 			var grip: float = (race.vehicle.drift_grip if race.drifting else race.vehicle.grip)*race.surface.grip_factor
 			var demand: float = absf(curve)*race.speed*race.speed
 			var excess := maxf(0,demand-grip)
@@ -44,7 +44,8 @@ func run() -> void:
 			if slide and not race.drifting and absf(axis) < 0.25: axis = -signf(curve)*0.35
 			var nitro: bool = not slide and not brake and allowed > race.vehicle.max_speed+5 and race.nitro > (2 if race.nitro_active else 20)
 			if race.vehicle.mode == "charges": nitro = not slide and not brake and allowed > race.vehicle.max_speed+5 and race.nitro_burst_left <= 0 and race.nitro_cooldown <= 0 and race.nitro_charges > 0
-			race.step(1.0/60,axis,slide,true,brake,nitro,nitro and race.vehicle.mode == "hybrid" and race.nitro_burst_left <= 0 and race.nitro_cooldown <= 0)
+			var drift_tap: bool = (slide and not race.drifting) or (race.drifting and demand < race.vehicle.grip*race.surface.grip_factor*0.65)
+			race.step(1.0/60,axis,drift_tap,true,brake,nitro,nitro and race.vehicle.mode == "hybrid" and race.nitro_burst_left <= 0 and race.nitro_cooldown <= 0)
 			peak = maxf(peak,race.speed)
 			if race.state == "finished": break
 		var entry := {"vehicle":race.vehicle.id,"state":race.state,"laps":race.laps_completed,"seconds":snappedf(race.elapsed,0.01),"position":race.race_position(),"peak_kmh":snappedf(peak*3.6,0.1),"walls":race.wall_hits,"contacts":race.traffic_hits,"boost_pads":race.surface.boosts_hit,"puddles":race.surface.puddles_hit}

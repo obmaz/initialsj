@@ -28,6 +28,7 @@ var track: Track
 var player: Car
 var atmosphere: Environment
 var sky_colors: ProceduralSkyMaterial
+var rim_light: DirectionalLight3D
 var sun_light: DirectionalLight3D
 var visual_theme := "hawaii"
 var atmosphere_transition := 0.0
@@ -68,6 +69,8 @@ var nitro_active := false
 var nitro_locked := false
 var nitro_seconds := 0.0
 var checkpoint_award := Library.CHECKPOINT_BONUS
+var drift_previous_input := false
+var drift_pending := 0.0
 var drift_latched := false
 var drift_sign := 0.0
 var drift_straight := 0.0
@@ -124,9 +127,10 @@ func _ready() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("d9e6ea")
+	env.ambient_light_color = Color("b5cce0")
 	env.ambient_light_energy = 0.35
-	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.tonemap_exposure = 0.88
 	env.fog_enabled = true
 	env.fog_light_color = Color("b3d3df")
 	env.fog_density = 0.00065
@@ -140,7 +144,16 @@ func _ready() -> void:
 	sun.light_energy = 0.95
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 220
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+	sun.directional_shadow_blend_splits = true
 	add_child(sun)
+	rim_light = DirectionalLight3D.new()
+	rim_light.rotation_degrees = Vector3(-18,145,0)
+	rim_light.light_color = Color("a1bce8")
+	rim_light.light_energy = 0.10
+	rim_light.shadow_enabled = false
+	rim_light.sky_mode = DirectionalLight3D.SKY_MODE_LIGHT_ONLY
+	add_child(rim_light)
 	tire_trails = preload("res://scripts/tire_trails.gd").new()
 	add_child(tire_trails)
 	speed_ambience = preload("res://scripts/speed_ambience.gd").new()
@@ -213,7 +226,7 @@ func initialize_traffic() -> void:
 			r.lane = -2.0 if r.id%2 == 0 else 2.0
 			r.target_lane = r.lane
 			r.speed = 0.0
-			r.pace = vehicle.max_speed*(0.80+r.id*0.025)
+			r.pace = vehicle.max_speed*(0.94+r.id*0.018)
 
 func choose_mode(value: String) -> void:
 	mode = "track" if value == "track" else "tour"
@@ -224,8 +237,10 @@ func choose_mode(value: String) -> void:
 	if mode == "track":
 		atmosphere.sky = track.scenery.make_sky()
 		atmosphere.fog_light_color = Color("b3d3df")
-		sun_light.light_energy = 0.95
-		atmosphere.ambient_light_energy = 0.35
+		sun_light.light_energy = 1.0
+		sun_light.light_color = Color("ffe4be")
+		rim_light.light_energy = 0.10
+		atmosphere.ambient_light_energy = 0.28
 	else:
 		var sky := Sky.new()
 		sky.sky_material = sky_colors
@@ -301,6 +316,8 @@ func restart() -> void:
 	reset_nitro()
 	hud.fingers.clear()
 	checkpoint_award = Library.CHECKPOINT_BONUS
+	drift_previous_input = false
+	drift_pending = 0
 	drift_latched = false
 	drift_sign = 0
 	drift_straight = 0
@@ -421,6 +438,17 @@ func cancel_nitro() -> void:
 	cell_pending = false
 	boosting = false
 
+func gear_number() -> int:
+	if speed < 0.3: return 0
+	return clampi(ceili(speed/(vehicle.max_speed/5.8)),1,6)
+
+func engine_rpm() -> float:
+	if state in ["menu","ready","settings","finished","failed"]: return 0
+	var band: float = vehicle.max_speed/5.8
+	var gear := maxi(1,gear_number())
+	var progress := clampf((speed-(gear-1)*band)/band,0,1)
+	return clampf(900+progress*6400,900,7500)
+
 func nitro_ratio() -> float:
 	if vehicle.mode == "charges": return (nitro_charges+nitro_burst_left/vehicle.burst_duration)/vehicle.charges
 	return nitro/100
@@ -457,7 +485,7 @@ func _physics_process(delta: float) -> void:
 	if player.headlight != null: player.headlight.visible = track.active.in_tunnel(distance) or track.scenery.theme == "neon"
 	for r in rivals:
 		r.car.road_speed = r.speed if state == "racing" else 0.0
-		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),false,r.boosting and state == "racing",delta,r.visual_yaw)
+		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),r.active and r.drifting and r.car.visible and absf(relative_gap(r.distance,distance)) < 80 and state == "racing",r.boosting and state == "racing",delta,r.visual_yaw)
 	hud.queue_redraw()
 
 func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool = false, cell_input: bool = false) -> void:
@@ -484,10 +512,21 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	steer = move_toward(steer,axis,delta*vehicle.steer_rate*lerpf(1,0.75,surface.wetness))
 	if brake and not previous_brake and speed > 25: brake_armed = 0.45
 	var was_drifting := drifting
-	if not brake and speed > 25 and absf(steer) > 0.2 and (drift_input or (previous_brake and brake_armed > 0 and gas)):
+	var drift_pressed := drift_input and not drift_previous_input
+	drift_previous_input = drift_input
+	drift_pending = maxf(0,drift_pending-delta)
+	var end_drift := drift_pressed and drift_latched
+	if end_drift:
+		drift_latched = false
+		drift_pending = 0
+	elif drift_pressed: drift_pending = 0.55
+	if not end_drift and speed > 25 and absf(steer) > 0.2 and (drift_pending > 0 or (previous_brake and brake_armed > 0 and gas)):
 		if not drift_latched: drift_sign = signf(steer)
 		drift_latched = true
-	if brake or speed < 22: drift_latched = false
+		drift_pending = 0
+	if speed < 22 or (brake and absf(steer) < 0.14):
+		drift_latched = false
+		if brake: drift_pending = 0
 	var curve := track.curvature(distance)
 	if drift_latched and absf(steer) < 0.14 and absf(curve)*speed*speed < vehicle.grip*surface.grip_factor*0.75:
 		drift_straight += delta
@@ -660,12 +699,14 @@ func finish() -> void:
 			saved.save("user://records.cfg")
 
 func contact_with(r: Dictionary) -> Dictionary:
-	var forward := (track.point(distance+2)-track.point(distance)).normalized()
+	var forward := track.point(distance+2,lane)-track.point(distance-2,lane)
+	forward.y = 0
+	forward = forward.normalized()
 	var right := Vector3(-forward.z,0,forward.x).normalized()
 	var other := track.traffic_point(r.distance,r.lane,r.route_side)
 	var delta := other-track.point(distance,lane)
-	var direction := track.traffic_point(r.distance+2,r.lane,r.route_side)-other
-	var yaw := wrapf(atan2(-direction.x,-direction.z)-track.heading(distance),-PI,PI)+float(r.visual_yaw)
+	var direction := track.traffic_point(r.distance+2,r.lane,r.route_side)-track.traffic_point(r.distance-2,r.lane,r.route_side)
+	var yaw := wrapf(atan2(-direction.x,-direction.z)-atan2(-forward.x,-forward.z),-PI,PI)+float(r.visual_yaw)
 	return Contact.overlap(delta.dot(forward),delta.dot(right),slip_angle,yaw)
 
 func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
@@ -708,6 +749,7 @@ func register_impact(strength: float, normal: Vector2) -> void:
 	drifting = false
 	drift_charge = 0
 	drift_latched = false
+	drift_pending = 0
 	bump_cooldown = 0.45
 	if DisplayServer.get_name() != "headless":
 		var f := (track.point(distance+2)-track.point(distance)).normalized()
@@ -759,7 +801,12 @@ func update_camera(delta: float) -> void:
 	camera.fov = lerpf(camera.fov,target_fov,1-exp(-delta*(8 if boosting else 4)))
 
 func update_atmosphere(delta: float) -> void:
-	if mode == "track": return
+	if mode == "track":
+		var sheltered: bool = track.active.in_tunnel(distance)
+		var blend := 1-exp(-delta*3)
+		atmosphere.ambient_light_energy = lerpf(atmosphere.ambient_light_energy,0.12 if sheltered else 0.28,blend)
+		rim_light.light_energy = lerpf(rim_light.light_energy,0.025 if sheltered else 0.10,blend)
+		return
 	var theme_id: String = track.scenery.theme
 	if visual_theme != theme_id:
 		visual_theme = theme_id
@@ -780,4 +827,5 @@ func update_atmosphere(delta: float) -> void:
 	atmosphere.ambient_light_energy = lerpf(atmosphere.ambient_light_energy,profile.ambient,blend)
 	sun_light.light_energy = lerpf(sun_light.light_energy,profile.sun,blend)
 	sun_light.light_color = sun_light.light_color.lerp(profile.sun_color,blend)
+	rim_light.light_energy = lerpf(rim_light.light_energy,0.035 if theme_id == "neon" else 0.10,blend)
 	atmosphere_transition = maxf(0,atmosphere_transition-delta)

@@ -70,9 +70,9 @@ func _process(delta: float) -> void:
 	last_misses = race.near_misses
 	last_overtakes = race.overtakes
 	last_checkpoint = race.checkpoint_flash
-	var gear := clampi(ceili(race.speed / 13), 1, 6)
-	var rpm: float = clampf((race.speed - (gear - 1) * 13) / 13, 0, 1)
-	var target_pitch := 0.82 + rpm * 0.38 + (gear - 1) * 0.075
+	var gear: int = maxi(1,race.gear_number())
+	var rpm: float = clampf((race.engine_rpm()-900)/6400,0,1)
+	var target_pitch := 0.82+rpm*0.38+(gear-1)*0.075
 	if OS.has_feature("web"):
 		if web_audio != null:
 			web_audio.update(active, target_pitch, (0.075 if race.state == "countdown" else (0.21 if race.boosting else 0.18)), 0.038 if race.drifting else (0.018 if race.surface.wet_time > 0 else 0.0))

@@ -56,6 +56,7 @@ func _ready() -> void:
 		mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		tree_materials.append(mat)
 	make_trees()
+	make_ridge_tunnel()
 
 func terrain_band(inner: float, outer: float, mat: Material) -> void:
 	var st := SurfaceTool.new()
@@ -151,3 +152,64 @@ func make_batch(mesh: Mesh, mat: Material, transforms: Array[Transform3D]) -> vo
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(node)
 	tree_batches.append(node)
+
+# One shaded ridge tunnel. Local lamps illuminate the actual road and cars.
+var tunnel_lights: Array[OmniLight3D] = []
+func make_ridge_tunnel() -> void:
+	var walls: Array[Transform3D] = []
+	var roofs: Array[Transform3D] = []
+	var seams: Array[Transform3D] = []
+	var fixtures: Array[Transform3D] = []
+	var start: float = track.length*0.56
+	for i in range(30):
+		var d := start+i*8+4
+		var f: Vector3 = (track.point(d+1)-track.point(d-1)).normalized()
+		var right := Vector3(-f.z,0,f.x).normalized()
+		var basis := Basis(Vector3.UP,track.heading(d)).rotated(right,asin(f.y))
+		var width: float = track.half_width(d)
+		for side in [-1.0,1.0]:
+			walls.append(Transform3D(basis.scaled_local(Vector3(1.2,8.4,8.3)),track.point(d,side*(width+1.5))+Vector3.UP*4.0))
+		roofs.append(Transform3D(basis.scaled_local(Vector3(width*2+4.2,1.5,8.3)),track.point(d)+Vector3.UP*8.3))
+		if i%4 == 0:
+			seams.append(Transform3D(basis.scaled_local(Vector3(width*2+1.8,0.28,0.35)),track.point(d)+Vector3.UP*7.35))
+			fixtures.append(Transform3D(basis.scaled_local(Vector3(2.2,0.12,0.6)),track.point(d)+Vector3.UP*7.14))
+			var lamp := OmniLight3D.new()
+			lamp.position = track.point(d)+Vector3.UP*5.8
+			lamp.light_color = Color("ffda9e")
+			lamp.light_energy = 3.5
+			lamp.omni_range = 20
+			lamp.omni_attenuation = 1.2
+			lamp.shadow_enabled = false
+			add_child(lamp)
+			tunnel_lights.append(lamp)
+	var wall_material := StandardMaterial3D.new()
+	wall_material.albedo_color = Color("596574")
+	wall_material.roughness = 0.9
+	var roof_material := StandardMaterial3D.new()
+	roof_material.albedo_color = Color("303e50")
+	roof_material.roughness = 0.9
+	var trim := StandardMaterial3D.new()
+	trim.albedo_color = Color("a8b2b8")
+	var light_material := StandardMaterial3D.new()
+	light_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	light_material.albedo_color = Color("ffe5b1")
+	light_material.emission_enabled = true
+	light_material.emission = Color("ffe0a3")
+	light_material.emission_energy_multiplier = 1.8
+	for group in [[walls,wall_material],[roofs,roof_material],[seams,trim],[fixtures,light_material]]:
+		var mesh := BoxMesh.new()
+		mesh.size = Vector3.ONE
+		var multi := MultiMesh.new()
+		multi.transform_format = MultiMesh.TRANSFORM_3D
+		multi.mesh = mesh
+		multi.instance_count = group[0].size()
+		for i in range(group[0].size()): multi.set_instance_transform(i,group[0][i])
+		var node := MultiMeshInstance3D.new()
+		node.multimesh = multi
+		node.material_override = group[1]
+		add_child(node)
+func _process(_delta: float) -> void:
+	var camera := get_viewport().get_camera_3d()
+	if camera == null: return
+	for lamp in tunnel_lights:
+		lamp.visible = lamp.global_position.distance_to(camera.global_position) < 65
