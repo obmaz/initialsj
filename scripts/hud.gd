@@ -12,21 +12,24 @@ const POSITION_FONT = preload("res://assets/fonts/PositionNumeral.tres")
 const NUMBER_FONT = preload("res://assets/fonts/Roboto-BlackItalic.ttf")
 const Library = preload("res://scripts/route_library.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
+const ROUTE_LEFT := Rect2(270,106,350,132)
+const ROUTE_RIGHT := Rect2(660,106,350,132)
 const PAUSE_BUTTON := Rect2(814,15,66,60)
 const HOME_TOUR := Rect2(100,470,520,170)
 const HOME_TRACK := Rect2(660,470,520,170)
 const HOME_SETTINGS := Rect2(1000,24,250,84)
 const COURSE_FUJI := Rect2(100,150,520,440)
 const COURSE_SEOCHO := Rect2(660,150,520,440)
-const FUJI_PHOTO = preload("res://assets/environment/fuji-lake-panorama.png")
-const SEOCHO_PHOTO = preload("res://assets/environment/seocho/skyline-panorama.png")
+const FUJI_PREVIEW = preload("res://assets/ui/course-fuji.png")
+const SEOCHO_PREVIEW = preload("res://assets/ui/course-seocho.png")
 const GARAGE_BACK := Rect2(60,24,220,84)
 const SETTINGS_SOUND := Rect2(365,180,550,78)
 const SETTINGS_MOTION := Rect2(365,266,550,78)
 const SETTINGS_GRAPHICS := Rect2(365,352,550,78)
 const SETTINGS_INSTALL := Rect2(365,438,550,78)
 const SETTINGS_CLOSE := Rect2(365,542,550,82)
-const SPLASH = preload("res://assets/ui/coast-rush-splash.png")
+const HOME_BG = preload("res://assets/ui/home-coast.png")
+const GARAGE_BG = preload("res://assets/ui/garage-bay.png")
 const GARAGE_START := Rect2(930,630,290,76)
 const GARAGE_MOTION := Rect2(205,604,160,40)
 const GARAGE_SOUND := Rect2(380,604,170,40)
@@ -218,6 +221,9 @@ func handle_pointer(event: InputEvent) -> void:
 			if race.state == "paused": race.resume_tour()
 			else: race.navigate(race.open_garage)
 		return
+	if race.route_choices_visible():
+		if ROUTE_LEFT.has_point(p): race.select_route(0); return
+		if ROUTE_RIGHT.has_point(p): race.select_route(1); return
 	if hit_button("pause",p) and race.state in ["racing","countdown"]:
 		race.pause_tour()
 	else: move_pointer(index,event.position)
@@ -353,6 +359,7 @@ func _draw() -> void:
 	draw_controls()
 	draw_speedometer()
 	draw_nitro()
+	draw_route_choice()
 	draw_menu()
 
 func draw_position(_rows: Array[Dictionary]) -> void:
@@ -509,7 +516,7 @@ func draw_controls() -> void:
 		round_button("cell",true)
 		var cell: Vector2 = buttons.cell.get_center()
 		centered(cell+Vector2(0,1),str(race.nitro_charges),30,Color(race.vehicle.accent))
-		centered(cell+Vector2(0,28),"CELL / E",14)
+		centered(cell+Vector2(0,28),"CELL",17)
 	for action in ["brake","gas"]:
 		round_button(action,true)
 		c = buttons[action].get_center()
@@ -573,7 +580,7 @@ func draw_nitro() -> void:
 	var color := Color(race.vehicle.accent)
 	bottle(Vector2(405,663),0.6)
 	text_at(Vector2(443,651),"NITRO",24,color)
-	text_at(Vector2(605,650),"TAP SHIFT" if race.vehicle.mode == "charges" else "HOLD SHIFT",16,Color("bad6e3"))
+	text_at(Vector2(605,650),"TAP NITRO" if race.vehicle.mode == "charges" else "HOLD NITRO",16,Color("bad6e3"))
 	if race.vehicle.mode == "hybrid":
 		for i in range(2):
 			draw_circle(Vector2(807+i*22,642),7,color if i < race.nitro_charges else Color("304252"))
@@ -600,7 +607,13 @@ func garage_card(index: int) -> Rect2:
 
 func draw_home() -> void:
 	draw_rect(Rect2(-ui_offset()/ui_scale(),get_viewport_rect().size/ui_scale()),Color("07111e"))
-	draw_texture_rect(SPLASH,Rect2(0,0,1280,720),false)
+	draw_texture_rect(HOME_BG,Rect2(0,0,1280,720),false)
+	centered(Vector2(640,145),"INITIAL SJ",92,WHITE,NUMBER_FONT)
+	centered(Vector2(640,190),"C O A S T   R U S H",27,CYAN)
+	if race.previews != null:
+		draw_texture_rect(race.previews.textures[2],Rect2(0,243,450,221),false)
+		draw_texture_rect(race.previews.textures[1],Rect2(835,243,450,221),false)
+		draw_texture_rect(race.previews.textures[0],Rect2(315,194,650,319),false)
 	draw_rect(Rect2(0,446,1280,274),Color("07111ee5"))
 	for index in range(2):
 		var rect: Rect2 = HOME_TOUR if index == 0 else HOME_TRACK
@@ -616,17 +629,17 @@ func draw_home() -> void:
 	centered(Vector2(HOME_SETTINGS.get_center().x,77),"SETTINGS",30)
 
 func draw_courses() -> void:
-	draw_rect(Rect2(0,0,1280,720),Color("091522"))
+	draw_texture_rect(GARAGE_BG,Rect2(0,0,1280,720),false)
 	slant(GARAGE_BACK,Color("20374a"),7)
 	centered(Vector2(170,78),"< BACK",28)
-	text_at(Vector2(100,121),"SELECT CIRCUIT",35)
+	centered(Vector2(640,80),"SELECT CIRCUIT",38)
 	for i in range(2):
 		var rect: Rect2 = COURSE_FUJI if i == 0 else COURSE_SEOCHO
 		var accent := CYAN if i == 0 else Color("ffbc72")
 		slant(rect,Color("142738"),10)
-		var texture: Texture2D = FUJI_PHOTO if i == 0 else SEOCHO_PHOTO
-		var image_box := Rect2(rect.position+Vector2(12,12),Vector2(496,240))
-		# Cover crop in the UI only; original location photographs stay intact.
+		var texture: Texture2D = FUJI_PREVIEW if i == 0 else SEOCHO_PREVIEW
+		var image_box := Rect2(rect.position+Vector2(12,12),Vector2(496,224))
+		# Cover crop only; original generated assets remain intact.
 		var source := Rect2(Vector2.ZERO,texture.get_size())
 		var ratio := image_box.size.x/image_box.size.y
 		if source.size.x/source.size.y > ratio:
@@ -639,15 +652,13 @@ func draw_courses() -> void:
 			source.size.y = height
 		draw_texture_rect_region(texture,image_box,source)
 		var x := rect.position.x+26
-		text_at(Vector2(x,440),"01 / FUJI LAKESIDE" if i == 0 else "02 / SEOCHO CITY LOOP",26,accent)
-		text_at(Vector2(x,471),"4.36 KM / RIDGE, HAIRPIN, TUNNEL" if i == 0 else "6.50 KM / REAL MAP PROTOTYPE",15,WHITE)
-		text_at(Vector2(x,500),"LAKESIDE STRAIGHT > RIDGE > DOWNHILL" if i == 0 else "MAPLE 2 > KIPARANG > MIDO > GYODAE",12,Color("adc2d0"))
-		text_at(Vector2(x,524),"3 LAPS / 8 CARS" if i == 0 else "LANDMARK RUN / 3 LAPS",12,Color("adc2d0"))
-		draw_line(Vector2(x,545),Vector2(x+465,545),Color(accent,0.5),1)
-		text_at(Vector2(x,574),"CHOOSE TRACK",24,accent)
-	centered(Vector2(640,637),"SELECT A CIRCUIT, THEN CHOOSE YOUR CAR",14,Color("91aab9"))
-	centered(Vector2(640,660),"Road geometry: OpenStreetMap contributors / ODbL",10,Color("688293"))
-	centered(Vector2(920,678),"Generated landmarks / real street layout",10,Color("688293"))
+		text_at(Vector2(x,428),"01 / FUJI LAKESIDE" if i == 0 else "02 / SEOCHO CITY LOOP",32,accent)
+		text_at(Vector2(x,467),"RIDGE / HAIRPIN / UNDERPASS" if i == 0 else "SEOUL / CITY LANDMARKS",22,WHITE)
+		text_at(Vector2(x,501),"4.36 KM   /   3 LAPS" if i == 0 else "6.50 KM   /   3 LAPS",22,Color("adc2d0"))
+		var cta := Rect2(rect.position+Vector2(12,367),Vector2(496,61))
+		slant(cta,Color(accent,0.18),8)
+		centered(Vector2(rect.get_center().x,558),"CHOOSE TRACK  >",29,accent)
+	centered(Vector2(640,675),"Map data: OpenStreetMap contributors / ODbL",13,Color("8299a7"))
 
 func draw_settings() -> void:
 	draw_rect(Rect2(0,0,1280,720),Color("020812d9"))
@@ -668,7 +679,7 @@ func draw_settings() -> void:
 
 func draw_garage() -> void:
 	var color := Color(race.vehicle.accent)
-	draw_rect(Rect2(-ui_offset()/ui_scale(),get_viewport_rect().size/ui_scale()),Color("08121f"))
+	draw_texture_rect(GARAGE_BG,Rect2(0,0,1280,720),false)
 	draw_line(Vector2(60,120),Vector2(1220,120),Color("264152"),1,true)
 	slant(GARAGE_BACK,Color("20374a"),10)
 	centered(Vector2(GARAGE_BACK.get_center().x,78),"< BACK",28,WHITE)
@@ -699,9 +710,9 @@ func draw_garage() -> void:
 		var selected: bool = i == race.selected_vehicle
 		slant(rect,Color("203345") if selected else Color("101d2b"),8)
 		if selected: draw_line(rect.position+Vector2(8,rect.size.y),rect.end,Color(v.accent),3,true)
-		text_at(rect.position+Vector2(22,35),v.name,25,Color(v.accent) if selected else Color("bdcedb"))
+		text_at(rect.position+Vector2(22,35),v.name,28,Color(v.accent) if selected else Color("bdcedb"))
 		var role: String = ["AGILE / GAUGE","TOP SPEED / SHOTS","POWER / HYBRID"][i]
-		text_at(rect.position+Vector2(23,66),role,18,Color("94acbe"))
+		text_at(rect.position+Vector2(23,66),role,20,Color("94acbe"))
 	text_at(Vector2(80,678),"BEST "+(time_label(race.best_time) if race.best_time > 0 else "--:--.---"),22,GOLD)
 	slant(GARAGE_START,color,8)
 	centered(Vector2(GARAGE_START.get_center().x,680),"DRIVE",34,Color("07111e"))
@@ -774,11 +785,10 @@ func draw_competitor_markers() -> void:
 func draw_pace_feedback() -> void:
 	if race.state != "racing": return
 	if race.launch_flash > 0: centered(Vector2(640,350),"GO!",76,Color(GOLD,minf(1,race.launch_flash*4)))
-	if race.checkpoint_flash > 0:
+	if race.checkpoint_flash > 0 and not race.route_choices_visible():
 		centered(Vector2(640,222),("LAP %d / 3" % mini(3,race.laps_completed+1)) if race.mode == "track" else ("CHECKPOINT +%ds" % int(race.checkpoint_award)),40,Color(GOLD,minf(1,race.checkpoint_flash*3)))
-	elif race.mode == "tour" and race.stage_index < 4 and race.distance > race.track.length-260:
-		var names := Library.next_titles(race.stage_index,race.route_node)
-		centered(Vector2(640,225),"< " + names[0] + "   |   " + names[1] + " >",17,CYAN)
+	elif race.route_confirm_flash > 0:
+		centered(Vector2(640,222),race.route_confirm_title,34,Color(CYAN,minf(1,race.route_confirm_flash*3)))
 	var intensity: float = clampf((race.speed-38)/50,0,1)
 	if not race.motion_reduced:
 		var origin := Vector2(640,315)
@@ -799,3 +809,27 @@ func draw_pace_feedback() -> void:
 	elif race.boosting: centered(Vector2(640,568),("BOOST PAD!" if race.pad_active else ("OVERDRIVE!" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO!")) if race.nitro_active or race.pad_active else "SLIPSTREAM",23,CYAN)
 	if race.corner_warning > 0.15:
 		centered(Vector2(640,606),"BRAKE / CORNER %d km/h" % int(race.recommended_speed*3.6),19,Color(1,0.66,0.38,race.corner_warning))
+
+func draw_route_choice() -> void:
+	if not race.route_choices_visible(): return
+	var names := Library.next_titles(race.stage_index,race.route_node)
+	centered(Vector2(640,91),"CHECKPOINT +%ds" % int(race.checkpoint_award) if race.checkpoint_flash > 0 else "CHOOSE YOUR ROUTE",27,GOLD if race.checkpoint_flash > 0 else WHITE)
+	var progress: float = clampf((race.distance-race.track.active.checkpoint_distance())/Library.CHECKPOINT_RUNUP,0,1)
+	for side in range(2):
+		var rect: Rect2 = ROUTE_LEFT if side == 0 else ROUTE_RIGHT
+		var selected: bool = race.route_preference == side
+		var accent := CYAN if side == 0 else Color("ffb95c")
+		slant(rect,Color("12384bf5") if selected else Color("0c1e2cf0"),12)
+		draw_line(rect.position+Vector2(12,0),Vector2(rect.end.x,rect.position.y),accent,4 if selected else 2,true)
+		if selected:
+			slant(rect,Color(accent,0.10+0.18*race.route_choice_flash/0.4),12)
+			draw_polyline(PackedVector2Array([rect.position+Vector2(311,27),rect.position+Vector2(318,34),rect.position+Vector2(332,19)]),accent,3,true)
+		var arrow := "<" if side == 0 else ">"
+		text_at(rect.position+Vector2(18,53),arrow,48,accent)
+		text_at(rect.position+Vector2(72,46),"LEFT / LV%d" % (race.route_node+1) if side == 0 else "RIGHT / LV%d" % (race.route_node+2),23,accent)
+		text_at(rect.position+Vector2(22,87),names[side],29,WHITE)
+		text_at(rect.position+Vector2(23,115),"SELECTED" if selected else "TAP TO CHOOSE",20,accent if selected else Color("a8c3d2"))
+		draw_rect(Rect2(rect.position+Vector2(12,rect.size.y-4),Vector2((rect.size.x-12)*progress,4)),accent)
+	var to_fork: float = maxf(0,race.track.length-race.distance)
+	slant(Rect2(440,246,400,36),Color("0b1c2de8"),8)
+	centered(Vector2(640,271),"FORK AHEAD  %dm" % int(to_fork) if to_fork > 0 else "FOLLOW YOUR ROUTE",20,Color("d4e7ef"))

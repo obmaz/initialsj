@@ -40,14 +40,14 @@ func run(tree: SceneTree) -> int:
 	for stage in [0,4]:
 		drive(0)
 		race.track.reset(stage,0)
-		race.distance = race.track.length+(Library.FORK_COMMIT if stage == 0 else 0)-0.2
+		race.distance = (race.track.active.checkpoint_distance() if stage == 0 else race.track.length)-0.2
 		race.time_left = 0.001
 		race.speed = 80
 		race.step(1.0/60,0,false,true,false)
 		check(race.state == "failed" and race.checkpoints == 0,"Deadline must stop movement before a late checkpoint or finish")
 	# Reaching the line before the deadline remains legal.
 	drive(0)
-	race.distance = race.track.length+Library.FORK_COMMIT-0.02
+	race.distance = race.track.active.checkpoint_distance()-0.02
 	race.time_left = 0.001
 	race.speed = 80
 	race.step(1.0/60,0,false,true,false)
@@ -139,8 +139,7 @@ func run(tree: SceneTree) -> int:
 	for i in [1,2]:
 		drive(i)
 		race.nitro_charges = 0
-		race.distance = race.track.length+Library.FORK_COMMIT
-		race.advance_route()
+		race.award_checkpoint()
 		check(race.nitro_charges == 1,"Checkpoint must replenish one shot or cell")
 	# Distinct driving tuning is observable, not just descriptive UI.
 	var acceleration := []

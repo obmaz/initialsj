@@ -103,6 +103,11 @@ var overtakes := 0
 var overtake_flash := 0.0
 var checkpoint_flash := 0.0
 var checkpoints := 0
+var checkpoint_stage := -1
+var route_preference := -1
+var route_choice_flash := 0.0
+var route_confirm_flash := 0.0
+var route_confirm_title := ""
 var wall_hits := 0
 var traffic_hits := 0
 var impact := 0.0
@@ -214,6 +219,7 @@ func _ready() -> void:
 	if DisplayServer.get_name() != "headless":
 		previews = preload("res://scripts/garage_previews.gd").new()
 		add_child(previews)
+		for index in range(3): previews.show_vehicle(index)
 		var audio = preload("res://scripts/racing_audio.gd").new()
 		audio.race = self
 		add_child(audio)
@@ -392,6 +398,10 @@ func restart() -> void:
 	overtake_flash = 0
 	checkpoint_flash = 0
 	checkpoints = 0
+	checkpoint_stage = -1
+	route_preference = -1
+	route_choice_flash = 0
+	route_confirm_flash = 0
 	wall_hits = 0
 	traffic_hits = 0
 	impact = 0
@@ -576,11 +586,12 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		cancel_nitro()
 		drifting = false
 		return
+	axis = route_axis(axis)
 	gas = gas or nitro_input or (cell_input and vehicle.mode == "hybrid") or nitro_burst_left > 0 or surface.pad_time > 0
 	var old_surface_position := Vector2(lane,distance)
 	elapsed += delta
 	if mode == "tour": time_left = maxf(0,time_left-delta)
-	for field in ["near_miss_flash","overtake_flash","checkpoint_flash","launch_flash"]:
+	for field in ["near_miss_flash","overtake_flash","checkpoint_flash","launch_flash","route_choice_flash","route_confirm_flash"]:
 		set(field,maxf(0,float(get(field))-delta))
 	impact = maxf(0,impact-delta*3.5)
 	surface.tick(delta,brake,impact)
@@ -733,6 +744,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			nitro_charges = mini(vehicle.charges,nitro_charges+1)
 			if laps_completed >= 3: finish()
 	else:
+		if stage_index < Library.STAGES-1 and old_surface_position.y < track.active.checkpoint_distance() and distance >= track.active.checkpoint_distance(): award_checkpoint()
 		var reconsidered := track.reconsider(distance,lane)
 		if not reconsidered.is_empty():
 			var old_section = track.sibling
@@ -741,9 +753,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			for r in rivals:
 				if r.detached == track.active: r.detached = null
 				elif r.detached == null and r.distance > 0: r.detached = old_section
-			var corrected_bonus := Library.checkpoint_bonus(route_node)
-			time_left += corrected_bonus-checkpoint_award
-			checkpoint_award = corrected_bonus
+			route_confirm_title = Library.title(stage_index,route_node)
 			brain.stage_changed(self)
 		track.maintain(distance)
 		if stage_index == Library.STAGES-1 and distance >= track.length:
@@ -759,6 +769,38 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 func pad_speed_cap() -> float:
 	return maxf(vehicle.overdrive_speed+2,vehicle.max_speed+21)
 
+func route_choices_visible() -> bool:
+	return mode == "tour" and state == "racing" and stage_index < Library.STAGES-1 and checkpoint_stage == stage_index
+
+func select_route(side: int) -> void:
+	if not route_choices_visible(): return
+	route_preference = clampi(side,0,1)
+	route_choice_flash = 0.4
+	if screen_transition != null and sound_enabled: screen_transition.ui_sound.play()
+
+func route_axis(manual: float) -> float:
+	if route_preference < 0 or not route_choices_visible() or distance < track.length-170: return manual
+	# Real steering always wins; a selected route provides optional lane assistance.
+	if absf(manual) > 0.2:
+		route_preference = -1
+		return manual
+	var target := -3.5 if route_preference == 0 else 3.5
+	if distance > track.length and track.previews.size() == 2:
+		var f: Vector3 = (track.point(distance+2)-track.point(distance)).normalized()
+		var right := Vector3(-f.z,0,f.x).normalized()
+		target += (track.previews[route_preference].point(distance-track.length)-track.point(distance)).dot(right)
+	return clampf((target-lane)*0.3,-0.85,0.85)
+
+func award_checkpoint() -> void:
+	if checkpoint_stage == stage_index: return
+	checkpoint_stage = stage_index
+	checkpoints += 1
+	checkpoint_flash = 2
+	checkpoint_award = Library.checkpoint_bonus(route_node)
+	time_left += checkpoint_award
+	nitro = minf(100,nitro+25)
+	nitro_charges = mini(vehicle.charges,nitro_charges+1)
+
 func advance_route() -> void:
 	var choice := 0 if lane < 0 else 1
 	var result := track.advance(choice,distance,lane)
@@ -769,12 +811,9 @@ func advance_route() -> void:
 		if r.detached != null: continue
 		r.distance -= result.old_length
 		if r.distance > 20 and r.route_side != choice: r.detached = result.sibling
-	checkpoints += 1
-	checkpoint_flash = 2
-	checkpoint_award = Library.checkpoint_bonus(route_node)
-	time_left += checkpoint_award
-	nitro = minf(100,nitro+25)
-	nitro_charges = mini(vehicle.charges,nitro_charges+1)
+	route_preference = -1
+	route_confirm_flash = 1.4
+	route_confirm_title = Library.title(stage_index,route_node)
 	brain.stage_changed(self)
 
 func finish() -> void:

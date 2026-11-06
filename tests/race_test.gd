@@ -109,6 +109,7 @@ func run() -> void:
 	check(race.wall_hits > 0 and race.impact > 0 and race.lane <= 9.2,"Roadside contact must align with the rail and produce impact")
 	reset_drive(race)
 	var length: float = race.track.length
+	race.award_checkpoint()
 	race.distance = length+Library.FORK_COMMIT-0.2
 	race.speed = 45
 	race.lane = 3.2
@@ -117,7 +118,7 @@ func run() -> void:
 	check(race.stage_index == 1 and race.route_node == 1 and race.checkpoints == 1,"Taking the right fork must choose the right route node")
 	check(race.time_left > Library.START_TIME+Library.checkpoint_bonus(1)-1,"Checkpoint must extend the countdown")
 	check(race.track.point(race.distance,race.lane).distance_to(expected) < 0.3,"Changing road sections must not teleport the car")
-	# A late switch within the open fork must update the same risk and time reward.
+	# A late switch must not duplicate or alter the completed checkpoint reward.
 	var old_bonus: float = race.checkpoint_award
 	race.distance = 100
 	var f: Vector3 = (race.track.point(102)-race.track.point(100)).normalized()
@@ -126,8 +127,9 @@ func run() -> void:
 	race.speed = 0
 	race.lane_velocity = 0
 	race.step(1.0/60,0,false,false,false)
-	check(race.route_node == 0 and race.checkpoint_award > old_bonus,"Switching branch within the fork must reconcile checkpoint difficulty rewards")
+	check(race.route_node == 0 and is_equal_approx(race.checkpoint_award,old_bonus),"Switching branches after a checkpoint must not change or duplicate its reward")
 	for i in range(3):
+		race.award_checkpoint()
 		clear_traffic(race)
 		race.distance = race.track.length+Library.FORK_COMMIT-0.1
 		race.speed = 40
@@ -232,4 +234,5 @@ func run() -> void:
 	failures += await preload("res://tests/air_checks.gd").new().run(self)
 	failures += await preload("res://tests/tunnel_lights_checks.gd").new().run(self)
 	failures += await preload("res://tests/render_budget_checks.gd").new().run(self)
+	failures += await preload("res://tests/fork_checks.gd").new().run(self)
 	quit(1 if failures else 0)
