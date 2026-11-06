@@ -19,9 +19,9 @@ const HOME_TOUR := Rect2(100,470,520,170)
 const HOME_TRACK := Rect2(660,470,520,170)
 const HOME_SETTINGS := Rect2(1000,24,250,84)
 const COURSE_FUJI := Rect2(100,150,520,440)
-const COURSE_SEOCHO := Rect2(660,150,520,440)
+const COURSE_SPEEDWAY := Rect2(660,150,520,440)
 const FUJI_PREVIEW = preload("res://assets/ui/course-fuji.png")
-const SEOCHO_PREVIEW = preload("res://assets/ui/course-seocho.png")
+const SPEEDWAY_PREVIEW = preload("res://assets/ui/course-speedway.png")
 const GARAGE_BACK := Rect2(60,24,220,84)
 const SETTINGS_SOUND := Rect2(365,180,550,78)
 const SETTINGS_MOTION := Rect2(365,266,550,78)
@@ -168,13 +168,16 @@ func ui_offset() -> Vector2:
 func to_design(pos: Vector2) -> Vector2:
 	return (pos - ui_offset()) / ui_scale()
 
+func pause_touch_rect() -> Rect2:
+	return PAUSE_BUTTON.grow(12)
+
 func hit_button(action: String, pos: Vector2) -> bool:
 	if action == "cell" and race.vehicle.mode != "hybrid": return false
 	if not buttons.has(action):
 		return false
 	var rect: Rect2 = buttons[action]
 	if action == "pause":
-		return rect.has_point(pos) or PAUSE_BUTTON.has_point(pos)
+		return rect.has_point(pos) or pause_touch_rect().has_point(pos)
 	return pos.distance_to(rect.get_center()) <= rect.size.x / 2.0
 
 func handle_pointer(event: InputEvent) -> void:
@@ -192,7 +195,7 @@ func handle_pointer(event: InputEvent) -> void:
 		return
 	if race.state == "courses":
 		if COURSE_FUJI.has_point(p): race.navigate(func(): race.choose_mode("track",0))
-		elif COURSE_SEOCHO.has_point(p): race.navigate(func(): race.choose_mode("track",1))
+		elif COURSE_SPEEDWAY.has_point(p): race.navigate(func(): race.choose_mode("track",1))
 		elif GARAGE_BACK.has_point(p): race.navigate(race.open_menu)
 		return
 	if race.state == "settings":
@@ -460,10 +463,6 @@ func draw_circuit_map() -> void:
 	draw_circle(circuit_map_point(race.distance),5,CYAN)
 	draw_rect(Rect2(circuit_map_point(80)-Vector2(3,3),Vector2(6,6)),WHITE)
 	text_at(Vector2(1107,210),race.course_label,11,Color("b4d1df"))
-	if race.selected_course == 1:
-		var scenery: Node3D = race.track.scenery
-		if scenery.active_landmark >= 0:
-			text_at(Vector2(24,189),scenery.locations[scenery.active_landmark].name,11,CYAN)
 
 func draw_drift_score() -> void:
 	if drift_fade <= 0:
@@ -634,10 +633,10 @@ func draw_courses() -> void:
 	centered(Vector2(170,78),"< BACK",28)
 	centered(Vector2(640,80),"SELECT CIRCUIT",38)
 	for i in range(2):
-		var rect: Rect2 = COURSE_FUJI if i == 0 else COURSE_SEOCHO
+		var rect: Rect2 = COURSE_FUJI if i == 0 else COURSE_SPEEDWAY
 		var accent := CYAN if i == 0 else Color("ffbc72")
 		slant(rect,Color("142738"),10)
-		var texture: Texture2D = FUJI_PREVIEW if i == 0 else SEOCHO_PREVIEW
+		var texture: Texture2D = FUJI_PREVIEW if i == 0 else SPEEDWAY_PREVIEW
 		var image_box := Rect2(rect.position+Vector2(12,12),Vector2(496,224))
 		# Cover crop only; original generated assets remain intact.
 		var source := Rect2(Vector2.ZERO,texture.get_size())
@@ -652,13 +651,13 @@ func draw_courses() -> void:
 			source.size.y = height
 		draw_texture_rect_region(texture,image_box,source)
 		var x := rect.position.x+26
-		text_at(Vector2(x,428),"01 / FUJI LAKESIDE" if i == 0 else "02 / SEOCHO CITY LOOP",32,accent)
-		text_at(Vector2(x,467),"RIDGE / HAIRPIN / UNDERPASS" if i == 0 else "SEOUL / CITY LANDMARKS",22,WHITE)
-		text_at(Vector2(x,501),"4.36 KM   /   3 LAPS" if i == 0 else "6.50 KM   /   3 LAPS",22,Color("adc2d0"))
+		text_at(Vector2(x,428),"01 / FUJI LAKESIDE" if i == 0 else "02 / SUNCOAST SPEEDWAY",32,accent)
+		text_at(Vector2(x,467),"RIDGE / HAIRPIN / UNDERPASS" if i == 0 else "TRI-OVAL / BANKING / PIT LANE",22,WHITE)
+		text_at(Vector2(x,501),"4.36 KM   /   3 LAPS" if i == 0 else "4.57 KM   /   3 LAPS",22,Color("adc2d0"))
 		var cta := Rect2(rect.position+Vector2(12,367),Vector2(496,61))
 		slant(cta,Color(accent,0.18),8)
 		centered(Vector2(rect.get_center().x,558),"CHOOSE TRACK  >",29,accent)
-	centered(Vector2(640,675),"Map data: OpenStreetMap contributors / ODbL",13,Color("8299a7"))
+	centered(Vector2(640,675),"TWO CIRCUITS / THREE LAPS / EIGHT RACERS",18,Color("8299a7"))
 
 func draw_settings() -> void:
 	draw_rect(Rect2(0,0,1280,720),Color("020812d9"))

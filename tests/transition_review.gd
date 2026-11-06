@@ -68,7 +68,7 @@ func run() -> void:
 	await settled("courses")
 	check(is_zero_approx(race.hud.position.x),"Reduced motion must not leave a slide offset")
 	var scale := minf(896.0/1280,414.0/720)
-	for rect in [race.hud.MAIN_MENU_BUTTON,race.hud.HOME_SETTINGS,race.hud.GARAGE_BACK,race.hud.SETTINGS_SOUND,race.hud.SETTINGS_MOTION,race.hud.SETTINGS_GRAPHICS,race.hud.SETTINGS_INSTALL,race.hud.SETTINGS_CLOSE]:
+	for rect in [race.hud.pause_touch_rect(),race.hud.MAIN_MENU_BUTTON,race.hud.HOME_SETTINGS,race.hud.GARAGE_BACK,race.hud.SETTINGS_SOUND,race.hud.SETTINGS_MOTION,race.hud.SETTINGS_GRAPHICS,race.hud.SETTINGS_INSTALL,race.hud.SETTINGS_CLOSE]:
 		check(rect.size.y*scale >= 44,"Important touch controls must be at least 44 px on a landscape phone")
 	print("Screen flow / repeated input / reduced motion / touch targets: ","PASS" if failures == 0 else "FAIL")
 	race.queue_free()

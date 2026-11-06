@@ -2,6 +2,7 @@ shader_type spatial;
 uniform bool ruined = false;
 uniform bool night_city = false;
 uniform int facade_style = 0;
+uniform int regional_style = 0;
 varying vec3 local_point;
 varying vec3 local_normal;
 varying vec4 dimensions;
@@ -36,6 +37,14 @@ void fragment() {
 	if (facade_style == 3) { concrete = vec3(0.27,0.23,0.34); }
 	if (facade_style == 4) { concrete = mix(vec3(0.51,0.58,0.55),vec3(0.30,0.40,0.39),dimensions.a); }
 	if (facade_style == 5) { concrete = mix(vec3(0.66,0.57,0.39),vec3(0.53,0.37,0.25),dimensions.a); }
+	if (regional_style == 1) {
+		concrete = mix(concrete,vec3(0.66,0.69,0.66),0.45);
+		if (facade_style == 2) {
+			float balcony = 1.0-smoothstep(0.08,0.12,cell.y);
+			concrete = mix(vec3(0.72,0.73,0.68),vec3(0.29,0.39,0.43),balcony);
+		}
+	}
+	if (regional_style == 2) { concrete *= vec3(0.65,0.71,0.84); }
 	vec3 glass = mix(vec3(0.12,0.24,0.32),vec3(0.41,0.60,0.69),fract(floor(u/3.2)*0.37+floor(v/4.0)*0.21+dimensions.a));
 	ALBEDO = mix(concrete * (1.0-floor_line*0.3),glass,pane);
 	METALLIC = pane * 0.65;

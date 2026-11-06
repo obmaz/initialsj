@@ -1,14 +1,7 @@
 extends Node3D
 # Untouched generated cutouts become distant world-space scenery, with real parallax.
 const ATLAS = preload("res://assets/environment/horizon-ridges.png")
-const URBAN_ATLAS = preload("res://assets/environment/urban-skylines.png")
 const URBAN_THEMES := {"city":0,"seoul":1,"ruins":2,"neon":3}
-const URBAN_REGIONS := [
-	Vector4(0.03776776,0.18263811,0.42671928,0.24013529),
-	Vector4(0.53833145,0.14092446,0.42671928,0.28523112),
-	Vector4(0.03382187,0.65163472,0.42220970,0.23562570),
-	Vector4(0.53325817,0.64825254,0.43573844,0.23788050)
-]
 const REGIONS := [
 	Vector4(0.02029312,0.20067644,0.46392334,0.17361894),
 	Vector4(0.51578354,0.24351747,0.46843292,0.13190530),
@@ -21,11 +14,13 @@ var positions: Array[Vector3] = []
 var widths: Array[float] = []
 var sprite_batch: MultiMeshInstance3D
 func _ready() -> void:
-	if not THEMES.has(scenery.theme) and not URBAN_THEMES.has(scenery.theme): return
+	if URBAN_THEMES.has(scenery.theme):
+		make_urban_skyline()
+		return
+	if not THEMES.has(scenery.theme): return
 	var road: Node3D = scenery.track
-	var urban: bool = URBAN_THEMES.has(scenery.theme)
-	var atlas: Texture2D = URBAN_ATLAS if urban else ATLAS
-	var region: Vector4 = URBAN_REGIONS[URBAN_THEMES[scenery.theme]] if urban else REGIONS[THEMES[scenery.theme]]
+	var atlas: Texture2D = ATLAS
+	var region: Vector4 = REGIONS[THEMES[scenery.theme]]
 	var poses: Array[Transform3D] = []
 	var regions: Array[Color] = []
 	for i in range(4):
@@ -62,3 +57,59 @@ func _ready() -> void:
 	sprite_batch.material_override = material
 	sprite_batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(sprite_batch)
+
+
+func make_urban_skyline() -> void:
+	var road: Node3D = scenery.track
+	var random := RandomNumberGenerator.new()
+	random.seed = 930+road.stage*7+road.route_node
+	var groups := [[],[],[],[]]
+	for cluster in range(4):
+		var d: float = road.length*(0.14+cluster*0.23)
+		var side := -1.0 if cluster%2 == 0 else 1.0
+		for i in range(30):
+			var at: float = d+(i-15)*19
+			var lane: float = side*(530+random.randf_range(0,210))
+			var p: Vector3 = road.point(at,lane)
+			var radius := 24.0
+			var closest: float = road.curve.get_closest_offset(p)
+			var center: Vector3 = road.point(closest)
+			if Vector2(p.x-center.x,p.z-center.z).length()-radius < road.half_width(closest)+90: continue
+			var style := (i+cluster)%4
+			var height := random.randf_range(32,110)
+			if scenery.theme == "ruins": height *= 0.6
+			var width := random.randf_range(16,31)
+			var depth := random.randf_range(16,32)
+			p.y = -5
+			var tiers := 3 if style == 2 else 1
+			var base := 0.0
+			for tier in range(tiers):
+				var h := height*(0.5 if tier == 0 else 0.25) if tiers > 1 else height
+				var size := Vector3(width*(1-tier*0.22),h,depth*(1-tier*0.22))
+				groups[style].append(Transform3D(Basis(Vector3.UP,road.heading(at)).scaled_local(size),p+Vector3.UP*(base+h*0.5)))
+				base += h
+			positions.append(p)
+			widths.append(width)
+	for style in range(4):
+		var poses: Array[Transform3D] = []
+		poses.assign(groups[style])
+		var mesh: Mesh
+		if style == 1:
+			var cylinder := CylinderMesh.new()
+			cylinder.top_radius = 0.5
+			cylinder.bottom_radius = 0.5
+			cylinder.height = 1
+			cylinder.radial_segments = 8
+			mesh = cylinder
+		else:
+			var cube := BoxMesh.new()
+			cube.size = Vector3.ONE
+			mesh = cube
+		var color := Color("69828e") if scenery.theme == "city" else (Color("8b9185") if scenery.theme == "seoul" else (Color("605b4b") if scenery.theme == "ruins" else Color("303d54")))
+		var material := StandardMaterial3D.new()
+		material.albedo_color = color.lightened(style*0.035)
+		material.roughness = 1
+		material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+		var node: MultiMeshInstance3D = scenery.batch(mesh,material,poses,false)
+		node.reparent(self)
+		node.name = "DistantBuildings3D_"+str(style)

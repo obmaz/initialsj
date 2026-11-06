@@ -34,6 +34,7 @@ jobs:
           godot --headless --path . --editor --import --quit
           godot --headless --path . --script res://tests/race_test.gd
           node tests/install_bridge_review.cjs
+          node tests/back_bridge_review.cjs
       - name: Export game for Web
         run: |
           mkdir -p build/site

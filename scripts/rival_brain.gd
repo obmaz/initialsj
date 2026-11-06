@@ -77,7 +77,10 @@ func tick(race: Node3D, delta: float) -> void:
 		var target: float = r.pace+(18 if r.surface.pad_time > 0 else 0)
 		for look in [0.0,35.0,80.0,130.0]:
 			var curve: float = absf(race.track.curvature(d+look))
-			var safe: float = sqrt((maxf(race.vehicle.grip*1.15,race.vehicle.drift_grip*(0.83+(r.id%4)*0.02)) if race.mode == "track" else 12.5)*r.surface.grip_factor / maxf(curve,0.0001))
+			var grip := 12.5
+			if race.mode == "track": grip = maxf(race.vehicle.grip*1.15,race.vehicle.drift_grip*(0.83+(r.id%4)*0.02))
+			grip += race.track.active.banking_grip(d+look)
+			var safe: float = sqrt(grip*r.surface.grip_factor/maxf(curve,0.0001))
 			target = minf(target,sqrt(safe * safe + 2 * 40 * look))
 		for other in traffic:
 			if other == r or not other.get("active",true) or other.get("detached") != null or absf(other.lane-r.lane) > 2.3: continue
@@ -91,10 +94,11 @@ func tick(race: Node3D, delta: float) -> void:
 		r.boosting = r.surface.pad_time > 0
 		r.speed = move_toward(float(r.speed),target,delta*(44 if target < r.speed else (28 if r.boosting else 14)))
 		r.distance += r.speed*delta
-		r.air.advance(race.track.active,old_surface_position,Vector2(r.lane,r.distance),r.speed,delta)
+		var was_airborne: bool = r.air.active
+		var flight_events: Array[String] = r.air.advance(race.track.active,old_surface_position,Vector2(r.lane,r.distance),r.speed,delta)
 		if r.air.active: r.drifting = false
 		var events: Array[String] = []
-		if not r.air.active: events = r.surface.contact(race.track.active,old_surface_position,Vector2(r.lane,r.distance),r.speed)
+		if not r.air.active and not was_airborne and flight_events.is_empty(): events = r.surface.contact(race.track.active,old_surface_position,Vector2(r.lane,r.distance),r.speed)
 		for event in events:
 			if event == "boost" and target >= r.speed:
 				r.speed = minf(r.pace+18,r.speed+8)

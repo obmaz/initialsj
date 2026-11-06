@@ -204,6 +204,50 @@ const engine = new Engine(GODOT_CONFIG);
 }());
 
 
+// Android/browser Back stays inside the game until the main menu is reached.
+(function () {
+  const key = '__initialsjBack';
+  let observer = null;
+  let enabled = false;
+  let atGuard = !!(window.history.state && window.history.state[key] === 'guard');
+  function arm() {
+    atGuard = true;
+    if (window.history.state && window.history.state[key] === 'guard') return;
+    window.history.pushState(Object.assign({}, window.history.state, {[key]:'guard'}), '', window.location.href);
+  }
+  window.initialsjSetBackEnabled = function (value) { enabled = !!value; };
+  window.initialsjObserveBack = function (callback, active) {
+    observer = callback;
+    enabled = !!active;
+    if (!observer) return;
+    const state = window.history.state;
+    if (!state || !state[key]) window.history.replaceState(Object.assign({}, state, {[key]:'base'}), '', window.location.href);
+    arm();
+  };
+  window.addEventListener('popstate', function (event) {
+    const fromGuard = atGuard;
+    atGuard = !!(event.state && event.state[key] === 'guard');
+    if (!event.state || event.state[key] !== 'base') return;
+    // A bfcache-restored Forward visit must be allowed back into the game.
+    // Only a Back traversal from our guard should dispatch a game action.
+    if (!fromGuard) {
+      if (observer) arm();
+      return;
+    }
+    if (observer && enabled) {
+      // Reuse one same-URL entry: a rapid second Back cannot escape mid-fade,
+      // and driving/menu actions never add entries of their own.
+      arm();
+      const dialog = document.getElementById('install-dialog');
+      if (dialog && dialog.open) dialog.close();
+      else observer();
+    } else {
+      // At the root menu, leave normally without trapping the browser user.
+      window.history.back();
+    }
+  });
+}());
+
 (function () {
 	const statusOverlay = document.getElementById('status');
 	const statusProgress = document.getElementById('status-progress');

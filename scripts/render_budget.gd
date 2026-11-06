@@ -8,6 +8,7 @@ var frames := 0
 var slow_windows := 0
 var viewport_size := Vector2i.ZERO
 func set_mode(value: int, race: Node3D) -> void:
+	last_tick = 0
 	mode = posmod(value,3)
 	level = (1 if OS.has_feature("web") else 0) if mode == 0 else (0 if mode == 1 else 2)
 	seconds = 0
@@ -35,9 +36,10 @@ func tick(race: Node3D) -> void:
 	var dt := (now-last_tick)/1000000.0 if last_tick > 0 else 0.0
 	last_tick = now
 	if Vector2i(race.get_viewport().get_texture().get_size()) != viewport_size: resize(race)
-	if mode != 0 or race.state != "racing" or race.elapsed < 6 or race.web_portrait or dt <= 0 or dt > 0.5:
+	if mode != 0 or race.state != "racing" or race.elapsed < 6 or race.web_portrait or dt <= 0:
 		seconds = 0
 		frames = 0
+		slow_windows = 0
 		return
 	seconds += dt
 	frames += 1

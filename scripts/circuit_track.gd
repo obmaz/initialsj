@@ -32,7 +32,7 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 		var tangent := (after-before)/6
 		active.curve.add_point(CONTROL_POINTS[index],-tangent,tangent)
 	active.length = active.curve.get_baked_length()
-	if course_id == 1: preload("res://scripts/seocho_course.gd").build(active)
+	if course_id == 1: preload("res://scripts/speedway_course.gd").build(active)
 	else:
 		# Cut the road below the original ground before the covered section.
 		var original: Curve3D = active.curve.duplicate()
@@ -58,4 +58,4 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 func build_previews() -> void: pass
 func maintain(_distance: float) -> void: pass
 func update_ground() -> void:
-	if base_material != null: base_material.albedo_color = Color("777e7b") if course_id == 1 else Color("617f65")
+	if base_material != null: base_material.albedo_color = Color("548e5d") if course_id == 1 else Color("617f65")

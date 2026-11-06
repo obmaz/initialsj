@@ -51,12 +51,12 @@ func run() -> void:
 				samples += 1
 		check(float(transparent)/samples > 0.3,"Generated props must have transparent surroundings rather than opaque paper backdrops")
 	var art = race.track.scenery.roadside_art
-	check(art.sprite_batch.multimesh.instance_count > 30,"The actual starting road must instantiate generated roadside props")
+	check(art.models.placements.size() > 30,"The actual starting road must instantiate a 3D regional foreground")
 	for i in range(art.positions.size()):
 		var p: Vector3 = art.positions[i]
 		var d: float = race.track.active.curve.get_closest_offset(p)
-		var width: float = art.sprite_batch.multimesh.get_instance_transform(i).basis.x.length()
-		check(p.distance_to(race.track.point(d))-width*0.5 > race.track.half_width(d)+2,"Billboard silhouettes must stay outside the drivable road and rails")
+		var width: float = art.widths[i]
+		check(Vector2(p.x-race.track.point(d).x,p.z-race.track.point(d).z).length()-width*0.5 > race.track.half_width(d)+2,"Solid foreground bounds must stay outside the drivable road and rails")
 	for path in range(16):
 		var visited := {Library.theme(0,0):true}
 		var node := 0
@@ -230,10 +230,15 @@ func run() -> void:
 	failures += await preload("res://tests/road_feature_checks.gd").new().run(self)
 	failures += await preload("res://tests/traffic_checks.gd").new().run(self)
 	failures += await preload("res://tests/drift_rpm_checks.gd").new().run(self)
-	failures += await preload("res://tests/seocho_checks.gd").new().run(self)
+	failures += await preload("res://tests/speedway_checks.gd").new().run(self)
 	failures += await preload("res://tests/air_checks.gd").new().run(self)
 	failures += await preload("res://tests/tunnel_lights_checks.gd").new().run(self)
 	failures += await preload("res://tests/render_budget_checks.gd").new().run(self)
 	failures += await preload("res://tests/fork_checks.gd").new().run(self)
 	failures += await preload("res://tests/shoulder_checks.gd").new().run(self)
+	failures += await preload("res://tests/review_regressions.gd").new().run(self)
+	failures += await preload("res://tests/back_navigation_checks.gd").new().run(self)
+	failures += await preload("res://tests/tunnel_render_checks.gd").new().run(self)
+	failures += await preload("res://tests/scenery_3d_checks.gd").new().run(self)
+	failures += await preload("res://tests/speedway_structure_checks.gd").new().run(self)
 	quit(1 if failures else 0)
