@@ -12,6 +12,7 @@ const POSITION_FONT = preload("res://assets/fonts/PositionNumeral.tres")
 const NUMBER_FONT = preload("res://assets/fonts/Roboto-BlackItalic.ttf")
 const Library = preload("res://scripts/route_library.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
+const PAUSE_BUTTON := Rect2(814,15,66,60)
 const HOME_TOUR := Rect2(225,535,390,110)
 const HOME_TRACK := Rect2(645,535,390,110)
 const HOME_SETTINGS := Rect2(1100,24,155,40)
@@ -50,7 +51,7 @@ var buttons := {
 	"nitro": Rect2(1166,443,100,100),
 	"gas": Rect2(1090, 557, 120, 120),
 	"brake": Rect2(955, 562, 110, 110),
-	"pause": Rect2(894, 12, 376, 50),
+	"pause": Rect2(894,15,378,60),
 }
 
 func _ready() -> void:
@@ -108,7 +109,7 @@ func hit_button(action: String, pos: Vector2) -> bool:
 		return false
 	var rect: Rect2 = buttons[action]
 	if action == "pause":
-		return rect.has_point(pos)
+		return rect.has_point(pos) or PAUSE_BUTTON.has_point(pos)
 	return pos.distance_to(rect.get_center()) <= rect.size.x / 2.0
 
 func handle_pointer(event: InputEvent) -> void:
@@ -255,6 +256,7 @@ func _draw() -> void:
 	if race.state == "ready":
 		draw_garage()
 		return
+	draw_competitor_markers()
 	draw_pace_feedback()
 	var rows := standings()
 	draw_position(rows)
@@ -306,6 +308,9 @@ func draw_coin(center: Vector2) -> void:
 	draw_polyline(star + PackedVector2Array([star[0]]), Color("d19622"), 1, true)
 
 func draw_lap_time() -> void:
+	if race.state in ["racing","countdown","paused"]:
+		slant(PAUSE_BUTTON,Color("15151ce6"),9)
+		for x in [838,851]: draw_rect(Rect2(x,33,5,24),WHITE)
 	if race.mode == "track":
 		slant(Rect2(894,15,378,60),Color("15151ce6"),15)
 		text_at(Vector2(914,43),"LAP",23)
@@ -595,17 +600,17 @@ func draw_menu() -> void:
 		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("060b168f"))
 		slant(Rect2(235, 100, 810, 525), Color("10121bf7"), 30)
 		glow_line(PackedVector2Array([Vector2(265, 100), Vector2(1045, 100)]), CYAN, 2)
-		text_at(Vector2(307, 150), "INITIAL SJ / GRAND TOUR", 22, CYAN)
+		text_at(Vector2(307,150),"INITIAL SJ / FUJI CIRCUIT" if race.mode == "track" else "INITIAL SJ / GRAND TOUR",22,CYAN)
 		text_at(Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD)
-		var title := "GRAND TOUR" if race.state == "ready" else ("TOUR PAUSED" if race.state == "paused" else (("RACE FINISHED" if race.mode == "track" else "GOAL CLEAR!") if race.state == "finished" else "TIME OVER"))
+		var title := "GRAND TOUR" if race.state == "ready" else (("RACE PAUSED" if race.mode == "track" else "TOUR PAUSED") if race.state == "paused" else (("RACE FINISHED" if race.mode == "track" else "GOAL CLEAR!") if race.state == "finished" else "TIME OVER"))
 		text_at(Vector2(307, 224), title, 62)
+		var touch_controls := DisplayServer.is_touchscreen_available()
 		var detail := "5 STAGES. CHOOSE YOUR ROAD."
 		if race.state == "paused":
-			detail = "P / ESC TO RESUME. R TO RESTART."
+			detail = "TAP RESUME TO CONTINUE." if touch_controls else "P / ESC TO RESUME. R TO RESTART."
 		elif race.state == "finished":
 			detail = ("POS %d / 8  -  %s" % [race.race_position(),time_label(race.elapsed)]) if race.mode == "track" else ("TIME %s / SCORE %d" % [time_label(race.elapsed), int(race.score)])
 		text_at(Vector2(307, 277), detail, 25)
-		var touch_controls := DisplayServer.is_touchscreen_available()
 		text_at(Vector2(307, 331), "LEFT: STEER    RIGHT: GAS / BRAKE" if touch_controls else "W / UP GAS    S / DOWN BRAKE", 24, Color("d1d9e4"))
 		text_at(Vector2(307, 366), "DRIFT / NITRO: RIGHT UPPER BUTTONS" if touch_controls else "A / D STEER    SPACE DRIFT SHORTCUT", 23, Color("d1d9e4"))
 		text_at(Vector2(307, 396), "BRAKE + STEER, THEN GAS TO DRIFT" if touch_controls else "SHIFT NITRO / BRAKE + STEER, THEN GAS TO DRIFT", 19, CYAN)
@@ -621,6 +626,33 @@ func draw_menu() -> void:
 		if race.state == "paused":
 			slant(CHANGE_CAR,Color("253548"),8)
 			centered(Vector2(640,602),"CHANGE CAR / G",19,CYAN)
+
+func draw_competitor_markers() -> void:
+	if race.mode != "track" or race.state not in ["racing","countdown"]: return
+	var nearby: Array[Dictionary] = []
+	for rival in race.rivals:
+		if not rival.active or not rival.car.visible: continue
+		var gap: float = race.relative_gap(rival.distance,race.distance)
+		if gap > 7 and gap < 100: nearby.append({"rival":rival,"gap":gap})
+	nearby.sort_custom(func(a: Dictionary,b: Dictionary) -> bool: return a.gap < b.gap)
+	var occupied: Array[Rect2] = []
+	for entry in nearby:
+		var rival: Dictionary = entry.rival
+		var world: Vector3 = rival.car.position+Vector3.UP*2.2
+		if race.camera.is_position_behind(world): continue
+		var point := to_design(race.camera.unproject_position(world))
+		if point.x < 275 or point.x > 1020 or point.y < 175 or point.y > 450: continue
+		var rect := Rect2(point-Vector2(24,25),Vector2(48,25))
+		var overlaps := false
+		for previous in occupied:
+			if rect.grow(5).intersects(previous): overlaps = true
+		if overlaps: continue
+		occupied.append(rect)
+		var place: int = race.competitor_position(rival.id)
+		var suffix := "st" if place == 1 else ("nd" if place == 2 else ("rd" if place == 3 else "th"))
+		slant(rect,Color("111724d9"),5)
+		centered(Vector2(point.x,point.y-6),str(place)+suffix,18,GOLD if place == 1 else WHITE)
+		if occupied.size() >= 3: break
 
 func draw_pace_feedback() -> void:
 	if race.state != "racing": return

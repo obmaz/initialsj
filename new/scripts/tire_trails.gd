@@ -30,7 +30,7 @@ func reset() -> void:
 
 func update(race: Node3D) -> void:
 	material.set_shader_parameter("clock", race.elapsed)
-	if race.state != "racing" or not race.drifting or absf(race.lane) > 7.2:
+	if race.state != "racing" or not race.drifting or absf(race.lane) > race.track.half_width(race.distance)-1.1:
 		previous.clear()
 		return
 	var points: Array[Vector3] = []

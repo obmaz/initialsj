@@ -34,7 +34,16 @@ func run(tree: SceneTree) -> int:
 	var active := 0
 	for r in race.rivals:
 		if r.active: active += 1
+	var ranks := {race.race_position():true}
+	for rival in race.rivals:
+		if rival.active: ranks[race.competitor_position(rival.id)] = true
+	check(ranks.size() == 8,"Tied grid rows must still give every competitor a unique place")
 	check(active == 7 and race.race_position() == 8,"Track must have a fixed grid of eight cars")
+	race.state = "racing"
+	click(race,race.hud.PAUSE_BUTTON)
+	check(race.state == "paused","The visible pause button must work by touch")
+	click(race,race.hud.START_BUTTON)
+	check(race.state == "racing","The pause dialog must resume the same race")
 	race.restart()
 	race.state = "racing"
 	for r in race.rivals: r.active = false

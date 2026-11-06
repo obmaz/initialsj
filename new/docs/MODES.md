@@ -23,3 +23,11 @@ Records use `coast_rush_v3`, separated by mode and car. Older v2 records are pre
 ![Fuji circuit](fuji-circuit-80.png)
 
 CPU traffic now previews the braking distance to a slower car and rechecks an occupied merge path every tick. These checks use wrapped physical gaps on the circuit, so a car on another lap still blocks an unsafe merge or approach. Stationary traffic cannot move sideways. Sustained pack results are in `traffic-metrics.json`; targeted queue and merge regressions are included by `race_test.gd`.
+
+## Race feedback pass
+
+TRACK displays small projected place badges over nearby cars, limited to three and omitted when they overlap or crowd the main HUD. All eight drivers have unique places even when two grid-row distances match; ties use a stable grid order. Physical lap-wrapped proximity chooses visible badges, while total race progress determines their displayed place. TOUR keeps traffic free of race-place badges.
+
+A visible pause button sits beside the time panel; the full time panel remains tappable. Circuit pause titles and headers identify the race correctly. Touch devices receive a tap-to-resume message and touch control references. `modes_checks.gd` verifies unique grid places and pause/resume touch handling, and the exported-browser touch review captures a real mobile pause dialog.
+
+Drift trails now use the current road width instead of a fixed lane offset, keeping tire marks on wide outer lanes. `feedback_visual_review.gd` captures badges, phone layouts, the circuit pause dialog and wide-road trails. These are rendered review fixtures.
