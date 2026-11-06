@@ -23,14 +23,16 @@ static func build(car: Node3D) -> void:
 		car.block(Vector3(side*0.906,0.80,0.48),Vector3(0.012,0.35,0.012),black)
 		car.block(Vector3(side*0.92,0.94,0.31),Vector3(0.04,0.045,0.18),black)
 		car.block(Vector3(side*0.96,1.10,-0.66),Vector3(0.20,0.12,0.25),black)
-		# Raised rectangular headlamps and their white pop-up covers.
-		car.block(Vector3(side*0.55,1.12,-1.70),Vector3(0.43,0.22,0.42),white)
-		car.block(Vector3(side*0.55,1.12,-1.918),Vector3(0.40,0.19,0.035),black)
-		car.block(Vector3(side*0.55,1.12,-1.94),Vector3(0.32,0.135,0.02),car.mat(Color("fff0cc"),0,true))
+		# Fictional tapered lamp pods with a paired-bar signature.
+		car.wedge(Vector3(side*0.55,1.01,-1.70),Vector2(0.50,0.44),Vector2(0.38,0.30),0.26,0.02,white)
+		car.block(Vector3(side*0.55,1.13,-1.925),Vector3(0.42,0.18,0.035),black)
+		for y in [1.09,1.17]:
+			car.block(Vector3(side*0.55,y,-1.95),Vector3(0.30,0.035,0.02),car.mat(Color("d4faff"),0,true))
 		car.block(Vector3(side*0.69,0.68,-2.195),Vector3(0.28,0.08,0.035),car.mat(Color("d58c30")))
 	car.block(Vector3(0,0.56,-2.13),Vector3(1.86,0.23,0.19),black)
-	car.block(Vector3(0,0.86,-2.09),Vector3(1.65,0.17,0.045),black)
-	for y in [0.83,0.88]: car.block(Vector3(0,y,-2.12),Vector3(1.48,0.012,0.025),chrome)
+	for side in [-1.0,1.0]:
+		car.block(Vector3(side*0.45,0.84,-2.12),Vector3(0.60,0.20,0.045),black)
+	car.block(Vector3(0,0.82,-2.16),Vector3(0.24,0.24,0.07),white)
 	car.block(Vector3(0,0.54,2.14),Vector3(1.86,0.25,0.18),black)
 	car.block(Vector3(0,0.86,2.08),Vector3(1.76,0.24,0.075),black)
 	car.block(Vector3(0,1.035,1.88),Vector3(1.73,0.055,0.15),black)
