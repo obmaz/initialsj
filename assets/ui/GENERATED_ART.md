@@ -14,4 +14,8 @@ Original generated PNGs are preserved in the local ignored `generated_images/` w
 
 ## Game logo
 
-[initialsj-logo.png](initialsj-logo.png) is drawn procedurally by [`tools/bake_logo.py`](../../tools/bake_logo.py), not by an image model or from a photograph: Roboto Black Italic lettering (Apache-2.0, see `assets/fonts`) with a chrome gradient, outline, extrusion, glow, speed streaks and a checkered plate. It is a fictional wordmark and copies no real game or brand logo. The home screen and the loading card draw the PNG; the same script refreshes the small inline WebP copy between the `<!--logo:start-->` markers in `web/coast-rush-shell.html`, which the page shows while the download runs. Re-run `python3 tools/bake_logo.py` after changing the design and commit both outputs.
+[initialsj-logo.svg](initialsj-logo.svg) is the production vector wordmark, built by [`tools/bake_logo.py`](../../tools/bake_logo.py) from bundled Roboto Bold Italic outlines (Apache-2.0, see `assets/fonts`). It uses flat ivory/teal lettering, a small warm orange slash and a restrained subtitle. There are no chrome gradients, extrusions, outer strokes or glow. Letter outlines keep the brand identical in Godot and browsers without a system-font dependency.
+
+Generated design studies (`exec-a4f09936-dfae-4bb5-97f5-04d1217b9d00.png` and `exec-fca7c290-c1f7-49bd-b5f3-aa88ac83ed51.png`) informed the flat colour direction; the final asset is clean vector typography rather than those raster studies. Original studies remain in the ignored `generated_images/` workspace. No real game or manufacturer logo is used.
+
+The home screen and loading card use this SVG. The builder embeds the identical SVG between the `<!--logo:start-->` markers in `web/coast-rush-shell.html`, so it appears before any engine download without another request. Re-run `python3 tools/bake_logo.py` after changing the design (requires fontTools), and commit the SVG and shell together. The old raster logo is removed.
