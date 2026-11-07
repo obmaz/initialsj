@@ -69,4 +69,8 @@ touch build/site/.nojekyll
 
 [`main` 푸시](../.github/workflows/deploy-pages.yml)는 고정 엔진 확인, 가져오기, 저장소·주행·Node 검사, 웹 내보내기를 거쳐 [GitHub Pages](https://obmaz.github.io/initialsj/)에 배포합니다. 별도 [검사 workflow](../.github/workflows/godot-checks.yml)도 push와 PR에서 실행합니다. 배포 후 공개 HTML·WASM·PCK를 확인하고, 아트·셸 변경은 실제 출력물에서도 점검합니다.
 
+워크플로가 성공했는지보다 **공개 사이트가 실제로 바뀌었는지**를 확인합니다. 공개 `index.pck`를 내려받아 이번 변경에만 있는 경로(예: 새 에셋 이름)가 들어 있는지 보거나, `curl -I https://obmaz.github.io/initialsj/index.pck`의 `content-length`가 이전 값에서 바뀌었는지 봅니다. 빌드가 성공해도 마지막 `Deploy to GitHub Pages` 단계가 실패하면 사이트는 이전 버전 그대로입니다.
+
+`deploy-pages`는 커밋 해시를 배포 ID로 씁니다. 2026-11-07에 이 단계가 `syncing_files`에서 10분 제한까지 끝나지 않아 취소된 뒤, 같은 커밋으로 실패한 job을 다시 실행하거나 워크플로를 새로 실행한 두 번은 배포 상태가 끝까지 비어 있는 채 같은 제한에서 실패했습니다. 이럴 때는 같은 커밋을 반복해서 돌리지 말고 새 커밋을 `main`에 푸시해 새 배포 ID로 시도합니다. GitHub 상태 페이지가 정상이어도 일어날 수 있습니다.
+
 저작권·출처 문서는 에셋과 함께 보존합니다. 음원은 [출처·라이선스](../assets/audio/LICENSE.txt)를 확인합니다. 게임 규칙은 [GAMEPLAY.md](GAMEPLAY.md), 이번 정리의 검토 범위는 [CODE_REVIEW.md](CODE_REVIEW.md)에 있습니다. 터널 내 비밀길과 공사 장벽을 부수는 경로는 현재 구현 범위에 포함되지 않습니다.
