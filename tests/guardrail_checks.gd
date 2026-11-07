@@ -3,7 +3,7 @@ extends RefCounted
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
-func hit_road_space(r: Node3D, speed: float) -> Dictionary:
+func hit_road_space(r: Node3D, speed: float, start_slip: float = 0.0) -> Dictionary:
 	r.restart()
 	r.state = "racing"
 	for rival in r.rivals: rival.active = false
@@ -11,7 +11,7 @@ func hit_road_space(r: Node3D, speed: float) -> Dictionary:
 	r.lane = r.track.lane_limits(r.distance).y-0.01
 	r.speed = speed
 	r.lane_velocity = 8
-	r.slip_angle = 0
+	r.slip_angle = start_slip
 	r.step(1.0/60,0,false,true,false)
 	return {"lane_velocity":r.lane_velocity,"speed":r.speed,"slip":r.slip_angle}
 func run(tree: SceneTree) -> int:
@@ -19,15 +19,20 @@ func run(tree: SceneTree) -> int:
 	tree.root.add_child(r)
 	r.set_physics_process(false)
 	r.save_records = false
-	# Tour / Suncoast: the bounce, the speed lost and the nose swing grow with speed.
+	# Tour / Suncoast below the launch speed: no bounce, the nose turns parallel to the rail and
+	# a faster hit costs a larger share of the speed.
 	r.choose_mode("tour")
-	var slow := hit_road_space(r,30)
-	var medium := hit_road_space(r,50)
-	var fast := hit_road_space(r,70)
-	check(absf(slow.lane_velocity) < absf(medium.lane_velocity) and absf(medium.lane_velocity) < absf(fast.lane_velocity),"A faster guardrail hit must bounce the car further inward")
-	check(absf(fast.lane_velocity) > 12,"A fast guardrail hit must throw the car well clear of the rail")
-	check(slow.speed/30.0 > fast.speed/70.0,"A faster hit must lose a larger share of its speed")
-	check(absf(slow.slip) < absf(medium.slip) and absf(medium.slip) < absf(fast.slip),"A faster hit must swing the nose further")
+	var slow := hit_road_space(r,20,0.5)
+	var medium := hit_road_space(r,32,0.5)
+	var fast := hit_road_space(r,42,0.5)
+	check(absf(slow.lane_velocity) < 3 and absf(medium.lane_velocity) < 3 and absf(fast.lane_velocity) < 3,"A hit below the launch speed must not bounce the car off the rail")
+	check(absf(fast.slip) < 0.3 and absf(medium.slip) < 0.3,"A scraping car must turn its nose toward the rail direction, not swing away from it")
+	check(slow.speed/20.0 > fast.speed/42.0,"A faster hit must lose a larger share of its speed")
+	check(fast.speed > 42*0.8,"A scrape must keep most of its speed")
+	# At and above the launch speed the car is thrown clear and the bounce grows with speed.
+	var hard := hit_road_space(r,60)
+	var harder := hit_road_space(r,85)
+	check(absf(hard.lane_velocity) < absf(harder.lane_velocity) and absf(harder.lane_velocity) > 12,"A launching hit must throw the car well clear of the rail, further when faster")
 	# A hard hit freezes the frame briefly; reduced motion skips it.
 	r.restart()
 	r.motion_reduced = false
@@ -102,7 +107,7 @@ func run(tree: SceneTree) -> int:
 	car.road_heading = Vector3.BACK
 	check(car.realigned(turned,1.0/60).is_equal_approx(turned),"A car facing against the road must not be spun around")
 	r.choose_mode("tour")
-	hit_road_space(r,60)
+	hit_road_space(r,30)
 	check(r.wall_assist > 0,"A road-space rail hit must start the road alignment assist")
 	r.queue_free()
 	await tree.process_frame

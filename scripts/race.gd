@@ -937,7 +937,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	if wall_assist > 0:
 		# After a rail hit the nose settles slightly toward the road instead of back at the wall.
 		wall_assist = maxf(0,wall_assist-delta)
-		desired_yaw = lerpf(desired_yaw,-wall_side*0.10,clampf(wall_assist/0.5,0,1))
+		desired_yaw = lerpf(desired_yaw,0.0,clampf(wall_assist/0.5,0,1))
 	slip_angle = lerp_angle(slip_angle,desired_yaw,1-exp(-delta*6))
 	var old_gaps: Array[float] = []
 	drafting = false
@@ -1002,15 +1002,22 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		var closing_speed := absf(lane_velocity)
 		lane = clampf(lane,limits.x,limits.y)
 		# The bounce follows how fast the car hit, not just how fast it drifted sideways.
-		var bounce := maxf(closing_speed,incoming_speed*0.22)
-		lane_velocity = -side*clampf(bounce*0.9,2.0,24)
-		slip_angle += -side*clampf(incoming_speed*0.012,0,0.7)
-		wall_assist = 0.7
-		wall_side = side
+		var launching := Crash.launches(incoming_speed)
+		if launching:
+			var bounce := maxf(closing_speed,incoming_speed*0.22)
+			lane_velocity = -side*clampf(bounce*0.9,2.0,24)
+			slip_angle += -side*clampf(incoming_speed*0.012,0,0.7)
+		else:
+			# No bounce below the launch speed: the car barely leaves the rail and its nose is
+			# swung parallel to it while it scrapes along.
+			lane_velocity = -side*clampf(closing_speed*0.12,0.3,2.5)
+			slip_angle = lerp_angle(slip_angle,0.0,0.65)
+			wall_assist = 0.9
+			wall_side = side
 		if bump_cooldown <= 0:
 			wall_hits += 1
 			var scrape_speed := maxf(speed,absf(lane_velocity)*3)
-			speed *= lerpf(0.88,0.5,clampf(incoming_speed/70.0,0,1))
+			speed *= lerpf(0.88,0.5,clampf(incoming_speed/70.0,0,1)) if launching else lerpf(0.97,0.86,clampf(incoming_speed/Crash.LAUNCH_SPEED,0,1))
 			register_impact(smoothstep(2.5,72,scrape_speed)*0.9,Vector2(-side,0))
 			if Crash.launches(incoming_speed) and not crash.active:
 				var up := Crash.launch_up(incoming_speed)

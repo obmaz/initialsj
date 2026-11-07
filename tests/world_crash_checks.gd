@@ -26,7 +26,7 @@ func rail_impact(tree: SceneTree, race: Node3D, speed: float, glancing: bool = f
 	var lane: float = race.track.half_width(d)+race.track.active.rail_setback(d,1)-4.5
 	session.teleport(0,d,lane,not preserve_progress)
 	var direction := right
-	if glancing: direction = (forward*sqrt(speed*speed-64)+right*8).normalized()
+	if glancing: direction = (forward*sqrt(speed*speed-144)+right*12).normalized()
 	body.reset_pose(body.feet_position(),direction,up)
 	await tree.physics_frame
 	body.velocity = direction*speed
@@ -40,7 +40,7 @@ func rail_impact(tree: SceneTree, race: Node3D, speed: float, glancing: bool = f
 	var triggered := false
 	var away_speed := 0.0
 	var launch_speed := 0.0
-	for frame in range(160):
+	for frame in range(300 if glancing else 160):
 		await tree.physics_frame
 		race.step(1.0/60,0,false,false,false)
 		for hit in body.last_contacts:
@@ -62,7 +62,7 @@ func rail_impact(tree: SceneTree, race: Node3D, speed: float, glancing: bool = f
 		check(race.score == score,"A crash landing must not award a successful jump bonus")
 	else:
 		check(not triggered and not first.severe,"A rail hit below the launch speed must bounce without a crash launch")
-		if not glancing: check(away_speed > 5,"An ordinary wall hit must have a visible physical rebound")
+		check(away_speed < 4.0,"A hit below the launch speed must not bounce the car back off the rail")
 	return {"vehicle":race.vehicle.id,"entry_mps":speed,"glancing":glancing,"contact":first,"triggered":triggered,"rebound_mps":away_speed,"launch_mps":launch_speed,"height_gain_m":peak-base,"airborne_frames":airborne_frames,"maximum_roll":roll}
 
 func traffic_and_floor(tree: SceneTree, race: Node3D) -> void:
