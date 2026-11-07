@@ -24,6 +24,29 @@ func run(tree: SceneTree) -> int:
 	click(race,race.hud.SETTINGS_SOUND)
 	click(race,race.hud.SETTINGS_CLOSE)
 	check(race.state == "menu" and race.sound_enabled != initial_sound,"Settings must return to the mode menu and retain the chosen value")
+	# Every switch persists at once, and only an explicit choice overrides the system motion preference.
+	race.preferences_path = "user://preferences_check.cfg"
+	race.save_records = true
+	race.sound_enabled = true
+	race.motion_reduced = true
+	race.motion_user_set = false
+	race.toggle_sound()
+	var stored := ConfigFile.new()
+	check(stored.load(race.preferences_path) == OK and stored.get_value("preferences","sound") == false,"A sound switch must be written when toggled, not only when Settings closes")
+	check(not stored.has_section_key("preferences","reduced_motion"),"The system reduced-motion preference must not be stored as the player's choice")
+	race.toggle_motion()
+	stored = ConfigFile.new()
+	check(stored.load(race.preferences_path) == OK and stored.get_value("preferences","reduced_motion") == false,"A motion switch on a dialog must be written immediately")
+	race.sound_enabled = true
+	race.motion_reduced = true
+	race.motion_user_set = false
+	race.load_preferences()
+	check(not race.sound_enabled and not race.motion_reduced and race.motion_user_set,"A stored choice must be restored and then take priority over the system preference")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(race.preferences_path))
+	race.save_records = false
+	race.sound_enabled = not initial_sound
+	race.motion_reduced = false
+	race.motion_user_set = false
 	click(race,race.hud.HOME_TRACK)
 	check(race.state == "courses","Track menu must offer both courses before the garage")
 	click(race,race.hud.COURSE_FUJI)

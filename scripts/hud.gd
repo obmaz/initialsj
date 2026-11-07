@@ -195,8 +195,8 @@ func handle_pointer(event: InputEvent) -> void:
 		elif GARAGE_BACK.has_point(p): race.navigate(race.open_menu)
 		return
 	if race.state == "settings":
-		if SETTINGS_SOUND.has_point(p): race.sound_enabled = not race.sound_enabled
-		elif SETTINGS_MOTION.has_point(p): race.motion_reduced = not race.motion_reduced
+		if SETTINGS_SOUND.has_point(p): race.toggle_sound()
+		elif SETTINGS_MOTION.has_point(p): race.toggle_motion()
 		elif SETTINGS_GRAPHICS.has_point(p): race.cycle_graphics()
 		elif SETTINGS_FULLSCREEN.has_point(p):
 			if race.has_method("toggle_fullscreen"): race.toggle_fullscreen()
@@ -215,8 +215,8 @@ func handle_pointer(event: InputEvent) -> void:
 				if garage_card(i).has_point(p): race.select_vehicle(i)
 		return
 	if race.state in ["paused","finished","failed"]:
-		if SOUND_BUTTON.has_point(p): race.sound_enabled = not race.sound_enabled
-		elif MOTION_BUTTON.has_point(p): race.motion_reduced = not race.motion_reduced
+		if SOUND_BUTTON.has_point(p): race.toggle_sound()
+		elif MOTION_BUTTON.has_point(p): race.toggle_motion()
 		elif race.state == "paused" and MAIN_MENU_BUTTON.has_point(p): race.navigate(race.open_menu)
 		elif START_BUTTON.has_point(p) or (race.state == "paused" and hit_button("pause",p)):
 			if race.state == "paused": race.resume_tour()
@@ -734,13 +734,13 @@ func draw_menu() -> void:
 		slant(Rect2(568, 248, 144, 136), Color("11121bba"), 24)
 		var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
 		centered(Vector2(640, 353), str(maxi(1, ceili(race.countdown))), int(90 + 18 * pulse), GOLD)
-	elif race.state in ["ready", "paused", "finished", "failed"]:
+	elif race.state in ["paused", "finished", "failed"]:
 		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("060b168f"))
 		slant(Rect2(235, 100, 810, 575), Color("10121bf7"), 30)
 		glow_line(PackedVector2Array([Vector2(265, 100), Vector2(1045, 100)]), CYAN, 2)
 		text_at(Vector2(307,150),"INITIAL SJ / "+race.course_title if race.mode == "track" else "INITIAL SJ / GRAND TOUR",22,CYAN)
 		text_at(Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD)
-		var title := "GRAND TOUR" if race.state == "ready" else (("RACE PAUSED" if race.mode == "track" else "TOUR PAUSED") if race.state == "paused" else (("RACE FINISHED" if race.mode == "track" else "GOAL CLEAR!") if race.state == "finished" else "TIME OVER"))
+		var title := ("RACE PAUSED" if race.mode == "track" else "TOUR PAUSED") if race.state == "paused" else (("RACE FINISHED" if race.mode == "track" else "GOAL CLEAR!") if race.state == "finished" else "TIME OVER")
 		text_at(Vector2(307, 224), title, 62)
 		if race.state == "finished":
 			var detail := ("POS %d / 8" % race.race_position()) if race.mode == "track" else ("SCORE %d" % int(race.score))

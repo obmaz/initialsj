@@ -146,6 +146,8 @@ var fullscreen_control_rect := Rect2()
 var fullscreen_control_visible := false
 var fullscreen_return_mode := DisplayServer.WINDOW_MODE_WINDOWED
 var motion_reduced := false
+var motion_user_set := false
+var preferences_path := "user://settings.cfg"
 var sound_enabled := true
 var camera_time := 0.0
 var camera_offset := Vector3.ZERO
@@ -455,18 +457,32 @@ func close_settings() -> void:
 
 func load_preferences() -> void:
 	var config := ConfigFile.new()
-	if config.load("user://settings.cfg") == OK:
+	if config.load(preferences_path) == OK:
 		sound_enabled = bool(config.get_value("preferences","sound",true))
-		motion_reduced = bool(config.get_value("preferences","reduced_motion",motion_reduced))
+		# Only a stored choice overrides the system reduced-motion preference.
+		if config.has_section_key("preferences","reduced_motion"):
+			motion_reduced = bool(config.get_value("preferences","reduced_motion"))
+			motion_user_set = true
 		graphics_mode = clampi(int(config.get_value("preferences","graphics",0)),0,2)
 
 func save_preferences() -> void:
 	if not save_records: return
 	var config := ConfigFile.new()
 	config.set_value("preferences","sound",sound_enabled)
-	config.set_value("preferences","reduced_motion",motion_reduced)
+	if motion_user_set: config.set_value("preferences","reduced_motion",motion_reduced)
 	config.set_value("preferences","graphics",graphics_mode)
-	config.save("user://settings.cfg")
+	config.save(preferences_path)
+
+# Every screen that offers these switches goes through here, so a choice made on
+# the pause or result dialog survives a reload like one made in Settings.
+func toggle_sound() -> void:
+	sound_enabled = not sound_enabled
+	save_preferences()
+
+func toggle_motion() -> void:
+	motion_reduced = not motion_reduced
+	motion_user_set = true
+	save_preferences()
 
 func relative_gap(other: float, reference: float) -> float:
 	return wrapf(other-reference,-track.length/2,track.length/2) if mode == "track" else other-reference
@@ -559,6 +575,9 @@ func restart() -> void:
 	player.reset_physics_interpolation()
 	camera.reset_physics_interpolation()
 	for r in rivals: r.car.reset_physics_interpolation()
+	# A screen transition can finish after the device rotated to portrait. The
+	# rotate guide hides the road, so wait paused rather than run unseen.
+	if web_portrait: pause_tour()
 
 func _input(event: InputEvent) -> void:
 	if screen_transition != null and screen_transition.busy: return
@@ -588,8 +607,8 @@ func _input(event: InputEvent) -> void:
 		elif state == "ready" and event.keycode in [KEY_1,KEY_2,KEY_3]: select_vehicle(event.keycode-KEY_1)
 		elif state == "ready" and event.keycode in [KEY_A,KEY_LEFT]: select_vehicle(posmod(selected_vehicle-1,3))
 		elif state == "ready" and event.keycode in [KEY_D,KEY_RIGHT]: select_vehicle((selected_vehicle+1)%3)
-		elif event.keycode == KEY_V: sound_enabled = not sound_enabled
-		elif event.keycode == KEY_M: motion_reduced = not motion_reduced
+		elif event.keycode == KEY_V: toggle_sound()
+		elif event.keycode == KEY_M: toggle_motion()
 		elif event.keycode == KEY_R and state != "ready": start_race()
 		elif event.keycode == KEY_G and state == "paused": navigate(open_menu)
 		elif event.keycode in [KEY_ESCAPE,KEY_P]:

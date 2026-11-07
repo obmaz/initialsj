@@ -13,7 +13,7 @@ if [[ -z "$candidate" || ! -x "$candidate" ]]; then
 fi
 found_version="$("$candidate" --version)"
 case "$found_version" in
-  "$required_version".*) ;;
-  *) echo "Godot $required_version is required; found $found_version at $candidate." >&2; exit 2 ;;
+  "$required_version".stable.*) ;;
+  *) echo "Godot $required_version stable is required; found $found_version at $candidate." >&2; exit 2 ;;
 esac
 exec "$candidate" "$@"
