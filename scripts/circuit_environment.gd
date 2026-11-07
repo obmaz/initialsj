@@ -4,6 +4,7 @@ const PANORAMA = preload("res://assets/environment/fuji-lake-panorama.png")
 const BACK_A = preload("res://assets/environment/fuji-lake-back-a.png")
 const BACK_B = preload("res://assets/environment/fuji-lake-back-b.png")
 const GRASS = preload("res://assets/environment/lakeside-grass.png")
+const Natural = preload("res://scripts/quaternius_props.gd")
 const SKY_SHADER = preload("res://shaders/fuji_sky.gdshader")
 const TERRAIN_SHADER = preload("res://shaders/lakeside_terrain.gdshader")
 const WATER_SHADER = preload("res://shaders/lake_water.gdshader")
@@ -96,17 +97,38 @@ func make_trees() -> void:
 	for i in range(120):
 		var d: float = i*track.length/120+rng.randf_range(-3,3)
 		if track.in_tunnel(d) or track.excavation_depth(d) > 0.2 or track.on_bridge(d): continue
-		var kind := "sakura" if i%4 == 0 else ("japanese_pine" if i%3 == 0 else "pine")
+		# Cherry and Japanese pines keep the regional character; the rest of the forest is
+		# Quaternius's CC0 pines and oaks, and willows stand on the lake side.
+		var kind: String = "sakura" if i%4 == 0 else ("japanese_pine" if i%3 == 0 else (Natural.OAKS[i%2] if i%5 == 1 else Natural.PINES[i%3]))
 		var scale := rng.randf_range(0.75,1.3)
-		var radius: float = Props.radius(kind)*scale
 		var side := -1.0 if i%9 == 0 else 1.0
+		if side < 0: kind = Natural.WILLOWS[(i/9)%3]
+		var radius: float = Props.radius(kind)*scale
 		var lane: float = side*(track.half_width(d)+track.rail_setback(d,side)+radius+3.0+rng.randf_range(0,18))
+		# Willows lean over the water: their trunks stand on the shore strip, not beyond it.
+		if side < 0: lane = -(track.half_width(d)+track.rail_setback(d,side)+radius*0.6+1.0+rng.randf_range(0,2))
 		var p: Vector3 = track.roadside_point(d,lane)
 		var closest: float = track.curve.get_closest_offset(p)
 		var center: Vector3 = track.point(closest)
-		if Vector2(p.x-center.x,p.z-center.z).length()-radius < track.half_width(closest)+track.rail_setback(closest,side)+1.5: continue
+		var reach := radius*0.6 if side < 0 else radius
+		if Vector2(p.x-center.x,p.z-center.z).length()-reach < track.half_width(closest)+track.rail_setback(closest,side)+1.5: continue
 		placements.append({"position":p,"yaw":rng.randf_range(0,TAU),"scale":scale,"kind":kind})
 		tree_positions.append(p)
+	# Low bushes and mossy rocks along both verges give the road a sense of speed.
+	for i in range(260):
+		var d: float = i*track.length/260+rng.randf_range(-6,6)
+		if track.in_tunnel(d) or track.excavation_depth(d) > 0.2 or track.on_bridge(d): continue
+		var side := -1.0 if i%7 == 0 else 1.0
+		var kind: String = Natural.BUSHES[i%2] if i%3 == 0 else Natural.ROCKS[i%4]
+		var scale := rng.randf_range(0.8,1.4)
+		var radius: float = Props.radius(kind)*scale
+		var lane: float = side*(track.half_width(d)+track.rail_setback(d,side)+1.6+radius+rng.randf_range(0,9))
+		if side < 0 and lane < -15.5: continue
+		var p: Vector3 = track.roadside_point(d,lane)
+		var closest: float = track.curve.get_closest_offset(p)
+		var center: Vector3 = track.point(closest)
+		if Vector2(p.x-center.x,p.z-center.z).length()-radius < track.half_width(closest)+track.rail_setback(closest,side)+1.0: continue
+		placements.append({"position":p,"yaw":rng.randf_range(0,TAU),"scale":scale,"kind":kind})
 	var forest := Props.new()
 	forest.name = "FujiForest3D"
 	forest.configure("fuji",placements)

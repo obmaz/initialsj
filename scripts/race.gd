@@ -11,6 +11,7 @@ const Features = preload("res://scripts/road_features.gd")
 const Factory = preload("res://scripts/vehicle_factory.gd")
 const Circuit = preload("res://scripts/circuit_track.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
+const Pad = preload("res://scripts/gamepad_input.gd")
 const Nitro = preload("res://scripts/nitro_system.gd")
 const RenderBudget = preload("res://scripts/render_budget.gd")
 const WorldRace = preload("res://scripts/world_race.gd")
@@ -147,6 +148,9 @@ var fullscreen_control_visible := false
 var fullscreen_return_mode := DisplayServer.WINDOW_MODE_WINDOWED
 var motion_reduced := false
 var motion_user_set := false
+var pad := Pad.new()
+var gamepad_active := false
+var settings_focus := 0
 var preferences_path := "user://settings.cfg"
 var sound_enabled := true
 var camera_time := 0.0
@@ -273,6 +277,7 @@ func _ready() -> void:
 		JavaScriptBridge.get_interface("window").initialsjObserveFullscreen(web_fullscreen_callback)
 	elif OS.has_feature("android"):
 		get_tree().quit_on_go_back = false
+	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 
 func _on_web_fullscreen(args: Array) -> void:
 	var active: bool = bool(args[0])
@@ -580,6 +585,13 @@ func restart() -> void:
 	if web_portrait: pause_tour()
 
 func _input(event: InputEvent) -> void:
+	if Pad.is_pad_event(event):
+		# State is always tracked, so a button released during a transition cannot stick.
+		if pad.handle(event): gamepad_active = true
+		var blocked: bool = (screen_transition != null and screen_transition.busy) or web_portrait
+		if event is InputEventJoypadButton and event.pressed and not blocked: pad_pressed(event.button_index)
+		return
+	if (event is InputEventKey or event is InputEventScreenTouch or event is InputEventMouseButton) and event.pressed: gamepad_active = false
 	if screen_transition != null and screen_transition.busy: return
 	if web_portrait: return
 	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION: return
@@ -618,11 +630,72 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventScreenDrag: hud.move_pointer(event.index,event.position)
 	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT): hud.move_pointer(-1,event.position)
 
+# A pad button press, mapped like the keyboard shortcuts of the same screen.
+func pad_pressed(button: int) -> void:
+	var count := Catalog.SPECS.size()
+	match state:
+		"menu":
+			match button:
+				JOY_BUTTON_A: navigate(func(): choose_mode("tour"))
+				JOY_BUTTON_X: navigate(open_courses)
+				JOY_BUTTON_Y: navigate(open_settings)
+		"courses":
+			match button:
+				JOY_BUTTON_A: navigate(func(): choose_mode("track",0))
+				JOY_BUTTON_X: navigate(func(): choose_mode("track",1))
+				JOY_BUTTON_B: navigate(open_menu)
+		"settings":
+			match button:
+				JOY_BUTTON_DPAD_UP: settings_focus = posmod(settings_focus-1,SETTINGS_ROWS)
+				JOY_BUTTON_DPAD_DOWN: settings_focus = posmod(settings_focus+1,SETTINGS_ROWS)
+				JOY_BUTTON_A: settings_activate(settings_focus)
+				JOY_BUTTON_B, JOY_BUTTON_START: navigate(close_settings)
+		"ready":
+			match button:
+				JOY_BUTTON_A, JOY_BUTTON_START: start_race()
+				JOY_BUTTON_B: navigate(open_courses if mode == "track" else open_menu)
+				JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_DPAD_LEFT: select_vehicle(posmod(selected_vehicle-1,count))
+				JOY_BUTTON_RIGHT_SHOULDER, JOY_BUTTON_DPAD_RIGHT: select_vehicle((selected_vehicle+1)%count)
+		"racing","countdown":
+			match button:
+				JOY_BUTTON_START: pause_tour()
+				JOY_BUTTON_BACK: start_race()
+				JOY_BUTTON_Y: recover_car()
+				JOY_BUTTON_LEFT_SHOULDER: select_route(0)
+				JOY_BUTTON_RIGHT_SHOULDER: select_route(1)
+		"paused":
+			match button:
+				JOY_BUTTON_A, JOY_BUTTON_B, JOY_BUTTON_START: resume_tour()
+				JOY_BUTTON_X: navigate(open_menu)
+				JOY_BUTTON_BACK: start_race()
+		"finished","failed":
+			match button:
+				JOY_BUTTON_A: navigate(open_garage)
+				JOY_BUTTON_X, JOY_BUTTON_BACK: start_race()
+
+const SETTINGS_ROWS := 6
+func settings_activate(index: int) -> void:
+	match index:
+		0: toggle_sound()
+		1: toggle_motion()
+		2: cycle_graphics()
+		3: toggle_fullscreen()
+		4: hud.install_game()
+		_: navigate(close_settings)
+
+func _on_joy_connection_changed(_device: int, connected: bool) -> void:
+	if connected: return
+	# A pad that disappears mid-race must not leave the car steering or boosting on its own.
+	pad.clear()
+	if Input.get_connected_joypads().is_empty(): gamepad_active = false
+	pause_tour()
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		if not navigate_back() and OS.has_feature("android"): get_tree().quit()
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		if hud != null: hud.fingers.clear()
+		pad.clear()
 		pause_tour()
 
 func pause_tour() -> void:
@@ -710,12 +783,12 @@ func _physics_process(delta: float) -> void:
 			launch_flash = 0.7
 	if state == "racing":
 		var axis := float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
-		axis = clampf(axis + hud.touch_axis(),-1,1)
-		var nitro_input := Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("nitro")
-		var cell_input := Input.is_physical_key_pressed(KEY_E) or hud.held("cell")
-		var gas := Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP) or hud.held("gas") or nitro_input
-		var brake := Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake")
-		step(delta,axis,Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift"),gas,brake,nitro_input,cell_input)
+		axis = clampf(axis + hud.touch_axis() + pad.steer(),-1,1)
+		var nitro_input := Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("nitro") or pad.nitro()
+		var cell_input := Input.is_physical_key_pressed(KEY_E) or hud.held("cell") or pad.cell()
+		var gas := Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP) or hud.held("gas") or pad.gas() or nitro_input
+		var brake := Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake") or pad.brake()
+		step(delta,axis,Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift") or pad.drift(),gas,brake,nitro_input,cell_input)
 	place_cars(delta)
 	var world_visible := warming_world or state not in ["menu","courses","ready","settings"]
 	track.visible = world_visible

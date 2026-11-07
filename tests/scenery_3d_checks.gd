@@ -55,7 +55,14 @@ func run(tree: SceneTree) -> int:
  check(race.track.scenery.has_node("FujiForest3D"),"Fuji needs a solid 3D forest")
  check(race.track.scenery.landmarks.models.kinds.size() >= 3,"Fuji landmarks need distinct solid structures")
  var forest: Node3D = race.track.scenery.get_node("FujiForest3D")
- check(forest.placements.size() > 70 and forest.kinds.has("sakura") and forest.kinds.has("pine"),"Fuji must mix pines and cherry trees")
+ var pines: Array = forest.kinds.filter(func(k: String) -> bool: return k.contains("pine"))
+ check(forest.placements.size() > 70 and forest.kinds.has("sakura") and pines.size() >= 2,"Fuji must mix pines and cherry trees")
+ var lake_kinds: Array = forest.kinds.filter(func(k: String) -> bool: return k.begins_with("lake_"))
+ check(lake_kinds.size() >= 8 and forest.kinds.any(func(k: String) -> bool: return k.begins_with("lake_willow")) and forest.kinds.any(func(k: String) -> bool: return k.begins_with("lake_rock")) and forest.kinds.any(func(k: String) -> bool: return k.begins_with("lake_bush")),"Fuji needs the CC0 pines, willows, bushes and rocks along the road")
+ check(FileAccess.file_exists("res://assets/environment/props/QUATERNIUS-LICENSE.txt") and FileAccess.get_file_as_string("res://assets/environment/props/QUATERNIUS-LICENSE.txt").contains("CC0"),"Third-party prop models must keep their CC0 licence file")
+ var densest := 0
+ for batch in forest.batches: densest = maxi(densest,batch.multimesh.instance_count)
+ check(densest <= 12 and forest.placements.size() < 520,"The Fuji prop count must stay bounded for phones")
  FileAccess.open(Report.path("scenery-3d-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"regions":rows,"unique_model_kinds":all_kinds.size(),"fuji_tree_count":forest.placements.size(),"failures":failures},"\t")+"\n")
  race.queue_free()
  await tree.process_frame

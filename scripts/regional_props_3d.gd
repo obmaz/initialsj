@@ -10,6 +10,7 @@ const FAMILIES := {
  "ruins":["broken_column","charred","basalt"], "harbor":["containers","palm","containers"],
  "amusement":["ticket_booth","broadleaf","sakura"]
 }
+const Models = preload("res://scripts/quaternius_props.gd")
 static var mesh_cache: Dictionary = {}
 static var shared_material: StandardMaterial3D
 var theme := "hawaii"
@@ -40,7 +41,7 @@ func _ready() -> void:
   groups[group].poses.append(transform)
   var bounds: AABB = transform*model(kind).get_aabb()
   world_bounds.append(bounds)
-  if kind in ["palm","broadleaf","pine","snow_pine","sakura","bamboo","plane_tree","ginkgo","charred","japanese_pine"]: tree_count += 1
+  if kind in ["palm","broadleaf","pine","snow_pine","sakura","bamboo","plane_tree","ginkgo","charred","japanese_pine"] or Models.is_tree(kind): tree_count += 1
  for group in groups:
   var kind: String = groups[group].kind
   var poses: Array = groups[group].poses
@@ -56,7 +57,7 @@ func _ready() -> void:
    node.name = "Regional3D_"+kind+"_"+str(start)
    node.multimesh = multi
    node.material_override = shared_material
-   node.visibility_range_end = 400 if kind in ["palm","pine","snow_pine"] else 310
+   node.visibility_range_end = 400 if kind in ["palm","pine","snow_pine"] else (190 if kind.begins_with("lake_bush") or kind.begins_with("lake_rock") else (330 if Models.is_tree(kind) else 310))
    node.visibility_range_end_margin = 24
    node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
    add_child(node)
@@ -101,6 +102,9 @@ static func append(st: SurfaceTool, mesh: Mesh, transform: Transform3D, color: C
   st.add_vertex(transform*vertices[index])
 static func model(kind: String) -> ArrayMesh:
  if mesh_cache.has(kind): return mesh_cache[kind]
+ if Models.has(kind):
+  mesh_cache[kind] = Models.build(kind)
+  return mesh_cache[kind]
  var st := SurfaceTool.new()
  st.begin(Mesh.PRIMITIVE_TRIANGLES)
  var bark := Color("73513a")
