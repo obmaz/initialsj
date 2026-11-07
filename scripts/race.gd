@@ -90,6 +90,8 @@ var speed := 0.0
 var lane_velocity := 0.0
 var steer := 0.0
 var slip_angle := 0.0
+var wall_assist := 0.0
+var wall_side := 0.0
 var elapsed := 0.0
 var countdown := 3.0
 var time_left := Library.START_TIME
@@ -522,6 +524,7 @@ func restart() -> void:
 	lane_velocity = 0
 	steer = 0
 	slip_angle = 0
+	wall_assist = 0
 	elapsed = 0
 	laps_completed = 0
 	lap_started = 0
@@ -904,6 +907,10 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			drifts_completed += 1
 		drift_charge = 0
 	var desired_yaw := ((-drift_sign*0.30-steer*0.30) if drifting else -steer*0.07)-clampf(lane_velocity*0.022,-0.16,0.16)*surface.wetness
+	if wall_assist > 0:
+		# After a rail hit the nose settles slightly toward the road instead of back at the wall.
+		wall_assist = maxf(0,wall_assist-delta)
+		desired_yaw = lerpf(desired_yaw,-wall_side*0.10,clampf(wall_assist/0.5,0,1))
 	slip_angle = lerp_angle(slip_angle,desired_yaw,1-exp(-delta*6))
 	var old_gaps: Array[float] = []
 	drafting = false
@@ -971,6 +978,8 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		var bounce := maxf(closing_speed,incoming_speed*0.22)
 		lane_velocity = -side*clampf(bounce*0.9,2.0,24)
 		slip_angle += -side*clampf(incoming_speed*0.012,0,0.7)
+		wall_assist = 0.7
+		wall_side = side
 		if bump_cooldown <= 0:
 			wall_hits += 1
 			var scrape_speed := maxf(speed,absf(lane_velocity)*3)
@@ -1106,6 +1115,7 @@ func return_to_road() -> void:
 	lane_velocity = 0
 	steer = 0
 	slip_angle = 0
+	wall_assist = 0
 	offroad_amount = 0
 	impact = 0
 	impact_age = 1
@@ -1145,6 +1155,7 @@ func recover_car() -> void:
 	lane_velocity = 0
 	steer = 0
 	slip_angle = 0
+	wall_assist = 0
 	air.reset()
 	air.consumed = used_ramps
 	air.launches = launches

@@ -73,6 +73,21 @@ func run(tree: SceneTree) -> int:
 	await tree.physics_frame
 	for frame in range(120): world.update_outside(1.0/60)
 	check(r.return_flash == 0,"A car on the road must never be returned")
+	# After a rail hit the nose eases toward the road, but only part of the way.
+	var car = world.player_body
+	car.road_heading = Vector3.FORWARD
+	car.surface_normal = Vector3.UP
+	var turned: Vector3 = Vector3.FORWARD.rotated(Vector3.UP,0.5)
+	car.realign_time = car.REALIGN_TIME
+	var eased: Vector3 = car.realigned(turned,1.0/60)
+	var before := absf(turned.signed_angle_to(Vector3.FORWARD,Vector3.UP))
+	var after := absf(eased.signed_angle_to(Vector3.FORWARD,Vector3.UP))
+	check(after < before and after > before*0.8,"A rail hit must ease the nose toward the road without snapping it straight")
+	car.road_heading = Vector3.BACK
+	check(car.realigned(turned,1.0/60).is_equal_approx(turned),"A car facing against the road must not be spun around")
+	r.choose_mode("tour")
+	hit_road_space(r,60)
+	check(r.wall_assist > 0,"A road-space rail hit must start the road alignment assist")
 	r.queue_free()
 	await tree.process_frame
 	print("Guardrail response scales with speed / spin / freeze-frame / return to road: ","PASS" if failures == 0 else "FAIL")

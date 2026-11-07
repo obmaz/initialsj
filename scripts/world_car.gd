@@ -21,6 +21,9 @@ const BARRIER_REBOUND_MAX := 30.0
 const BARRIER_SPIN := 0.10
 const BARRIER_SPIN_MAX := 3.2
 const BARRIER_HOP_FROM := 14.0
+const REALIGN_TIME := 0.7
+const REALIGN_RATE := 2.6
+const REALIGN_MAX_ERROR := 0.9
 var specification: Dictionary = {}
 var grounded := false
 var surface_normal := Vector3.UP
@@ -28,6 +31,10 @@ var ground_height := 0.0
 var slip_angle := 0.0
 var steering := 0.0
 var yaw_rate := 0.0
+# Direction of the road under the car (set by the race) and how long after a rail hit the
+# nose is eased back toward it.
+var road_heading := Vector3.ZERO
+var realign_time := 0.0
 var last_contacts: Array[Dictionary] = []
 var corner_demand := 0.0
 var corner_grip := 14.5
@@ -70,6 +77,16 @@ func reset_pose(feet: Vector3, forward: Vector3, up: Vector3 = Vector3.UP) -> vo
 
 func feet_position() -> Vector3:
 	return global_position-global_basis.y*SUPPORT_HEIGHT
+
+# After a rail hit the nose is eased toward the road direction, fading out with the timer.
+# Only part of the angle is removed, so a hard hit still leaves the car visibly turned.
+func realigned(forward: Vector3, delta: float) -> Vector3:
+	var road := road_heading.slide(surface_normal).normalized()
+	if road.length_squared() < 0.5 or forward.dot(road) < 0: return forward
+	var error := forward.signed_angle_to(road,surface_normal)
+	if absf(error) > REALIGN_MAX_ERROR: error = signf(error)*REALIGN_MAX_ERROR
+	var step := error*clampf(delta*REALIGN_RATE*(realign_time/REALIGN_TIME+0.3),0,0.5)
+	return forward.rotated(surface_normal,step).normalized()
 
 func forward_direction() -> Vector3:
 	return -global_basis.z.normalized()
@@ -153,6 +170,10 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 	if not grounded: desired_rate *= 0.22
 	yaw_rate = move_toward(yaw_rate,desired_rate,delta*(5.5*high_speed_scale if grounded else 1.2))
 	var forward := forward_direction().rotated(surface_normal,yaw_rate*delta).slide(surface_normal).normalized()
+	if realign_time > 0:
+		realign_time = maxf(0,realign_time-delta)
+		if grounded and road_heading.length_squared() > 0.5:
+			forward = realigned(forward,delta)
 	if forward.length_squared() < 0.5: forward = Vector3.FORWARD
 	global_basis = Basis.looking_at(forward,surface_normal)
 	var right := global_basis.x.normalized()
@@ -204,6 +225,7 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 					velocity = tangent*lerpf(0.92,0.62,hardness)+normal*clampf(closing*BARRIER_REBOUND,2.0,BARRIER_REBOUND_MAX)
 					# A glancing hit swings the nose away from the wall; a square one barely spins.
 					yaw_rate += -normal.dot(global_basis.x)*clampf(closing*BARRIER_SPIN,0,BARRIER_SPIN_MAX)
+					realign_time = REALIGN_TIME
 					if closing > BARRIER_HOP_FROM: velocity.y += clampf((closing-BARRIER_HOP_FROM)*0.09,0,3.0)
 				else:
 					velocity = tangent*0.86+normal*minf(closing*0.32,14.0)
