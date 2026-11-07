@@ -1,6 +1,8 @@
 extends Node3D
 
 const PANORAMA = preload("res://assets/environment/fuji-lake-panorama.png")
+const BACK_A = preload("res://assets/environment/fuji-lake-back-a.png")
+const BACK_B = preload("res://assets/environment/fuji-lake-back-b.png")
 const GRASS = preload("res://assets/environment/lakeside-grass.png")
 const SKY_SHADER = preload("res://shaders/fuji_sky.gdshader")
 const TERRAIN_SHADER = preload("res://shaders/lakeside_terrain.gdshader")
@@ -20,6 +22,8 @@ func make_sky() -> Sky:
 	var mat := ShaderMaterial.new()
 	mat.shader = SKY_SHADER
 	mat.set_shader_parameter("panorama", PANORAMA)
+	mat.set_shader_parameter("back_a", BACK_A)
+	mat.set_shader_parameter("back_b", BACK_B)
 	sky.sky_material = mat
 	sky.radiance_size = Sky.RADIANCE_SIZE_128
 	return sky

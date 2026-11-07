@@ -841,13 +841,15 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	var grip: float = ((vehicle.drift_grip if drifting else vehicle.grip)+track.active.banking_grip(distance))*surface.grip_factor*lerpf(1,0.72,offroad_amount)
 	var demand := absf(curve) * speed * speed
 	var excess := maxf(0,demand-grip)
-	var authority := clampf(1-excess/(grip*2),0.38,1)
+	# Past the tyre limit ordinary steering loses authority quickly; a drift's
+	# higher grip is the way to hold a fast, tight line.
+	var authority := clampf(1-excess/(grip*1.4),0.22,1)
 	if mode == "tour":
 		# Loaded front tyres need braking before a fast bend. Straight slalom
 		# response and low-speed steering retain their full authority.
 		var loaded := smoothstep(0.45,1.2,demand/maxf(grip,1))*smoothstep(35,70,speed)
 		authority *= lerpf(1,0.72,loaded)
-	var outward := signf(curve) * (demand * 0.055 + excess * 1.6)
+	var outward := signf(curve) * (demand * 0.055 + excess * (1.6 if drifting else 2.3))
 	var steering_scale := lerpf(1,0.86,smoothstep(35,85,speed))
 	var lateral: float = steer * steering_scale * (vehicle.drift_steer_speed if drifting else vehicle.steer_speed) * minf(speed/20,1) * authority + outward
 	if air.active: lateral = lane_velocity+steer*delta*3.0

@@ -7,6 +7,13 @@ const GRAVITY := 24.0
 const GROUND_LAYER := 1
 const MAX_CONTACTS := 5
 const MAX_STEP_HEIGHT := 0.22
+# Grip-limited steering: ordinary steering cannot exceed this many times the
+# tyre grip in lateral acceleration, so a fast tight corner needs braking or a
+# drift. Drifting uses the (higher) drift grip with the same factor.
+const LATERAL_GRIP_FACTOR := 1.8
+# Asking for more turn than the grip allows slides the front tyres: they scrub
+# speed (understeer) instead of turning the car.
+const UNDERSTEER_SCRUB := 0.5
 var specification: Dictionary = {}
 var grounded := false
 var surface_normal := Vector3.UP
@@ -131,6 +138,10 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 	var signed_speed := velocity.dot(forward_direction())
 	var desired_rate := -signed_speed*tan(wheel_angle)/2.7
 	var max_rate := (1.20 if drifting else 0.88)*lerpf(0.82,1.12,handling/10.0)*high_speed_scale
+	var tyre_grip: float = float(specification.get("drift_grip" if drifting else "grip",14.5))
+	max_rate = minf(max_rate,LATERAL_GRIP_FACTOR*tyre_grip/maxf(absf(signed_speed),1.0))
+	var understeer := 0.0
+	if not drifting and absf(desired_rate) > max_rate: understeer = clampf((absf(desired_rate)-max_rate)/maxf(max_rate,0.05),0,1)
 	desired_rate = clampf(desired_rate,-max_rate,max_rate)
 	if not grounded: desired_rate *= 0.22
 	yaw_rate = move_toward(yaw_rate,desired_rate,delta*(5.5*high_speed_scale if grounded else 1.2))
@@ -149,7 +160,7 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 		var bank_assist := (Vector3.DOWN*9.81).dot(right)*-signf(yaw_rate)
 		corner_grip = maxf(3.0,grip+bank_assist)
 		var actual_slip := atan2(absf(planar.dot(right)),maxf(absf(planar.dot(forward)),0.01))
-		last_corner_loss = CornerResistance.loss_rate(speed,corner_demand,corner_grip,actual_slip,drifting)
+		last_corner_loss = CornerResistance.loss_rate(speed,corner_demand,corner_grip,actual_slip,drifting)+understeer*tyre_grip*UNDERSTEER_SCRUB
 		planar = planar.move_toward(Vector3.ZERO,last_corner_loss*delta)
 		velocity = planar-surface_normal*2.0
 	else:
