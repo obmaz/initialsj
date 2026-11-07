@@ -75,6 +75,8 @@ var course_title: String:
 var course_label: String:
 	get: return "SUNCOAST / CIRCUIT 02" if selected_course == 1 else "FUJI / CIRCUIT 01"
 var settings_return := "menu"
+# Shown on the loading card of the next screen transition (empty for an ordinary fade).
+var loading_title := ""
 var laps_completed := 0
 var lap_started := 0.0
 var last_lap := 0.0
@@ -282,6 +284,13 @@ func _ready() -> void:
 	elif OS.has_feature("android"):
 		get_tree().quit_on_go_back = false
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
+	if OS.has_feature("web"): _announce_ready()
+
+# The page keeps its loading screen until the first menu frames are drawn.
+func _announce_ready() -> void:
+	for i in range(3): await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	JavaScriptBridge.eval("window.initialsjGameReady && window.initialsjGameReady()")
 
 func _on_web_fullscreen(args: Array) -> void:
 	var active: bool = bool(args[0])
@@ -383,7 +392,9 @@ func initialize_traffic() -> void:
 
 func navigate(action: Callable) -> void:
 	_hide_fullscreen_control()
-	if screen_transition == null: action.call()
+	if screen_transition == null:
+		loading_title = ""
+		action.call()
 	else:
 		if web_back_callback != null: JavaScriptBridge.get_interface("window").initialsjSetBackEnabled(true)
 		await screen_transition.play(action)
@@ -407,6 +418,17 @@ func cycle_graphics() -> void:
 func open_courses() -> void:
 	hud.fingers.clear()
 	state = "courses"
+
+func mode_loading_title(value: String, course: int = 0) -> String:
+	if value != "track": return "COAST TOUR"
+	return "SUNCOAST SPEEDWAY" if course == 1 else "FUJI LAKESIDE"
+
+# Opens a mode through the transition, with a loading card when the course must be rebuilt.
+func navigate_to_mode(value: String, course: int = 0) -> void:
+	var desired := "track" if value == "track" else "tour"
+	if not (mode == desired and (desired == "tour" or selected_course == clampi(course,0,1))):
+		loading_title = mode_loading_title(value,course)
+	navigate(func(): choose_mode(value,course))
 
 func choose_mode(value: String, course: int = 0) -> void:
 	var desired := "track" if value == "track" else "tour"
@@ -604,13 +626,13 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION: return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if state == "menu":
-			if event.keycode in [KEY_ENTER,KEY_1,KEY_T]: navigate(func(): choose_mode("tour"))
+			if event.keycode in [KEY_ENTER,KEY_1,KEY_T]: navigate_to_mode("tour")
 			elif event.keycode in [KEY_2,KEY_C]: navigate(open_courses)
 			elif event.keycode == KEY_TAB: navigate(open_settings)
 			return
 		if state == "courses":
-			if event.keycode in [KEY_1,KEY_ENTER]: navigate(func(): choose_mode("track",0))
-			elif event.keycode == KEY_2: navigate(func(): choose_mode("track",1))
+			if event.keycode in [KEY_1,KEY_ENTER]: navigate_to_mode("track",0)
+			elif event.keycode == KEY_2: navigate_to_mode("track",1)
 			elif event.keycode == KEY_ESCAPE: navigate(open_menu)
 			return
 		if state == "settings":
@@ -643,13 +665,13 @@ func pad_pressed(button: int) -> void:
 	match state:
 		"menu":
 			match button:
-				JOY_BUTTON_A: navigate(func(): choose_mode("tour"))
+				JOY_BUTTON_A: navigate_to_mode("tour")
 				JOY_BUTTON_X: navigate(open_courses)
 				JOY_BUTTON_Y: navigate(open_settings)
 		"courses":
 			match button:
-				JOY_BUTTON_A: navigate(func(): choose_mode("track",0))
-				JOY_BUTTON_X: navigate(func(): choose_mode("track",1))
+				JOY_BUTTON_A: navigate_to_mode("track",0)
+				JOY_BUTTON_X: navigate_to_mode("track",1)
 				JOY_BUTTON_B: navigate(open_menu)
 		"settings":
 			match button:

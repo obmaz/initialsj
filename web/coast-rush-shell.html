@@ -372,6 +372,26 @@ const engine = new Engine(GODOT_CONFIG);
 
 	let initializing = true;
 	let statusMode = '';
+	let engineStarted = false;
+	let gameReady = false;
+	// The engine starts before the first scene is built. Keep the loading screen until the
+	// game reports its first drawn frames, with a fallback so a missing signal never hangs.
+	window.initialsjGameReady = function () {
+		gameReady = true;
+		if (engineStarted) setStatusMode('hidden');
+	};
+	function engineDone() {
+		engineStarted = true;
+		if (gameReady) {
+			setStatusMode('hidden');
+			return;
+		}
+		loadingLabel.textContent = 'BUILDING THE WORLD';
+		loadingPercent.textContent = 'ALMOST THERE';
+		statusProgress.removeAttribute('value');
+		statusProgress.removeAttribute('max');
+		window.setTimeout(function () { setStatusMode('hidden'); }, 20000);
+	}
 
 	// The web runtime can reject its WASM download outside startGame's promise.
 	// Listen only during startup so exhausted retries produce a visible notice.
@@ -476,9 +496,7 @@ const engine = new Engine(GODOT_CONFIG);
 					loadingLabel.textContent = 'LOADING YOUR NEXT DRIVE';
 				}
 			},
-		}).then(() => {
-			setStatusMode('hidden');
-		}, displayFailureNotice);
+		}).then(engineDone, displayFailureNotice);
 	}
 }());
 		</script>
