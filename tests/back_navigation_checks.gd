@@ -45,6 +45,16 @@ func run(tree: SceneTree) -> int:
 		check(race.navigate_back() and race.state == "courses","Rapid Back must be consumed while a screen transition is busy")
 	race.screen_transition = null
 	transition.free()
+	# A transition that finishes after the device rotated must not run unseen
+	# behind the rotate guide; it waits paused until landscape returns.
+	race.web_portrait = true
+	race.restart()
+	check(race.state == "paused" and race.resume_state == "countdown","A race started while portrait must wait paused instead of counting down under the rotate guide")
+	race.resume_tour()
+	check(race.state == "paused","Resume must stay blocked while portrait")
+	race.web_portrait = false
+	race.resume_tour()
+	check(race.state == "countdown","Rotating back to landscape must allow the manual resume")
 	race.queue_free()
 	await tree.process_frame
 	print("Hardware Back / screen history / pause / repeated input checks: ","PASS" if failures == 0 else "FAIL")
