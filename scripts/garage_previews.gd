@@ -4,14 +4,16 @@ const Catalog = preload("res://scripts/vehicle_catalog.gd")
 var textures: Array[Texture2D] = []
 var viewports: Array[SubViewport] = []
 var rendered := []
+# Set before the node enters the tree: weak GPUs (game consoles) get smaller, unsmoothed previews.
+var lite := false
 func _ready() -> void:
 	for i in range(Catalog.SPECS.size()):
 		rendered.append(false)
 		var viewport := SubViewport.new()
-		viewport.size = Vector2i(1100,540)
+		viewport.size = Vector2i(640,314) if lite else Vector2i(880,432)
 		viewport.transparent_bg = true
 		viewport.own_world_3d = true
-		viewport.msaa_3d = Viewport.MSAA_4X
+		viewport.msaa_3d = Viewport.MSAA_DISABLED if lite else Viewport.MSAA_2X
 		viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 		add_child(viewport)
 		viewports.append(viewport)

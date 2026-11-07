@@ -77,6 +77,8 @@ var course_label: String:
 var settings_return := "menu"
 # Shown on the loading card of the next screen transition (empty for an ordinary fade).
 var loading_title := ""
+# Low-memory rendering for consoles and browsers that already lost their GPU context.
+var lite_graphics := false
 var laps_completed := 0
 var lap_started := 0.0
 var last_lap := 0.0
@@ -260,7 +262,10 @@ func _ready() -> void:
 		screen_transition.race = self
 		add_child(screen_transition)
 	if DisplayServer.get_name() != "headless":
+		if OS.has_feature("web"):
+			lite_graphics = bool(JavaScriptBridge.eval("window.initialsjLiteGraphics ? window.initialsjLiteGraphics() : false"))
 		previews = preload("res://scripts/garage_previews.gd").new()
+		previews.lite = lite_graphics
 		add_child(previews)
 		for index in range(Catalog.SPECS.size()): previews.show_vehicle(index)
 		var audio = preload("res://scripts/racing_audio.gd").new()

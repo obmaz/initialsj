@@ -20,6 +20,8 @@ html.installed-game, html.installed-game body { height:100dvh; }
 #fullscreen-control { position:fixed; z-index:3; margin:0; padding:0; border:0; color:transparent; background:transparent; cursor:pointer; font-size:0; }
 #fullscreen-control[hidden] { display:none; }
 #fullscreen-control:focus-visible { outline:3px solid #ffbc59; outline-offset:-4px; }
+#context-notice { position:fixed; inset:0; z-index:9; display:none; align-items:center; justify-content:center; flex-direction:column; gap:18px; padding:24px; box-sizing:border-box; color:#f5f8ff; background:#06111ef2; font:600 18px/1.6 system-ui,sans-serif; text-align:center; }
+#context-notice button { min-height:48px; padding:0 28px; border:0; border-radius:8px; color:#04121f; background:#36dfff; font:800 18px system-ui,sans-serif; cursor:pointer; }
 #fullscreen-notice { position:fixed; z-index:5; left:50%; bottom:max(24px,env(safe-area-inset-bottom)); transform:translateX(-50%); width:max-content; max-width:min(640px,85vw); box-sizing:border-box; padding:12px 18px; border:1px solid #49d9f180; border-radius:6px; color:#e9f6fd; background:#0b2032f2; font:600 15px/1.5 system-ui,sans-serif; text-align:center; box-shadow:0 8px 32px #0005; }
 #status { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: $GODOT_SPLASH_COLOR; z-index: 2; }
 #landscape-guide { display: none; position: fixed; inset: 0; z-index: 4; background: #07111e; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center; padding: 24px; box-sizing: border-box; }
@@ -157,6 +159,7 @@ noscript { position: fixed; z-index: 3; bottom: 20px; left: 20px; right: 20px; p
 		</script>
 
 <button id="fullscreen-control" type="button" aria-label="Enter fullscreen" hidden></button>
+<div id="context-notice" lang="ko" role="alert"><p id="context-message"></p><button id="context-reload" type="button">다시 시작</button></div>
 <div id="fullscreen-notice" lang="ko" role="status" aria-live="polite" hidden></div>
 <dialog lang="ko" id="install-dialog" aria-labelledby="install-title">
   <h2 id="install-title">INITIAL SJ 설치</h2>
@@ -360,6 +363,37 @@ const engine = new Engine(GODOT_CONFIG);
       window.history.back();
     }
   });
+}());
+
+(function () {
+	// Consoles and low-memory browsers can drop the GPU context while the game runs. The engine
+	// cannot recover from that, so restart the page once or twice in a lighter rendering mode.
+	const LITE = 'initialsjLite';
+	const LOSSES = 'initialsjContextLosses';
+	function read(key) { try { return window.sessionStorage.getItem(key); } catch (err) { return null; } }
+	function write(key, value) { try { window.sessionStorage.setItem(key, value); } catch (err) { /* private mode */ } }
+	window.initialsjLiteGraphics = function () {
+		return /Xbox/i.test(navigator.userAgent) || read(LITE) === '1' || /[?&]lite=1/.test(window.location.search);
+	};
+	// A session that has been stable for a minute is not stuck in a restart loop.
+	window.setTimeout(function () { write(LOSSES, '0'); }, 60000);
+	const canvas = document.getElementById('canvas');
+	const notice = document.getElementById('context-notice');
+	const message = document.getElementById('context-message');
+	document.getElementById('context-reload').addEventListener('click', function () { window.location.reload(); });
+	canvas.addEventListener('webglcontextlost', function (event) {
+		event.preventDefault();
+		const losses = (parseInt(read(LOSSES), 10) || 0) + 1;
+		write(LOSSES, String(losses));
+		write(LITE, '1');
+		notice.style.display = 'flex';
+		if (losses <= 2) {
+			message.textContent = '그래픽 메모리가 부족해 화면이 멈췄습니다. 절약 모드로 자동으로 다시 시작합니다...';
+			window.setTimeout(function () { window.location.reload(); }, 1800);
+		} else {
+			message.textContent = '그래픽 메모리 부족이 계속됩니다. 다른 앱이나 탭을 닫은 뒤 다시 시작해 주세요.';
+		}
+	});
 }());
 
 (function () {

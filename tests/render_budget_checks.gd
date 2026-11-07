@@ -31,6 +31,9 @@ func run(tree: SceneTree) -> int:
 	budget.last_tick = Time.get_ticks_usec()-2000000
 	budget.tick(race)
 	check(budget.frames == 0 and budget.seconds == 0,"Pauses and background stalls must not degrade automatic quality")
+	race.lite_graphics = true
+	budget.set_mode(0,race)
+	check(budget.level == 2,"Low-memory consoles must start on the lightest rendering level")
 	race.queue_free()
 	await tree.process_frame
 	print("Adaptive render quality / manual override / paused timing: ","PASS" if failures == 0 else "FAIL")
