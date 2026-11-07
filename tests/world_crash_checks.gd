@@ -19,7 +19,7 @@ func rail_impact(tree: SceneTree, race: Node3D, speed: float, glancing: bool = f
 	await quiet(tree,race)
 	var session: Node3D = race.world_race
 	var body: CharacterBody3D = session.player_body
-	var d: float = session.safe_distance if preserve_progress else race.track.length*0.10
+	var d: float = session.safe_distance if preserve_progress else race.track.length*0.03
 	var right: Vector3 = (race.track.point(d,1)-race.track.point(d,-1)).normalized()
 	var up: Vector3 = session.road_up(d)
 	var forward: Vector3 = (race.track.point(d+2)-race.track.point(d-2)).normalized()

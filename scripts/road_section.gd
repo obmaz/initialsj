@@ -108,18 +108,32 @@ func bank_at(distance: float) -> float:
 func banking_grip(distance: float) -> float:
 	return 9.81*absf(tan(bank_at(distance)))
 
+# Authored (t, half width) keys. Each pair of keys is joined with a smoothstep, so the road
+# swells into wide passing zones and pinches into narrow technical ones without kinks.
+const FUJI_WIDTH := [Vector2(0,10.8),Vector2(0.08,12.0),Vector2(0.16,9.0),Vector2(0.22,7.0),Vector2(0.31,7.0),Vector2(0.37,10.8),Vector2(0.42,8.0),Vector2(0.45,9.4),Vector2(0.51,9.4),Vector2(0.56,11.6),Vector2(0.62,7.4),Vector2(0.665,9.6),Vector2(0.79,9.6),Vector2(0.85,7.2),Vector2(0.92,11.6),Vector2(1,10.8)]
+# The pit lane and its apron sit at the start of the oval, so the road keeps its width there.
+const SUNCOAST_WIDTH := [Vector2(0,14.5),Vector2(0.13,14.5),Vector2(0.22,12.4),Vector2(0.34,16.4),Vector2(0.46,13.0),Vector2(0.55,12.2),Vector2(0.68,16.6),Vector2(0.75,14.5),Vector2(0.84,14.5),Vector2(0.90,15.8),Vector2(1,14.5)]
+
+static func width_profile(keys: Array, t: float) -> float:
+	t = clampf(t,0,1)
+	for i in range(keys.size()-1):
+		var a: Vector2 = keys[i]
+		var b: Vector2 = keys[i+1]
+		if t <= b.x: return lerpf(a.y,b.y,smoothstep(a.x,b.x,t))
+	return (keys[keys.size()-1] as Vector2).y
+
 func half_width(distance: float) -> float:
-	if closed_loop and course_id == 1: return 14.5
-	if closed_loop:
-		var t := fposmod(distance,length)/length
-		var straight := 1-smoothstep(0.14,0.21,t)
-		var hairpin := smoothstep(0.27,0.32,t)*(1-smoothstep(0.39,0.44,t))
-		return 8.7+straight*1.1-hairpin*1.1+0.3*sin(TAU*t)
+	if closed_loop and course_id == 1: return width_profile(SUNCOAST_WIDTH,fposmod(distance,length)/length)
+	if closed_loop: return width_profile(FUJI_WIDTH,fposmod(distance,length)/length)
 	var t := clampf(distance/length,0,1)
 	var blend := smoothstep(180,360,distance)*(1-smoothstep(length-360,length-180,distance))
-	var width := 9.8-route_node*0.50+1.5*sin(TAU*(1.5+route_node*0.12)*t+stage*0.7)
-	width -= 1.1*smoothstep(0.36,0.43,t)*(1-smoothstep(0.62,0.69,t))
-	return lerpf(9.0,clampf(width,6.2,11.5),blend)
+	# Saturated sine: long wide and narrow stretches joined by quick but smooth transitions.
+	var wave := tanh(1.7*sin(TAU*(2.4+route_node*0.2)*t+stage*1.3))
+	var tunnel := Library.tunnel_span(stage,route_node)
+	if tunnel.y > tunnel.x:
+		wave *= 1-smoothstep(tunnel.x-120,tunnel.x-30,distance)*(1-smoothstep(tunnel.y+30,tunnel.y+120,distance))*0.7
+	var width := 9.6-route_node*0.4+3.0*wave
+	return lerpf(9.0,clampf(width,6.2,12.6),blend)
 
 func rail_setback(distance: float, side: float) -> float:
 	if closed_loop and course_id == 1: return 1.5
