@@ -28,16 +28,19 @@ const output=path.join(outputDir,'initialsj-file-audio-web.webm');
   await p.keyboard.up('w');
   const active=await p.evaluate(()=>({target:{...initialsjFileAudio.target},engineGain:initialsjFileAudio.voices.engine.gain.gain.value,minimumRate:Math.min(...audioRates),maximumRate:Math.max(...audioRates),seconds:raceAudio.currentTime-recordingStart}));
   if(!active.target.active||active.engineGain<0.01||active.maximumRate-active.minimumRate<0.03)throw Error('Actual driving audio and changing engine pitch are required');
+  // The selected vehicle's own engine, boost and drift loops must all be running (docs/VEHICLE_AUDIO.md).
+  const voiceNames=await p.evaluate(()=>Object.keys(initialsjFileAudio.voices).sort());
+  if(voiceNames.join()!=='boost,drift,engine')throw Error('Expected engine, boost and drift voices for the selected vehicle, got '+voiceNames);
   await p.keyboard.press('v');
   await p.waitForFunction(()=>!window.initialsjFileAudio.target.active);
   await p.waitForTimeout(500);
   const muted=await p.evaluate(()=>{clearInterval(rateTimer);return Object.values(initialsjFileAudio.voices).every(v=>v.gain.gain.value<0.001)});
-  if(!muted)throw Error('Muting must silence both imported loop gains');
+  if(!muted)throw Error('Muting must silence every imported loop gain');
   const base64=await p.evaluate(()=>new Promise(resolve=>{recorder.onstop=()=>{const r=new FileReader;r.onload=()=>resolve(r.result.split(',')[1]);r.readAsDataURL(new Blob(chunks,{type:'audio/webm'}))};recorder.stop()}));
   fs.writeFileSync(output,Buffer.from(base64,'base64'));
   await p.screenshot({path:path.join(outputDir,'file-audio-race.png')});
   console.log(JSON.stringify({url:p.url(),errors,active,muted,audioBytes:Buffer.from(base64,'base64').length,audioState:await p.evaluate(()=>raceAudio.state),sources:await p.evaluate(()=>raceSources.map(s=>({loop:s.loop,duration:s.buffer?.duration,rate:s.playbackRate.value})))}));
-  const loopSources=await p.evaluate(()=>raceSources.filter(s=>s.buffer?.duration>2).map(s=>s.loop));
-  if(errors.length||loopSources.length!==2||loopSources.some(loop=>!loop))process.exitCode=1;
+  const loopSources=await p.evaluate(()=>raceSources.filter(s=>s.buffer?.duration>1.5).map(s=>s.loop));
+  if(errors.length||loopSources.length!==3||loopSources.some(loop=>!loop))process.exitCode=1;
  }finally{await b.close()}
 })().catch(e=>{console.error(e);process.exit(1)});

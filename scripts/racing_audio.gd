@@ -1,10 +1,19 @@
 extends AudioStreamPlayer
-# OGG loops use native Web Audio looping in the browser; transient WAV cues use
-# Godot sample playback. Native builds use the streamed audio backend.
+# Plays the selected vehicle's own engine, boost and drift sounds (VehicleAudio holds
+# the mapping; docs/VEHICLE_AUDIO.md the rules). Loops use native Web Audio looping
+# in the browser; transient WAV cues use Godot sample playback. Native builds stream.
+# This node itself is the engine loop player.
+const VehicleAudio = preload("res://scripts/vehicle_audio.gd")
 var race: Node3D
 var gain := 0.0
 var web_audio
-var tires := AudioStreamPlayer.new()
+var vehicle := -1
+var boost_level := 0.0
+var drift_level := 0.0
+var last_nitro := false
+var drift_sound := AudioStreamPlayer.new()
+var boost_sound := AudioStreamPlayer.new()
+var start_sound := AudioStreamPlayer.new()
 var cue := AudioStreamPlayer.new()
 var impact_sound := AudioStreamPlayer.new()
 var last_pads := 0
@@ -25,13 +34,12 @@ const LAP_TONE = preload("res://assets/audio/lap.wav")
 func _ready() -> void:
 	var mode := AudioServer.PLAYBACK_TYPE_SAMPLE if OS.has_feature("web") else AudioServer.PLAYBACK_TYPE_STREAM
 	playback_type = mode
-	stream = preload("res://assets/audio/engine-loop.ogg")
 	volume_db = -80
-	for voice in [tires, cue, impact_sound]:
+	for voice in [drift_sound, boost_sound, start_sound, cue, impact_sound]:
 		voice.playback_type = mode
 		add_child(voice)
-	tires.volume_db = -80
-	tires.stream = preload("res://assets/audio/tire-squeal.ogg")
+	drift_sound.volume_db = -80
+	boost_sound.volume_db = -80
 	impact_sound.stream = preload("res://assets/audio/impact.wav")
 	impact_sound.volume_db = -15
 	cue.volume_db = -18
@@ -40,8 +48,23 @@ func _ready() -> void:
 		var recordings := FileAccess.get_file_as_string("res://assets/audio/web-loops.json")
 		JavaScriptBridge.eval(source + "\nwindow.initialsjFileAudio = new window.InitialSJFileAudio(" + recordings + ");")
 		web_audio = JavaScriptBridge.get_interface("window").initialsjFileAudio
+	apply_vehicle()
+
+# Swap all four sounds to the selected vehicle. The garage runs this while silent.
+func apply_vehicle() -> void:
+	vehicle = race.selected_vehicle
+	var p := VehicleAudio.profile(vehicle)
+	stream = VehicleAudio.load_loop(p.engine)
+	boost_sound.stream = VehicleAudio.load_loop(p.boost)
+	drift_sound.stream = VehicleAudio.load_loop(p.drift)
+	start_sound.stream = VehicleAudio.load_one_shot(p.boost_start)
+	start_sound.volume_db = linear_to_db(VehicleAudio.start_level(vehicle))
+	boost_level = 0.0
+	drift_level = 0.0
+	if web_audio != null: web_audio.setVehicle(VehicleAudio.web_id(vehicle))
 
 func _process(delta: float) -> void:
+	if vehicle != race.selected_vehicle: apply_vehicle()
 	var active: bool = race.state in ["countdown", "racing"] and race.sound_enabled
 	var number: int = ceili(race.countdown) if race.state == "countdown" else (ceili(race.time_left) if race.state == "racing" and race.mode == "tour" and race.time_left <= 10 else 0)
 	if active:
@@ -69,9 +92,13 @@ func _process(delta: float) -> void:
 			impact_sound.pitch_scale = 0.72
 			impact_sound.volume_db = -21 if race.air.trick else -25
 			impact_sound.play()
+		# Each nitro shot, cell or held gauge starts with the vehicle's own ignition hit.
+		if race.state == "racing" and race.nitro_active and not last_nitro: start_sound.play()
 	else:
 		cue.stop()
 		impact_sound.stop()
+		start_sound.stop()
+	last_nitro = race.nitro_active
 	last_pads = race.surface.boosts_hit
 	last_count = number
 	last_launch = race.launch_flash
@@ -82,29 +109,38 @@ func _process(delta: float) -> void:
 	last_checkpoint = race.checkpoint_flash
 	last_ramp = race.air.launches
 	last_landing = race.air.landing_flash
-	var gear: int = maxi(1,race.gear_number())
-	var rpm: float = clampf((race.engine_rpm()-900)/6400,0,1)
-	var target_pitch := 0.82+rpm*0.38+(gear-1)*0.075
+	var mixed := VehicleAudio.mix(race)
 	if OS.has_feature("web"):
 		if web_audio != null:
-			web_audio.update(active, target_pitch, (0.075 if race.state == "countdown" else (0.21 if race.boosting else 0.18)), 0.038 if race.drifting else (0.018 if race.surface.wet_time > 0 else 0.0))
+			web_audio.update(active, mixed.engine_pitch, mixed.engine, mixed.boost, mixed.boost_pitch, mixed.drift, mixed.drift_pitch)
 		return
-	gain = move_toward(gain, (0.30 if race.state == "countdown" else 0.70) if active else 0.0, delta * 2)
+	gain = move_toward(gain, 1.0 if active else 0.0, delta * 2)
 	if gain <= 0 and not active:
 		stop()
-		tires.stop()
+		drift_sound.stop()
+		boost_sound.stop()
 		return
-	pitch_scale = lerpf(pitch_scale, target_pitch, 1 - exp(-delta * 9))
-	volume_db = -12 + (1.5 if race.boosting else 0.0) + linear_to_db(maxf(gain, 0.0001))
-	tires.volume_db = -20 + linear_to_db(maxf(gain * (0.55 if race.drifting else (0.25 if race.surface.wet_time > 0 else 0.0)), 0.0001))
+	# Short smoothing, like the Web Audio gain ramps, so a shot or a drift never clicks in.
+	var follow := 1 - exp(-delta * 28)
+	boost_level = lerpf(boost_level, float(mixed.boost) * gain, follow)
+	drift_level = lerpf(drift_level, float(mixed.drift) * gain, follow)
+	pitch_scale = lerpf(pitch_scale, mixed.engine_pitch, 1 - exp(-delta * 9))
+	volume_db = linear_to_db(maxf(float(mixed.engine) * gain, 0.0001))
+	boost_sound.pitch_scale = mixed.boost_pitch
+	boost_sound.volume_db = linear_to_db(maxf(boost_level, 0.0001))
+	drift_sound.pitch_scale = mixed.drift_pitch
+	drift_sound.volume_db = linear_to_db(maxf(drift_level, 0.0001))
 	if not playing:
 		play()
-		tires.play()
+		drift_sound.play()
+		boost_sound.play()
 
 func _exit_tree() -> void:
 	if web_audio != null:
 		web_audio.close()
 	stop()
-	tires.stop()
+	drift_sound.stop()
+	boost_sound.stop()
+	start_sound.stop()
 	cue.stop()
 	impact_sound.stop()
