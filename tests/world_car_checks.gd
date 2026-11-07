@@ -114,7 +114,7 @@ func run(tree: SceneTree) -> int:
 	check(glance.get("barrier",false) and glance.get("severe",false) and glance.get("closing_speed",100) < 12,"A fast glancing guardrail scrape must still throw the car (launch speed, not angle, decides)")
 	var slow_wall := collision_trial(car,Vector3(0,0,-65),Vector3.FORWARD,35)
 	check(slow_wall.get("barrier",false) and not slow_wall.get("severe",true),"A lower-speed head-on wall touch must rebound without launching the crash animation")
-	check(slow_wall.get("rebound_mps",0) > 5 and slow_wall.get("rebound_mps",100) < head_on.get("rebound_mps",0)*0.7,"The rebound must scale with the speed of the hit")
+	check(slow_wall.get("rebound_mps",100) < 4.0 and slow_wall.get("rebound_mps",100) < head_on.get("rebound_mps",0)*0.3,"A hit below the launch speed must glance off instead of bouncing back")
 	var ground_edge := collision_trial(car,Vector3(-180,0,0),Vector3.FORWARD,80)
 	check(ground_edge.get("layer",0) == 1 and not ground_edge.get("barrier",true) and not ground_edge.get("severe",true),"Even a fast ground-layer edge contact must never be classified as a guardrail crash")
 	var opponent := Car.new()

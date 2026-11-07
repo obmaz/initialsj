@@ -22,9 +22,11 @@ const BARRIER_REBOUND_MAX := 30.0
 const BARRIER_SPIN := 0.10
 const BARRIER_SPIN_MAX := 3.2
 const BARRIER_HOP_FROM := 14.0
-const REALIGN_TIME := 0.7
-const REALIGN_RATE := 2.6
-const REALIGN_MAX_ERROR := 0.9
+const REALIGN_TIME := 0.9
+const REALIGN_RATE := 7.0
+const REALIGN_MAX_ERROR := 1.3
+const GLIDE_REBOUND := 0.10
+const GLIDE_REBOUND_MAX := 3.0
 var specification: Dictionary = {}
 var grounded := false
 var surface_normal := Vector3.UP
@@ -86,7 +88,7 @@ func realigned(forward: Vector3, delta: float) -> Vector3:
 	if road.length_squared() < 0.5 or forward.dot(road) < 0: return forward
 	var error := forward.signed_angle_to(road,surface_normal)
 	if absf(error) > REALIGN_MAX_ERROR: error = signf(error)*REALIGN_MAX_ERROR
-	var step := error*clampf(delta*REALIGN_RATE*(realign_time/REALIGN_TIME+0.3),0,0.5)
+	var step := error*clampf(delta*REALIGN_RATE*(realign_time/REALIGN_TIME+0.3),0,0.6)
 	return forward.rotated(surface_normal,step).normalized()
 
 func forward_direction() -> Vector3:
@@ -223,11 +225,16 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 				var tangent := velocity.slide(normal)
 				if barrier:
 					var hardness := clampf(closing/45.0,0,1)
-					velocity = tangent*lerpf(0.92,0.62,hardness)+normal*clampf(closing*BARRIER_REBOUND,2.0,BARRIER_REBOUND_MAX)
-					# A glancing hit swings the nose away from the wall; a square one barely spins.
-					yaw_rate += -normal.dot(global_basis.x)*clampf(closing*BARRIER_SPIN,0,BARRIER_SPIN_MAX)
-					realign_time = REALIGN_TIME
-					if closing > BARRIER_HOP_FROM: velocity.y += clampf((closing-BARRIER_HOP_FROM)*0.09,0,3.0)
+					if severe:
+						# Above the launch speed the car is thrown off the rail (see world_race.impact).
+						velocity = tangent*lerpf(0.92,0.62,hardness)+normal*clampf(closing*BARRIER_REBOUND,2.0,BARRIER_REBOUND_MAX)
+						yaw_rate += -normal.dot(global_basis.x)*clampf(closing*BARRIER_SPIN,0,BARRIER_SPIN_MAX)
+						if closing > BARRIER_HOP_FROM: velocity.y += clampf((closing-BARRIER_HOP_FROM)*0.09,0,3.0)
+					else:
+						# Below it the car does not bounce: it keeps most of its speed along the rail and its
+						# nose is turned parallel to the road while it scrapes past.
+						velocity = tangent*lerpf(0.97,0.84,hardness)+normal*clampf(closing*GLIDE_REBOUND,0.4,GLIDE_REBOUND_MAX)
+						realign_time = REALIGN_TIME
 				else:
 					velocity = tangent*0.86+normal*minf(closing*0.32,14.0)
 			# Recovery contacts can repeat on adjacent rail triangles after the
