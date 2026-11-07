@@ -200,9 +200,7 @@ func handle_pointer(event: InputEvent) -> void:
 		elif SETTINGS_GRAPHICS.has_point(p): race.cycle_graphics()
 		elif SETTINGS_FULLSCREEN.has_point(p):
 			if race.has_method("toggle_fullscreen"): race.toggle_fullscreen()
-		elif SETTINGS_INSTALL.has_point(p):
-			if OS.has_feature("web"): JavaScriptBridge.eval("window.initialsjInstallGame()")
-			else: install_note = "OPEN THE WEB VERSION TO INSTALL"
+		elif SETTINGS_INSTALL.has_point(p): install_game()
 		elif SETTINGS_CLOSE.has_point(p): race.navigate(race.close_settings)
 		return
 	if race.state == "ready":
@@ -233,6 +231,63 @@ func handle_pointer(event: InputEvent) -> void:
 	if hit_button("pause",p) and race.state in ["racing","countdown"]:
 		race.pause_tour()
 	else: move_pointer(index,event.position)
+
+func install_game() -> void:
+	if OS.has_feature("web"): JavaScriptBridge.eval("window.initialsjInstallGame()")
+	else: install_note = "OPEN THE WEB VERSION TO INSTALL"
+
+func pad_on() -> bool:
+	return race != null and race.gamepad_active
+
+func badge_width(text: String) -> float:
+	return maxf(34.0,FONT.get_string_size(text,HORIZONTAL_ALIGNMENT_LEFT,-1,20).x+20.0)
+
+# The pad button that does an action, drawn as a small badge centred on `at`.
+func pad_badge(at: Vector2, action: String) -> void:
+	if not pad_on(): return
+	var text: String = race.pad.label(action)
+	if text.is_empty(): return
+	var rect := Rect2(at-Vector2(badge_width(text)/2,14),Vector2(badge_width(text),28))
+	draw_rect(rect,Color("08141ff2"))
+	draw_rect(rect,GOLD,false,2.0)
+	centered(at+Vector2(0,7),text,18,GOLD)
+
+# A centred row of "badge + word" prompts under the current screen.
+func pad_hints(items: Array, y: float, center_x: float = 640.0) -> void:
+	var total := -30.0
+	for item in items:
+		total += badge_width(race.pad.label(item[0]))+8+FONT.get_string_size(item[1],HORIZONTAL_ALIGNMENT_LEFT,-1,20).x+30
+	var x := center_x-total/2
+	for item in items:
+		var badge: String = race.pad.label(item[0])
+		var width := badge_width(badge)
+		var rect := Rect2(x,y-14,width,28)
+		draw_rect(rect,Color("08141ff2"))
+		draw_rect(rect,GOLD,false,2.0)
+		centered(Vector2(x+width/2,y+7),badge,18,GOLD)
+		text_at(Vector2(x+width+8,y+7),item[1],20,WHITE)
+		x += width+8+FONT.get_string_size(item[1],HORIZONTAL_ALIGNMENT_LEFT,-1,20).x+30
+
+func draw_pad_hints() -> void:
+	if not pad_on(): return
+	match race.state:
+		"menu": pad_hints([["confirm","TOUR"],["alt","TRACK"],["alt2","SETTINGS"]],702)
+		"courses": pad_hints([["confirm","FUJI LAKESIDE"],["alt","SUNCOAST"],["back","BACK"]],702)
+		"settings": pad_hints([["dpad","MOVE"],["confirm","CHANGE"],["back","CLOSE"]],704)
+		"ready": pad_hints([["shoulders","CHOOSE CAR"],["confirm","DRIVE"],["back","BACK"]],698,560)
+		"paused": pad_hints([["confirm","RESUME"],["alt","MAIN MENU"],["restart","RESTART"]],704)
+		"finished","failed": pad_hints([["confirm","CHOOSE CAR"],["alt","RETRY"]],704)
+
+func draw_pad_badges() -> void:
+	if not pad_on() or race.state not in ["racing","countdown","paused"]: return
+	for action in ["gas","brake","drift","nitro"]:
+		var rect: Rect2 = buttons[action]
+		pad_badge(rect.get_center()+Vector2(-1,-1)*rect.size.x*0.36,action)
+	if race.vehicle.mode == "hybrid":
+		var cell: Rect2 = buttons.cell
+		pad_badge(cell.get_center()+Vector2(-1,-1)*cell.size.x*0.36,"cell")
+	pad_badge(Vector2(147,690),"steer")
+	pad_badge(PAUSE_BUTTON.get_center()+Vector2(0,48),"pause")
 
 func move_pointer(index: int, pos: Vector2) -> void:
 	if recovery_touches.has(index) or race.state not in ["racing","countdown"]: return
@@ -348,13 +403,16 @@ func _draw() -> void:
 	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
 	if race.state == "courses":
 		draw_courses()
+		draw_pad_hints()
 		return
 	if race.state in ["menu","settings"]:
 		draw_home()
 		if race.state == "settings": draw_settings()
+		draw_pad_hints()
 		return
 	if race.state == "ready":
 		draw_garage()
+		draw_pad_hints()
 		return
 	draw_boost_feedback()
 	draw_competitor_markers()
@@ -370,6 +428,8 @@ func _draw() -> void:
 	draw_route_choice()
 	draw_recovery()
 	draw_menu()
+	draw_pad_hints()
+	draw_pad_badges()
 
 func draw_position(_rows: Array[Dictionary]) -> void:
 	draw_colored_polygon(PackedVector2Array([Vector2(25,14),Vector2(226,14),Vector2(200,78),Vector2(8,78)]),Color("17171cdd"))
@@ -685,6 +745,9 @@ func draw_settings() -> void:
 	if not install_note.is_empty(): centered(Vector2(640,568),install_note,17,Color("b2cbd8"))
 	slant(SETTINGS_CLOSE,CYAN,10)
 	centered(Vector2(640,SETTINGS_CLOSE.position.y+54),"DONE",34,Color("0a1b2b"))
+	if pad_on():
+		var rows: Array[Rect2] = [SETTINGS_SOUND,SETTINGS_MOTION,SETTINGS_GRAPHICS,SETTINGS_FULLSCREEN,SETTINGS_INSTALL,SETTINGS_CLOSE]
+		draw_rect(rows[clampi(race.settings_focus,0,rows.size()-1)].grow(4),GOLD,false,4.0)
 	if race.has_method("sync_fullscreen_button"): race.sync_fullscreen_button(SETTINGS_FULLSCREEN)
 
 func draw_garage() -> void:
@@ -885,6 +948,7 @@ func draw_recovery() -> void:
 	var tip := center+Vector2.from_angle(deg_to_rad(260))*11
 	draw_colored_polygon(PackedVector2Array([tip+Vector2(5,-1),tip+Vector2(-3,-4),tip+Vector2(-2,4)]),GOLD)
 	centered(RECOVERY_BUTTON.position+Vector2(155,42),"RESET CAR",27,GOLD)
+	pad_badge(RECOVERY_BUTTON.position+Vector2(-2,2),"reset")
 
 # Single-line route chips stay above the road view; their larger invisible
 # touch areas are separate from the visuals so a phone remains easy to use.
@@ -908,6 +972,7 @@ func draw_route_choice() -> void:
 		draw_polyline(outline+PackedVector2Array([outline[0]]),Color(accent,1 if selected else 0.45),2 if selected else 1,true)
 		text_at(rect.position+Vector2(13,43),"<" if side == 0 else ">",32,accent)
 		text_at(rect.position+Vector2(44,41),names[side],route_title_size(names[side]),WHITE)
+		pad_badge(rect.position+Vector2(8,-2),"route_left" if side == 0 else "route_right")
 		if selected:
 			draw_polyline(PackedVector2Array([rect.position+Vector2(272,31),rect.position+Vector2(277,36),rect.position+Vector2(286,24)]),accent,2.5,true)
 		draw_rect(Rect2(rect.position+Vector2(8,rect.size.y-3),Vector2((rect.size.x-16)*progress,3)),Color(accent,0.75))

@@ -42,6 +42,11 @@ def check_sources(reached):
             if not path.is_file():
                 continue
             name = path.relative_to(ROOT).as_posix()
+            if path.suffix == ".mtl":
+                # An OBJ model's material file is read by the importer, not by res:// references.
+                if not path.with_suffix(".obj").is_file():
+                    errors.append(f"Orphan material file: {name}")
+                continue
             if path.suffix in (".uid", ".import"):
                 if not Path(str(path).rsplit(".", 1)[0]).is_file():
                     errors.append(f"Orphan sidecar: {name}")
