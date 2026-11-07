@@ -161,6 +161,8 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		# instead of accelerating the chassis head-first into the same barrier.
 		target = move_toward(signed_speed,0,race.vehicle.brake*0.8*delta)
 	var grip: float = race.surface.grip_factor*lerpf(1,0.72,race.offroad_amount)
+	var ahead: float = race.distance+6.0
+	player_body.road_heading = (race.track.point(ahead,race.lane)-race.track.point(race.distance,race.lane)).normalized()
 	var contacts: Array = player_body.advance(delta,race.steer,target,race.drifting,grip)
 	var data: Dictionary = trackers[0].update(player_body.feet_position(),delta)
 	race.distance = float(data.distance)
