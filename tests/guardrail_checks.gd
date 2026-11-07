@@ -73,6 +73,22 @@ func run(tree: SceneTree) -> int:
 	await tree.physics_frame
 	for frame in range(120): world.update_outside(1.0/60)
 	check(r.return_flash == 0,"A car on the road must never be returned")
+	# Launch speed gates the throw; faster hits fly higher, longer and tumble more.
+	var Crash = preload("res://scripts/crash_state.gd")
+	check(not Crash.launches(Crash.LAUNCH_SPEED-1) and Crash.launches(Crash.LAUNCH_SPEED),"The launch speed must be a hard threshold")
+	var tiers := []
+	for incoming in [46.0,60.0,75.0,95.0]:
+		var c = Crash.new()
+		c.start(incoming,Vector2(1,0),0.0,2.0*Crash.launch_up(incoming)/24.0)
+		tiers.append({"up":Crash.launch_up(incoming),"duration":c.duration,"rolls":c.rolls,"flips":c.flips})
+	for i in range(1,tiers.size()):
+		check(tiers[i].up > tiers[i-1].up and tiers[i].duration >= tiers[i-1].duration and tiers[i].rolls >= tiers[i-1].rolls and tiers[i].flips >= tiers[i-1].flips,"A faster hit must fly higher, hang longer and tumble at least as much")
+	check(tiers[0].flips == 0 and tiers[3].flips >= 2 and tiers[3].rolls >= 3,"The fastest hits must flip over, the slowest launches only roll")
+	var tumble = Crash.new()
+	tumble.start(95.0,Vector2(1,0),0.0,1.6)
+	tumble.advance(tumble.duration*0.5)
+	check(absf(tumble.visual_pitch) > PI and absf(tumble.visual_roll) > PI*2,"A top-speed tumble must be visibly flipping mid-air")
+	check(tumble.advance(tumble.duration) and tumble.visual_roll == 0 and tumble.visual_pitch == 0,"The tumble must finish upright")
 	# After a rail hit the nose eases toward the road, but only part of the way.
 	var car = world.player_body
 	car.road_heading = Vector3.FORWARD

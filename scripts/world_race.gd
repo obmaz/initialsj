@@ -278,13 +278,18 @@ func impact(hit: Dictionary) -> void:
 	var barrier: bool = hit.collider is StaticBody3D and hit.collider.get_collision_layer_value(2)
 	var incoming: float = hit.get("incoming_speed",race.speed)
 	var closing: float = hit.get("closing_speed",hit.speed)
-	if barrier and incoming >= 55 and closing >= 28 and absf(normal.y) < 0.65 and not race.crash.active:
-		race.crash.start(incoming,local,player_body.feet_position().y)
+	if barrier and hit.get("severe",false) and not race.crash.active:
+		var severity: float = race.crash.severity(incoming)
+		var up: float = race.crash.launch_up(incoming)
+		race.crash.start(incoming,local,player_body.feet_position().y,2.0*up/player_body.GRAVITY)
+		player_body.realign_time = 0.0
 		crash_flight = true
 		var outward := normal.slide(Vector3.UP).normalized()
 		var tangent := player_body.velocity.slide(normal)
 		tangent.y = 0
-		player_body.velocity = tangent*0.72+outward*clampf(closing*0.34,9,21)+Vector3.UP*clampf(10+closing*0.055,11.5,15.5)
+		# A glancing hit still throws the car; the push away from the rail grows with speed.
+		var away := lerpf(5.0,17.0,severity)+clampf(closing*0.18,0,6)
+		player_body.velocity = tangent*lerpf(0.82,0.66,severity)+outward*away+Vector3.UP*up
 		player_body.grounded = false
 		race.air.active = true
 		race.air.trick = false
