@@ -1,6 +1,13 @@
 shader_type sky;
 
-uniform sampler2D panorama : source_color, filter_linear_mipmap, repeat_disable;
+// Three panels around the full horizon, each drawn at the same pixel scale:
+// the generated panorama covers the 120 degrees around Mount Fuji; two baked
+// rear panels (tools/bake_fuji_backdrop.py) cover the remaining 240 degrees.
+// The textures are only ever magnified on screen, so plain linear filtering is
+// used and no mip level can mark the joins between panels.
+uniform sampler2D panorama : source_color, filter_linear, repeat_disable;
+uniform sampler2D back_a : source_color, filter_linear, repeat_disable;
+uniform sampler2D back_b : source_color, filter_linear, repeat_disable;
 uniform float center_yaw = 2.007129;
 uniform float horizontal_span = 2.094395;
 uniform float vertical_span = 1.047198;
@@ -9,16 +16,15 @@ uniform float horizon_uv = 0.51;
 void sky() {
 	float azimuth = atan(EYEDIR.x, EYEDIR.z);
 	float relative = atan(sin(azimuth - center_yaw), cos(azimuth - center_yaw));
-	float u = 0.5 + relative / horizontal_span;
-	float v = clamp(horizon_uv - asin(clamp(EYEDIR.y, -1.0, 1.0)) / vertical_span, 0.005, 0.995);
-	// Peripheral foothills fill the rest of the horizon without repeating Mount Fuji.
-	float back_progress = clamp((abs(relative) - horizontal_span * 0.5) / (3.141593 - horizontal_span * 0.5), 0.0, 1.0);
-	vec3 left_hills = texture(panorama, vec2(mix(0.14, 0.28, back_progress), v)).rgb;
-	vec3 right_hills = texture(panorama, vec2(mix(0.98, 0.72, back_progress), v)).rgb;
-	vec3 peripheral = relative < 0.0 ? left_hills : right_hills;
-	float rear_blend = smoothstep(2.94, 3.141593, abs(relative));
-	peripheral = mix(peripheral, (left_hills + right_hills) * 0.5, rear_blend);
-	vec3 front = texture(panorama, vec2(clamp(u, 0.005, 0.995), v)).rgb;
-	float front_weight = 1.0 - smoothstep(0.44, 0.50, abs(u - 0.5));
-	COLOR = mix(peripheral, front, front_weight);
+	float v = clamp(horizon_uv - asin(clamp(EYEDIR.y, -1.0, 1.0)) / vertical_span, 0.0, 1.0);
+	float half_span = horizontal_span * 0.5;
+	if (abs(relative) <= half_span) {
+		COLOR = texture(panorama, vec2(0.5 + relative / horizontal_span, v)).rgb;
+	} else {
+		// The rear strip runs left to right from the panorama's right edge,
+		// round the back, to its left edge.
+		float around = relative > 0.0 ? relative - half_span : relative + 6.283185 - half_span;
+		float b = around / (6.283185 - horizontal_span);
+		COLOR = b < 0.5 ? texture(back_a, vec2(b * 2.0, v)).rgb : texture(back_b, vec2(b * 2.0 - 1.0, v)).rgb;
+	}
 }

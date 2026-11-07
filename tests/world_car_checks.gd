@@ -39,12 +39,12 @@ func collision_trial(car: CharacterBody3D, feet: Vector3, forward: Vector3, spee
 		for hit in contacts:
 			return {"layer":int(hit.collider.collision_layer),"barrier":hit.barrier,"severe":hit.severe,"severity":hit.severity,"closing_speed":hit.closing_speed,"incoming_speed":hit.incoming_speed,"rebound_mps":car.velocity.dot(hit.normal)}
 	return {}
-func steering_trial(car: CharacterBody3D, speed: float) -> Dictionary:
+func steering_trial(car: CharacterBody3D, speed: float, drifting: bool = false) -> Dictionary:
 	car.reset_pose(Vector3(400,0,400),Vector3.FORWARD)
 	car.velocity = Vector3.FORWARD*speed
 	var first_input := 0.0
 	for frame in range(24):
-		car.advance(1.0/60,0.6,speed,false)
+		car.advance(1.0/60,0.6,speed,drifting)
 		if frame == 0: first_input = car.steering
 	return {"yaw_rate":absf(car.yaw_rate),"heading_radians":absf(atan2(car.forward_direction().x,-car.forward_direction().z)),"first_input":first_input}
 func run(tree: SceneTree) -> int:
@@ -129,7 +129,10 @@ func run(tree: SceneTree) -> int:
 	var low_steering := steering_trial(car,20)
 	var fast_steering := steering_trial(car,80)
 	check(fast_steering.yaw_rate < low_steering.yaw_rate*0.88 and fast_steering.first_input < low_steering.first_input*0.88,"Fast touch steering must engage smoothly and turn less sharply than low-speed steering")
-	check(low_steering.yaw_rate > 0.9 and fast_steering.yaw_rate > 0.65,"Steering must retain responsive low-speed control and enough high-speed corner authority")
+	# Ordinary steering is grip-limited at speed; a drift is the way to turn sharply.
+	var fast_drift := steering_trial(car,80,true)
+	check(low_steering.yaw_rate > 0.9 and fast_steering.yaw_rate > 0.2 and fast_steering.yaw_rate < 0.5,"Steering must keep low-speed control while high-speed grip steering stays limited")
+	check(fast_drift.yaw_rate > fast_steering.yaw_rate*1.6,"At speed a drift must turn clearly sharper than grip steering")
 	car.reset_pose(Vector3(100,12,100),Vector3.FORWARD)
 	car.velocity = Vector3(10,3,0)
 	for frame in range(30): car.advance(1.0/60,0,80,false)
