@@ -25,6 +25,7 @@ python3 tools/verify_repository.py
 | [regional_props_3d.gd](../scripts/regional_props_3d.gd), [road_biome.gd](../scripts/road_biome.gd) | 지역별 입체 오브젝트·건축과 공간별 묶음 렌더링 |
 | [screen_transition.gd](../scripts/screen_transition.gd), [tunnel_lights.gd](../scripts/tunnel_lights.gd) | 화면 전환, 가려진 렌더 준비, 터널 조명 예산 |
 | [impact_effect.gd](../scripts/impact_effect.gd), [render_budget.gd](../scripts/render_budget.gd) | 재사용 충돌 이펙트와 자동 렌더 품질 |
+| [vehicle_audio.gd](../scripts/vehicle_audio.gd), [racing_audio.gd](../scripts/racing_audio.gd), [file_audio.js](../web/file_audio.js) | 차량별 엔진·부스터·점화음·드리프트 소리의 매핑과 재생. 규칙은 [VEHICLE_AUDIO.md](VEHICLE_AUDIO.md) |
 | [web/coast-rush-shell.html](../web/coast-rush-shell.html) | 다운로드·회전·설치 안내와 브라우저 뒤로가기 |
 
 트랙 1은 `CharacterBody3D`의 실제 월드 위치·속도·차체 방향을 사용하며, `ConcavePolygonShape3D` 노면·장벽 충돌체와 접촉합니다. 도로 곡선 투영은 경기 정보용이고 일반 주행에서 차체를 곡선으로 이동시키지 않습니다. 고가 교차점의 위·아래 도로는 실제로 분리되어 있습니다. `circuit_progress.gd`는 높이와 순서가 있는 12개 게이트를 확인해 랩을 집계합니다.
@@ -42,6 +43,8 @@ node tests/install_bridge_review.cjs
 node tests/back_bridge_review.cjs
 node tests/fullscreen_bridge_review.cjs
 ```
+
+[vehicle_audio_checks.gd](../tests/vehicle_audio_checks.gd)는 모든 차량이 자기 엔진·부스터·점화음·드리프트 파일을 갖는지, 다른 차량 파일을 재사용하지 않는지, 웹 루프가 파일과 일치하는지, 선택한 차량의 소리로 실제 플레이어가 바뀌는지 확인합니다. 소리를 만들거나 바꿀 때는 ffmpeg와 numpy가 필요한 `python3 tools/bake_vehicle_audio.py --check`로 클리핑·차량 간 음색 차이까지 확인하며, 이는 CI에 포함하지 않습니다([VEHICLE_AUDIO.md](VEHICLE_AUDIO.md)).
 
 [저장소 검사기](../tools/verify_repository.py)는 실행 진입점에서의 리소스 도달성, 끊긴 참조, 짝이 없는 `.uid`/`.import`, 문서 링크와 `docs/`의 생성 산출물을 확인합니다. [race_test.gd](../tests/race_test.gd)는 투어·서킷·차량·니트로·충돌·CPU·노면·점프·드리프트·RPM·그래픽 품질·뒤로가기·3D 배치·터널·뱅킹 구조 회귀 검사를 실행합니다. Node 검사는 실제 HTML 셸의 설치·history 브리지를 DOM/history 모형으로 검사합니다.
 

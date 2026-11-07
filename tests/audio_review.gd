@@ -22,7 +22,9 @@ func run():
 	await create_timer(1.0).timeout
 	race.speed = 88
 	race.boosting = true
+	race.nitro_active = true
 	await create_timer(1.0).timeout
+	race.nitro_active = false
 	race.speed = 61
 	race.boosting = false
 	race.drifting = true
