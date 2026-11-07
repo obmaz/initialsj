@@ -32,6 +32,7 @@ const {startTour}=require('./browser_helpers.cjs');
   // Commit does not wait for the deliberately delayed blocking script.
   await page.goto(url,{waitUntil:'commit'});
   await page.waitForFunction(()=>document.querySelector('#status-splash')?.naturalWidth>1000);
+  await page.waitForFunction(()=>document.querySelector('.loading-logo')?.naturalWidth>100);
   assert.equal(await page.evaluate(()=>typeof Engine),'undefined');
   assert(await page.locator('#status').isVisible(),'Branded art must appear before the engine JS downloads');
   assert.equal(await page.locator('#loading-label').textContent(),'LOADING YOUR NEXT DRIVE');
@@ -41,6 +42,8 @@ const {startTour}=require('./browser_helpers.cjs');
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    const card=await page.locator('#loading-card').boundingBox();
    assert(card.x>=0&&card.y>=0&&card.x+card.width<=width&&card.y+card.height<=height,'Loading card must stay inside the viewport');
+   const logo=await page.locator('.loading-logo').boundingBox();
+   assert(logo.width>=240&&logo.x>=0&&logo.x+logo.width<=width&&logo.y+logo.height<card.y,'The vector logo must remain readable and clear of the progress card');
    await page.screenshot({path:path.join(output,name+'.png')});
   }
   await page.setViewportSize({width:390,height:844});
@@ -60,6 +63,11 @@ const {startTour}=require('./browser_helpers.cjs');
   await page.waitForFunction(()=>typeof engine!=='undefined'&&!document.querySelector('#status'),{},{timeout:90000});
   assert.equal(await page.locator('#canvas').count(),1);
   assert.equal(await page.locator('#landscape-guide').isVisible(),false);
+  await page.screenshot({path:path.join(output,'home-desktop.png')});
+  await page.setViewportSize({width:896,height:414});
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await page.screenshot({path:path.join(output,'home-mobile.png')});
+  await page.setViewportSize({width:1280,height:720});
   await startTour(page);
   await page.setViewportSize({width:390,height:844});
   await page.waitForFunction(()=>window.__orientationEvents.at(-1)===true);
