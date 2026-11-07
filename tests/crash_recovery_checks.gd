@@ -41,7 +41,13 @@ func run(tree:SceneTree)->int:
   r.speed=85
   r.lane_velocity=1
   r.step(0.02,1,false,true,false)
-  check(not r.crash.active,"A shallow high-speed rail scrape must not cause a rollover")
+  check(r.crash.active and r.air.active,"Any rail hit above the launch speed must throw the car, even a shallow one")
+  reset(r)
+  r.lane=r.track.lane_limits(r.distance).y-0.01
+  r.speed=35
+  r.lane_velocity=12
+  r.step(0.02,1,false,true,false)
+  check(not r.crash.active,"A rail hit below the launch speed must only bounce")
   reset(r)
   r.speed=75
   var other:Dictionary=r.rivals[0]

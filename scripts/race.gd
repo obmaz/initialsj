@@ -1012,13 +1012,14 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			var scrape_speed := maxf(speed,absf(lane_velocity)*3)
 			speed *= lerpf(0.88,0.5,clampf(incoming_speed/70.0,0,1))
 			register_impact(smoothstep(2.5,72,scrape_speed)*0.9,Vector2(-side,0))
-			if incoming_speed >= 55 and closing_speed >= 9 and not crash.active:
-				crash.start(incoming_speed,Vector2(-side,0))
+			if Crash.launches(incoming_speed) and not crash.active:
+				var up := Crash.launch_up(incoming_speed)
+				crash.start(incoming_speed,Vector2(-side,0),0.0,2.0*up/air.GRAVITY)
 				air.active = true
 				air.trick = false
 				air.world_y = track.point(distance,lane).y+0.15
 				air.height = 0.15
-				air.velocity = 10
+				air.velocity = up
 	distance += speed*delta
 	var was_airborne := air.active
 	var flight_events: Array[String] = air.advance(track.active,old_surface_position,Vector2(lane,distance),speed,delta)

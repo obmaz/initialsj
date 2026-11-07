@@ -52,16 +52,16 @@ func rail_impact(tree: SceneTree, race: Node3D, speed: float, glancing: bool = f
 		roll = maxf(roll,absf(race.crash.visual_roll))
 		peak = maxf(peak,body.feet_position().y)
 		if not body.grounded: airborne_frames += 1
-		if not first.is_empty() and not glancing and speed < 55: break
+		if not first.is_empty() and speed < 45: break
 	check(not first.is_empty(),"The crash fixture must hit Fuji's actual outer guardrail collider")
-	if speed >= 55 and not glancing:
+	if speed >= 45:
 		check(triggered and first.severe,"A severe high-speed real guardrail hit must start the tumble state")
 		check(launch_speed > 10 and away_speed > 7 and peak-base > 2.5 and airborne_frames > 30,"The chassis must physically rebound and fly above the road under gravity")
 		check(roll > PI and not race.crash.active,"The visual tumble must complete a full roll and settle without rolling the collider")
 		check(body.global_basis.y.dot(Vector3.UP) > 0.9,"The upright motor collider must retain reliable road contacts throughout visual tumbling")
 		check(race.score == score,"A crash landing must not award a successful jump bonus")
 	else:
-		check(not triggered and not first.severe,"A low-speed or glancing guardrail scrape must bounce without a crash launch")
+		check(not triggered and not first.severe,"A rail hit below the launch speed must bounce without a crash launch")
 		if not glancing: check(away_speed > 5,"An ordinary wall hit must have a visible physical rebound")
 	return {"vehicle":race.vehicle.id,"entry_mps":speed,"glancing":glancing,"contact":first,"triggered":triggered,"rebound_mps":away_speed,"launch_mps":launch_speed,"height_gain_m":peak-base,"airborne_frames":airborne_frames,"maximum_roll":roll}
 

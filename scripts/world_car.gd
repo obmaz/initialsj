@@ -4,6 +4,7 @@ extends CharacterBody3D
 const CornerResistance = preload("res://scripts/corner_resistance.gd")
 const SUPPORT_HEIGHT := 0.65
 const GRAVITY := 24.0
+const Crash = preload("res://scripts/crash_state.gd")
 const GROUND_LAYER := 1
 const MAX_CONTACTS := 5
 const MAX_STEP_HEIGHT := 0.22
@@ -217,7 +218,7 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 			if closing > 0.2:
 				var incoming_speed := before.slide(surface_normal).length()
 				var barrier: bool = collider is CollisionObject3D and collider.get_collision_layer_value(2) and not collider.get_collision_layer_value(1)
-				var severe: bool = barrier and closing >= 28.0 and incoming_speed >= 55.0 and absf(normal.y) < 0.65
+				var severe: bool = barrier and closing >= 1.2 and Crash.launches(incoming_speed) and absf(normal.y) < 0.65
 				last_contacts.append({"normal":normal,"point":collision.get_position(),"collider":collider,"speed":closing,"closing_speed":closing,"incoming_speed":incoming_speed,"barrier":barrier,"severe":severe,"severity":clampf(closing/65.0,0,1)})
 				var tangent := velocity.slide(normal)
 				if barrier:

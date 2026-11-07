@@ -111,7 +111,7 @@ func run(tree: SceneTree) -> int:
 	car.advance(1.0/60,0,0,false)
 	check(not car.grounded and car.velocity.y > 4 and car.feet_position().y > 0.05,"A separating floor recovery contact must preserve upward momentum and skip ground adhesion")
 	var glance := collision_trial(car,Vector3(-10,0,-78.2),Vector3(80,0,-8).normalized(),80)
-	check(glance.get("barrier",false) and not glance.get("severe",true) and glance.get("closing_speed",100) < 12,"A fast glancing guardrail scrape must not trigger a severe crash")
+	check(glance.get("barrier",false) and glance.get("severe",false) and glance.get("closing_speed",100) < 12,"A fast glancing guardrail scrape must still throw the car (launch speed, not angle, decides)")
 	var slow_wall := collision_trial(car,Vector3(0,0,-65),Vector3.FORWARD,35)
 	check(slow_wall.get("barrier",false) and not slow_wall.get("severe",true),"A lower-speed head-on wall touch must rebound without launching the crash animation")
 	check(slow_wall.get("rebound_mps",0) > 5 and slow_wall.get("rebound_mps",100) < head_on.get("rebound_mps",0)*0.7,"The rebound must scale with the speed of the hit")
