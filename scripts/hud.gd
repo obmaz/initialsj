@@ -185,13 +185,13 @@ func handle_pointer(event: InputEvent) -> void:
 	if recovery_touches.has(index): return
 	var p := to_design(event.position)
 	if race.state == "menu":
-		if HOME_TOUR.has_point(p): race.navigate(func(): race.choose_mode("tour"))
+		if HOME_TOUR.has_point(p): race.navigate_to_mode("tour")
 		elif HOME_TRACK.has_point(p): race.navigate(race.open_courses)
 		elif HOME_SETTINGS.has_point(p): race.navigate(race.open_settings)
 		return
 	if race.state == "courses":
-		if COURSE_FUJI.has_point(p): race.navigate(func(): race.choose_mode("track",0))
-		elif COURSE_SPEEDWAY.has_point(p): race.navigate(func(): race.choose_mode("track",1))
+		if COURSE_FUJI.has_point(p): race.navigate_to_mode("track",0)
+		elif COURSE_SPEEDWAY.has_point(p): race.navigate_to_mode("track",1)
 		elif GARAGE_BACK.has_point(p): race.navigate(race.open_menu)
 		return
 	if race.state == "settings":
