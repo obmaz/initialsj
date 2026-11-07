@@ -29,6 +29,9 @@ func run(tree: SceneTree) -> int:
 		race.state = "racing"
 		race.surface.cancel_boost()
 		check(race.hud.boost_feedback_strength() == 0 and race.hud.boost_feedback_label().is_empty(),"Leaving/cancelling road boosts must clear their overlays")
+	# Game messages pop in only at the start of their life, and never stack on one line.
+	check(is_equal_approx(race.hud.fresh(1.1,1.1),1.0) and race.hud.fresh(0.5,1.1) == 0.0 and race.hud.fresh(1.1-0.09,1.1) > 0.4,"A message must pop in during its first moments only")
+	check(race.hud.BANNER_Y+race.hud.BANNER_STEP*3 < race.hud.STATUS_Y+race.hud.STATUS_STEP*2 and race.hud.BANNER_STEP >= 56 and race.hud.STATUS_STEP >= 46,"Banner and status messages must keep their own non-overlapping lanes")
 	race.queue_free()
 	await tree.process_frame
 	print("Road boost overlay / pad versus lane labels / screen states / reduced motion: ","PASS" if failures == 0 else "FAIL")
