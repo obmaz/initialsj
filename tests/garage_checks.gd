@@ -80,9 +80,10 @@ func run(tree: SceneTree) -> int:
 	for viewport in [Vector2i(1280,720),Vector2i(896,414),Vector2i(2340,1080)]:
 		root.size = viewport
 		race.open_garage()
-		for i in range(3):
+		for i in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 			click(race.hud.garage_card(i).get_center())
 			check(race.selected_vehicle == i and race.player.model == Catalog.spec(i).model,"Card selection must update the real player model on every viewport")
+		click(race.hud.garage_card(2).get_center())
 		click(race.hud.GARAGE_START.get_center())
 		check(race.state == "countdown" and race.nitro_charges == 2,"Drive must start the selected hybrid car with fresh resources")
 		race.select_vehicle(0)
@@ -148,7 +149,7 @@ func run(tree: SceneTree) -> int:
 	var acceleration := []
 	var impact_speeds := []
 	var rear_contact_speeds := []
-	for i in range(3):
+	for i in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		drive(i)
 		race.speed = 0
 		for j in range(60): tick(false)

@@ -173,7 +173,7 @@ func run(tree: SceneTree) -> int:
 	check(ramp_launch_speed > 1.5 and ramp_peak > 0.9,"A physical ramp must launch the car using slope momentum without an artificial jump impulse")
 	check(car.grounded and absf(car.feet_position().y) < 0.12,"The ramp jump must land on the physical floor")
 	var corners := []
-	for choice in range(3):
+	for choice in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		var spec := Catalog.spec(choice)
 		var straight := corner_trial(car,spec,0)
 		var mild := corner_trial(car,spec,0.065)

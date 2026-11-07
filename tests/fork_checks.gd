@@ -35,7 +35,7 @@ func run(tree: SceneTree) -> int:
 			check(max_bend < 0.0001,"Every route must remain straight between its checkpoint and fork")
 			rows.append({"stage":stage,"node":node,"straight_m":race.track.length-gate,"maximum_curvature":max_bend})
 	var fastest := 0.0
-	for index in range(3):
+	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		var v := Catalog.spec(index)
 		fastest = maxf(fastest,maxf(v.overdrive_speed+2,v.max_speed+21))
 	check(Library.CHECKPOINT_RUNUP/(fastest*race.GAME_PACE) >= 3 and Library.CHECKPOINT_RUNUP < 500,"The shorter approach must retain three seconds of mobile choice time at maximum boost")
@@ -53,7 +53,7 @@ func run(tree: SceneTree) -> int:
 		race.step(race.GAME_PACE/60,0,false,false,false)
 	check(race.stage_index == 0 and race.distance < race.track.length,"Three real seconds after checkpoint must still leave the car on the straight approach")
 	check(race.checkpoints == 1 and race.time_left < checkpoint_time,"The straight approach must not award a checkpoint twice")
-	for index in range(3):
+	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		for side in [0,1]:
 			race.open_garage()
 			race.select_vehicle(index)

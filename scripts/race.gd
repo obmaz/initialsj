@@ -252,7 +252,7 @@ func _ready() -> void:
 	if DisplayServer.get_name() != "headless":
 		previews = preload("res://scripts/garage_previews.gd").new()
 		add_child(previews)
-		for index in range(3): previews.show_vehicle(index)
+		for index in range(Catalog.SPECS.size()): previews.show_vehicle(index)
 		var audio = preload("res://scripts/racing_audio.gd").new()
 		audio.race = self
 		add_child(audio)
@@ -604,9 +604,9 @@ func _input(event: InputEvent) -> void:
 		if event.keycode == KEY_ENTER:
 			if state == "ready": start_race()
 			elif state in ["finished","failed"]: navigate(open_garage)
-		elif state == "ready" and event.keycode in [KEY_1,KEY_2,KEY_3]: select_vehicle(event.keycode-KEY_1)
-		elif state == "ready" and event.keycode in [KEY_A,KEY_LEFT]: select_vehicle(posmod(selected_vehicle-1,3))
-		elif state == "ready" and event.keycode in [KEY_D,KEY_RIGHT]: select_vehicle((selected_vehicle+1)%3)
+		elif state == "ready" and event.keycode >= KEY_1 and event.keycode < KEY_1+Catalog.SPECS.size(): select_vehicle(event.keycode-KEY_1)
+		elif state == "ready" and event.keycode in [KEY_A,KEY_LEFT]: select_vehicle(posmod(selected_vehicle-1,Catalog.SPECS.size()))
+		elif state == "ready" and event.keycode in [KEY_D,KEY_RIGHT]: select_vehicle((selected_vehicle+1)%Catalog.SPECS.size())
 		elif event.keycode == KEY_V: toggle_sound()
 		elif event.keycode == KEY_M: toggle_motion()
 		elif event.keycode == KEY_R and state != "ready": start_race()
@@ -644,9 +644,9 @@ func load_record() -> void:
 
 func select_vehicle(index: int) -> void:
 	if state != "ready": return
-	if selected_vehicle == clampi(index,0,2): return
+	if selected_vehicle == clampi(index,0,Catalog.SPECS.size()-1): return
 	var old_index := selected_vehicle
-	selected_vehicle = clampi(index,0,2)
+	selected_vehicle = clampi(index,0,Catalog.SPECS.size()-1)
 	hud.vehicle_changed(old_index)
 	vehicle = Catalog.spec(selected_vehicle)
 	remove_child(player)

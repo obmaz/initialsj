@@ -10,7 +10,7 @@ func run() -> void:
 	race.choose_mode("track",1)
 	var report := []
 	var failures := 0
-	for vehicle in range(3):
+	for vehicle in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		race.open_garage()
 		race.select_vehicle(vehicle)
 		race.restart()

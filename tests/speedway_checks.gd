@@ -59,7 +59,7 @@ func run(tree: SceneTree) -> int:
 	check(highest_stripe-lowest_stripe > 10,"Full-width finish stripe must follow a real steep bank without flat tiles")
 	check(stripe_vertices.size() >= 29*2*6,"Finish stripe must cover all speedway lanes with joined geometry")
 	stripe.free()
-	for index in range(3):
+	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		check(Catalog.record_key(index,"track",1).begins_with("track_suncoast_"),"Replacement circuit needs its own record namespace")
 		check(Catalog.record_key(index,"track",1) != Catalog.record_key(index,"track",0),"Speedway records must remain separate from Fuji")
 	race.restart()

@@ -33,7 +33,7 @@ func quiet_race(tree: SceneTree, race: Node3D) -> void:
 func shoulder_regressions(tree: SceneTree, race: Node3D) -> Array:
 	var rows := []
 	var at: float = race.track.length*0.09
-	for choice in range(3):
+	for choice in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		race.open_garage()
 		race.select_vehicle(choice)
 		race.restart()
@@ -181,7 +181,7 @@ func recovery_regression(tree: SceneTree, race: Node3D) -> Dictionary:
 func ramp_regressions(tree: SceneTree, race: Node3D) -> Array:
 	var rows := []
 	var ramps: Array = race.track.active.features.filter(func(f): return f.kind == "ramp")
-	for choice in range(3):
+	for choice in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		race.open_garage()
 		race.select_vehicle(choice)
 		for ramp in ramps:

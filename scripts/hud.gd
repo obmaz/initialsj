@@ -211,7 +211,7 @@ func handle_pointer(event: InputEvent) -> void:
 			else: race.navigate(race.open_menu)
 		elif GARAGE_START.has_point(p): race.start_race()
 		else:
-			for i in range(3):
+			for i in range(Catalog.SPECS.size()):
 				if garage_card(i).has_point(p): race.select_vehicle(i)
 		return
 	if race.state in ["paused","finished","failed"]:
@@ -604,7 +604,11 @@ func draw_nitro() -> void:
 			draw_colored_polygon(PackedVector2Array([Vector2(x,667),Vector2(x+41*fill,667),Vector2(x+41*fill-8,684),Vector2(x-8,684)]),GOLD if race.nitro_active else color)
 
 func garage_card(index: int) -> Rect2:
-	return Rect2(80+index*380,530,360,84)
+	# Cards share the row evenly, so a new catalog entry gets its own card.
+	var count: int = Catalog.SPECS.size()
+	var gap := 20.0
+	var width := (1120.0-gap*(count-1))/count
+	return Rect2(80+index*(width+gap),530,width,84)
 
 func draw_home() -> void:
 	draw_rect(Rect2(-ui_offset()/ui_scale(),get_viewport_rect().size/ui_scale()),Color("07111e"))
@@ -690,7 +694,7 @@ func draw_garage() -> void:
 	slant(GARAGE_BACK,Color("20374a"),10)
 	centered(Vector2(GARAGE_BACK.get_center().x,78),"< BACK",28,WHITE)
 	centered(Vector2(640,68),("TRACK" if race.mode == "track" else "TOUR")+" / GARAGE",22,Color("9db6c9"))
-	text_at(Vector2(1105,68),"%d / 3" % (race.selected_vehicle+1),16,color)
+	text_at(Vector2(1105,68),"%d / %d" % [race.selected_vehicle+1,Catalog.SPECS.size()],16,color)
 	slant(Rect2(92,129,675,76),Color("07111ebd"),10)
 	text_at(Vector2(120,168),race.vehicle.name,48)
 	text_at(Vector2(123,195),race.vehicle["class"],21,color)
@@ -712,15 +716,15 @@ func draw_garage() -> void:
 	text_at(Vector2(826,455),race.vehicle.nitro_title,24,color)
 	text_at(Vector2(826,483),race.vehicle.nitro_help,19,Color("a1b8c9"))
 	draw_rect(Rect2(80,486,690,34),Color("07111ebd"))
-	text_at(Vector2(80,511),["AGILE CORNERS. RECHARGE NITRO THROUGH DRIFTING.","HIGH TOP SPEED. TIME YOUR POWERFUL NITRO SHOTS.","QUICK LAUNCH. COMBINE NITRO AND OVERDRIVE CELLS."][race.selected_vehicle],22,Color("9db6c9"))
-	for i in range(3):
+	text_at(Vector2(80,511),race.vehicle.tagline,22,Color("9db6c9"))
+	for i in range(Catalog.SPECS.size()):
 		var rect := garage_card(i)
 		var v := Catalog.spec(i)
 		var selected: bool = i == race.selected_vehicle
 		slant(rect,Color("203345") if selected else Color("101d2b"),8)
 		if selected: draw_line(rect.position+Vector2(8,rect.size.y),rect.end,Color(v.accent),3,true)
 		text_at(rect.position+Vector2(22,35),v.name,28,Color(v.accent) if selected else Color("bdcedb"))
-		var role: String = ["AGILE / GAUGE","TOP SPEED / SHOTS","POWER / HYBRID"][i]
+		var role: String = v.role
 		text_at(rect.position+Vector2(23,66),role,20,Color("94acbe"))
 	text_at(Vector2(80,678),"BEST "+(time_label(race.best_time) if race.best_time > 0 else "--:--.---"),22,GOLD)
 	slant(GARAGE_START,color,8)

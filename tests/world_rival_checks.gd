@@ -125,7 +125,7 @@ func run(tree: SceneTree) -> int:
 	await tree.physics_frame
 	await tree.physics_frame
 	var passes := []
-	for choice in range(3):
+	for choice in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		race.open_garage()
 		race.select_vehicle(choice)
 		passes.append(await parked_pass(tree,race))

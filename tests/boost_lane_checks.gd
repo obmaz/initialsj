@@ -37,7 +37,7 @@ func run(tree:SceneTree)->int:
   s.reset()
   s.contact(section,Vector2(0,pad.distance-20),Vector2(0,pad.distance+20),100)
   check(s.boosts_hit==0,"The centre line must miss the alternating pads")
- for car in range(3):
+ for car in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
   race.open_garage()
   race.select_vehicle(car)
   race.restart()
