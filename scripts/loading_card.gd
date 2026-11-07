@@ -1,8 +1,8 @@
 extends Control
 # Loading screen drawn over the transition cover while a course is being built. The build runs
 # on the main thread, so the card is drawn once before it starts and updated between steps.
+const LOGO = preload("res://assets/ui/initialsj-logo.png")
 const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
-const NUMBER_FONT = preload("res://assets/fonts/Roboto-BlackItalic.ttf")
 const CYAN := Color("19dcff")
 const WHITE := Color("f6f7fa")
 const STEPS := ["PREPARING THE TRACK","BUILDING THE WORLD","WARMING UP THE ENGINE","READY"]
@@ -37,8 +37,7 @@ func _draw() -> void:
 	var scale_factor := minf(size.x/1280.0,size.y/720.0)
 	var origin := (size-Vector2(1280,720)*scale_factor)*0.5
 	draw_set_transform(origin,0,Vector2.ONE*scale_factor)
-	_centered(Vector2(640,250),"INITIAL SJ",64,WHITE,NUMBER_FONT)
-	_centered(Vector2(640,286),"COAST RUSH",20,CYAN,FONT)
+	draw_texture_rect(LOGO,Rect2(310,70,660,LOGO.get_height()*660.0/LOGO.get_width()),false)
 	if title != "": _centered(Vector2(640,356),title,30,WHITE,FONT)
 	var bar := Rect2(Vector2(340,386),Vector2(600,10))
 	draw_rect(bar,Color(0.15,0.24,0.32,0.9))

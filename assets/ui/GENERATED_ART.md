@@ -11,3 +11,7 @@ Current artwork uses saturated coastal colours, strong directional lighting and 
 | [Suncoast course card](course-speedway.png) | `exec-80a07cec-f581-4b02-b13d-d7cb3c6984e7.png` |
 
 Original generated PNGs are preserved in the local ignored `generated_images/` workspace; approved copies live beside this document. No photographic images, real manufacturer logos or original arcade-game assets are composited into these backgrounds. Titles, buttons, performance bars and progress indicators are rendered separately for readable mobile layouts.
+
+## Game logo
+
+[initialsj-logo.png](initialsj-logo.png) is drawn procedurally by [`tools/bake_logo.py`](../../tools/bake_logo.py), not by an image model or from a photograph: Roboto Black Italic lettering (Apache-2.0, see `assets/fonts`) with a chrome gradient, outline, extrusion, glow, speed streaks and a checkered plate. It is a fictional wordmark and copies no real game or brand logo. The home screen and the loading card draw the PNG; the same script refreshes the small inline WebP copy between the `<!--logo:start-->` markers in `web/coast-rush-shell.html`, which the page shows while the download runs. Re-run `python3 tools/bake_logo.py` after changing the design and commit both outputs.
