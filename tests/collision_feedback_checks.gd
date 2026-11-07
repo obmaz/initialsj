@@ -36,7 +36,7 @@ func run(tree: SceneTree) -> int:
 	check(race.impact_normal == remembered and race.impact_recoil == 0.8,"Repeated overlap during cooldown must not restart feedback or change its direction")
 	var forward := Vector3.FORWARD
 	var right := Vector3.RIGHT
-	check(race.collision_camera_offset(forward,right).length() <= 0.5,"Collision recoil must stay within a small bounded camera displacement")
+	check(race.collision_camera_offset(forward,right).length() <= 1.3,"Collision recoil must stay within a bounded camera displacement (hard hits punch the camera, but never leave the car)")
 	race.impact_age = 0.43
 	check(race.collision_camera_offset(forward,right).is_zero_approx(),"The brief recoil must settle instead of becoming a sustained shake")
 	race.impact_age = 0

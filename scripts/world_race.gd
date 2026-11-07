@@ -17,6 +17,7 @@ var airborne_time := 0.0
 var landing_velocity := 0.0
 var wrong_way_time := 0.0
 var crash_flight := false
+var outside_time := 0.0
 
 func setup() -> void:
 	for i in range(8):
@@ -50,6 +51,7 @@ func reset() -> void:
 	crash_flight = false
 	safe_distance = 80
 	safe_lane = -3.2
+	outside_time = 0
 	for i in range(bodies.size()):
 		var d: float = 80 if i == 0 else race.rivals[i-1].distance
 		var lane: float = -3.2 if i == 0 else race.rivals[i-1].lane
@@ -280,7 +282,7 @@ func impact(hit: Dictionary) -> void:
 		var outward := normal.slide(Vector3.UP).normalized()
 		var tangent := player_body.velocity.slide(normal)
 		tangent.y = 0
-		player_body.velocity = tangent*0.72+outward*clampf(closing*0.28,8,17)+Vector3.UP*clampf(10+closing*0.055,11.5,14.5)
+		player_body.velocity = tangent*0.72+outward*clampf(closing*0.34,9,21)+Vector3.UP*clampf(10+closing*0.055,11.5,15.5)
 		player_body.grounded = false
 		race.air.active = true
 		race.air.trick = false
@@ -423,7 +425,28 @@ func update_rivals(delta: float) -> void:
 		rival.boosting = rival.surface.pad_time > 0
 		if body.feet_position().y < race.track.point(d).y-25: teleport(i,d,0,false)
 
+# Beyond the guardrail line there is no road to drive on: after a moment the car is put
+# back on the last safe stretch, whatever launched it over the rail.
+func update_outside(delta: float) -> void:
+	var side := signf(race.lane)
+	var edge: float = race.track.half_width(race.distance)+race.track.active.rail_setback(race.distance,side)+1.2
+	outside_time = outside_time+delta if absf(race.lane) > edge else 0.0
+	if outside_time > 1.0:
+		outside_time = 0.0
+		race.return_to_road()
+
+func rescue_player() -> void:
+	if not recover_player(): teleport(0,safe_distance,safe_lane,false)
+	race.tire_trails.reset()
+	race.cancel_nitro()
+	place_cars()
+	race.camera_offset = -player_body.forward_direction()*7.1+Vector3.UP*3
+	update_camera(1)
+	race.player.reset_physics_interpolation()
+	race.camera.reset_physics_interpolation()
+
 func update_recovery(delta: float, data: Dictionary) -> void:
+	update_outside(delta)
 	if data.valid and player_body.grounded and absf(race.lane) < race.track.half_width(race.distance)-1:
 		safe_distance = race.distance
 		safe_lane = race.lane

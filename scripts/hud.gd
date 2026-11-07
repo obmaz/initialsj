@@ -863,6 +863,8 @@ func draw_pace_feedback() -> void:
 	if race.world_race != null and race.world_race.wrong_way_time > 0.65:
 		centered(Vector2(640,177),"WRONG WAY",32,GOLD)
 	if race.launch_flash > 0: centered(Vector2(640,350),"GO!",76,Color(GOLD,minf(1,race.launch_flash*4)))
+	if race.return_flash > 0:
+		centered(Vector2(640,262),"BACK ON ROAD",40,Color(GOLD,minf(1,race.return_flash*2)))
 	if race.checkpoint_flash > 0 and not race.route_choices_visible():
 		centered(Vector2(640,222),("LAP %d / 3" % mini(3,race.laps_completed+1)) if race.mode == "track" else ("CHECKPOINT +%ds" % int(race.checkpoint_award)),40,Color(GOLD,minf(1,race.checkpoint_flash*3)))
 	elif race.route_confirm_flash > 0:
