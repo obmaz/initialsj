@@ -335,7 +335,7 @@ func _process(delta: float) -> void:
 
 func text_at(pos: Vector2, value: String, size_px: int, color: Color = WHITE, shadow: bool = true, face: Font = FONT) -> void:
 	if shadow:
-		draw_string_outline(face, pos + Vector2(0.5, 1.5), value, HORIZONTAL_ALIGNMENT_LEFT, -1, size_px, 2, Color(0.02, 0.02, 0.04, color.a * 0.38))
+		draw_string_outline(face, pos + Vector2(0.5, 1.5), value, HORIZONTAL_ALIGNMENT_LEFT, -1, size_px, 3, Color(0.02, 0.02, 0.04, color.a * 0.62))
 	draw_string(face, pos, value, HORIZONTAL_ALIGNMENT_LEFT, -1, size_px, color)
 
 func centered(pos: Vector2, value: String, size_px: int, color: Color = WHITE, face: Font = FONT) -> void:
@@ -567,7 +567,7 @@ func draw_controls() -> void:
 	car_icon(c+Vector2(0,-12))
 	centered(c+Vector2(0,35),"END DRIFT" if race.drifting else "DRIFT",14 if race.drifting else 19)
 	var drift_hint := "TAP TO END" if race.drifting else ("STEER NOW" if race.drift_pending > 0 else ("STEER + TAP" if race.speed > 25 else "90 km/h+"))
-	centered(c+Vector2(0,-60),drift_hint,12,CYAN if race.speed > 25 else Color("8ca0ac"))
+	centered(c+Vector2(0,-60),drift_hint,15,CYAN if race.speed > 25 else Color("b6c6d0"))
 	round_button("nitro",true)
 	var nitro_center: Vector2 = buttons.nitro.get_center()
 	bottle(nitro_center+Vector2(0,-10),0.43)
@@ -858,17 +858,50 @@ func draw_competitor_markers() -> void:
 		centered(Vector2(point.x,point.y-6),str(place)+suffix,18,GOLD if place == 1 else WHITE)
 		if occupied.size() >= 3: break
 
+# Game messages sit on a dark plate with a heavy outline and an accent underline, so they read
+# over sky, asphalt and the car alike. A new message pops in (skipped with reduced motion).
+# Big events stack from the top banner lane; status messages sit under the horizon.
+const BANNER_Y := 196.0
+const BANNER_STEP := 62.0
+const STATUS_Y := 322.0
+const STATUS_STEP := 50.0
+const WARNING := Color("ff6b5a")
+
+func toast(center: Vector2, value: String, size_px: int, accent: Color, alpha: float = 1.0, pop: float = 0.0) -> void:
+	alpha = clampf(alpha,0,1)
+	if alpha <= 0: return
+	var scale := 1.0+(0.0 if race.motion_reduced else 0.24*pop)
+	var width := FONT.get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px).x
+	var ui := Transform2D(Vector2(ui_scale(),0),Vector2(0,ui_scale()),ui_offset())
+	draw_set_transform_matrix(ui*Transform2D(Vector2(scale,0),Vector2(0,scale),center*(1.0-scale)))
+	var pad := size_px*0.75
+	var plate := Rect2(center.x-width/2-pad,center.y-size_px*0.62,width+pad*2,size_px*1.5)
+	slant(plate,Color(0.03,0.06,0.10,0.84*alpha),size_px*0.28)
+	draw_rect(Rect2(plate.position.x+size_px*0.28,plate.end.y-4,plate.size.x-size_px*0.56,4),Color(accent,alpha))
+	var origin := Vector2(center.x-width/2,center.y+size_px*0.36)
+	draw_string_outline(FONT,origin,value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px,7,Color(0.01,0.02,0.04,0.95*alpha))
+	draw_string(FONT,origin,value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px,Color(accent.lightened(0.25),alpha))
+	draw_set_transform(ui_offset(),0,Vector2.ONE*ui_scale())
+
+# How far into its life a timed message is: 1 at the start, falling to 0 over `window`.
+func fresh(remaining: float, duration: float, window: float = 0.18) -> float:
+	return clampf((remaining-(duration-window))/window,0,1)
+
 func draw_pace_feedback() -> void:
 	if race.state != "racing": return
+	var banner := BANNER_Y
 	if race.world_race != null and race.world_race.wrong_way_time > 0.65:
-		centered(Vector2(640,177),"WRONG WAY",32,GOLD)
-	if race.launch_flash > 0: centered(Vector2(640,350),"GO!",76,Color(GOLD,minf(1,race.launch_flash*4)))
+		toast(Vector2(640,banner),"WRONG WAY",34,WARNING)
+		banner += BANNER_STEP
 	if race.return_flash > 0:
-		centered(Vector2(640,262),"BACK ON ROAD",40,Color(GOLD,minf(1,race.return_flash*2)))
+		toast(Vector2(640,banner),"BACK ON ROAD",38,GOLD,minf(1,race.return_flash*2),fresh(race.return_flash,1.6))
+		banner += BANNER_STEP
 	if race.checkpoint_flash > 0 and not race.route_choices_visible():
-		centered(Vector2(640,222),("LAP %d / 3" % mini(3,race.laps_completed+1)) if race.mode == "track" else ("CHECKPOINT +%ds" % int(race.checkpoint_award)),40,Color(GOLD,minf(1,race.checkpoint_flash*3)))
+		toast(Vector2(640,banner),("LAP %d / 3" % mini(3,race.laps_completed+1)) if race.mode == "track" else ("CHECKPOINT +%ds" % int(race.checkpoint_award)),40,GOLD,minf(1,race.checkpoint_flash*3),fresh(race.checkpoint_flash,2.0))
+		banner += BANNER_STEP
 	elif race.route_confirm_flash > 0:
-		centered(Vector2(640,222),race.route_confirm_title,34,Color(CYAN,minf(1,race.route_confirm_flash*3)))
+		toast(Vector2(640,banner),race.route_confirm_title,36,CYAN,minf(1,race.route_confirm_flash*3),fresh(race.route_confirm_flash,1.4))
+	if race.launch_flash > 0: toast(Vector2(640,350),"GO!",78,GOLD,minf(1,race.launch_flash*4),fresh(race.launch_flash,0.7,0.25))
 	var intensity: float = clampf((race.speed-38)/50,0,1)
 	if not race.motion_reduced:
 		var origin := Vector2(640,315)
@@ -880,15 +913,16 @@ func draw_pace_feedback() -> void:
 			var end := start+ray.normalized()*(22+phase*80)*intensity
 			draw_line(start,end,Color(0.65,0.88,1,intensity*(0.26 if race.boosting else 0.16)*sin(phase*PI)),1.2,true)
 	if race.impact > 0: draw_rect(Rect2(0,0,1280,720),Color(1,0.35,0.10,race.impact*0.07))
-	if race.air.active and race.air.trick: centered(Vector2(640,568),"AIR TIME!",26,GOLD)
-	elif race.air.landing_flash > 0.35 and race.air.trick: centered(Vector2(640,568),"LANDED / +100",21,Color("b7e9ff"))
+	var status := STATUS_Y
+	if race.air.active and race.air.trick: toast(Vector2(640,status),"AIR TIME!",32,GOLD)
+	elif race.air.landing_flash > 0.35 and race.air.trick: toast(Vector2(640,status),"LANDED / +100",28,Color("b7e9ff"),1.0,fresh(race.air.landing_flash,0.65))
 	elif race.pad_active: draw_boost_badge()
-	elif race.surface.water_flash > 0: centered(Vector2(640,568),"WET ROAD / LOW GRIP",21,Color("a9dfff"))
-	elif race.near_miss_flash > 0: centered(Vector2(640,568),"CLOSE PASS +150",23,GOLD)
-	elif race.overtake_flash > 0: centered(Vector2(640,568),"PASS!",24,CYAN)
-	elif race.boosting: centered(Vector2(640,568),("OVERDRIVE!" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO!") if race.nitro_active else "SLIPSTREAM",23,CYAN)
+	elif race.surface.water_flash > 0: toast(Vector2(640,status),"WET ROAD / LOW GRIP",28,Color("a9dfff"),minf(1,race.surface.water_flash*2),fresh(race.surface.water_flash,1.2))
+	elif race.near_miss_flash > 0: toast(Vector2(640,status),"CLOSE PASS +150",30,GOLD,minf(1,race.near_miss_flash*2.5),fresh(race.near_miss_flash,1.1))
+	elif race.overtake_flash > 0: toast(Vector2(640,status),"PASS!",32,CYAN,minf(1,race.overtake_flash*2.5),fresh(race.overtake_flash,1.0))
+	elif race.boosting: toast(Vector2(640,status),("OVERDRIVE!" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO!") if race.nitro_active else "SLIPSTREAM",30,CYAN)
 	if race.corner_warning > 0.15:
-		centered(Vector2(640,606),"BRAKE / CORNER %d km/h" % int(race.recommended_speed*3.6),19,Color(1,0.66,0.38,race.corner_warning))
+		toast(Vector2(640,status+STATUS_STEP),"BRAKE / CORNER %d km/h" % int(race.recommended_speed*3.6),26,WARNING,race.corner_warning)
 
 # Road boosts get one short activation pulse, separate from nitro fuel and
 # ordinary speed lines. Motion reduction keeps only the informative badge.
@@ -924,16 +958,7 @@ func draw_boost_feedback() -> void:
 func draw_boost_badge() -> void:
 	var label := boost_feedback_label()
 	if label.is_empty(): return
-	var y := 246.0
-	var rect := Rect2(488,y,304,48)
-	slant(rect,Color("082d3aeb"),10)
-	var edge := PackedVector2Array([Vector2(498,y),Vector2(792,y),Vector2(782,y+48)])
-	draw_polyline(edge,Color(CYAN,0.82),2,true)
-	centered(Vector2(640,y+35),label,28,GOLD)
-	for side in [-1.0,1.0]:
-		var x: float = 640+side*126
-		var points := PackedVector2Array([Vector2(x-side*7,y+12),Vector2(x+side*2,y+24),Vector2(x-side*7,y+36)])
-		draw_polyline(points,CYAN,2.5,true)
+	toast(Vector2(640,STATUS_Y),label,32,GOLD,1.0,fresh(race.surface.pad_flash,1.1))
 
 func recovery_visible() -> bool:
 	return race != null and race.state == "racing" and race.get("recovery_available") == true
