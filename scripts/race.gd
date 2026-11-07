@@ -121,6 +121,8 @@ var near_miss_flash := 0.0
 var overtakes := 0
 var overtake_flash := 0.0
 var checkpoint_flash := 0.0
+var return_flash := 0.0
+var hitstop_until := 0
 var checkpoints := 0
 var checkpoint_stage := -1
 var route_preference := -1
@@ -565,6 +567,8 @@ func restart() -> void:
 	impact_normal = Vector2.ZERO
 	impact_recoil = 0
 	impact_age = 1
+	hitstop_until = 0
+	return_flash = 0
 	impacts.reset()
 	boost_kick = 0
 	bump_cooldown = 0
@@ -774,7 +778,8 @@ func nitro_ratio() -> float:
 	return nitro/100
 
 func _physics_process(delta: float) -> void:
-	Engine.time_scale = GAME_PACE if state in ["racing","countdown"] else 1.0
+	Engine.time_scale = (GAME_PACE if state in ["racing","countdown"] else 1.0)*(0.15 if Time.get_ticks_msec() < hitstop_until else 1.0)
+	return_flash = maxf(0,return_flash-delta)
 	update_atmosphere(delta)
 	if state == "countdown":
 		countdown -= delta
@@ -962,11 +967,14 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		var incoming_speed := speed
 		var closing_speed := absf(lane_velocity)
 		lane = clampf(lane,limits.x,limits.y)
-		lane_velocity = -side*clampf(closing_speed*0.42,1.5,14)
+		# The bounce follows how fast the car hit, not just how fast it drifted sideways.
+		var bounce := maxf(closing_speed,incoming_speed*0.22)
+		lane_velocity = -side*clampf(bounce*0.9,2.0,24)
+		slip_angle += -side*clampf(incoming_speed*0.012,0,0.7)
 		if bump_cooldown <= 0:
 			wall_hits += 1
 			var scrape_speed := maxf(speed,absf(lane_velocity)*3)
-			speed *= 0.72
+			speed *= lerpf(0.88,0.5,clampf(incoming_speed/70.0,0,1))
 			register_impact(smoothstep(2.5,72,scrape_speed)*0.9,Vector2(-side,0))
 			if incoming_speed >= 55 and closing_speed >= 9 and not crash.active:
 				crash.start(incoming_speed,Vector2(-side,0))
@@ -1084,6 +1092,27 @@ func apply_crash_pose() -> void:
 	var pivot := Vector3(0,0.7,0)
 	player.body.rotation = Vector3(crash.visual_pitch,0,crash.visual_roll)
 	player.body.position = Vector3(0,player.ride_offset,0)+pivot-player.body.basis*pivot
+
+# Back on the road after leaving it past the guardrail; no button, no waiting.
+func return_to_road() -> void:
+	if world_race == null or state != "racing": return
+	world_race.rescue_player()
+	crash.reset()
+	recovery.reset()
+	player.body.rotation.x = 0
+	player.body.rotation.z = 0
+	player.body.position = Vector3(0,player.ride_offset,0)
+	speed = 0
+	lane_velocity = 0
+	steer = 0
+	slip_angle = 0
+	offroad_amount = 0
+	impact = 0
+	impact_age = 1
+	drifting = false
+	drift_latched = false
+	drift_charge = 0
+	return_flash = 1.6
 
 func recover_car() -> void:
 	if not recovery_available: return
@@ -1259,6 +1288,8 @@ func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vecto
 	impact_normal = normal.normalized()
 	impact_recoil = strength
 	impact_age = 0
+	# A freeze-frame on hard hits makes them land (skipped with reduced motion).
+	if strength > 0.55 and not motion_reduced: hitstop_until = Time.get_ticks_msec()+int(50+strength*70)
 	cancel_nitro()
 	drifting = false
 	drift_charge = 0
@@ -1314,7 +1345,7 @@ func collision_camera_offset(forward: Vector3, right: Vector3) -> Vector3:
 	# A quick directional compression and a single diminishing rebound rather
 	# than an arbitrary shake that looks identical for left and right impacts.
 	var pulse := impact_recoil*exp(-impact_age*16)*cos(impact_age*22)
-	return (right*impact_normal.x*0.48-forward*impact_normal.y*0.36+Vector3.UP*0.055)*pulse
+	return (right*impact_normal.x*0.48-forward*impact_normal.y*0.36+Vector3.UP*0.055)*pulse*(1.0+impact_recoil*1.6)
 
 func update_camera(delta: float) -> void:
 	if world_race != null:

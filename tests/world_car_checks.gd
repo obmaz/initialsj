@@ -98,7 +98,7 @@ func run(tree: SceneTree) -> int:
 	check(contacts > 0 and car.feet_position().z > -78,"High-speed physical sweeps must hit the actual wall without tunnelling")
 	var head_on := collision_trial(car,Vector3(0,0,-65),Vector3.FORWARD,80)
 	check(head_on.get("barrier",false) and head_on.get("severe",false) and head_on.get("closing_speed",0) > 70 and head_on.get("incoming_speed",0) > 70,"A severe real barrier impact must preserve its incoming/closing speed for the crash controller")
-	check(head_on.get("rebound_mps",0) >= 10 and head_on.get("rebound_mps",100) <= 14.1,"A high-speed barrier collision must rebound visibly with bounded normal restitution")
+	check(head_on.get("rebound_mps",0) >= 22 and head_on.get("rebound_mps",100) <= 31,"A high-speed barrier collision must throw the car back hard, within a bounded restitution")
 	# Adjacent rail triangles can produce a second recovery contact after the
 	# impact. An already-separating body must keep its outgoing normal impulse.
 	car.reset_pose(Vector3(0,0,-77.63),Vector3.FORWARD)
@@ -114,6 +114,7 @@ func run(tree: SceneTree) -> int:
 	check(glance.get("barrier",false) and not glance.get("severe",true) and glance.get("closing_speed",100) < 12,"A fast glancing guardrail scrape must not trigger a severe crash")
 	var slow_wall := collision_trial(car,Vector3(0,0,-65),Vector3.FORWARD,35)
 	check(slow_wall.get("barrier",false) and not slow_wall.get("severe",true),"A lower-speed head-on wall touch must rebound without launching the crash animation")
+	check(slow_wall.get("rebound_mps",0) > 5 and slow_wall.get("rebound_mps",100) < head_on.get("rebound_mps",0)*0.7,"The rebound must scale with the speed of the hit")
 	var ground_edge := collision_trial(car,Vector3(-180,0,0),Vector3.FORWARD,80)
 	check(ground_edge.get("layer",0) == 1 and not ground_edge.get("barrier",true) and not ground_edge.get("severe",true),"Even a fast ground-layer edge contact must never be classified as a guardrail crash")
 	var opponent := Car.new()

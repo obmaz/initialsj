@@ -14,6 +14,13 @@ const LATERAL_GRIP_FACTOR := 1.8
 # Asking for more turn than the grip allows slides the front tyres: they scrub
 # speed (understeer) instead of turning the car.
 const UNDERSTEER_SCRUB := 0.5
+# Guardrail response grows with the closing speed: a harder hit throws the car back
+# harder, costs more speed, spins it away from the wall and hops it off the road.
+const BARRIER_REBOUND := 0.46
+const BARRIER_REBOUND_MAX := 30.0
+const BARRIER_SPIN := 0.10
+const BARRIER_SPIN_MAX := 3.2
+const BARRIER_HOP_FROM := 14.0
 var specification: Dictionary = {}
 var grounded := false
 var surface_normal := Vector3.UP
@@ -192,7 +199,14 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 				var severe: bool = barrier and closing >= 28.0 and incoming_speed >= 55.0 and absf(normal.y) < 0.65
 				last_contacts.append({"normal":normal,"point":collision.get_position(),"collider":collider,"speed":closing,"closing_speed":closing,"incoming_speed":incoming_speed,"barrier":barrier,"severe":severe,"severity":clampf(closing/65.0,0,1)})
 				var tangent := velocity.slide(normal)
-				velocity = tangent*0.86+normal*minf(closing*0.32,14.0)
+				if barrier:
+					var hardness := clampf(closing/45.0,0,1)
+					velocity = tangent*lerpf(0.92,0.62,hardness)+normal*clampf(closing*BARRIER_REBOUND,2.0,BARRIER_REBOUND_MAX)
+					# A glancing hit swings the nose away from the wall; a square one barely spins.
+					yaw_rate += -normal.dot(global_basis.x)*clampf(closing*BARRIER_SPIN,0,BARRIER_SPIN_MAX)
+					if closing > BARRIER_HOP_FROM: velocity.y += clampf((closing-BARRIER_HOP_FROM)*0.09,0,3.0)
+				else:
+					velocity = tangent*0.86+normal*minf(closing*0.32,14.0)
 			# Recovery contacts can repeat on adjacent rail triangles after the
 			# impact. Preserve the normal impulse when already separating.
 			elif velocity.dot(normal) < 0: velocity = velocity.slide(normal)
