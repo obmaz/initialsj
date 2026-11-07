@@ -917,12 +917,15 @@ func draw_pace_feedback() -> void:
 	if race.air.active and race.air.trick: toast(Vector2(640,status),"AIR TIME!",32,GOLD)
 	elif race.air.landing_flash > 0.35 and race.air.trick: toast(Vector2(640,status),"LANDED / +100",28,Color("b7e9ff"),1.0,fresh(race.air.landing_flash,0.65))
 	elif race.pad_active: draw_boost_badge()
+	elif race.surface.mud_flash > 0: toast(Vector2(640,status),"MUD / SLOWED",28,Color("d9b38a"),minf(1,race.surface.mud_flash*2),fresh(race.surface.mud_flash,1.2))
 	elif race.surface.water_flash > 0: toast(Vector2(640,status),"WET ROAD / LOW GRIP",28,Color("a9dfff"),minf(1,race.surface.water_flash*2),fresh(race.surface.water_flash,1.2))
 	elif race.near_miss_flash > 0: toast(Vector2(640,status),"CLOSE PASS +150",30,GOLD,minf(1,race.near_miss_flash*2.5),fresh(race.near_miss_flash,1.1))
 	elif race.overtake_flash > 0: toast(Vector2(640,status),"PASS!",32,CYAN,minf(1,race.overtake_flash*2.5),fresh(race.overtake_flash,1.0))
 	elif race.boosting: toast(Vector2(640,status),("OVERDRIVE!" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO!") if race.nitro_active else "SLIPSTREAM",30,CYAN)
 	if race.corner_warning > 0.15:
 		toast(Vector2(640,status+STATUS_STEP),"BRAKE / CORNER %d km/h" % int(race.recommended_speed*3.6),26,WARNING,race.corner_warning)
+	if race.hazard_text != "":
+		toast(Vector2(640,status+STATUS_STEP*(2 if race.corner_warning > 0.15 else 1)),"! "+race.hazard_text,26,WARNING)
 
 # Road boosts get one short activation pulse, separate from nitro fuel and
 # ordinary speed lines. Motion reduction keeps only the informative badge.

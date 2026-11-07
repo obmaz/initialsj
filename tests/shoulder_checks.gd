@@ -33,6 +33,8 @@ func run(tree: SceneTree) -> int:
 			check(section.has_node("FujiWorldCollision"),"Fuji shoulders and barriers must participate in the real collision world")
 			rows.append({"mode":choice[0],"course":choice[1],"maximum_setback_m":widest,"minimum_inner_radius_margin_m":minimum_radius_margin,"controller":"world-space"})
 			continue
+		# Surface gimmicks (mud, trucks) would pollute the asphalt/dirt speed comparison.
+		section.features = [] as Array[Dictionary]
 		for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 			race.open_garage()
 			race.select_vehicle(index)

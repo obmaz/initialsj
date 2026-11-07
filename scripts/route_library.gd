@@ -1,8 +1,8 @@
 extends RefCounted
 const STAGES := 5
 const FORK_COMMIT := 80.0
-# Just over three wall-clock seconds at the fastest pad speed and arcade tempo.
-const CHECKPOINT_RUNUP := 420.0
+# About a second and a half at the fastest pad speed: the straight to the fork is short.
+const CHECKPOINT_RUNUP := 210.0
 const CHECKPOINT_BONUS := 52.0
 const START_TIME := 62.0
 const THEMES := [
@@ -35,6 +35,11 @@ static func canopy_span(stage: int, node: int) -> Vector2:
 static func tunnel_span(stage: int, node: int) -> Vector2:
 	match theme(stage,node):
 		"city", "neon": return Vector2(1420,2370)
+		"hawaii": return Vector2(1500,1900)
+		"amusement": return Vector2(1900,2300)
+		"bamboo": return Vector2(1700,2150)
+		"canyon": return Vector2(1800,2250)
+		"harbor": return Vector2(1500,2050)
 		"seoul": return Vector2(1500,2600)
 		"ruins": return Vector2(1750,2210)
 		"jeju", "snow": return Vector2(1850,2250)

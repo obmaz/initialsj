@@ -59,7 +59,66 @@ func tour_elevation(distance: float, span: float) -> float:
 	var profile: Vector4 = TOUR_ELEVATION[Library.theme(stage,route_node)]
 	var first := sin(PI*clampf(u/profile.z,0,1))
 	var second := sin(PI*clampf((u-profile.w)/(1-profile.w),0,1))
-	return (37+stage*4+route_node*2+profile.x)*(profile.y*first*first+second*second)
+	return (37+stage*4+route_node*2+profile.x)*(profile.y*first*first+second*second)+steep_lift(distance)
+
+# Tour gimmick spans are fixed per stage and route, away from the tunnel. They are cached
+# because the road width and height are sampled constantly.
+var _steep_cache: Array[float] = []
+var _pinch_cache: Array[Vector2] = []
+var _gimmicks_ready := false
+
+func _tour_span_free(start: float, finish: float) -> bool:
+	var tunnel := Library.tunnel_span(stage,route_node)
+	if tunnel.y > tunnel.x and start < tunnel.y+80 and finish > tunnel.x-80: return false
+	return start > 420 and finish < Library.section_length(stage,route_node)-Library.CHECKPOINT_RUNUP-330
+
+func _prepare_gimmicks() -> void:
+	_gimmicks_ready = true
+	if closed_loop: return
+	var span := Library.section_length(stage,route_node)
+	var usable := span-Library.CHECKPOINT_RUNUP-900
+	# Steep climbs: up the slope over 90 m, then a sharp drop over 45 m behind the crest.
+	var fractions := [0.20] if stage == 0 else ([0.20,0.72] if stage < 3 else [0.20,0.50,0.80])
+	for fraction in fractions:
+		var start: float = 450+usable*fraction
+		if not _tour_span_free(start-40,start+260):
+			var tunnel := Library.tunnel_span(stage,route_node)
+			start = tunnel.y+120 if tunnel.y > tunnel.x else start
+		var crowded := false
+		for other in _steep_cache:
+			if absf(other-start) < 450: crowded = true
+		if not crowded and _tour_span_free(start-40,start+260): _steep_cache.append(start)
+	# Sudden narrowing: the road pinches in over 45 m and holds for 110 m.
+	var pinch_fractions := [0.38] if stage == 0 else ([0.38,0.62] if stage < 3 else [0.34,0.58,0.88])
+	for fraction in pinch_fractions:
+		var start: float = 450+usable*fraction
+		if not _tour_span_free(start-60,start+240): continue
+		var blocked := false
+		for s in _steep_cache:
+			if start < s+300 and start+240 > s-80: blocked = true
+		if not blocked: _pinch_cache.append(Vector2(start,start+110))
+
+func steep_starts() -> Array[float]:
+	if not _gimmicks_ready: _prepare_gimmicks()
+	return _steep_cache
+
+func pinch_spans() -> Array[Vector2]:
+	if not _gimmicks_ready: _prepare_gimmicks()
+	return _pinch_cache
+
+func steep_lift(distance: float) -> float:
+	var lift := 0.0
+	var height := 7.0+stage*0.9
+	for start in steep_starts():
+		lift += height*(smoothstep(start,start+90,distance)-smoothstep(start+90,start+145,distance))
+	return lift
+
+# 0 on an ordinary road, 1 while the road is pinched.
+func pinch_amount(distance: float) -> float:
+	var amount := 0.0
+	for span in pinch_spans():
+		amount = maxf(amount,smoothstep(span.x-60,span.x,distance)*(1-smoothstep(span.y,span.y+70,distance)))
+	return amount
 
 func _init(origin: Vector3 = Vector3(0,6,0), heading_angle: float = -PI / 2, stage_index: int = 0, node_index: int = 0, side: int = 0) -> void:
 	stage = stage_index
@@ -133,7 +192,9 @@ func half_width(distance: float) -> float:
 	if tunnel.y > tunnel.x:
 		wave *= 1-smoothstep(tunnel.x-120,tunnel.x-30,distance)*(1-smoothstep(tunnel.y+30,tunnel.y+120,distance))*0.7
 	var width := 9.6-route_node*0.4+3.0*wave
-	return lerpf(9.0,clampf(width,6.2,12.6),blend)
+	var pinch := pinch_amount(distance)
+	width = lerpf(width,5.2,pinch)
+	return lerpf(9.0,clampf(width,5.2,12.6),blend)
 
 func rail_setback(distance: float, side: float) -> float:
 	if closed_loop and course_id == 1: return 1.5

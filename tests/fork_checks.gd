@@ -38,7 +38,7 @@ func run(tree: SceneTree) -> int:
 	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		var v := Catalog.spec(index)
 		fastest = maxf(fastest,maxf(v.overdrive_speed+2,v.max_speed+21))
-	check(Library.CHECKPOINT_RUNUP/(fastest*race.GAME_PACE) >= 3 and Library.CHECKPOINT_RUNUP < 500,"The shorter approach must retain three seconds of mobile choice time at maximum boost")
+	check(Library.CHECKPOINT_RUNUP/(fastest*race.GAME_PACE) >= 1.5 and Library.CHECKPOINT_RUNUP < 300,"The short approach must still leave one and a half seconds of choice time at maximum boost")
 	race.track.reset()
 	race.restart()
 	race.state = "racing"
@@ -48,10 +48,10 @@ func run(tree: SceneTree) -> int:
 	for frame in range(4): race.step(1.0/60,0,false,true,false)
 	check(race.checkpoints == 1 and race.stage_index == 0 and race.route_choices_visible(),"Checkpoint must award time and expose route choices before changing stage")
 	var checkpoint_time: float = race.time_left
-	for frame in range(180):
+	for frame in range(85):
 		race.speed = fastest
 		race.step(race.GAME_PACE/60,0,false,false,false)
-	check(race.stage_index == 0 and race.distance < race.track.length,"Three real seconds after checkpoint must still leave the car on the straight approach")
+	check(race.stage_index == 0 and race.distance < race.track.length,"One real second after checkpoint must still leave the car on the straight approach")
 	check(race.checkpoints == 1 and race.time_left < checkpoint_time,"The straight approach must not award a checkpoint twice")
 	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		for side in [0,1]:

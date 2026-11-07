@@ -98,7 +98,7 @@ func run(tree: SceneTree) -> int:
 	check(not race.nitro_active,"Gauge boost must stop immediately on release")
 	var depleted: float = race.nitro
 	for i in range(60): tick(false)
-	check(is_equal_approx(race.nitro-depleted,4),"Released gauge must regenerate")
+	check(is_equal_approx(race.nitro-depleted,2.4),"Released gauge must regenerate slowly")
 	# Charges: prepaid burst survives release, holding consumes exactly one.
 	drive(1)
 	for i in range(240): tick(true)

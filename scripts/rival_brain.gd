@@ -116,6 +116,10 @@ func tick(race: Node3D, delta: float) -> void:
 			elif event == "boost":
 				r.surface.cancel_boost()
 				r.boosting = false
+			elif event == "mud":
+				r.speed *= 0.88
+			elif event == "truck":
+				r.speed *= 0.6
 			elif event == "water":
 				r.speed *= 0.96
 				if DisplayServer.get_name() != "headless" and absf(race.relative_gap(r.distance,race.distance)) < 100 and r.speed > 10:

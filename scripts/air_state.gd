@@ -37,8 +37,10 @@ static func launch_velocity(section: Node3D, feature: Dictionary, edge: float, l
 	# descending with that road instead of hovering while the ground falls away.
 	var probe := clampf(float(feature.length)*0.25,1.0,4.0)
 	var grade: float = (section.point(edge+probe,lane).y-section.point(edge-probe,lane).y)/(probe*2)
-	var ramp_lift := maxf(0,speed)*float(feature.height)/maxf(1.0,float(feature.length))
+	var ramp_lift := maxf(0,speed)*float(feature.get("height",0.0))/maxf(1.0,float(feature.length))
 	var trick_lift := clampf(ramp_lift+3.0,MIN_TRICK_LIFT,MAX_TRICK_LIFT)
+	# A tall jump needs speed and sends the car much higher.
+	if feature.get("big",false): trick_lift = clampf(ramp_lift+6.0,10.0,15.0)
 	return speed*grade+trick_lift
 
 func flight(delta: float, ground_y: float) -> bool:
@@ -68,7 +70,7 @@ func advance(section: Node3D, from: Vector2, to: Vector2, speed: float, delta: f
 	var last := int(floor(to.y/section.length)) if section.closed_loop else 0
 	for cycle in range(first,last+1):
 		for f in section.features:
-			if f.kind != "ramp": continue
+			if f.kind != "ramp" and f.kind != "crest": continue
 			var edge: float = f.distance+f.length*0.5+(cycle*section.length if section.closed_loop else 0)
 			if from.y >= edge or to.y < edge: continue
 			var t := (edge-from.y)/(to.y-from.y)
@@ -78,7 +80,7 @@ func advance(section: Node3D, from: Vector2, to: Vector2, speed: float, delta: f
 			if consumed.has(key): continue
 			consumed[key] = true
 			active = true
-			world_y = section.point(edge,lateral).y+f.height
+			world_y = section.point(edge,lateral).y+float(f.get("height",0.0))
 			trick = speed >= 20
 			velocity = launch_velocity(section,f,edge,lateral,speed) if trick else 0.0
 			if trick: launches += 1

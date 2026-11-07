@@ -268,7 +268,7 @@ func update_passes(old_gaps: Array[float], previous_distance: float) -> void:
 		if lateral > 2.15 and lateral < 3.8 and race.bump_cooldown <= 0:
 			race.near_misses += 1
 			race.near_miss_flash = 1.1
-			race.nitro = minf(100,race.nitro+12)
+			race.nitro = minf(100,race.nitro+6)
 			race.score += 150
 
 func impact(hit: Dictionary) -> void:

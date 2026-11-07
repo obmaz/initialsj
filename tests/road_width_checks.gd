@@ -4,7 +4,7 @@ var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
 
-func survey(track: Node3D, label: String, minimum_spread: float) -> void:
+func survey(track: Node3D, label: String, minimum_spread: float, steepest_allowed: float = 0.045) -> void:
 	var section = track.active
 	var low := INF
 	var high := -INF
@@ -20,8 +20,8 @@ func survey(track: Node3D, label: String, minimum_spread: float) -> void:
 		previous = width
 		d += step
 	check(high-low >= minimum_spread,"%s needs clearly wide and narrow stretches (%.1f to %.1f)" % [label,low,high])
-	check(low >= 6.0,"%s must never pinch below a car-and-a-half lane (%.1f)" % [label,low])
-	check(steepest < 0.045,"%s width must change gradually (%.3f m per m)" % [label,steepest])
+	check(low >= 5.0,"%s must never pinch below a car-and-a-half lane (%.1f)" % [label,low])
+	check(steepest < steepest_allowed,"%s width must change gradually (%.3f m per m)" % [label,steepest])
 
 func run(tree: SceneTree) -> int:
 	var r = load("res://scenes/race.tscn").instantiate()
@@ -38,7 +38,7 @@ func run(tree: SceneTree) -> int:
 	check(absf(r.track.active.half_width(0.0)-14.5) < 0.01 and absf(r.track.active.half_width(r.track.length*0.05)-14.5) < 0.01,"Suncoast must keep full width along the pit lane")
 	r.choose_mode("tour",0)
 	await tree.physics_frame
-	survey(r.track,"Tour",3.5)
+	survey(r.track,"Tour",3.5,0.18)
 	check(absf(r.track.active.half_width(0.0)-9.0) < 0.01 and absf(r.track.active.half_width(r.track.length)-9.0) < 0.01,"Tour sections must join at a common width")
 	r.queue_free()
 	await tree.process_frame

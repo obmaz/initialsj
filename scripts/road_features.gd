@@ -3,8 +3,8 @@ const PAD_SHADER = preload("res://shaders/boost_pad.gdshader")
 const WATER_SHADER = preload("res://shaders/road_puddle.gdshader")
 const Library = preload("res://scripts/route_library.gd")
 
-static func tour_slot(section: Node3D, desired: float, extent: float, kind: String, occupied: Array[Vector2]) -> float:
-	var first := 320+extent*0.5
+static func tour_slot(section: Node3D, desired: float, extent: float, kind: String, occupied: Array[Vector2], ahead: float = 0.0) -> float:
+	var first := 320+extent*0.5+(110 if kind == "ramp" else 0)
 	var last: float = section.length-Library.CHECKPOINT_RUNUP-100-extent*0.5-(160 if kind == "ramp" else 0)
 	var tunnel := Library.tunnel_span(section.stage,section.route_node)
 	var best := INF
@@ -12,14 +12,14 @@ static func tour_slot(section: Node3D, desired: float, extent: float, kind: Stri
 	var count := maxi(1,ceili((last-first)/10))
 	for i in range(count+1):
 		var d := lerpf(first,last,float(i)/count)
-		var bounds := Vector2(d-extent*0.5-20,d+extent*0.5+20)
+		var bounds := Vector2(d-extent*0.5-20,d+extent*0.5+20+ahead)
 		var blocked := false
 		for span in occupied:
 			if bounds.x < span.y and bounds.y > span.x: blocked = true; break
 		if blocked: continue
 		if tunnel.y > tunnel.x:
 			var gap := Vector2(d-120,d+180) if kind == "ramp" else Vector2(bounds.x-40,bounds.y+40)
-			if kind in ["ramp","water"] and gap.x < tunnel.y+80 and gap.y > tunnel.x-40: continue
+			if kind in ["ramp","water","truck"] and gap.x < tunnel.y+80 and gap.y > tunnel.x-40: continue
 		var grade: float = (section.point(d+4).y-section.point(d-4).y)/8
 		if kind == "ramp" and absf(grade) > 0.045: continue
 		var score: float = absf(d-desired)+absf(section.curvature(d))*(18000 if kind == "ramp" else 9000)
@@ -36,15 +36,38 @@ static func tour_patch(section: Node3D, kind: String, d: float, fraction: float,
 static func tour_layout(section: Node3D) -> Array[Dictionary]:
 	var side := -1.0 if (section.stage+section.route_node)%2 == 0 else 1.0
 	var occupied: Array[Vector2] = []
+	var crests: Array[Dictionary] = []
+	var muds: Array[Dictionary] = []
+	var trucks: Array[Dictionary] = []
+	# Steep climbs and sudden narrowings keep their own stretch of road.
+	for start in section.steep_starts():
+		occupied.append(Vector2(start-40,start+160))
+		var crest := tour_patch(section,"crest",start+90,0.0,8,60.0)
+		crests.append(crest)
+	for span in section.pinch_spans(): occupied.append(Vector2(span.x-50,span.y+40))
 	var ramps: Array[Dictionary] = []
 	var water: Array[Dictionary] = []
 	var pads: Array[Dictionary] = []
 	var lanes: Array[Dictionary] = []
 	var tunnel := Library.tunnel_span(section.stage,section.route_node)
+	if section.stage >= 1:
+		# One tall jump with its own run-up pad: it launches much higher and needs speed.
+		var desired_big: float = 180+(section.length-Library.CHECKPOINT_RUNUP-260)*0.52
+		# The slot is searched with the whole run-up and landing corridor so nothing else lands in it.
+		var big_d := tour_slot(section,desired_big,150,"ramp",occupied,100.0)
+		if big_d >= 520:
+			var big_fraction := -side*0.18
+			var big := tour_patch(section,"ramp",big_d,big_fraction,26,4.6,2.6+section.stage*0.15)
+			big["big"] = true
+			ramps.append(big)
+			pads.append(tour_patch(section,"boost",big_d-78,big_fraction,20,3.4))
+			occupied.append(Vector2(big_d-110,big_d+200))
 	var ramp_count := 2 if section.stage >= 2 and (section.stage+section.route_node)%2 == 0 and tunnel.y-tunnel.x < 700 else 1
 	for i in range(ramp_count):
 		var desired: float = 180+(section.length-Library.CHECKPOINT_RUNUP-260)*(0.27 if i == 0 else 0.68)
-		var d := tour_slot(section,desired,18,"ramp",occupied)
+		var d := tour_slot(section,desired,100,"ramp",occupied,120.0)
+		if d < 0: d = tour_slot(section,desired,70,"ramp",occupied,120.0)
+		if d < 0: d = tour_slot(section,desired,18,"ramp",occupied,40.0)
 		if d < 0: continue
 		var fraction: float = side*(0.46 if i == 0 else -0.46)
 		ramps.append(tour_patch(section,"ramp",d,fraction,18,3.8,0.8+section.stage*0.05))
@@ -71,7 +94,16 @@ static func tour_layout(section: Node3D) -> Array[Dictionary]:
 			var d := middle-50+i*100
 			var fraction: float = side*(0.46 if (group+i)%2 == 0 else -0.46)
 			chains.append(tour_patch(section,"boost",d,fraction,12,3.0))
+			# Mud beside the pad: the free lane costs speed, the pad lane pays it back.
+			if i == 0: muds.append(tour_patch(section,"mud",d,-fraction,14,3.6))
 		occupied.append(Vector2(middle-76,middle+76))
+	# Long parked trucks take up one side of the road.
+	var truck_count := 1+(1 if section.stage >= 2 else 0)+(1 if section.stage >= 4 else 0)
+	for i in range(truck_count):
+		var truck_d := tour_slot(section,section.length*[0.31,0.55,0.83][i],14,"truck",occupied)
+		if truck_d < 0: continue
+		trucks.append(tour_patch(section,"truck",truck_d,(0.5 if (i+section.stage)%2 == 0 else -0.5),12.5,2.8))
+		occupied.append(Vector2(truck_d-50,truck_d+50))
 	# Keep the introductory pad and puddle first for surface previews. IDs are
 	# unique per section and do not change when another route is instantiated.
 	var out: Array[Dictionary] = []
@@ -82,6 +114,9 @@ static func tour_layout(section: Node3D) -> Array[Dictionary]:
 	out.append_array(water)
 	out.append_array(ramps)
 	out.append_array(lanes)
+	out.append_array(muds)
+	out.append_array(trucks)
+	out.append_array(crests)
 	for i in range(out.size()): out[i]["id"] = "%d:%d:%d" % [section.stage,section.route_node,i]
 	return out
 
@@ -134,11 +169,12 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 static func lane_cost(section: Node3D, distance: float, lane: float) -> float:
 	var cost := 0.0
 	for feature in section.features:
+		if feature.kind == "crest": continue
 		var gap: float = feature.distance-distance
 		if section.closed_loop: gap = fposmod(gap,section.length)
 		if gap < 0 or gap > 110: continue
 		if absf(lane-float(feature.lane)) < float(feature.width)*0.5+1.0:
-			cost += (14.0 if feature.kind == "water" else -3.5)*(1-gap/120)
+			cost += (40.0 if feature.kind == "truck" else (14.0 if feature.kind in ["water","mud"] else -3.5))*(1-gap/120)
 	return cost
 
 static func swept_hit(feature: Dictionary, from: Vector2, to: Vector2, center_distance: float) -> bool:
@@ -146,7 +182,7 @@ static func swept_hit(feature: Dictionary, from: Vector2, to: Vector2, center_di
 	var half := Vector2(float(feature.width)*0.5+1.0,float(feature.length)*0.5+1.7)
 	var a := from-Vector2(feature.lane,center_distance)
 	var delta := to-from
-	if feature.kind == "water":
+	if feature.kind in ["water","mud"]:
 		var start := a/half
 		var move := delta/half
 		var t := clampf(-start.dot(move)/maxf(move.length_squared(),0.000001),0,1)
@@ -169,6 +205,10 @@ static func build(section: Node3D) -> void:
 		if feature.kind == "ramp":
 			build_ramp(section,feature)
 			continue
+		if feature.kind == "truck":
+			build_truck(section,feature)
+			continue
+		if feature.kind == "crest": continue
 		var surface := SurfaceTool.new()
 		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 		if feature.kind in ["boost","boost_lane"]:
@@ -190,8 +230,16 @@ static func build(section: Node3D) -> void:
 					var p: Vector3 = section.point(feature.distance+cos(angle)*feature.length*0.5*radius,feature.lane+sin(angle)*feature.width*0.5*radius)
 					add_vertex(surface,p,Vector2(0.5+sin(angle)*0.5,0.5+cos(angle)*0.5))
 		var node := MeshInstance3D.new()
-		node.name = "BoostLane" if feature.kind == "boost_lane" else ("BoostPad" if feature.kind == "boost" else "RoadPuddle")
+		node.name = "BoostLane" if feature.kind == "boost_lane" else ("BoostPad" if feature.kind == "boost" else ("MudPatch" if feature.kind == "mud" else "RoadPuddle"))
 		node.mesh = surface.commit()
+		if feature.kind == "mud":
+			var mud := StandardMaterial3D.new()
+			mud.albedo_color = Color("7a5430")
+			mud.roughness = 0.96
+			node.material_override = mud
+			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			section.add_child(node)
+			continue
 		var material := ShaderMaterial.new()
 		material.shader = PAD_SHADER if feature.kind in ["boost","boost_lane"] else WATER_SHADER
 		if feature.kind == "boost_lane":
@@ -246,3 +294,42 @@ static func add_vertex(surface: SurfaceTool, point: Vector3, uv: Vector2) -> voi
 	surface.set_normal(Vector3.UP)
 	surface.set_uv(uv)
 	surface.add_vertex(point+Vector3.UP*0.075)
+
+# A parked box truck: cab in front, long trailer behind, six wheels. Local -Z is the driving direction.
+static func build_truck(section: Node3D, feature: Dictionary) -> void:
+	var d: float = feature.distance
+	var truck := Node3D.new()
+	truck.name = "ParkedTruck"
+	var ahead: Vector3 = section.point(d+7,feature.lane)
+	var behind: Vector3 = section.point(d-7,feature.lane)
+	var middle: Vector3 = section.point(d,feature.lane)
+	truck.basis = Basis.looking_at((ahead-behind).normalized(),Vector3.UP)
+	section.add_child(truck)
+	truck.position = middle
+	var palette := [Color("e8e6df"),Color("d8d05a"),Color("c9563c"),Color("3d6f9e")]
+	var body: Color = palette[(section.stage+section.route_node+int(d/100))%palette.size()]
+	var width := float(feature.width)
+	var half := float(feature.length)*0.5
+	section.box(truck,Vector3(0,0.55,0),Vector3(width-0.3,0.5,float(feature.length)),section.material(Color("2b2f33")))
+	section.box(truck,Vector3(0,2.45,half-4.3),Vector3(width,3.2,8.6),section.material(body))
+	section.box(truck,Vector3(0,1.9,-half+1.5),Vector3(width-0.1,2.3,2.8),section.material(body.darkened(0.25)))
+	section.box(truck,Vector3(0,2.35,-half+0.2),Vector3(width-0.5,1.0,0.12),section.material(Color("1b2b3a"),0.2))
+	section.box(truck,Vector3(0,0.9,half+0.05),Vector3(width-0.4,0.3,0.12),section.material(Color("d63b3b")))
+	for z in [-half+1.8,half-2.4,half-3.9]:
+		for x in [-width*0.5+0.1,width*0.5-0.1]:
+			section.box(truck,Vector3(x,0.5,z),Vector3(0.45,1.0,1.0),section.material(Color("15181b")))
+
+# What is coming up in the next stretch of road, for the on-screen warning.
+static func hazard_ahead(section: Node3D, distance: float) -> String:
+	if section.closed_loop: return ""
+	var best := 150.0
+	var label := ""
+	for feature in section.features:
+		var gap: float = float(feature.distance)-distance
+		if gap < 25 or gap >= best: continue
+		if feature.kind == "truck": best = gap; label = "TRUCK AHEAD"
+		elif feature.kind == "crest": best = gap; label = "STEEP DROP"
+	for span in section.pinch_spans():
+		var gap: float = span.x-distance
+		if gap >= 0 and gap < best: best = gap; label = "NARROW ROAD"
+	return label

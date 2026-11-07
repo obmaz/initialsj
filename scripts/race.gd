@@ -79,6 +79,8 @@ var settings_return := "menu"
 var loading_title := ""
 # Low-memory rendering for consoles and browsers that already lost their GPU context.
 var lite_graphics := false
+# Short warning for the next gimmick on a Tour road (truck, steep drop, narrow road).
+var hazard_text := ""
 var laps_completed := 0
 var lap_started := 0.0
 var last_lap := 0.0
@@ -1049,11 +1051,24 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			score += 50
 			boosting = true
 			boost_kick = 0.55
+		elif event == "mud":
+			speed *= 0.86
+			if DisplayServer.get_name() != "headless" and speed > 10: landing_dust.burst(track.point(distance,lane),motion_reduced)
+		elif event == "truck":
+			# A parked truck is a wall: the car loses most of its speed and is thrown to the open side.
+			var away := signf(lane-surface.truck_lane)
+			if away == 0: away = 1.0
+			lane_velocity = away*8.0
+			speed *= 0.5
+			traffic_hits += 1
+			if bump_cooldown <= 0: register_impact(0.9,Vector2(-away,0))
 		else:
 			speed *= 0.96
 			if DisplayServer.get_name() != "headless" and speed > 10:
 				var forward := (track.point(distance+2)-track.point(distance)).normalized()
 				water_effect.burst(track.point(distance,lane),forward,motion_reduced)
+	# Wading through mud keeps dragging the car down while any part of it is still in the patch.
+	if surface.mud_time > 0 and not air.active: speed = maxf(0,speed-delta*34)
 	boosting = nitro_active or pad_active or (draft_charge > 0.65 and throttling and not drifting and impact < 0.15)
 	brain.tick(self,delta)
 	for i in range(rivals.size()):
@@ -1077,7 +1092,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			if contact.is_empty() and absf(lateral_gap) < 3.8 and absf(relative_world.y+float(r.air.height)-air.height) < 1.5:
 				near_misses += 1
 				near_miss_flash = 1.1
-				nitro = minf(100,nitro+12)
+				nitro = minf(100,nitro+6)
 				score += 150
 		if not contact.is_empty(): resolve_contact(r,contact)
 	if drifting and offroad_amount < 0.15 and margin > 1 and impact < 0.1:
@@ -1087,6 +1102,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		var k: float = absf(track.curvature(distance+look))
 		recommended_speed = minf(recommended_speed,sqrt((vehicle.grip+track.active.banking_grip(distance+look))*surface.grip_factor*1.25/maxf(k,0.0001)))
 	corner_warning = move_toward(corner_warning,clampf((speed-recommended_speed-4)/15,0,1),delta*3)
+	hazard_text = Features.hazard_ahead(track.active,distance) if mode == "tour" else ""
 	if mode == "track":
 		var finished_laps := int(maxf(0,distance-80)/track.length)
 		if finished_laps > laps_completed:
@@ -1094,7 +1110,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			last_lap = elapsed-lap_started
 			lap_started = elapsed
 			checkpoint_flash = 2
-			nitro = minf(100,nitro+25)
+			nitro = minf(100,nitro+15)
 			nitro_charges = mini(vehicle.charges,nitro_charges+1)
 			if laps_completed >= 3: finish()
 	else:
@@ -1238,7 +1254,7 @@ func award_checkpoint() -> void:
 	checkpoint_flash = 2
 	checkpoint_award = Library.checkpoint_bonus(route_node)
 	time_left += checkpoint_award
-	nitro = minf(100,nitro+25)
+	nitro = minf(100,nitro+15)
 	nitro_charges = mini(vehicle.charges,nitro_charges+1)
 
 func advance_route() -> void:
