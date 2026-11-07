@@ -44,7 +44,7 @@ func run() -> void:
 	tap(race.hud.COURSE_FUJI)
 	await settled("ready")
 	var track_id: int = race.track.get_instance_id()
-	for index in range(3):
+	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		tap(race.hud.garage_card(index))
 		check(race.selected_vehicle == index,"Garage touch selects the intended vehicle")
 		for frame in range(18): await process_frame

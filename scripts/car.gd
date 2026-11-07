@@ -64,6 +64,14 @@ func _ready() -> void:
 		rim_scale = 1.0 if model == "wedge" else 0.94
 		ride_offset = -0.12
 		preload("res://scripts/custom_bodies.gd").build(self)
+	elif model == "gt":
+		wheel_radius = 0.34
+		wheel_half_track = 0.76
+		wheel_half_base = 1.22
+		wheel_thickness = 0.27
+		rim_scale = 1.06
+		ride_offset = -0.10
+		preload("res://scripts/gt_body.gd").build(self)
 	else:
 		make_sport_body()
 	body.position.y = ride_offset
@@ -186,7 +194,7 @@ func make_wheels() -> void:
 			var rim := MeshInstance3D.new()
 			rim.mesh = rim_mesh
 			rim.scale = Vector3.ONE*rim_scale
-			rim.material_override = mat(Color("737b7f") if model == "hatch" else Color("83939e"), 0.85)
+			rim.material_override = mat(Color("737b7f") if model == "hatch" else (Color("5f676c") if model == "gt" else Color("83939e")), 0.85)
 			wheel.add_child(rim)
 			rim.position.y = -signf(x) * (wheel_thickness*0.5+0.015)
 			if x > 0:
@@ -266,7 +274,7 @@ func make_rim_mesh() -> ArrayMesh:
 		for index in [0, 1, 2, 1, 3, 2]:
 			st.set_normal(Vector3.UP)
 			st.add_vertex(points[index])
-	var spoke_count := 8 if model == "hatch" else (6 if model == "wedge" else 5)
+	var spoke_count := 8 if model == "hatch" else (6 if model == "wedge" else (10 if model == "gt" else 5))
 	for i in range(spoke_count):
 		var angle := TAU * i / spoke_count
 		var direction := Vector3(cos(angle), 0, sin(angle))

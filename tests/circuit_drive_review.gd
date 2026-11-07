@@ -13,8 +13,9 @@ func run() -> void:
  await physics_frame
  var report := []
  var arguments := OS.get_cmdline_user_args()
- var vehicles: Array[int] = [0,1,2]
- if not arguments.is_empty(): vehicles = [clampi(int(arguments[0]),0,2)]
+ var vehicles: Array[int] = []
+ vehicles.assign(range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()))
+ if not arguments.is_empty(): vehicles = [clampi(int(arguments[0]),0,preload("res://scripts/vehicle_catalog.gd").SPECS.size()-1)]
  for index in vehicles:
   race.open_garage()
   race.select_vehicle(index)

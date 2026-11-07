@@ -107,7 +107,7 @@ func compare(rows: Dictionary, label: String) -> void:
 func run(tree: SceneTree) -> int:
 	var scalar := make_race(tree)
 	var scalar_rows := []
-	for choice in range(3):
+	for choice in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		scalar.open_garage()
 		scalar.select_vehicle(choice)
 		var k: float = scalar.vehicle.grip*2.8/pow(scalar.vehicle.max_speed,2)
@@ -141,7 +141,7 @@ func run(tree: SceneTree) -> int:
 	await tree.physics_frame
 	await tree.physics_frame
 	var world_rows := []
-	for choice in range(3):
+	for choice in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		world.open_garage()
 		world.select_vehicle(choice)
 		var trials := {}

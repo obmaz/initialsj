@@ -1,10 +1,12 @@
 extends Node
 const Factory = preload("res://scripts/vehicle_factory.gd")
+const Catalog = preload("res://scripts/vehicle_catalog.gd")
 var textures: Array[Texture2D] = []
 var viewports: Array[SubViewport] = []
-var rendered := [false,false,false]
+var rendered := []
 func _ready() -> void:
-	for i in range(3):
+	for i in range(Catalog.SPECS.size()):
+		rendered.append(false)
 		var viewport := SubViewport.new()
 		viewport.size = Vector2i(1100,540)
 		viewport.transparent_bg = true

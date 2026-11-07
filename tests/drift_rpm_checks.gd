@@ -59,7 +59,7 @@ func run(tree: SceneTree) -> int:
 	touch(race,"drift",12,false)
 	touch(race,"right",11,false)
 	check(race.hud.fingers.is_empty(),"All released touches must leave no held steering input")
-	for index in range(3):
+	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		race.open_garage()
 		race.select_vehicle(index)
 		race.restart()

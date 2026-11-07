@@ -9,7 +9,7 @@ func run() -> void:
 	race.save_records = false
 	race.choose_mode("track",1)
 	var report := []
-	for index in range(3):
+	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		race.open_garage()
 		race.select_vehicle(index)
 		race.restart()
