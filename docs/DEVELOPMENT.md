@@ -82,3 +82,6 @@ touch build/site/.nojekyll
 
 ## 이미지 압축
 큰 이미지 14장(`assets/ui/*.png`, `assets/environment/*.png`)은 가져오기 설정을 손실 WebP(`compress/mode=1`, `compress/lossy_quality=0.92`)로 두었습니다. 가져온 크기가 약 22.1MB에서 5.7MB로 줄었고, 메뉴·차고 화면은 변경 전후 PSNR이 42dB 이상으로 눈에 띄는 차이가 없습니다. 원본 PNG는 그대로입니다. 새 큰 이미지를 넣을 때도 같은 설정을 씁니다. 이 방식은 내려받는 크기만 줄이고 그래픽 메모리 사용량은 그대로입니다(메모리는 VRAM 압축이나 해상도 축소가 필요합니다).
+
+### GPU 압축(타일 질감)
+도로·흙·잔디 타일 질감 3장(`asphalt`, `dirt-shoulder`, `lakeside-grass`)은 GPU 압축(`compress/mode=2`)으로 가져옵니다. 프로젝트 설정에서 PC용(S3TC)과 모바일용(ETC2) 형식을 모두 만들도록 켜 두었고(`textures/vram_compression/*`), 어떤 형식을 파일에 담을지는 내보내기 프리셋(`export_presets.cfg`의 `vram_texture_compression/for_desktop`·`for_mobile`)이 정합니다. 웹은 둘 다 담아 PC·모바일·콘솔 브라우저를 모두 지원하고, 나중에 Android 프리셋을 만들면 `for_mobile=true`, `for_desktop=false`로 두어 APK에는 모바일 형식만 담습니다. 게임 코드는 바뀌지 않습니다. 장당 그래픽 메모리는 약 5.6MB에서 0.7MB로 줄었고(세 장 합계 약 16.8MB에서 2.1MB), 내려받는 크기는 두 형식을 담기 때문에 약 2MB 늘었습니다. 메뉴 아트와 파노라마처럼 그라데이션이 많은 이미지는 밴딩 때문에 GPU 압축하지 않습니다.
