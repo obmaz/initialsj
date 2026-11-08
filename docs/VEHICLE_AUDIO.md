@@ -95,3 +95,7 @@ python3 tools/verify_repository.py
 - [vehicle_audio_checks.gd](../tests/vehicle_audio_checks.gd)는 `race_test.gd`에 포함되어 모든 차량의 `audio` 항목 완전성과 범위, 파일 존재, 다른 차량 파일의 재사용 여부(내용 해시), 합성 레시피 존재, 웹 루프가 파일과 일치하는지, 속도·상태에 따른 믹스, 선택한 차량으로 바뀌는 실제 플레이어의 스트림, 니트로 점화음, 음소거를 확인합니다.
 - 웹 재생 경로는 Playwright와 Chromium, 실행 중인 Web export 서버가 필요한 `tests/web_audio_review.cjs`로 실제 브라우저에서 확인합니다. 차량당 엔진·부스터·드리프트 보이스 세 개가 모두 반복 재생되는지 봅니다.
 - 실제 기기의 스피커 음색과 크기, 안드로이드 오디오 지연은 실기기에서 직접 확인해야 합니다.
+
+## 비동기 선택과 종료
+
+`web/file_audio.js`는 선택 요청마다 순번을 부여합니다. A→B→A처럼 같은 차량을 다시 선택해도 이전 디코딩 요청은 새 루프를 만들 수 없습니다. 종료 시 모든 루프와 연결을 끊고 입력 리스너·디코딩 캐시를 해제합니다. 이 수명 관리는 `node tests/audio_lifecycle_review.cjs`로 검사하며 차량별 음원 파일·프로필·합성 레시피를 공유하거나 변경하지 않습니다.
