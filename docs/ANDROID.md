@@ -26,9 +26,9 @@ The APK is built only when you start it by hand: **Actions > Build Android APK >
 | Input | Meaning |
 | --- | --- |
 | `build_type` | `debug` (default) is signed with the shared test key `tools/android-test.keystore`, whose password is in the repository, so it is for test installs only and newer builds install over older ones. `release` is signed with your own key from repository secrets (see below). |
-| `publish` | On (default): also publishes the file as the `apk-latest` release asset, a public link that always points at the newest build: <https://github.com/obmaz/initialsj/releases/download/apk-latest/initialsj.apk>. Off: the APK is only kept as a workflow artifact for 30 days (sign-in required to download). |
+| `publish` | On (default): also publishes the file as a public release: test builds go to the `apk-test` release as `initialsj-test.apk`, release builds to `apk-release` as `initialsj-release.apk` (each tag points at the commit that built it). The two keys cannot update each other, so install only one kind per phone. Newest test build: <https://github.com/obmaz/initialsj/releases/download/apk-test/initialsj-test.apk>. Off: the APK is only kept as a workflow artifact for 30 days (sign-in required to download). |
 
-The first link works only after the workflow has run once. A run takes about 6-10 minutes.
+The workflow must be started from the `main` branch (other branches stop with a message). The first link works only after the workflow has run once. A run takes about 6-10 minutes.
 
 ## Settings
 

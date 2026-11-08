@@ -116,6 +116,37 @@ func rear_and_deck_checks(tree: SceneTree, race: Node3D) -> void:
 	var selected: float = session.rival_lane(1,upper,20,1.0/60)
 	check(absf(selected-2.4) < 0.01 and session.rival_rear_clear(1),"Traffic below a bridge must not force lane avoidance or block physical reverse on the upper deck")
 
+# Rivals far from the player are cheaper to simulate; the hand-over must be seamless.
+func rival_detail_levels(tree: SceneTree, race: Node3D) -> void:
+	race.restart()
+	race.state = "racing"
+	var world: Node3D = race.world_race
+	var player: CharacterBody3D = world.player_body
+	for rival in race.rivals: rival.active = false
+	race.rivals[0].active = true
+	var body: CharacterBody3D = world.bodies[1]
+	var d: float = world.safe_distance+400.0
+	for case in [[20.0,1],[100.0,2],[400.0,0]]:
+		world.teleport(1,world.safe_distance+case[0],0.0,true)
+		body.velocity = body.forward_direction()*30
+		check(world.rival_stride(body) == case[1],"A rival %.0f m from the player must use detail level %d" % [case[0],case[1]])
+	# A carried rival keeps moving along the road, in its lane, without a body sweep.
+	world.teleport(1,world.safe_distance+400.0,2.0,true)
+	body.velocity = body.forward_direction()*40
+	var start_distance: float = world.trackers[1].distance
+	for frame in range(60): world.update_rivals(1.0/60)
+	var moved: float = world.trackers[1].distance-start_distance
+	check(moved > 20 and moved < 60,"A carried rival must keep driving along the road (moved %.1f m)" % moved)
+	check(race.rivals[0].speed > 5 and absf(race.rivals[0].lane) < race.track.half_width(race.rivals[0].distance),"A carried rival must stay on the road at speed")
+	# Handing a carried rival back to the physics body must not jump it.
+	var before: Vector3 = body.global_position
+	var along: Vector3 = body.forward_direction()
+	world.teleport(0,world.trackers[1].distance-80.0,0.0,false)
+	player.velocity = Vector3.ZERO
+	for frame in range(30): world.update_rivals(1.0/60)
+	var jump: float = body.global_position.distance_to(before)
+	check(jump < 60.0 and world.rival_stride(body) < 3,"A rival that comes back into range must hand over smoothly (moved %.1f m)" % jump)
+
 func run(tree: SceneTree) -> int:
 	var race = load("res://scenes/race.tscn").instantiate()
 	tree.root.add_child(race)
@@ -132,6 +163,7 @@ func run(tree: SceneTree) -> int:
 	passes.append(await parked_pass(tree,race,true))
 	var reverse := await reverse_recovery(tree,race)
 	await rear_and_deck_checks(tree,race)
+	await rival_detail_levels(tree,race)
 	FileAccess.open(Report.path("world-rival-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"assertions":assertions,"failures":failures,"passes":passes,"reverse":reverse},"\t")+"\n")
 	race.queue_free()
 	await tree.process_frame

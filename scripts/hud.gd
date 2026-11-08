@@ -367,8 +367,10 @@ func slant(rect: Rect2, color: Color = INK, cut: float = 16, fade: bool = false)
 	return p
 
 func glow_line(points: PackedVector2Array, color: Color = CYAN, width: float = 2) -> void:
-	for layer in [Vector2(18, 0.025), Vector2(11, 0.05), Vector2(5, 0.10), Vector2(2, 0.16)]:
-		draw_polyline(points, Color(color, color.a * layer.y), width + layer.x, true)
+	# Two soft halos (not antialiased: they are blurry anyway, and an antialiased wide polyline is
+	# costly to build every frame) and the sharp core line.
+	for layer in [Vector2(14, 0.04), Vector2(5, 0.12)]:
+		draw_polyline(points, Color(color, color.a * layer.y), width + layer.x, false)
 	draw_polyline(points, color, width, true)
 
 func rounded_polygon(points: PackedVector2Array, radius: float) -> PackedVector2Array:
@@ -398,10 +400,18 @@ func build_dial_backdrop() -> void:
 	dial_backdrop.fill_from = Vector2(0.5, 0.5)
 	dial_backdrop.fill_to = Vector2(1, 0.5)
 
+var circle_cache := {}
 func arc_points(center: Vector2, radius: float, start: float, end: float, steps: int = 80) -> PackedVector2Array:
+	# Full circles (button rings) never change, so they are built once.
+	var full := is_equal_approx(end-start,TAU) and start == 0.0
+	var key := Vector3(center.x,center.y,radius)
+	if full and steps == 80 and circle_cache.has(key): return circle_cache[key]
 	var points := PackedVector2Array()
 	for i in range(steps + 1):
 		points.append(center + Vector2.from_angle(lerpf(start, end, float(i) / steps)) * radius)
+	if full and steps == 80:
+		if circle_cache.size() > 32: circle_cache.clear()
+		circle_cache[key] = points
 	return points
 
 func time_label(seconds: float) -> String:
@@ -514,6 +524,9 @@ func draw_minimap(_rows: Array[Dictionary]) -> void:
 	draw_arc(current,7,0,TAU,24,GOLD,1.5,true)
 	text_at(Vector2(1124,210),"START  /  GOAL",11,Color("b4d1df"))
 
+var map_outline := PackedVector2Array()
+var map_outline_key := ""
+
 func circuit_map_point(d: float) -> Vector2:
 	var p: Vector3 = race.track.point(d)
 	var bounds: Rect2 = race.track.map_bounds
@@ -522,9 +535,13 @@ func circuit_map_point(d: float) -> Vector2:
 
 func draw_circuit_map() -> void:
 	slant(Rect2(1087,83,185,132),Color("121b2ac2"),10)
-	var points := PackedVector2Array()
-	for i in range(101): points.append(circuit_map_point(race.track.length*i/100.0))
-	draw_polyline(points,Color("d1e2ee"),3,true)
+	# The outline only changes with the course, so it is built once.
+	var key := "%s:%d:%d:%d" % [race.course_title,roundi(race.track.length),roundi(race.track.map_bounds.size.x),roundi(race.track.map_bounds.size.y)]
+	if map_outline_key != key:
+		map_outline_key = key
+		map_outline = PackedVector2Array()
+		for i in range(101): map_outline.append(circuit_map_point(race.track.length*i/100.0))
+	draw_polyline(map_outline,Color("d1e2ee"),3,true)
 	for r in race.rivals:
 		if r.active: draw_circle(circuit_map_point(r.distance),2.5,Color("ff9f68"))
 	if race.world_race != null:

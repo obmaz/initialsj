@@ -36,13 +36,20 @@ static func build(section: Node3D) -> Node3D:
 	collect_scenery(section.scenery,section,ground,walls)
 	var template := BoxMesh.new()
 	template.size = Vector3.ONE
-	var count := int(ceil(section.length/4))
-	for i in range(count):
-		var d: float = section.length*(i+0.5)/count
-		var basis := frame(section,d)
+	# Straight stretches use 8 m boxes (every car sweeps against the wall mesh each frame, so fewer
+	# triangles are cheaper). On bends a long straight box would leave the curved rail by
+	# (L/2)^2/(2R), so tight bends keep 4 m boxes and the tightest 2 m ones.
+	var d := 0.0
+	while d < section.length:
+		var bend: float = absf(wrapf(section.heading(d+10)-section.heading(d-10),-PI,PI))/20.0
+		var step := 8.0 if bend < 0.004 else (4.0 if bend < 0.012 else 2.0)
+		step = minf(step,section.length-d)
+		var middle := d+step*0.5
+		var basis := frame(section,middle)
 		for side in [-1.0,1.0]:
-			var lane: float = side*(section.half_width(d)+section.rail_setback(d,side))
-			append_box(walls,Transform3D(basis.scaled_local(Vector3(0.30,1.45,section.length/count+0.35)),section.point(d,lane)+basis.y*0.65),template)
+			var lane: float = side*(section.half_width(middle)+section.rail_setback(middle,side))
+			append_box(walls,Transform3D(basis.scaled_local(Vector3(0.30,1.45,step+0.35)),section.point(middle,lane)+basis.y*0.65),template)
+		d += step
 	root.add_child(body("RoadSurfaceBody",ground,1))
 	root.add_child(body("BarrierBody",walls,2))
 	root.set_meta("ground_triangles",ground.size()/3)

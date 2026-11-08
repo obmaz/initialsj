@@ -42,6 +42,8 @@ var corner_demand := 0.0
 var corner_grip := 14.5
 var last_corner_loss := 0.0
 var contact_shape: CollisionShape3D
+# CPU cars settle onto the floor every other tick: one sweep less per car per frame.
+var cheap_adhesion := false
 
 func _init() -> void:
 	collision_layer = 4
@@ -251,7 +253,7 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 			elif velocity.dot(normal) < 0: velocity = velocity.slide(normal)
 		remaining = collision.get_remainder().slide(normal)
 		if not is_floor: remaining *= 0.86
-	if grounded:
+	if grounded and (not cheap_adhesion or (Engine.get_physics_frames()+get_instance_id())%2 == 0):
 		# Physical floor adhesion is short and uses the collider, never a spline.
 		var probe := move_and_collide(-surface_normal*0.12,true,0.01)
 		if probe != null and probe.get_normal().y > 0.4:

@@ -24,6 +24,7 @@ func setup() -> void:
 	for i in range(8):
 		var body: CharacterBody3D = WorldCar.new()
 		body.name = "PlayerWorldBody" if i == 0 else "RivalWorldBody"+str(i)
+		body.cheap_adhesion = i > 0
 		add_child(body)
 		bodies.append(body)
 		var tracker: RefCounted = Progress.new()
@@ -377,15 +378,70 @@ func rival_rear_clear(index: int) -> bool:
 		if behind < 1 and behind > -12 and absf(relative.dot(right)) < 3.2: return false
 	return true
 
+# Rival bodies are the most expensive thing in a frame (each one ray-casts its tyres and sweeps
+# against the track mesh). Cars near the player are simulated every frame; farther ones every 2nd
+# or 3rd frame with the accumulated time, and glide on their last velocity in between so they
+# never visibly step. They are also invisible beyond about 460 m.
+const LOD_NEAR_SQ := 45.0*45.0
+const LOD_MID_SQ := 150.0*150.0
+# 1: every frame, 2: every other frame, 0: not simulated at all, just carried along the road.
+func rival_stride(body: CharacterBody3D) -> int:
+	var d2: float = body.position.distance_squared_to(player_body.position)
+	if d2 < LOD_NEAR_SQ: return 1
+	return 2 if d2 < LOD_MID_SQ else 0
+
+# A rival far from the player can touch nothing the player sees: skip its body physics and move
+# it along its lane, at the speed the AI would have chosen. It becomes a real body again, with the
+# same pose and speed, when it comes within range.
+func carry_rival(index: int, rival: Dictionary, target_lane: float, target_speed: float, dt: float) -> void:
+	var body := bodies[index]
+	var tracker: RefCounted = trackers[index]
+	var now := speed_of(body)
+	var next_speed := move_toward(now,target_speed,dt*(race.vehicle.brake if target_speed < now else race.vehicle.accel))
+	var old := Vector2(rival.lane,rival.distance)
+	var next_distance: float = tracker.distance+next_speed*dt
+	var next_lane := move_toward(tracker.lane,clampf(target_lane,-race.track.half_width(next_distance)+2.0,race.track.half_width(next_distance)-2.0),dt*2.5)
+	var up := road_up(next_distance)
+	var forward: Vector3 = race.track.point(next_distance+2,next_lane)-race.track.point(next_distance-2,next_lane)
+	body.reset_pose(race.track.point(next_distance,next_lane)+up*0.04,forward,up)
+	body.velocity = body.forward_direction()*next_speed
+	body.grounded = true
+	tracker.reposition(next_distance)
+	tracker.lane = next_lane
+	rival.distance = next_distance
+	rival.lane = next_lane
+	rival.speed = next_speed
+	rival.air.active = false
+	rival.air.height = 0.0
+	rival.drifting = false
+	rival.visual_yaw = 0
+	rival.surface.contact(race.track.active,old,Vector2(next_lane,next_distance),next_speed)
+	rival.boosting = rival.surface.pad_time > 0
+
 func update_rivals(delta: float) -> void:
 	for i in range(1,bodies.size()):
 		var rival: Dictionary = race.rivals[i-1]
 		if not rival.active: continue
 		var body := bodies[i]
+		var stride := rival_stride(body)
+		var carried := stride == 0
+		# A car in the air or recovering from a hit always gets the full simulation.
+		if carried or not body.grounded or rival.air.active or not body.last_contacts.is_empty(): stride = 1
+		var owed: float = float(rival.get("lod_time",0.0))+delta
+		# Stride-2 cars take turns: odd cars on odd ticks, even cars on even ticks.
+		if stride > 1 and (Engine.get_physics_frames()+i)%stride != 0:
+			rival.lod_time = owed
+			var glide := body.velocity*delta
+			glide.y = 0
+			body.global_position += glide
+			rival.distance += float(rival.speed)*delta
+			continue
+		rival.lod_time = 0.0
+		var dt := owed
 		var was_airborne: bool = rival.air.active
 		var d: float = trackers[i].distance
 		var look := clampf(speed_of(body)*0.65,15,48)
-		var target_lane := rival_lane(i,d,look,delta)
+		var target_lane := rival_lane(i,d,look,dt)
 		var target: Vector3 = race.track.point(d+look,target_lane)
 		var direction: Vector3 = target-body.feet_position()
 		var forward: Vector3 = body.forward_direction()
@@ -394,7 +450,7 @@ func update_rivals(delta: float) -> void:
 		var wheel: float = (0.46+race.vehicle.handling*0.007)/(1+speed_of(body)*0.035)*WorldCar.steering_scale(speed_of(body))
 		var axis := clampf(atan(5.4*sin(angle)/look)/wheel,-1,1)
 		if absf(angle) > 1.1: axis = signf(angle)
-		rival.surface.tick(delta)
+		rival.surface.tick(dt)
 		var target_speed: float = rival.pace+(18 if rival.surface.pad_time > 0 else 0)
 		if absf(angle) > 1.1: target_speed = minf(target_speed,10)
 		var dirt := clampf((absf(rival.lane)+0.8-race.track.half_width(d))/1.6,0,1)
@@ -412,9 +468,12 @@ func update_rivals(delta: float) -> void:
 			if gap > 0 and gap < 40 and absf(relative.dot(right)) < 2.4 and absf(relative.y) < 3:
 				blocked = true
 				target_speed = minf(target_speed,sqrt(speed_of(bodies[j])*speed_of(bodies[j])+2*30*maxf(0,gap-7)))
-		rival.world_reverse_cooldown = maxf(0,float(rival.get("world_reverse_cooldown",0))-delta)
-		var reversing_cpu: float = maxf(0,float(rival.get("world_reverse",0))-delta)
-		var stuck: float = float(rival.get("world_stuck",0))+delta if body.grounded and speed_of(body) < 1.5 and (blocked or target_speed > 5) else 0.0
+		if carried:
+			carry_rival(i,rival,target_lane,target_speed,dt)
+			continue
+		rival.world_reverse_cooldown = maxf(0,float(rival.get("world_reverse_cooldown",0))-dt)
+		var reversing_cpu: float = maxf(0,float(rival.get("world_reverse",0))-dt)
+		var stuck: float = float(rival.get("world_stuck",0))+dt if body.grounded and speed_of(body) < 1.5 and (blocked or target_speed > 5) else 0.0
 		if stuck > 1.25 and reversing_cpu <= 0 and rival.world_reverse_cooldown <= 0 and rival_rear_clear(i):
 			reversing_cpu = 1.0
 			rival.world_reverse_cooldown = 4.0
@@ -425,18 +484,18 @@ func update_rivals(delta: float) -> void:
 		var signed_speed: float = body.velocity.dot(forward)
 		var acceleration: float = race.vehicle.accel
 		if body.grounded: acceleration *= Corner.engine_factor(speed_of(body),target_speed,body.corner_demand,body.corner_grip)
-		var desired := move_toward(speed_of(body),target_speed,delta*(race.vehicle.brake if target_speed < speed_of(body) else acceleration))
+		var desired := move_toward(speed_of(body),target_speed,dt*(race.vehicle.brake if target_speed < speed_of(body) else acceleration))
 		if reversing_cpu > 0:
 			# A bounded physical manoeuvre, never a curve reposition or teleport.
 			# Check rear clearance again every frame as other traffic keeps moving.
 			if not rival_rear_clear(i): rival.world_reverse = 0; desired = 0
 			else:
-				desired = move_toward(signed_speed,-7,race.vehicle.brake*delta)
+				desired = move_toward(signed_speed,-7,race.vehicle.brake*dt)
 				axis = float(rival.world_reverse_axis)
-		elif signed_speed < -0.5: desired = move_toward(signed_speed,0,race.vehicle.brake*delta)
-		body.advance(delta,axis,desired,false,rival.surface.grip_factor*lerpf(1,0.72,dirt))
+		elif signed_speed < -0.5: desired = move_toward(signed_speed,0,race.vehicle.brake*dt)
+		body.advance(dt,axis,desired,false,rival.surface.grip_factor*lerpf(1,0.72,dirt))
 		var old := Vector2(rival.lane,rival.distance)
-		var data: Dictionary = trackers[i].update(body.feet_position(),delta)
+		var data: Dictionary = trackers[i].update(body.feet_position(),dt)
 		rival.distance = data.distance
 		rival.lane = data.lane
 		rival.speed = speed_of(body)

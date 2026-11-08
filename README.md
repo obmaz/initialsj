@@ -57,7 +57,7 @@ node tests/fullscreen_bridge_review.cjs
 node tests/audio_lifecycle_review.cjs
 ```
 
-**Android APK 내려받기**: <https://github.com/obmaz/initialsj/releases/download/apk-latest/initialsj.apk> (필요할 때만 GitHub Actions의 `Build Android APK`를 직접 실행해서 만듭니다. 직접 만들려면 `tools/build_android.sh`, 설정과 서명은 [ANDROID.md](docs/ANDROID.md)).
+**Android APK 내려받기**: <https://github.com/obmaz/initialsj/releases/download/apk-test/initialsj-test.apk> (필요할 때만 GitHub Actions의 `Build Android APK`를 직접 실행해서 만듭니다. 처음 실행하기 전에는 링크가 열리지 않습니다. 직접 만들려면 `tools/build_android.sh`, 설정과 서명은 [ANDROID.md](docs/ANDROID.md)).
 
 검사 보고서와 화면 캡처는 Git에서 제외하는 `build/reports/`에 생성합니다. `main` 푸시는 자동 검사 후 GitHub Pages의 `/initialsj/`에 배포됩니다. 자세한 내보내기 명령과 검사 범위는 [개발 문서](docs/DEVELOPMENT.md)를 참고하세요.
 
