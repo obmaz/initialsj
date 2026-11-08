@@ -325,17 +325,27 @@ static func build(section: Node3D) -> void:
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		section.add_child(node)
 
+# Jump ramps must read at a glance, day or night: the deck alternates orange and cream bands, the
+# side walls are cream, the lip is a bright cream band, and dark chevrons point up the slope. Vertex
+# colours keep it one mesh, which is also what the world collider is built from.
+const RAMP_ORANGE := Color("ff7a1a")
+const RAMP_CREAM := Color("f6f0dc")
+const RAMP_CHEVRON := Color("1a222b")
+
 static func build_ramp(section: Node3D, feature: Dictionary) -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var start: float = feature.distance-feature.length*0.5
-	for segment in range(8):
-		var a: float = start+feature.length*segment/8.0
-		var b: float = start+feature.length*(segment+1)/8.0
+	var bands := 8
+	for segment in range(bands):
+		var a: float = start+feature.length*segment/float(bands)
+		var b: float = start+feature.length*(segment+1)/float(bands)
 		var left: float = feature.lane-feature.width*0.5
 		var right: float = feature.lane+feature.width*0.5
-		var points := [section.point(a,left)+Vector3.UP*feature.height*segment/8,section.point(a,right)+Vector3.UP*feature.height*segment/8,section.point(b,left)+Vector3.UP*feature.height*(segment+1)/8,section.point(b,right)+Vector3.UP*feature.height*(segment+1)/8]
+		var points := [section.point(a,left)+Vector3.UP*feature.height*segment/bands,section.point(a,right)+Vector3.UP*feature.height*segment/bands,section.point(b,left)+Vector3.UP*feature.height*(segment+1)/bands,section.point(b,right)+Vector3.UP*feature.height*(segment+1)/bands]
+		st.set_color(RAMP_CREAM if segment == bands-1 or segment%2 == 1 else RAMP_ORANGE)
 		for n in [0,2,1,1,2,3]: st.add_vertex(points[n]+Vector3.UP*0.025)
+	st.set_color(RAMP_CREAM)
 	for side in [-1.0,1.0]:
 		var lane: float = feature.lane+side*feature.width*0.5
 		var a: Vector3 = section.point(start,lane)
@@ -343,28 +353,65 @@ static func build_ramp(section: Node3D, feature: Dictionary) -> void:
 		for p in [a,b,b+Vector3.UP*feature.height]: st.add_vertex(p+Vector3.UP*0.025)
 	var end_left: Vector3 = section.point(start+feature.length,feature.lane-feature.width*0.5)
 	var end_right: Vector3 = section.point(start+feature.length,feature.lane+feature.width*0.5)
+	st.set_color(RAMP_ORANGE)
 	for p in [end_left,end_right,end_left+Vector3.UP*feature.height,end_left+Vector3.UP*feature.height,end_right,end_right+Vector3.UP*feature.height]: st.add_vertex(p+Vector3.UP*0.025)
 	st.generate_normals()
 	var node := MeshInstance3D.new()
 	node.name = "JumpRamp"
 	node.set_meta("world_ground",true)
 	node.mesh = st.commit()
-	node.material_override = section.material(Color("3a4447"))
+	var deck := StandardMaterial3D.new()
+	deck.vertex_color_use_as_albedo = true
+	deck.roughness = 0.7
+	# A little self-light keeps the ramp readable under the night moon without a real light.
+	deck.emission_enabled = true
+	deck.emission = Color("ff9a4a")
+	deck.emission_energy_multiplier = 0.22
+	node.material_override = deck
 	section.add_child(node)
+	build_ramp_gate(section,feature,start-9.0)
+	# Dark chevrons across the full deck width, pointing up the slope.
 	var arrows := SurfaceTool.new()
 	arrows.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for row in range(5):
-		var d: float = start+2+row*2.4
+	var half_width: float = float(feature.width)*0.5-0.35
+	for row in range(4):
+		var d: float = start+1.6+row*(feature.length-4.0)/3.0
 		for side in [-1,1]:
-			var road_points := [Vector2(feature.lane,d+0.9),Vector2(feature.lane+side*1.4,d),Vector2(feature.lane+side*1.4,d+0.7),Vector2(feature.lane,d+1.6)]
+			var road_points := [Vector2(feature.lane,d+1.2),Vector2(feature.lane+side*half_width,d),Vector2(feature.lane+side*half_width,d+0.9),Vector2(feature.lane,d+2.1)]
 			for n in [0,1,2,0,2,3]:
 				var p: Vector2 = road_points[n]
-				arrows.add_vertex(section.point(p.y,p.x)+Vector3.UP*(0.05+feature.height*(p.y-start)/feature.length))
+				arrows.add_vertex(section.point(p.y,p.x)+Vector3.UP*(0.07+feature.height*(p.y-start)/feature.length))
 	arrows.generate_normals()
 	var markings := MeshInstance3D.new()
 	markings.mesh = arrows.commit()
-	markings.material_override = section.material(Color("ffca42"))
+	var ink := StandardMaterial3D.new()
+	ink.albedo_color = RAMP_CHEVRON
+	ink.roughness = 0.8
+	markings.material_override = ink
 	section.add_child(markings)
+
+# A glowing orange gantry over the road a few metres before the ramp: it is visible from far away.
+static func build_ramp_gate(section: Node3D, feature: Dictionary, d: float) -> void:
+	var edge := float(section.half_width(d))+1.2
+	var gate := Node3D.new()
+	gate.name = "JumpGate"
+	var ahead: Vector3 = section.point(d+3,0.0)
+	var behind: Vector3 = section.point(d-3,0.0)
+	var middle: Vector3 = section.point(d,0.0)
+	gate.basis = Basis.looking_at((ahead-behind).normalized(),Vector3.UP)
+	section.add_child(gate)
+	gate.position = middle
+	var glow := StandardMaterial3D.new()
+	glow.albedo_color = RAMP_ORANGE
+	glow.emission_enabled = true
+	glow.emission = RAMP_ORANGE
+	glow.emission_energy_multiplier = 1.6
+	var post: Material = section.material(Color("2a323a"))
+	for x in [-edge,edge]:
+		section.box(gate,Vector3(x,3.4,0),Vector3(0.35,6.8,0.35),post)
+		section.box(gate,Vector3(x,6.9,0),Vector3(0.7,0.5,0.7),glow)
+	section.box(gate,Vector3(0,6.5,0),Vector3(edge*2.0,0.8,0.3),glow)
+	section.box(gate,Vector3(0,6.5,0.18),Vector3(edge*2.0-1.2,0.35,0.1),section.material(RAMP_CHEVRON))
 
 static func add_vertex(surface: SurfaceTool, point: Vector3, uv: Vector2) -> void:
 	surface.set_normal(Vector3.UP)
