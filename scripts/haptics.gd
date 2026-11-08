@@ -20,6 +20,9 @@ func pulse(strong: float, weak: float, seconds: float, priority: int = 1) -> boo
 		Input.start_joy_vibration(device,clampf(weak,0,1),clampf(strong,0,1),seconds)
 	if phone_buzz and OS.has_feature("web"):
 		JavaScriptBridge.eval("navigator.vibrate && navigator.vibrate(%d)" % clampi(int(seconds*1000),10,400))
+	elif phone_buzz and OS.has_feature("android"):
+		# Native Android build: the phone's own motor, unless a pad is already rumbling.
+		if Input.get_connected_joypads().is_empty(): Input.vibrate_handheld(clampi(int(seconds*1000),10,400))
 	return true
 
 func stop() -> void:

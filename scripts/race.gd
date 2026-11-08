@@ -287,6 +287,7 @@ func _ready() -> void:
 		if OS.has_feature("web"):
 			lite_graphics = bool(JavaScriptBridge.eval("window.initialsjLiteGraphics ? window.initialsjLiteGraphics() : false"))
 			haptics.phone_buzz = bool(JavaScriptBridge.eval("typeof navigator.vibrate === 'function' && /Android/i.test(navigator.userAgent)"))
+		elif OS.has_feature("android"): haptics.phone_buzz = true
 		previews = preload("res://scripts/garage_previews.gd").new()
 		previews.lite = lite_graphics
 		add_child(previews)

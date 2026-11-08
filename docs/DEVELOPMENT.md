@@ -90,6 +90,8 @@ node tests/audio_lifecycle_review.cjs
 
 Godot 4.7.2 웹 런타임의 Emscripten `GL.getNewId`는 GL 객체 ID를 계속 늘리고, 삭제한 자리는 `null`로 남깁니다. 코스를 여러 번 오가면 실제 GL 객체 수는 일정해도 이 등록 배열과 GC 후 JS 힙은 커집니다. 앱의 노드·음원 누수와 구분해야 하며, 앱 쪽 수정으로는 해결되지 않습니다. 메뉴처럼 2D가 화면을 덮는 상태에서는 메인 뷰포트의 3D 렌더를 멈춰 불필요한 그리기를 줄입니다.
 
+Android 내보내기와 APK 빌드는 [ANDROID.md](ANDROID.md)에 정리했습니다. 아이콘은 `python3 tools/bake_android_icons.py`로 다시 만들 수 있습니다.
+
 ## 웹 내보내기와 배포
 
 ```sh

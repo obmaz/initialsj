@@ -10,7 +10,7 @@ var viewport_size := Vector2i.ZERO
 func set_mode(value: int, race: Node3D) -> void:
 	last_tick = 0
 	mode = posmod(value,3)
-	level = (2 if race.lite_graphics else (1 if OS.has_feature("web") else 0)) if mode == 0 else (0 if mode == 1 else 2)
+	level = (2 if race.lite_graphics else (1 if OS.has_feature("web") or OS.has_feature("android") else 0)) if mode == 0 else (0 if mode == 1 else 2)
 	seconds = 0
 	frames = 0
 	slow_windows = 0
