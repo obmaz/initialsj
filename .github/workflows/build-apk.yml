@@ -1,0 +1,87 @@
+name: Build Android APK
+
+# Runs only when started by hand: Actions > Build Android APK > Run workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: "debug = test key (tools/android-test.keystore); release = your keystore from repository secrets"
+        type: choice
+        options: [debug, release]
+        default: debug
+      publish:
+        description: "Also publish the APK as a public GitHub release asset (apk-latest)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-apk
+  cancel-in-progress: false
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read pinned Godot version
+        id: godot_version
+        run: echo "version=$(tr -d '[:space:]' < .godot-version)" >> "$GITHUB_OUTPUT"
+      - name: Set up Godot
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: ${{ steps.godot_version.outputs.version }}
+          use-dotnet: false
+          include-templates: true
+      - name: Import project
+        run: godot --headless --path . --editor --import --quit
+      - name: Prepare the release keystore
+        if: inputs.build_type == 'release'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "Add the repository secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD first (docs/ANDROID.md)." >&2
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          echo "INITIALSJ_KEYSTORE=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+          echo "INITIALSJ_KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "::add-mask::$KEY_PASSWORD"
+          echo "INITIALSJ_KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
+      - name: Build the APK
+        env:
+          ANDROID_ACCEPT_LICENSES: "1"
+          ANDROID_HOME: ${{ runner.temp }}/android-sdk
+        run: |
+          if [ "${{ inputs.build_type }}" = "release" ]; then
+            tools/build_android.sh release
+            cp build/android/initialsj-release.apk build/android/initialsj.apk
+          else
+            tools/build_android.sh
+            cp build/android/initialsj-debug.apk build/android/initialsj.apk
+          fi
+          ls -l build/android/initialsj.apk
+      - name: Upload the APK as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: initialsj-${{ inputs.build_type }}-apk
+          path: build/android/initialsj.apk
+          retention-days: 30
+      - name: Publish the APK as a release asset
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="Android ${{ inputs.build_type }} APK built from commit ${GITHUB_SHA::7}. Direct link: https://github.com/${{ github.repository }}/releases/download/apk-latest/initialsj.apk"
+          if gh release view apk-latest > /dev/null 2>&1; then
+            gh release edit apk-latest --notes "$notes" --prerelease
+          else
+            gh release create apk-latest --title "Android APK (latest)" --notes "$notes" --prerelease --target "$GITHUB_SHA"
+          fi
+          gh release upload apk-latest build/android/initialsj.apk --clobber

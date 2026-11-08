@@ -20,11 +20,15 @@ or copy the file to the phone and open it (allow installs from that source).
 
 ## Download
 
-Every push to `main` builds a test APK in the deploy workflow and publishes it next to the web
-game: <https://obmaz.github.io/initialsj/initialsj.apk>. It is signed with the shared test key
-`tools/android-test.keystore` (password in the repository, for test installs only), so a newer
-build installs over an older one. If the APK step fails, the web game is still deployed and the
-link keeps pointing at the previous APK.
+The APK is built only when you start it by hand: **Actions > Build Android APK > Run workflow**
+([build-apk.yml](../.github/workflows/build-apk.yml)). The normal web deploy does not build it.
+
+| Input | Meaning |
+| --- | --- |
+| `build_type` | `debug` (default) is signed with the shared test key `tools/android-test.keystore`, whose password is in the repository, so it is for test installs only and newer builds install over older ones. `release` is signed with your own key from repository secrets (see below). |
+| `publish` | On (default): also publishes the file as the `apk-latest` release asset, a public link that always points at the newest build: <https://github.com/obmaz/initialsj/releases/download/apk-latest/initialsj.apk>. Off: the APK is only kept as a workflow artifact for 30 days (sign-in required to download). |
+
+The first link works only after the workflow has run once. A run takes about 6-10 minutes.
 
 ## Settings
 
@@ -50,6 +54,10 @@ INITIALSJ_KEYSTORE=~/initialsj-release.keystore INITIALSJ_KEY_ALIAS=initialsj IN
 ```
 
 Losing that keystore means you can no longer update the app under the same id.
+
+To build the release APK in GitHub Actions, add three repository secrets (Settings > Secrets and variables > Actions):
+`ANDROID_KEYSTORE_BASE64` (output of `base64 -w0 ~/initialsj-release.keystore`), `ANDROID_KEY_ALIAS` and
+`ANDROID_KEY_PASSWORD`, then run the workflow with `build_type` = `release`.
 
 ## What is and is not verified
 
