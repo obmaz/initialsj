@@ -36,6 +36,13 @@ func run(tree: SceneTree) -> int:
 	r.state = "paused"
 	r.hud.handle_pointer(_tap(r.hud.SOUND_BUTTON.get_center()))
 	check(r.sound_enabled != sound,"The pause screen must still toggle sound")
+	# The FPS counter is an opt-in setting with its own row.
+	check(not r.show_fps,"The FPS counter must be off by default")
+	r.state = "settings"
+	r.hud.handle_pointer(_tap(r.hud.SETTINGS_FPS.get_center()))
+	check(r.show_fps,"The SHOW FPS row must switch the counter on")
+	r.settings_activate(3)
+	check(not r.show_fps,"Pad row 3 must toggle the FPS counter")
 	r.queue_free()
 	await tree.process_frame
 	print("Result popup records / pad Back pause / options only when paused: ","PASS" if failures == 0 else "FAIL")

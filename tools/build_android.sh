@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 # Builds the Android APK (arm64, GL Compatibility) with the pinned Godot version.
 #
-#   tools/build_android.sh            debug-signed APK  -> build/android/initialsj-debug.apk
+#   tools/build_android.sh            test-signed APK   -> build/android/initialsj-debug.apk
 #   tools/build_android.sh release    release template  -> build/android/initialsj-release.apk
 #
 # First run installs what is missing: the Android export templates (about 1.3 GB download), the
 # Android SDK command-line tools with platform 35 and build-tools 35.0.1, and a debug keystore.
 # Installing the SDK means accepting Google's Android SDK licence, so it only happens when you
 # set ANDROID_ACCEPT_LICENSES=1.
+#
+# The debug build is signed with tools/android-test.keystore, a shared TEST key (its password is in
+# this script and in the repository, so anyone can sign with it). It keeps the signature stable so
+# test builds update over each other. Never publish an app signed with it.
 #
 # A release APK must be signed with YOUR keystore (never commit it). Provide it with
 #   INITIALSJ_KEYSTORE=/path/release.keystore INITIALSJ_KEY_ALIAS=alias INITIALSJ_KEY_PASSWORD=...
@@ -16,7 +20,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 version="$(tr -d '[:space:]' < .godot-version)"
 kind="${1:-debug}"
-sdk="${ANDROID_HOME:-$HOME/Android/Sdk}"
+sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}}"
 templates="$HOME/.local/share/godot/export_templates/$version.stable"
 keystore_dir="$HOME/.local/share/godot/keystores"
 debug_keystore="$keystore_dir/debug.keystore"
@@ -82,6 +86,9 @@ if [[ "$kind" == "release" ]]; then
   ./tools/godot --headless --path . --export-release Android "$out"
 else
   out="build/android/initialsj-debug.apk"
+  export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$PWD/tools/android-test.keystore"
+  export GODOT_ANDROID_KEYSTORE_DEBUG_USER="initialsj-test"
+  export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="initialsj-test"
   ./tools/godot --headless --path . --export-debug Android "$out"
 fi
 "$sdk/build-tools/35.0.1/apksigner" verify "$out" > /dev/null

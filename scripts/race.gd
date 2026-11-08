@@ -179,6 +179,8 @@ var scrape_timer := 0.0
 var gamepad_active := false
 var settings_focus := 0
 var preferences_path := "user://settings.cfg"
+# Small frames-per-second counter in the corner during a race (Settings > SHOW FPS).
+var show_fps := false
 var sound_enabled := true
 var camera_time := 0.0
 var camera_offset := Vector3.ZERO
@@ -538,11 +540,13 @@ func load_preferences() -> void:
 			motion_reduced = bool(config.get_value("preferences","reduced_motion"))
 			motion_user_set = true
 		graphics_mode = clampi(int(config.get_value("preferences","graphics",0)),0,2)
+		show_fps = bool(config.get_value("preferences","show_fps",false))
 
 func save_preferences() -> void:
 	if not save_records: return
 	var config := ConfigFile.new()
 	config.set_value("preferences","sound",sound_enabled)
+	config.set_value("preferences","show_fps",show_fps)
 	if motion_user_set: config.set_value("preferences","reduced_motion",motion_reduced)
 	config.set_value("preferences","graphics",graphics_mode)
 	config.save(preferences_path)
@@ -551,6 +555,10 @@ func save_preferences() -> void:
 # the pause or result dialog survives a reload like one made in Settings.
 func toggle_sound() -> void:
 	sound_enabled = not sound_enabled
+	save_preferences()
+
+func toggle_fps() -> void:
+	show_fps = not show_fps
 	save_preferences()
 
 func toggle_motion() -> void:
@@ -793,14 +801,15 @@ func pad_stick_navigation(delta: float) -> void:
 	gamepad_active = true
 	pad_pressed({"left":JOY_BUTTON_DPAD_LEFT,"right":JOY_BUTTON_DPAD_RIGHT,"up":JOY_BUTTON_DPAD_UP,"down":JOY_BUTTON_DPAD_DOWN}[wanted])
 
-const SETTINGS_ROWS := 6
+const SETTINGS_ROWS := 7
 func settings_activate(index: int) -> void:
 	match index:
 		0: toggle_sound()
 		1: toggle_motion()
 		2: cycle_graphics()
-		3: toggle_fullscreen()
-		4: hud.install_game()
+		3: toggle_fps()
+		4: toggle_fullscreen()
+		5: hud.install_game()
 		_: navigate(close_settings)
 
 func _on_joy_connection_changed(_device: int, connected: bool) -> void:

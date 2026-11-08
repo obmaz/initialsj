@@ -23,12 +23,13 @@ const COURSE_SPEEDWAY := Rect2(660,150,520,440)
 const FUJI_PREVIEW = preload("res://assets/ui/course-fuji.png")
 const SPEEDWAY_PREVIEW = preload("res://assets/ui/course-speedway.png")
 const GARAGE_BACK := Rect2(60,24,220,84)
-const SETTINGS_SOUND := Rect2(365,130,550,78)
-const SETTINGS_MOTION := Rect2(365,216,550,78)
-const SETTINGS_GRAPHICS := Rect2(365,302,550,78)
-const SETTINGS_FULLSCREEN := Rect2(365,388,550,78)
-const SETTINGS_INSTALL := Rect2(365,474,550,78)
-const SETTINGS_CLOSE := Rect2(365,574,550,82)
+const SETTINGS_SOUND := Rect2(365,98,550,77)
+const SETTINGS_MOTION := Rect2(365,178,550,77)
+const SETTINGS_GRAPHICS := Rect2(365,258,550,77)
+const SETTINGS_FPS := Rect2(365,338,550,77)
+const SETTINGS_FULLSCREEN := Rect2(365,418,550,77)
+const SETTINGS_INSTALL := Rect2(365,498,550,77)
+const SETTINGS_CLOSE := Rect2(365,592,550,77)
 const RECOVERY_BUTTON := Rect2(500,176,280,64)
 const HOME_BG = preload("res://assets/ui/home-coast.png")
 const GARAGE_BG = preload("res://assets/ui/garage-bay.png")
@@ -199,6 +200,7 @@ func handle_pointer(event: InputEvent) -> void:
 		if SETTINGS_SOUND.has_point(p): race.toggle_sound()
 		elif SETTINGS_MOTION.has_point(p): race.toggle_motion()
 		elif SETTINGS_GRAPHICS.has_point(p): race.cycle_graphics()
+		elif SETTINGS_FPS.has_point(p): race.toggle_fps()
 		elif SETTINGS_FULLSCREEN.has_point(p):
 			if race.has_method("toggle_fullscreen"): race.toggle_fullscreen()
 		elif SETTINGS_INSTALL.has_point(p): install_game()
@@ -426,6 +428,7 @@ func _draw() -> void:
 		draw_pad_hints()
 		return
 	draw_boost_feedback()
+	draw_fps()
 	draw_competitor_markers()
 	draw_pace_feedback()
 	var rows := standings()
@@ -739,24 +742,26 @@ func draw_courses() -> void:
 func draw_settings() -> void:
 	draw_rect(Rect2(0,0,1280,720),Color("020812d9"))
 	slant(Rect2(300,40,680,640),Color("101e2bfc"),20)
-	text_at(Vector2(365,110),"SETTINGS",42)
-	for rect in [SETTINGS_SOUND,SETTINGS_MOTION,SETTINGS_GRAPHICS,SETTINGS_FULLSCREEN,SETTINGS_INSTALL]: slant(rect,Color("20374a"),9)
-	text_at(SETTINGS_SOUND.position+Vector2(28,50),"SOUND",28)
-	text_at(SETTINGS_SOUND.position+Vector2(450,50),"ON" if race.sound_enabled else "OFF",30,CYAN)
-	text_at(SETTINGS_MOTION.position+Vector2(28,50),"REDUCED MOTION",26)
-	text_at(SETTINGS_MOTION.position+Vector2(450,50),"ON" if race.motion_reduced else "OFF",30,CYAN)
-	text_at(SETTINGS_GRAPHICS.position+Vector2(28,50),"GRAPHICS",28)
-	text_at(SETTINGS_GRAPHICS.position+Vector2(430,50),["AUTO","HIGH","FAST"][race.graphics_mode],28,CYAN)
+	text_at(Vector2(365,78),"SETTINGS",36)
+	for rect in [SETTINGS_SOUND,SETTINGS_MOTION,SETTINGS_GRAPHICS,SETTINGS_FPS,SETTINGS_FULLSCREEN,SETTINGS_INSTALL]: slant(rect,Color("20374a"),9)
+	text_at(SETTINGS_SOUND.position+Vector2(28,49),"SOUND",28)
+	text_at(SETTINGS_SOUND.position+Vector2(450,49),"ON" if race.sound_enabled else "OFF",30,CYAN)
+	text_at(SETTINGS_MOTION.position+Vector2(28,49),"REDUCED MOTION",26)
+	text_at(SETTINGS_MOTION.position+Vector2(450,49),"ON" if race.motion_reduced else "OFF",30,CYAN)
+	text_at(SETTINGS_GRAPHICS.position+Vector2(28,49),"GRAPHICS",28)
+	text_at(SETTINGS_GRAPHICS.position+Vector2(430,49),["AUTO","HIGH","FAST"][race.graphics_mode],28,CYAN)
+	text_at(SETTINGS_FPS.position+Vector2(28,49),"SHOW FPS",28)
+	text_at(SETTINGS_FPS.position+Vector2(450,49),"ON" if race.show_fps else "OFF",30,CYAN)
 	var fullscreen_label: String = race.fullscreen_label() if race.has_method("fullscreen_label") else "ENTER FULLSCREEN"
-	text_at(SETTINGS_FULLSCREEN.position+Vector2(28,50),fullscreen_label,28)
-	text_at(SETTINGS_FULLSCREEN.position+Vector2(489,50),">",32,CYAN)
-	text_at(SETTINGS_INSTALL.position+Vector2(28,50),"INSTALL GAME",30,WHITE)
-	text_at(SETTINGS_INSTALL.position+Vector2(489,50),"+",35,CYAN)
-	if not install_note.is_empty(): centered(Vector2(640,568),install_note,17,Color("b2cbd8"))
+	text_at(SETTINGS_FULLSCREEN.position+Vector2(28,49),fullscreen_label,28)
+	text_at(SETTINGS_FULLSCREEN.position+Vector2(489,49),">",32,CYAN)
+	text_at(SETTINGS_INSTALL.position+Vector2(28,49),"INSTALL GAME",30,WHITE)
+	text_at(SETTINGS_INSTALL.position+Vector2(489,49),"+",35,CYAN)
+	if not install_note.is_empty(): centered(Vector2(640,585),install_note,16,Color("b2cbd8"))
 	slant(SETTINGS_CLOSE,CYAN,10)
-	centered(Vector2(640,SETTINGS_CLOSE.position.y+54),"DONE",34,Color("0a1b2b"))
+	centered(Vector2(640,SETTINGS_CLOSE.position.y+51),"DONE",34,Color("0a1b2b"))
 	if pad_on():
-		var rows: Array[Rect2] = [SETTINGS_SOUND,SETTINGS_MOTION,SETTINGS_GRAPHICS,SETTINGS_FULLSCREEN,SETTINGS_INSTALL,SETTINGS_CLOSE]
+		var rows: Array[Rect2] = [SETTINGS_SOUND,SETTINGS_MOTION,SETTINGS_GRAPHICS,SETTINGS_FPS,SETTINGS_FULLSCREEN,SETTINGS_INSTALL,SETTINGS_CLOSE]
 		draw_rect(rows[clampi(race.settings_focus,0,rows.size()-1)].grow(4),GOLD,false,4.0)
 	if race.has_method("sync_fullscreen_button"): race.sync_fullscreen_button(SETTINGS_FULLSCREEN)
 
@@ -864,6 +869,21 @@ func draw_record_panel() -> void:
 		centered(Vector2(tag.get_center().x,tag.position.y+24),"NEW RECORD!",20,Color("1a1300"))
 	elif race.previous_best > 0:
 		text_at(Vector2(307,382),"+%.3f vs best" % (race.elapsed-race.previous_best),20,Color("ff9f8a"))
+
+# Optional frames-per-second counter (Settings > SHOW FPS). It refreshes twice a second so the
+# number stays readable; green at 55+, amber from 40, red below.
+var fps_text := ""
+var fps_value := 0.0
+var fps_updated := 0
+func draw_fps() -> void:
+	if not race.show_fps: return
+	var now := Time.get_ticks_msec()
+	if now-fps_updated > 500 or fps_text == "":
+		fps_updated = now
+		fps_value = Engine.get_frames_per_second()
+		fps_text = "%d FPS" % roundi(fps_value)
+	var color := Color("7dffb0") if fps_value >= 55 else (Color("ffd166") if fps_value >= 40 else Color("ff6b5a"))
+	text_at(Vector2(24,204),fps_text,18,color)
 
 func draw_competitor_markers() -> void:
 	if race.mode != "track" or race.state not in ["racing","countdown"]: return

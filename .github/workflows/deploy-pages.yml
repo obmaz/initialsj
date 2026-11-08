@@ -45,6 +45,15 @@ jobs:
           godot --headless --path . --export-release Web build/site/index.html
           cp web/retire-flutter-worker.js build/site/flutter_service_worker.js
           touch build/site/.nojekyll
+      - name: Build Android test APK
+        # A failed APK build must never block the web deployment.
+        continue-on-error: true
+        env:
+          ANDROID_ACCEPT_LICENSES: "1"
+          ANDROID_HOME: ${{ runner.temp }}/android-sdk
+        run: |
+          tools/build_android.sh
+          cp build/android/initialsj-debug.apk build/site/initialsj.apk
       - name: Verify root deployment
         run: |
           test -f build/site/index.html

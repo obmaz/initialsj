@@ -18,6 +18,14 @@ accepts Google's SDK licence). JDK 17 or newer is required. The result is `build
 (about 37 MB). Install it on a phone with USB debugging: `adb install -r build/android/initialsj-debug.apk`,
 or copy the file to the phone and open it (allow installs from that source).
 
+## Download
+
+Every push to `main` builds a test APK in the deploy workflow and publishes it next to the web
+game: <https://obmaz.github.io/initialsj/initialsj.apk>. It is signed with the shared test key
+`tools/android-test.keystore` (password in the repository, for test installs only), so a newer
+build installs over an older one. If the APK step fails, the web game is still deployed and the
+link keeps pointing at the previous APK.
+
 ## Settings
 
 | Setting | Value |
@@ -33,7 +41,7 @@ or copy the file to the phone and open it (allow installs from that source).
 
 ## Release signing
 
-A release APK or an app bundle for Google Play must be signed with a key only you hold. Create it
+The test APK uses a public test key and must not be published to a store. A release APK or an app bundle for Google Play must be signed with a key only you hold. Create it
 once and keep it outside the repository (never commit it):
 
 ```sh
