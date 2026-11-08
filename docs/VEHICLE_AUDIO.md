@@ -99,3 +99,6 @@ python3 tools/verify_repository.py
 ## 비동기 선택과 종료
 
 `web/file_audio.js`는 선택 요청마다 순번을 부여합니다. A→B→A처럼 같은 차량을 다시 선택해도 이전 디코딩 요청은 새 루프를 만들 수 없습니다. 종료 시 모든 루프와 연결을 끊고 입력 리스너·디코딩 캐시를 해제합니다. 이 수명 관리는 `node tests/audio_lifecycle_review.cjs`로 검사하며 차량별 음원 파일·프로필·합성 레시피를 공유하거나 변경하지 않습니다.
+
+## 압축
+소스 WAV(`-boost-start.wav`와 UI 효과음)는 편집용 비압축 파일이고, Godot가 가져올 때 QOA(`compress/mode=2`)로 압축해 내보냅니다. 효과음 5개는 108KB에서 24KB로, 점화음 4개는 약 235KB에서 약 45KB로 줄었습니다. 새 효과음을 넣을 때도 `.import`의 `compress/mode`를 2로 둡니다. 루프(엔진·부스터·드리프트)는 처음부터 OGG입니다.
