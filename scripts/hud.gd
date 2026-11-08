@@ -897,7 +897,7 @@ func draw_competitor_markers() -> void:
 # Big events stack from the top banner lane; status messages sit under the horizon.
 const BANNER_Y := 158.0
 const BANNER_STEP := 42.0
-const STATUS_Y := 292.0
+const STATUS_Y := 236.0
 const STATUS_STEP := 36.0
 const TOAST_SCALE := 0.72
 const WARNING := Color("ff6b5a")
@@ -919,6 +919,20 @@ func toast(center: Vector2, value: String, size_px: int, accent: Color, alpha: f
 	draw_string_outline(FONT,origin,value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px,5,Color(0.01,0.02,0.04,0.95*alpha))
 	draw_string(FONT,origin,value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px,Color(accent.lightened(0.25),alpha))
 	draw_set_transform(ui_offset(),0,Vector2.ONE*ui_scale())
+
+# Minor, informational messages (slipstream, nitro, pass, air time, wet road...) stay small,
+# faint and high on the screen over the horizon, so they never sit on the road ahead.
+const HINT_Y := 108.0
+func hint(value: String, accent: Color, alpha: float = 1.0) -> void:
+	alpha = clampf(alpha,0,1)*0.62
+	if alpha <= 0.02: return
+	var size_px := 19
+	var width := FONT.get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px).x
+	var plate := Rect2(640-width/2-14,HINT_Y-size_px*0.9,width+28,size_px*1.55)
+	slant(plate,Color(0.03,0.06,0.10,0.34*alpha),8)
+	var origin := Vector2(640-width/2,HINT_Y+size_px*0.3)
+	draw_string_outline(FONT,origin,value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px,3,Color(0.01,0.02,0.04,0.7*alpha))
+	draw_string(FONT,origin,value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px,Color(accent.lightened(0.2),alpha))
 
 # How far into its life a timed message is: 1 at the start, falling to 0 over `window`.
 func fresh(remaining: float, duration: float, window: float = 0.18) -> float:
@@ -951,18 +965,18 @@ func draw_pace_feedback() -> void:
 			draw_line(start,end,Color(0.65,0.88,1,intensity*(0.26 if race.boosting else 0.16)*sin(phase*PI)),1.2,true)
 	if race.impact > 0: draw_rect(Rect2(0,0,1280,720),Color(1,0.35,0.10,race.impact*0.07))
 	var status := STATUS_Y
-	if race.air.active and race.air.trick: toast(Vector2(640,status),"AIR TIME!",32,GOLD)
-	elif race.air.landing_flash > 0.35 and race.air.trick: toast(Vector2(640,status),"LANDED / +100",28,Color("b7e9ff"),1.0,fresh(race.air.landing_flash,0.65))
+	if race.air.active and race.air.trick: hint("AIR TIME",GOLD)
+	elif race.air.landing_flash > 0.35 and race.air.trick: hint("LANDED +100",Color("b7e9ff"),minf(1,race.air.landing_flash*2.5))
 	elif race.pad_active: draw_boost_badge()
-	elif race.surface.mud_flash > 0: toast(Vector2(640,status),"MUD / SLOWED",28,Color("d9b38a"),minf(1,race.surface.mud_flash*2),fresh(race.surface.mud_flash,1.2))
-	elif race.surface.water_flash > 0: toast(Vector2(640,status),"WET ROAD / LOW GRIP",28,Color("a9dfff"),minf(1,race.surface.water_flash*2),fresh(race.surface.water_flash,1.2))
-	elif race.near_miss_flash > 0: toast(Vector2(640,status),"CLOSE PASS +150",30,GOLD,minf(1,race.near_miss_flash*2.5),fresh(race.near_miss_flash,1.1))
-	elif race.overtake_flash > 0: toast(Vector2(640,status),"PASS!",32,CYAN,minf(1,race.overtake_flash*2.5),fresh(race.overtake_flash,1.0))
-	elif race.boosting: toast(Vector2(640,status),("OVERDRIVE!" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO!") if race.nitro_active else "SLIPSTREAM",30,CYAN)
+	elif race.surface.mud_flash > 0: hint("MUD",Color("d9b38a"),minf(1,race.surface.mud_flash*2))
+	elif race.surface.water_flash > 0: hint("WET ROAD",Color("a9dfff"),minf(1,race.surface.water_flash*2))
+	elif race.near_miss_flash > 0: hint("CLOSE PASS +150",GOLD,minf(1,race.near_miss_flash*2.5))
+	elif race.overtake_flash > 0: hint("PASS",CYAN,minf(1,race.overtake_flash*2.5))
+	elif race.boosting: hint(("OVERDRIVE" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO") if race.nitro_active else "SLIPSTREAM",CYAN)
 	if race.corner_warning > 0.15:
-		toast(Vector2(640,status+STATUS_STEP),"BRAKE / CORNER %d km/h" % int(race.recommended_speed*3.6),26,WARNING,race.corner_warning)
+		toast(Vector2(640,status),"BRAKE / CORNER %d km/h" % int(race.recommended_speed*3.6),26,WARNING,race.corner_warning)
 	if race.hazard_text != "":
-		toast(Vector2(640,status+STATUS_STEP*(2 if race.corner_warning > 0.15 else 1)),"! "+race.hazard_text,26,WARNING)
+		toast(Vector2(640,status+(STATUS_STEP if race.corner_warning > 0.15 else 0)),"! "+race.hazard_text,26,WARNING)
 
 # Road boosts get one short activation pulse, separate from nitro fuel and
 # ordinary speed lines. Motion reduction keeps only the informative badge.
@@ -998,7 +1012,7 @@ func draw_boost_feedback() -> void:
 func draw_boost_badge() -> void:
 	var label := boost_feedback_label()
 	if label.is_empty(): return
-	toast(Vector2(640,STATUS_Y),label,32,GOLD,1.0,fresh(race.surface.pad_flash,1.1))
+	hint(label,GOLD,minf(1,race.surface.pad_flash*2))
 
 func recovery_visible() -> bool:
 	return race != null and race.state == "racing" and race.get("recovery_available") == true
