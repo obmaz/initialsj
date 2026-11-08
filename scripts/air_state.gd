@@ -1,4 +1,5 @@
 extends RefCounted
+const Features = preload("res://scripts/road_features.gd")
 # Shared by the player and CPU cars. Ballistic motion uses world height so an
 # ascending road can catch the car before the nominal flat-road landing time.
 const GRAVITY := 27.0
@@ -14,6 +15,12 @@ var landing_strength := 0.0
 var launches := 0
 var landings := 0
 var consumed := {}
+# The skyway deck the car drove onto (by feature id), the road height under the wheels last
+# frame and the climb per metre, for the car pitch.
+var skyway := ""
+var deck_lost := false
+var last_height := 0.0
+var slope := 0.0
 func reset() -> void:
 	active = false
 	trick = false
@@ -25,6 +32,9 @@ func reset() -> void:
 	launches = 0
 	landings = 0
 	consumed.clear()
+	skyway = ""
+	last_height = 0
+	slope = 0
 static func ramp_height(section: Node3D, at: Vector2) -> float:
 	var d := fposmod(at.y,section.length) if section.closed_loop else at.y
 	for f in section.features:
@@ -32,6 +42,29 @@ static func ramp_height(section: Node3D, at: Vector2) -> float:
 		var t: float = (d-(f.distance-f.length*0.5))/f.length
 		if t >= 0 and t <= 1: return f.height*t
 	return 0
+# Ramps plus the skyway deck. The deck only carries a car that drove up its ramp: a car on the
+# road underneath stays on the road, and a car that steers off the deck loses it and falls.
+func surface_height(section: Node3D, at: Vector2) -> float:
+	var height := ramp_height(section,at)
+	if section.closed_loop: return height
+	var on_deck := false
+	for f in section.features:
+		if f.kind != "skyway": continue
+		var deck := Features.skyway_height(f,at.y)
+		var along: float = absf(at.y-float(f.distance)) <= float(f.length)*0.5
+		var over: bool = absf(at.x-float(f.lane)) <= float(f.width)*0.5+0.3
+		if skyway == f.id:
+			if along and over:
+				height = maxf(height,deck)
+				on_deck = true
+		elif along and over and deck < 0.9 and absf(height) < 0.01:
+			skyway = f.id
+			height = maxf(height,deck)
+			on_deck = true
+	deck_lost = skyway != "" and not on_deck
+	if not on_deck: skyway = ""
+	return height
+
 static func launch_velocity(section: Node3D, feature: Dictionary, edge: float, lane: float, speed: float) -> float:
 	# Carry the actual road grade into flight. A downhill launch must start
 	# descending with that road instead of hovering while the ground falls away.
@@ -63,7 +96,18 @@ func advance(section: Node3D, from: Vector2, to: Vector2, speed: float, delta: f
 	if active:
 		if flight(delta,ground_y): events.append("land" if trick else "settle")
 		return events
-	height = ramp_height(section,to)
+	height = surface_height(section,to)
+	slope = (height-last_height)/maxf(0.05,to.y-from.y)
+	# Steering off the skyway deck drops the car onto the road below.
+	if deck_lost and last_height > 1.0:
+		active = true
+		trick = false
+		world_y = ground_y+last_height
+		velocity = 0
+		last_height = 0
+		events.append("drop")
+		return events
+	last_height = height
 	world_y = ground_y+height
 	if to.y <= from.y: return events
 	var first := int(floor(from.y/section.length)) if section.closed_loop else 0

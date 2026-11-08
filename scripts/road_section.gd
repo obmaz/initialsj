@@ -181,7 +181,13 @@ static func width_profile(keys: Array, t: float) -> float:
 		if t <= b.x: return lerpf(a.y,b.y,smoothstep(a.x,b.x,t))
 	return (keys[keys.size()-1] as Vector2).y
 
+# Every road is drawn and driven about 10% narrower than its authored profile.
+const WIDTH_SCALE := 0.9
+
 func half_width(distance: float) -> float:
+	return authored_half_width(distance)*WIDTH_SCALE
+
+func authored_half_width(distance: float) -> float:
 	if closed_loop and course_id == 1: return width_profile(SUNCOAST_WIDTH,fposmod(distance,length)/length)
 	if closed_loop: return width_profile(FUJI_WIDTH,fposmod(distance,length)/length)
 	var t := clampf(distance/length,0,1)
@@ -193,8 +199,8 @@ func half_width(distance: float) -> float:
 		wave *= 1-smoothstep(tunnel.x-120,tunnel.x-30,distance)*(1-smoothstep(tunnel.y+30,tunnel.y+120,distance))*0.7
 	var width := 9.6-route_node*0.4+3.0*wave
 	var pinch := pinch_amount(distance)
-	width = lerpf(width,5.2,pinch)
-	return lerpf(9.0,clampf(width,5.2,12.6),blend)
+	width = lerpf(width,5.6,pinch)
+	return lerpf(9.0,clampf(width,5.6,12.6),blend)
 
 func rail_setback(distance: float, side: float) -> float:
 	if closed_loop and course_id == 1: return 1.5

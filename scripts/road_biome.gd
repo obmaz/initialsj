@@ -157,10 +157,15 @@ func make_city() -> void:
 	var plinths: Array[Transform3D] = []
 	var roof_details: Array[Transform3D] = []
 	var rubble: Array[Transform3D] = []
-	var count := int(track.length/65)
-	for i in range(count):
-		var d: float = 250+i*(track.length-430)/count
+	# Downtown roads are lined twice as densely, with a second row of towers behind.
+	var downtown: bool = theme in ["city","neon"]
+	var count := int(track.length/(32 if downtown else 65))
+	for slot in range(count*(2 if downtown else 1)):
+		var i: int = slot%count
+		var back_row: bool = slot >= count
+		var d: float = 250+i*(track.length-430)/count+(16.0 if back_row else 0.0)
 		var side := -1.0 if i%2 == 0 else 1.0
+		if back_row: side = -side
 		if theme == "seoul" and side > 0 and d > 450 and d < 1050: continue
 		if track.entry_side != 0 and d < 600: side = float(track.entry_side)
 		var style: int = (i*5+track.route_node)%6
@@ -173,6 +178,9 @@ func make_city() -> void:
 		var depth := rng.randf_range(14,32)
 		var radius := Vector2(width,depth).length()*0.55
 		var lane: float = side*(track.half_width(d)+track.rail_setback(d,side)+4+radius+rng.randf_range(0,32))
+		if back_row:
+			lane = side*(track.half_width(d)+track.rail_setback(d,side)+60+radius+rng.randf_range(0,30))
+			height *= 1.35
 		building_manifest.append({"distance":d,"lane":lane,"radius":radius,"style":style,"height":height})
 		var variant := rng.randf()
 		var tiers := 3 if style == 2 else 1

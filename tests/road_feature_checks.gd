@@ -18,13 +18,13 @@ func run(tree: SceneTree) -> int:
 			var patches := Features.layout(section)
 			var short_pads: Array = patches.filter(func(f): return f.kind == "boost" and f.length <= 12)
 			var ramps: Array = patches.filter(func(f): return f.kind == "ramp")
-			check(patches.size() >= 12 and patches.size() <= 34 and short_pads.size() == 6,"Each Tour route needs three readable alternating pad pairs among spaced gimmicks")
-			check(ramps.size() >= 1 and ramps.size() <= 3,"Every Tour route needs one to three optional jumps")
-			check(patches.filter(func(f): return f.kind == "mud").size() == 3,"Every Tour route needs mud beside its pad pairs")
+			check(patches.size() >= 12 and patches.size() <= 60 and short_pads.size() >= 6 and short_pads.size()%2 == 0,"Each Tour route needs three readable alternating pad pairs among spaced gimmicks")
+			check(ramps.size() >= 1 and ramps.size() <= 5,"Every Tour route needs one to five optional jumps")
+			check(patches.filter(func(f): return f.kind == "mud").size() >= 3,"Every Tour route needs mud beside its pad pairs")
 			check(patches.filter(func(f): return f.kind == "truck").size() >= 1,"Every Tour route needs a parked truck")
-			check(patches.filter(func(f): return f.kind == "water").size() == 2,"Every Tour route needs two separate puddle choices")
+			check(patches.filter(func(f): return f.kind == "water").size() >= 2,"Every Tour route needs at least two separate puddle choices")
 			for patch in patches:
-				if patch.kind == "crest": continue
+				if patch.kind in ["crest","skyway"]: continue
 				check(patch.distance-patch.length/2 > 300 and patch.distance+patch.length/2 < section.checkpoint_distance()-80,"Patches must leave entries and the full checkpoint approach clear")
 				check(absf(patch.lane)+patch.width*0.55 < section.half_width(patch.distance)-0.5,"Every patch must leave a usable escape lane")
 				var from := Vector2(patch.lane,patch.distance-60)

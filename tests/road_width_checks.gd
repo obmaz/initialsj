@@ -35,11 +35,11 @@ func run(tree: SceneTree) -> int:
 	r.choose_mode("track",1)
 	await tree.physics_frame
 	survey(r.track,"Suncoast",3.5)
-	check(absf(r.track.active.half_width(0.0)-14.5) < 0.01 and absf(r.track.active.half_width(r.track.length*0.05)-14.5) < 0.01,"Suncoast must keep full width along the pit lane")
+	check(absf(r.track.active.half_width(0.0)-14.5*0.9) < 0.01 and absf(r.track.active.half_width(r.track.length*0.05)-14.5*0.9) < 0.01,"Suncoast must keep full width along the pit lane")
 	r.choose_mode("tour",0)
 	await tree.physics_frame
 	survey(r.track,"Tour",3.5,0.18)
-	check(absf(r.track.active.half_width(0.0)-9.0) < 0.01 and absf(r.track.active.half_width(r.track.length)-9.0) < 0.01,"Tour sections must join at a common width")
+	check(absf(r.track.active.half_width(0.0)-9.0*0.9) < 0.01 and absf(r.track.active.half_width(r.track.length)-9.0*0.9) < 0.01,"Tour sections must join at a common width")
 	r.queue_free()
 	await tree.process_frame
 	print("Road width alternates wide and narrow / gradual / seamless: ","PASS" if failures == 0 else "FAIL")

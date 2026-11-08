@@ -24,7 +24,8 @@ func _ready() -> void:
   var kind: String = family[variant]
   var scale := random.randf_range(0.8,1.25)
   var radius: float = Props.radius(kind)*scale
-  var lane: float = side*(road.half_width(d)+road.rail_setback(d,side)+2.6+radius+random.randf_range(0,11))
+  # Stone guardians stand right at the roadside so they are seen; other props spread out.
+  var lane: float = side*(road.half_width(d)+road.rail_setback(d,side)+2.6+radius+random.randf_range(0,3 if kind == "hareubang" else 11))
   if theme == "canyon": lane += side*12
   var p: Vector3 = road.roadside_point(d,lane)
   var closest: float = road.curve.get_closest_offset(p)
@@ -32,7 +33,8 @@ func _ready() -> void:
   if Vector2(p.x-center.x,p.z-center.z).length()-radius < road.half_width(closest)+road.rail_setback(closest,side)+1.5: continue
   positions.append(p)
   widths.append(radius*2)
-  placements.append({"position":p,"yaw":road.heading(d)+random.randf_range(-0.35,0.35),"scale":scale,"variant":variant})
+  var yaw: float = road.heading(d)+side*PI*0.5+random.randf_range(-0.2,0.2) if kind == "hareubang" else road.heading(d)+random.randf_range(-0.35,0.35)
+  placements.append({"position":p,"yaw":yaw,"scale":scale,"variant":variant})
   if kind in ["palm","broadleaf","pine","snow_pine","sakura","bamboo","plane_tree","ginkgo","japanese_pine"]: scenery.tree_positions.append(p)
  models = Props.new()
  models.name = "RegionalForeground3D"

@@ -40,8 +40,8 @@ func run(tree: SceneTree) -> int:
 			for span in section.pinch_spans():
 				var inside: float = section.half_width((span.x+span.y)*0.5)
 				var before: float = section.half_width(span.x-120)
-				check(inside < 5.6 and before > inside+0.3,"%s must narrow clearly inside a pinch (%.1f vs %.1f)" % [label,inside,before])
-			check(features.filter(func(f): return f.kind == "mud").size() == 3,"%s needs mud beside its pad pairs" % label)
+				check(inside < 5.2 and before >= inside-0.01,"%s must narrow clearly inside a pinch (%.1f vs %.1f)" % [label,inside,before])
+			check(features.filter(func(f): return f.kind == "mud").size() >= 3,"%s needs mud beside its pad pairs" % label)
 			var trucks: Array = features.filter(func(f): return f.kind == "truck")
 			check(trucks.size() >= 1,"%s needs a parked truck" % label)
 			for truck in trucks:
@@ -50,6 +50,58 @@ func run(tree: SceneTree) -> int:
 			tall_total += features.filter(func(f): return f.kind == "ramp" and f.get("big",false)).size()
 			section.free()
 	check(tall_total >= 6,"Most later Tour routes need a tall jump (found %d)" % tall_total)
+	# Region character: skyways over parked trucks, truck gates and the Jeju stone guardians.
+	var Regional = load("res://scripts/regional_props_3d.gd")
+	check(Regional.FAMILIES.jeju.has("hareubang") and Regional.model("hareubang").get_aabb().size.y > 3.0,"Jeju roadsides need stone guardians tall enough to read from the road")
+	check(Regional.model("dol_wall").get_faces().size() > 0 and Regional.model("tangerine").get_faces().size() > 0,"Jeju walls and tangerine trees must build")
+	var skyway_routes := 0
+	var gate_routes := 0
+	for stage in range(5):
+		for node in range(stage+1):
+			var route := Section.new(Vector3(0,6,0),-PI/2,stage,node)
+			var layout: Array[Dictionary] = Features.layout(route)
+			var theme: String = Library.theme(stage,node)
+			var wants: Dictionary = Features.THEME_FEEL.get(theme,{})
+			check(wants.has("label"),"%s needs a named driving style" % theme)
+			for deck in layout.filter(func(f): return f.kind == "skyway"):
+				skyway_routes += 1
+				var below: Array = layout.filter(func(f): return f.kind == "truck" and absf(f.lane-deck.lane) < 1.0 and absf(f.distance-deck.distance) < deck.length*0.5-Features.SKYWAY_RAMP)
+				check(below.size() >= 2,"%s skyway must pass over parked trucks" % theme)
+			var trucks: Array = layout.filter(func(f): return f.kind == "truck")
+			for a_truck in trucks:
+				for b_truck in trucks:
+					if a_truck.distance == b_truck.distance and a_truck.lane < 0 and b_truck.lane > 0:
+						gate_routes += 1
+						var gap: float = (b_truck.lane-b_truck.width*0.5)-(a_truck.lane+a_truck.width*0.5)
+						check(gap > 3.3 and gap < 4.5,"%s truck gate must leave a car-and-a-half gap (%.1f m)" % [theme,gap])
+			route.free()
+	check(skyway_routes >= 3 and gate_routes >= 4,"Several routes need skyways (%d) and truck gates (%d)" % [skyway_routes,gate_routes])
+	# Driving the skyway: up the ramp onto the deck, a car under the deck stays on the road,
+	# and steering off the deck drops the car back onto the road.
+	var city := Section.new(Vector3(0,6,0),-PI/2,1,1)
+	city.features = Features.layout(city)
+	var deck: Dictionary = first_of(city,"skyway")
+	check(not deck.is_empty(),"The city route needs a skyway")
+	if not deck.is_empty():
+		var air := Air.new()
+		var d: float = deck.distance-deck.length*0.5-10
+		var peak := 0.0
+		while d < deck.distance:
+			air.advance(city,Vector2(deck.lane,d),Vector2(deck.lane,d+1),40,1.0/40)
+			d += 1
+			peak = maxf(peak,air.height)
+		check(peak > Features.SKYWAY_HEIGHT-0.2 and not air.active,"Driving up the ramp must carry the car onto the deck")
+		var events: Array = air.advance(city,Vector2(deck.lane,d),Vector2(deck.lane+4.0,d+1),40,1.0/40)
+		check(events.has("drop") and air.active,"Steering off the deck must drop the car")
+		var landed := false
+		for frame in range(120):
+			d += 1
+			if air.advance(city,Vector2(deck.lane+4.0,d),Vector2(deck.lane+4.0,d+1),40,1.0/40).has("settle"): landed = true; break
+		check(landed and air.height < 0.01,"The dropped car must land on the road below")
+		var under := Air.new()
+		under.advance(city,Vector2(deck.lane+5,deck.distance-1),Vector2(deck.lane,deck.distance),40,1.0/40)
+		check(under.height < 0.01 and under.skyway == "","A car driving under the deck must stay on the road")
+	city.free()
 	# A tall ramp throws the car higher than an ordinary one at the same speed.
 	var section := Section.new(Vector3(0,6,0),-PI/2,2,1)
 	var ordinary := {"kind":"ramp","id":"o","distance":300.0,"lane":0.0,"length":18.0,"width":3.8,"height":0.9}

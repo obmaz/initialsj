@@ -895,25 +895,28 @@ func draw_competitor_markers() -> void:
 # Game messages sit on a dark plate with a heavy outline and an accent underline, so they read
 # over sky, asphalt and the car alike. A new message pops in (skipped with reduced motion).
 # Big events stack from the top banner lane; status messages sit under the horizon.
-const BANNER_Y := 196.0
-const BANNER_STEP := 62.0
-const STATUS_Y := 322.0
-const STATUS_STEP := 50.0
+const BANNER_Y := 158.0
+const BANNER_STEP := 42.0
+const STATUS_Y := 292.0
+const STATUS_STEP := 36.0
+const TOAST_SCALE := 0.72
 const WARNING := Color("ff6b5a")
 
 func toast(center: Vector2, value: String, size_px: int, accent: Color, alpha: float = 1.0, pop: float = 0.0) -> void:
 	alpha = clampf(alpha,0,1)
 	if alpha <= 0: return
-	var scale := 1.0+(0.0 if race.motion_reduced else 0.24*pop)
+	# Messages are kept compact so they never cover the road ahead.
+	size_px = maxi(14,roundi(size_px*TOAST_SCALE))
+	var scale := 1.0+(0.0 if race.motion_reduced else 0.16*pop)
 	var width := FONT.get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px).x
 	var ui := Transform2D(Vector2(ui_scale(),0),Vector2(0,ui_scale()),ui_offset())
 	draw_set_transform_matrix(ui*Transform2D(Vector2(scale,0),Vector2(0,scale),center*(1.0-scale)))
-	var pad := size_px*0.75
-	var plate := Rect2(center.x-width/2-pad,center.y-size_px*0.62,width+pad*2,size_px*1.5)
-	slant(plate,Color(0.03,0.06,0.10,0.84*alpha),size_px*0.28)
-	draw_rect(Rect2(plate.position.x+size_px*0.28,plate.end.y-4,plate.size.x-size_px*0.56,4),Color(accent,alpha))
+	var pad := size_px*0.6
+	var plate := Rect2(center.x-width/2-pad,center.y-size_px*0.62,width+pad*2,size_px*1.4)
+	slant(plate,Color(0.03,0.06,0.10,0.72*alpha),size_px*0.28)
+	draw_rect(Rect2(plate.position.x+size_px*0.28,plate.end.y-3,plate.size.x-size_px*0.56,3),Color(accent,alpha))
 	var origin := Vector2(center.x-width/2,center.y+size_px*0.36)
-	draw_string_outline(FONT,origin,value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px,7,Color(0.01,0.02,0.04,0.95*alpha))
+	draw_string_outline(FONT,origin,value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px,5,Color(0.01,0.02,0.04,0.95*alpha))
 	draw_string(FONT,origin,value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px,Color(accent.lightened(0.25),alpha))
 	draw_set_transform(ui_offset(),0,Vector2.ONE*ui_scale())
 

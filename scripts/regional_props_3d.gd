@@ -1,7 +1,7 @@
 extends Node3D
 # Opaque, low-poly meshes shared by every instance. No camera-facing foreground art.
 const FAMILIES := {
- "hawaii":["palm","palm","broadleaf"], "jeju":["basalt","pine","broadleaf"],
+ "hawaii":["palm","palm","broadleaf"], "jeju":["hareubang","tangerine","dol_wall","palm","hareubang","dol_wall"],
  "fuji":["pine","sakura","japanese_pine"], "bamboo":["bamboo","bamboo","basalt"],
  "snow":["snow_pine","snow_pine","basalt"], "volcano":["basalt","charred","basalt"],
  "desert":["cactus","sandstone","cactus"], "pyramid":["obelisk","palm","sandstone"],
@@ -41,7 +41,7 @@ func _ready() -> void:
   groups[group].poses.append(transform)
   var bounds: AABB = transform*model(kind).get_aabb()
   world_bounds.append(bounds)
-  if kind in ["palm","broadleaf","pine","snow_pine","sakura","bamboo","plane_tree","ginkgo","charred","japanese_pine"] or Models.is_tree(kind): tree_count += 1
+  if kind in ["palm","broadleaf","pine","snow_pine","sakura","bamboo","plane_tree","ginkgo","charred","japanese_pine","tangerine"] or Models.is_tree(kind): tree_count += 1
  for group in groups:
   var kind: String = groups[group].kind
   var poses: Array = groups[group].poses
@@ -142,6 +142,32 @@ static func model(kind: String) -> ArrayMesh:
     var y := 4.1+tier*1.9
     column(st,Vector3(0,y,0),4.5-tier*0.3,3.5-tier*0.65,0,Color("326746") if tier%2 else Color("3c7952"),9)
     if kind == "snow_pine": column(st,Vector3(0,y+0.6,0),3.2-tier*0.25,2.6-tier*0.5,0,Color("e5edf0"),9)
+  "hareubang":
+   # Jeju stone guardian: porous basalt body, round head, brimmed cap, big eyes, hands on the belly.
+   # Drawn larger than life so it reads from the road. Local -Z faces the road.
+   var stone := Color("4f5352")
+   column(st,Vector3(0,1.3,0),2.6,0.78,0.62,stone,9)
+   round_part(st,Vector3(0,3.15,0),Vector3(1.45,1.6,1.4),stone.lightened(0.05))
+   column(st,Vector3(0,3.95,0),0.18,0.95,0.95,stone.darkened(0.1),12)
+   round_part(st,Vector3(0,4.25,0),Vector3(1.2,0.85,1.2),stone.darkened(0.05))
+   for x in [-0.32,0.32]:
+    round_part(st,Vector3(x,3.35,-0.62),Vector3(0.42,0.36,0.3),stone.lightened(0.18))
+    box(st,Vector3(x*0.9,1.9,-0.62),Vector3(0.5,0.22,0.24),stone.lightened(0.12),0.4 if x < 0 else -0.4)
+   box(st,Vector3(0,3.0,-0.68),Vector3(0.36,0.6,0.32),stone.lightened(0.1))
+   column(st,Vector3(0,0.15,0),0.3,1.0,1.0,Color("3c3f3e"),9)
+  "dol_wall":
+   # A dry-stacked black basalt field wall.
+   for i in range(9):
+    var x := -5.6+i*1.4
+    round_part(st,Vector3(x,0.45,sin(i*1.7)*0.12),Vector3(1.5,0.95,1.0),Color("2f3333").lightened((i%3)*0.06))
+    round_part(st,Vector3(x+0.7,1.15,sin(i*2.3)*0.1),Vector3(1.3,0.75,0.9),Color("383d3c").lightened((i%2)*0.05))
+  "tangerine":
+   column(st,Vector3(0,0.9,0),1.8,0.24,0.16,bark)
+   round_part(st,Vector3(0,2.6,0),Vector3(3.2,2.6,3.2),Color("2f6e3a"))
+   round_part(st,Vector3(0.6,3.3,0.3),Vector3(2.2,1.8,2.2),Color("3a7d44"))
+   for i in range(8):
+    var angle := i*TAU/8
+    round_part(st,Vector3(cos(angle)*1.45,2.3+0.5*sin(i*1.3),sin(angle)*1.45),Vector3.ONE*0.38,Color("f08a1c"))
   "broadleaf", "sakura", "plane_tree", "ginkgo":
    column(st,Vector3(0,3.2,0),6.4,0.38,0.22,bark)
    var crown_color := Color("edacc5") if kind == "sakura" else (Color("b8ac42") if kind == "ginkgo" else green)

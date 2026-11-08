@@ -449,6 +449,11 @@ func open_courses() -> void:
 	hud.fingers.clear()
 	state = "courses"
 
+# The region name plus its style, e.g. "SKYLINE DRIVE / SKYWAY CITY".
+func route_banner() -> String:
+	var label: String = Features.THEME_FEEL.get(Library.theme(stage_index,route_node),{}).get("label","")
+	return Library.title(stage_index,route_node)+("  /  "+label if label != "" else "")
+
 func mode_loading_title(value: String, course: int = 0) -> String:
 	if value != "track": return "COAST TOUR"
 	return "SUNCOAST SPEEDWAY" if course == 1 else "FUJI LAKESIDE"
@@ -1142,7 +1147,8 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		elif event == "settle" and DisplayServer.get_name() != "headless":
 			landing_dust.burst(track.point(distance,lane),true)
 	var surface_events: Array[String] = []
-	if not crash.active and not air.active and not was_airborne and flight_events.is_empty(): surface_events = surface.contact(track.active,old_surface_position,Vector2(lane,distance),speed,brake,impact)
+	# Up on the skyway the car passes over the trucks and puddles of the road below.
+	if not crash.active and not air.active and not was_airborne and flight_events.is_empty() and air.height < 1.0: surface_events = surface.contact(track.active,old_surface_position,Vector2(lane,distance),speed,brake,impact)
 	surface.update_lane(track.active,Vector2(lane,distance),speed,brake,impact,not air.active and not crash.active)
 	for event in surface_events:
 		if event == "boost":
@@ -1224,7 +1230,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			for r in rivals:
 				if r.detached == track.active: r.detached = null
 				elif r.detached == null and r.distance > 0: r.detached = old_section
-			route_confirm_title = Library.title(stage_index,route_node)
+			route_confirm_title = route_banner()
 			brain.stage_changed(self)
 		track.maintain(distance)
 		if stage_index == Library.STAGES-1 and distance >= track.length:
@@ -1373,7 +1379,7 @@ func advance_route() -> void:
 		if r.distance > 20 and r.route_side != choice: r.detached = result.sibling
 	route_preference = -1
 	route_confirm_flash = 1.4
-	route_confirm_title = Library.title(stage_index,route_node)
+	route_confirm_title = route_banner()
 	brain.stage_changed(self)
 
 func finish() -> void:
@@ -1486,7 +1492,7 @@ func place_cars(delta: float = 1.0) -> void:
 	if world_race != null:
 		world_race.place_cars()
 		return
-	var pitch := atan2(air.velocity,maxf(1,speed))*0.22 if air.active else (atan2(0.75,16) if air.height > 0 else 0.0)
+	var pitch := atan2(air.velocity,maxf(1,speed))*0.22 if air.active else (atan(clampf(air.slope,-0.3,0.3)) if air.height > 0 else 0.0)
 	set_car_frame(player,track.point(distance,lane)+Vector3.UP*air.height,track.point(distance+2,lane)-track.point(distance-2,lane),delta,pitch,track.active.bank_at(distance))
 	player.body.rotation.y = slip_angle
 	for r in rivals:
@@ -1501,7 +1507,7 @@ func place_cars(delta: float = 1.0) -> void:
 		else:
 			p = track.traffic_point(r.distance,r.lane,r.route_side)
 			f = track.traffic_point(r.distance+2,r.lane,r.route_side)-track.traffic_point(r.distance-2,r.lane,r.route_side)
-		var pitch_npc: float = atan2(r.air.velocity,maxf(1,r.speed))*0.22 if r.air.active else (atan2(0.75,16) if r.air.height > 0 else 0.0)
+		var pitch_npc: float = atan2(r.air.velocity,maxf(1,r.speed))*0.22 if r.air.active else (atan(clampf(r.air.slope,-0.3,0.3)) if r.air.height > 0 else 0.0)
 		set_car_frame(r.car,p+Vector3.UP*r.air.height,f,delta,pitch_npc,track.active.bank_at(r.distance))
 		r.car.body.rotation.y = r.visual_yaw
 		var gap := p.distance_to(player.position)

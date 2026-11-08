@@ -3,6 +3,35 @@ const PAD_SHADER = preload("res://shaders/boost_pad.gdshader")
 const WATER_SHADER = preload("res://shaders/road_puddle.gdshader")
 const Library = preload("res://scripts/route_library.gd")
 
+# Each region leans on different devices so every route has its own feel. Extra counts are added
+# to the shared base layout; a device that does not fit is simply left out.
+#   jumps: extra ramps, chains: extra pad pairs, lane: a boost lane, water / mud: extra patches,
+#   trucks: extra single trucks, gates: pairs of trucks to thread between, skyway: a narrow
+#   elevated deck over parked trucks that drops you back onto the road if you steer off it.
+const THEME_FEEL := {
+	"hawaii":{"label":"COAST CRUISE"},
+	"desert":{"label":"DUNE JUMPS","jumps":2},
+	"city":{"label":"SKYWAY CITY","skyway":1,"gates":1,"lane":1},
+	"pyramid":{"label":"DESERT JUMPS","jumps":2,"gates":1},
+	"amusement":{"label":"BOOST PARK","chains":2,"lane":1},
+	"jeju":{"label":"STONE AND MUD","water":2,"mud":2},
+	"ruins":{"label":"BROKEN ROAD","jumps":1,"mud":2},
+	"seoul":{"label":"EXPRESSWAY","skyway":1,"gates":1,"trucks":1},
+	"fuji":{"label":"PAD RUN","chains":2,"lane":1},
+	"neon":{"label":"NEON BOOST","chains":2,"lane":1,"skyway":1},
+	"canyon":{"label":"CANYON JUMPS","jumps":2},
+	"harbor":{"label":"CONTAINER YARD","gates":2,"trucks":2,"skyway":1},
+	"bamboo":{"label":"MUDDY PASS","mud":2,"water":1},
+	"snow":{"label":"ICE ROAD","water":3},
+	"volcano":{"label":"LAVA JUMPS","jumps":2,"gates":1}
+}
+const SKYWAY_LENGTH := 240.0
+const SKYWAY_RAMP := 50.0
+const SKYWAY_HEIGHT := 6.0
+
+static func feel(section: Node3D) -> Dictionary:
+	return THEME_FEEL.get(Library.theme(section.stage,section.route_node),{})
+
 static func tour_slot(section: Node3D, desired: float, extent: float, kind: String, occupied: Array[Vector2], ahead: float = 0.0) -> float:
 	var first := 320+extent*0.5+(110 if kind == "ramp" else 0)
 	var last: float = section.length-Library.CHECKPOINT_RUNUP-100-extent*0.5-(160 if kind == "ramp" else 0)
@@ -19,7 +48,7 @@ static func tour_slot(section: Node3D, desired: float, extent: float, kind: Stri
 		if blocked: continue
 		if tunnel.y > tunnel.x:
 			var gap := Vector2(d-120,d+180) if kind == "ramp" else Vector2(bounds.x-40,bounds.y+40)
-			if kind in ["ramp","water","truck"] and gap.x < tunnel.y+80 and gap.y > tunnel.x-40: continue
+			if kind in ["ramp","water","truck","skyway"] and gap.x < tunnel.y+80 and gap.y > tunnel.x-40: continue
 		var grade: float = (section.point(d+4).y-section.point(d-4).y)/8
 		if kind == "ramp" and absf(grade) > 0.045: continue
 		var score: float = absf(d-desired)+absf(section.curvature(d))*(18000 if kind == "ramp" else 9000)
@@ -62,32 +91,46 @@ static func tour_layout(section: Node3D) -> Array[Dictionary]:
 			ramps.append(big)
 			pads.append(tour_patch(section,"boost",big_d-78,big_fraction,20,3.4))
 			occupied.append(Vector2(big_d-110,big_d+200))
-	var ramp_count := 2 if section.stage >= 2 and (section.stage+section.route_node)%2 == 0 and tunnel.y-tunnel.x < 700 else 1
+	var profile := feel(section)
+	var skyways: Array[Dictionary] = []
+	if int(profile.get("skyway",0)) > 0:
+		var sky_d := tour_slot(section,section.length*0.62,SKYWAY_LENGTH+40,"skyway",occupied)
+		if sky_d >= 0:
+			var sky_fraction := side*0.5
+			var deck := tour_patch(section,"skyway",sky_d,sky_fraction,SKYWAY_LENGTH,4.4)
+			deck["height"] = SKYWAY_HEIGHT
+			skyways.append(deck)
+			# Parked trucks block the lane underneath: drive over them on the deck or go round.
+			for offset in [-45.0,45.0]:
+				trucks.append(tour_patch(section,"truck",sky_d+offset,sky_fraction,12.5,2.8))
+			occupied.append(Vector2(sky_d-SKYWAY_LENGTH*0.5-60,sky_d+SKYWAY_LENGTH*0.5+60))
+	var ramp_count := (2 if section.stage >= 2 and (section.stage+section.route_node)%2 == 0 and tunnel.y-tunnel.x < 700 else 1)+int(profile.get("jumps",0))
 	for i in range(ramp_count):
-		var desired: float = 180+(section.length-Library.CHECKPOINT_RUNUP-260)*(0.27 if i == 0 else 0.68)
+		var desired: float = 180+(section.length-Library.CHECKPOINT_RUNUP-260)*[0.27,0.68,0.45,0.85,0.12][i%5]
 		var d := tour_slot(section,desired,100,"ramp",occupied,120.0)
 		if d < 0: d = tour_slot(section,desired,70,"ramp",occupied,120.0)
-		if d < 0: d = tour_slot(section,desired,18,"ramp",occupied,40.0)
+		# The tight last resort only keeps a first jump on crowded early routes.
+		if d < 0 and i == 0: d = tour_slot(section,desired,18,"ramp",occupied,40.0)
 		if d < 0: continue
-		var fraction: float = side*(0.46 if i == 0 else -0.46)
+		var fraction: float = side*(0.46 if i%2 == 0 else -0.46)
 		ramps.append(tour_patch(section,"ramp",d,fraction,18,3.8,0.8+section.stage*0.05))
 		# The lead-in is deliberate; the launch and landing corridor stays free
 		# of every other surface gimmick, including opposite-side puddles.
 		pads.append(tour_patch(section,"boost",d-62,fraction,20,3.4))
 		occupied.append(Vector2(d-85,d+160))
-	if (section.stage+section.route_node)%2 == 1:
+	if (section.stage+section.route_node)%2 == 1 or int(profile.get("lane",0)) > 0:
 		var d := tour_slot(section,section.length*0.58,180,"boost_lane",occupied)
 		if d >= 0:
 			lanes.append(tour_patch(section,"boost_lane",d,-side*0.42,180,3.4))
 			occupied.append(Vector2(d-110,d+110))
-	for i in range(2):
-		var d := tour_slot(section,section.length*(0.46 if i == 0 else 0.80),18,"water",occupied)
+	for i in range(2+int(profile.get("water",0))):
+		var d := tour_slot(section,section.length*[0.46,0.80,0.30,0.62,0.90][i%5],18,"water",occupied)
 		if d < 0: continue
-		water.append(tour_patch(section,"water",d,-side*(0.44 if i == 0 else -0.44),18,4.0))
+		water.append(tour_patch(section,"water",d,-side*(0.44 if i%2 == 0 else -0.44),18,4.0))
 		occupied.append(Vector2(d-40,d+40))
 	var chains: Array[Dictionary] = []
-	for group in range(3):
-		var desired: float = [450+section.stage*20+section.route_node*12,section.length*0.39,section.length*0.69][group]
+	for group in range(3+int(profile.get("chains",0))):
+		var desired: float = [450+section.stage*20+section.route_node*12,section.length*0.39,section.length*0.69,section.length*0.53,section.length*0.82][group%5]
 		var middle := tour_slot(section,desired,112,"boost",occupied)
 		if middle < 0: continue
 		for i in range(2):
@@ -97,10 +140,23 @@ static func tour_layout(section: Node3D) -> Array[Dictionary]:
 			# Mud beside the pad: the free lane costs speed, the pad lane pays it back.
 			if i == 0: muds.append(tour_patch(section,"mud",d,-fraction,14,3.6))
 		occupied.append(Vector2(middle-76,middle+76))
+	# Truck gates: two trucks side by side with a car-and-a-half gap to thread through.
+	for i in range(int(profile.get("gates",0))):
+		var gate_d := tour_slot(section,section.length*[0.47,0.74][i%2],14,"truck",occupied)
+		if gate_d < 0: continue
+		var gap_lane := 3.2
+		for lane_side in [-1.0,1.0]:
+			trucks.append(tour_patch(section,"truck",gate_d,lane_side*gap_lane/section.half_width(gate_d),12.5,2.8))
+		occupied.append(Vector2(gate_d-50,gate_d+50))
+	for i in range(int(profile.get("mud",0))):
+		var mud_d := tour_slot(section,section.length*[0.35,0.66][i%2],16,"mud",occupied)
+		if mud_d < 0: continue
+		muds.append(tour_patch(section,"mud",mud_d,(0.3 if i%2 == 0 else -0.3),16,4.4))
+		occupied.append(Vector2(mud_d-40,mud_d+40))
 	# Long parked trucks take up one side of the road.
-	var truck_count := 1+(1 if section.stage >= 2 else 0)+(1 if section.stage >= 4 else 0)
+	var truck_count := 1+(1 if section.stage >= 2 else 0)+(1 if section.stage >= 4 else 0)+int(profile.get("trucks",0))
 	for i in range(truck_count):
-		var truck_d := tour_slot(section,section.length*[0.31,0.55,0.83][i],14,"truck",occupied)
+		var truck_d := tour_slot(section,section.length*[0.31,0.55,0.83,0.42,0.68][i%5],14,"truck",occupied)
 		if truck_d < 0: continue
 		trucks.append(tour_patch(section,"truck",truck_d,(0.5 if (i+section.stage)%2 == 0 else -0.5),12.5,2.8))
 		occupied.append(Vector2(truck_d-50,truck_d+50))
@@ -117,6 +173,7 @@ static func tour_layout(section: Node3D) -> Array[Dictionary]:
 	out.append_array(muds)
 	out.append_array(trucks)
 	out.append_array(crests)
+	out.append_array(skyways)
 	for i in range(out.size()): out[i]["id"] = "%d:%d:%d" % [section.stage,section.route_node,i]
 	return out
 
@@ -155,7 +212,7 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 		# Two readable slaloms: a neutral line misses the alternating pads.
 		for start in [560.0,2490.0]:
 			for index in range(6):
-				specifications.append(["boost",start+index*78.0,-0.24 if index%2 == 0 else 0.24,12.0,3.6])
+				specifications.append(["boost",start+index*78.0,-0.27 if index%2 == 0 else 0.27,12.0,3.6])
 		specifications.append(["boost_lane",1050.0,0.42,240.0,4.4])
 		specifications.append(["boost_lane",2070.0,-0.42,280.0,4.4])
 	for i in range(specifications.size()):
@@ -169,7 +226,7 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 static func lane_cost(section: Node3D, distance: float, lane: float) -> float:
 	var cost := 0.0
 	for feature in section.features:
-		if feature.kind == "crest": continue
+		if feature.kind in ["crest","skyway"]: continue
 		var gap: float = feature.distance-distance
 		if section.closed_loop: gap = fposmod(gap,section.length)
 		if gap < 0 or gap > 110: continue
@@ -209,6 +266,9 @@ static func build(section: Node3D) -> void:
 			build_truck(section,feature)
 			continue
 		if feature.kind == "crest": continue
+		if feature.kind == "skyway":
+			build_skyway(section,feature)
+			continue
 		var surface := SurfaceTool.new()
 		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 		if feature.kind in ["boost","boost_lane"]:
@@ -333,3 +393,64 @@ static func hazard_ahead(section: Node3D, distance: float) -> String:
 		var gap: float = span.x-distance
 		if gap >= 0 and gap < best: best = gap; label = "NARROW ROAD"
 	return label
+
+# A narrow deck on concrete arms: ramp up, a long flat run over the lane below, ramp down.
+static func skyway_height(feature: Dictionary, distance: float) -> float:
+	var t: float = distance-(float(feature.distance)-float(feature.length)*0.5)
+	if t < 0 or t > float(feature.length): return 0.0
+	return float(feature.height)*clampf(minf(t,float(feature.length)-t)/SKYWAY_RAMP,0,1)
+
+static func build_skyway(section: Node3D, feature: Dictionary) -> void:
+	var deck := SurfaceTool.new()
+	deck.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var edges := SurfaceTool.new()
+	edges.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var start: float = feature.distance-feature.length*0.5
+	var half: float = feature.width*0.5
+	var steps := int(feature.length/5.0)
+	for i in range(steps):
+		var a: float = start+i*5.0
+		var b: float = a+5.0
+		var ha := skyway_height(feature,a)+0.06
+		var hb := skyway_height(feature,b)+0.06
+		var l: float = feature.lane-half
+		var r: float = feature.lane+half
+		var top := [section.point(a,l)+Vector3.UP*ha,section.point(a,r)+Vector3.UP*ha,section.point(b,l)+Vector3.UP*hb,section.point(b,r)+Vector3.UP*hb]
+		for n in [0,2,1,1,2,3]: deck.add_vertex(top[n])
+		# Slab sides so the deck reads as a solid bridge from the road below.
+		for edge in [l,r]:
+			var side_quad := [section.point(a,edge)+Vector3.UP*ha,section.point(b,edge)+Vector3.UP*hb,section.point(a,edge)+Vector3.UP*maxf(0.05,ha-0.9),section.point(b,edge)+Vector3.UP*maxf(0.05,hb-0.9)]
+			for n in [0,1,2,2,1,3,0,2,1,2,3,1]: deck.add_vertex(side_quad[n])
+		# Yellow edge lines warn how narrow the deck is.
+		for edge in [l+0.15,r-0.15]:
+			var line := [section.point(a,edge-0.1)+Vector3.UP*(ha+0.02),section.point(a,edge+0.1)+Vector3.UP*(ha+0.02),section.point(b,edge-0.1)+Vector3.UP*(hb+0.02),section.point(b,edge+0.1)+Vector3.UP*(hb+0.02)]
+			for n in [0,2,1,1,2,3]: edges.add_vertex(line[n])
+	deck.generate_normals()
+	edges.generate_normals()
+	var deck_node := MeshInstance3D.new()
+	deck_node.name = "Skyway"
+	deck_node.mesh = deck.commit()
+	deck_node.material_override = section.material(Color("4a5157"))
+	section.add_child(deck_node)
+	var line_node := MeshInstance3D.new()
+	line_node.mesh = edges.commit()
+	line_node.material_override = section.material(Color("ffcc3a"))
+	line_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	section.add_child(line_node)
+	# Supports stand outside the road edge; arms reach over to the deck so cars can pass under.
+	var outward := signf(float(feature.lane))
+	var transforms: Array[Transform3D] = []
+	var d := start+SKYWAY_RAMP*0.6
+	while d < start+feature.length-SKYWAY_RAMP*0.6:
+		var h := skyway_height(feature,d)
+		var foot: Vector3 = section.point(d,outward*(section.half_width(d)+section.rail_setback(d,outward)+1.2))
+		var deck_edge: Vector3 = section.point(d,feature.lane+outward*half)
+		var heading: float = section.heading(d)
+		transforms.append(Transform3D(Basis(Vector3.UP,heading).scaled_local(Vector3(1.0,h,1.0)),foot+Vector3.UP*h*0.5))
+		var arm_mid := (foot+deck_edge)*0.5
+		arm_mid.y = deck_edge.y+h-0.5
+		var arm_length := Vector2(foot.x-deck_edge.x,foot.z-deck_edge.z).length()+1.0
+		transforms.append(Transform3D(Basis(Vector3.UP,heading).scaled_local(Vector3(arm_length,0.7,0.9)),arm_mid))
+		d += 30.0
+	section.box_batch(Vector3.ONE,section.material(Color("9aa1a3")),transforms)
+
