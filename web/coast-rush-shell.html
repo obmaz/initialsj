@@ -323,16 +323,32 @@ const engine = new Engine(GODOT_CONFIG);
 }());
 
 // Android/browser Back stays inside the game until the main menu is reached.
+// Chrome skips history entries that were pushed without a user gesture, so a guard created at
+// load would be stepped over by the first Back and leave the page. The first touch/click/key
+// therefore pushes a second guard entry; each Back is consumed from it and re-armed on the next
+// gesture. Forward history is truncated by every push, so the stack never grows past three.
 (function () {
   const key = '__initialsjBack';
+  const indexKey = key+'N';
   let observer = null;
   let enabled = false;
-  let atGuard = !!(window.history.state && window.history.state[key] === 'guard');
-  function arm() {
-    atGuard = true;
-    if (window.history.state && window.history.state[key] === 'guard') return;
-    window.history.pushState(Object.assign({}, window.history.state, {[key]:'guard'}), '', window.location.href);
+  let gestureGuard = false;
+  // 0 at the base entry, n at the n-th guard entry above it.
+  let position = (window.history.state && window.history.state[key] === 'guard') ? (window.history.state[indexKey] || 1) : 0;
+  function push(n) {
+    position = n;
+    window.history.pushState(Object.assign({}, window.history.state, {[key]:'guard',[indexKey]:n}), '', window.location.href);
   }
+  function arm() {
+    if (position > 0) return;
+    push(1);
+  }
+  function armOnGesture() {
+    if (!observer || gestureGuard) return;
+    gestureGuard = true;
+    push(position+1);
+  }
+  for (const name of ['pointerdown','touchend','click','keydown']) window.addEventListener(name,armOnGesture,true);
   window.initialsjSetBackEnabled = function (value) { enabled = !!value; };
   window.initialsjObserveBack = function (callback, active) {
     observer = callback;
@@ -343,28 +359,33 @@ const engine = new Engine(GODOT_CONFIG);
     arm();
   };
   window.addEventListener('popstate', function (event) {
-    const fromGuard = atGuard;
-    atGuard = !!(event.state && event.state[key] === 'guard');
-    if (!event.state || event.state[key] !== 'base') return;
+    const before = position;
+    const landed = event.state && event.state[key];
+    if (landed !== 'base' && landed !== 'guard') return;
+    position = landed === 'guard' ? (event.state[indexKey] || 1) : 0;
     // A bfcache-restored Forward visit must be allowed back into the game.
-    // Only a Back traversal from our guard should dispatch a game action.
-    if (!fromGuard) {
-      if (observer) arm();
+    // Only a Back traversal from a guard should dispatch a game action.
+    if (position >= before) {
+      if (position === 0 && observer) arm();
       return;
     }
+    gestureGuard = false;
     if (observer && enabled) {
-      // Reuse one same-URL entry: a rapid second Back cannot escape mid-fade,
+      // Reuse the guard entries: a rapid second Back cannot escape mid-fade,
       // and driving/menu actions never add entries of their own.
-      arm();
+      if (position === 0) arm();
       const dialog = document.getElementById('install-dialog');
       if (dialog && dialog.open) dialog.close();
       else observer();
-    } else {
+    } else if (position > 0 && window.history.go) {
       // At the root menu, leave normally without trapping the browser user.
+      window.history.go(-(position+1));
+    } else {
       window.history.back();
     }
   });
 }());
+
 
 (function () {
 	// Consoles and low-memory browsers can drop the GPU context while the game runs. The engine

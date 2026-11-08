@@ -21,6 +21,12 @@ function harness() {
       if (entries[cursor].url === entries[1].url) listeners.popstate({state:entries[cursor].state});
       else exits++;
     },
+    go(n){
+      const target = cursor+n;
+      if (target < 1) { cursor = Math.max(target,0); exits++; return; }
+      cursor = target;
+      listeners.popstate({state:entries[cursor].state});
+    },
     forward(){
       if (cursor+1 >= entries.length) return;
       cursor++;
@@ -29,7 +35,7 @@ function harness() {
   };
   const window = {history,location:{href:entries[1].url},addEventListener(name,fn){listeners[name]=fn;}};
   vm.runInNewContext(code,{window,document:{getElementById(){return dialog;}}});
-  return {window,history,entries,dialog,exits:()=>exits};
+  return {window,history,entries,dialog,listeners,exits:()=>exits};
 }
 {
   const h = harness();
@@ -64,5 +70,28 @@ function harness() {
   h.window.initialsjObserveBack(null,false);
   h.history.back();
   assert.equal(h.exits(),1,'A destroyed game must release browser navigation');
+}
+{
+  // Chrome skips entries pushed without a gesture: the first touch must add a gesture guard,
+  // and every Back must still be consumed by the game across many presses.
+  const h = harness();
+  let calls = 0;
+  h.window.initialsjObserveBack(()=>calls++,true);
+  assert.equal(h.entries.length,3);
+  h.listeners.pointerdown();
+  assert.equal(h.entries.length,4,'The first gesture must push a user-activated guard entry');
+  h.listeners.pointerdown();
+  assert.equal(h.entries.length,4,'Further gestures must not stack guards');
+  for (let i=0;i<20;i++) {
+    h.history.back();
+    h.listeners.pointerdown();
+  }
+  assert.equal(calls,20,'Every Back must reach the game, with a gesture between presses');
+  assert.equal(h.exits(),0);
+  assert.equal(h.entries.length,4,'The guard stack must stay bounded');
+  h.window.initialsjSetBackEnabled(false);
+  h.history.back();
+  assert.equal(h.exits(),1,'Back at the main menu must leave the page from the gesture guard');
+  assert.equal(calls,20);
 }
 console.log('Android/browser history guard / repeated Back / dialog / normal exit: PASS');
