@@ -56,7 +56,7 @@ func rail_impact(tree: SceneTree, race: Node3D, speed: float, glancing: bool = f
 	check(not first.is_empty(),"The crash fixture must hit Fuji's actual outer guardrail collider")
 	if speed >= 45:
 		check(triggered and first.severe,"A severe high-speed real guardrail hit must start the tumble state")
-		check(launch_speed > 10 and away_speed > 7 and peak-base > 2.5 and airborne_frames > 30,"The chassis must physically rebound and fly above the road under gravity")
+		check(launch_speed > 7 and away_speed > 6 and peak-base > 1.5 and airborne_frames > 25,"The chassis must physically rebound and fly above the road under gravity")
 		check(roll > PI and not race.crash.active,"The visual tumble must complete a full roll and settle without rolling the collider")
 		var travel: Vector3 = Vector3(body.velocity.x,0,body.velocity.z)
 		var nose: Vector3 = body.forward_direction()

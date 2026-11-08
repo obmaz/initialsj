@@ -68,13 +68,7 @@ func run(tree: SceneTree) -> int:
 	for r in race.rivals:
 		if r.active: active += 1
 	check(active == 7,"Speedway must keep a fixed eight-car grid")
-	for r in race.rivals: r.active = false
-	for lap in range(3):
-		race.distance = 80+race.track.length*(lap+1)-0.4
-		race.speed = 60
-		race.step(1.0/60,0,false,false,false)
-		check(race.laps_completed == lap+1,"Speedway start line must count exactly one lap")
-	check(race.state == "finished","Speedway must finish after three laps")
+	# Lap counting and the three-lap finish are checked by a real drive in suncoast_world_checks.gd.
 	FileAccess.open(Report.path("speedway-course-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"length_m":race.track.length,"elevation_span_m":highest-lowest,"maximum_grade":maximum_grade,"max_bank_degrees":rad_to_deg(max_bank),"min_bank_degrees":rad_to_deg(min_bank),"max_bank_change_rad_per_m":max_step,"tightest_radius_m":radius,"failures":failures},"\t")+"\n")
 	race.queue_free()
 	await tree.process_frame

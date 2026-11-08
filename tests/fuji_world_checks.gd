@@ -272,9 +272,9 @@ func run(tree: SceneTree) -> int:
 	var passes := await pass_regression(tree,race)
 	var recovery := await recovery_regression(tree,race)
 	var ramps := await ramp_regressions(tree,race)
-	# Both game modes still select their own independent movement system.
+	# Both circuits use real bodies; the Tour keeps its own road-space controller.
 	race.choose_mode("track",1)
-	check(race.world_race == null,"Suncoast must retain its current arcade road controller")
+	check(race.world_race != null and race.track.world_collision != null,"Suncoast must use real world bodies and colliders like Fuji")
 	race.choose_mode("tour")
 	check(race.world_race == null and not race.track.active.closed_loop,"Tour must retain its existing branching controller")
 	FileAccess.open(Report.path("fuji-world-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"crossing_car_heights_m":heights,"failures":failures,"world_telemetry_does_not_move_car":true,"shoulders":shoulders,"traffic":traffic,"passes":passes,"recovery":recovery,"ramps":ramps},"\t")+"\n")

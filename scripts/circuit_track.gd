@@ -22,10 +22,9 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 		var p := active.point(active.length*sample/800)
 		map_bounds = map_bounds.expand(Vector2(p.x,p.z))
 	add_child(active)
-	world_collision = null
-	if course_id == 0:
-		world_collision = preload("res://scripts/fuji_collision.gd").build(active)
-		active.add_child(world_collision)
+	# Both circuits are driven by real 3D physics on their actual road and rail triangles.
+	world_collision = preload("res://scripts/fuji_collision.gd").build(active)
+	active.add_child(world_collision)
 	update_ground()
 func build_previews() -> void: pass
 func maintain(_distance: float) -> void: pass

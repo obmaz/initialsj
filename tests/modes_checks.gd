@@ -84,8 +84,7 @@ func run(tree: SceneTree) -> int:
 	check(race.state == "paused","The visible pause button must work by touch")
 	click(race,race.hud.START_BUTTON)
 	check(race.state == "racing","The pause dialog must resume the same race")
-	# The shared scalar circuit rules remain on Suncoast; Fuji uses real bodies.
-	# Its free world driving and physical contacts have dedicated checks.
+	# Both circuits use real bodies; their driving and contacts have dedicated checks.
 	race.choose_mode("track",1)
 	length = race.track.length
 	race.restart()
@@ -98,17 +97,7 @@ func run(tree: SceneTree) -> int:
 	race.drift_sign = 1
 	for frame in range(40): race.step(1.0/60,0,false,true,false)
 	check(not race.drifting,"Unwinding steering with recovered grip must settle a drift on gentle circuit bends")
-	race.restart()
-	race.state = "racing"
-	race.time_left = 0
-	for r in race.rivals: r.active = false
-	for lap in range(3):
-		race.distance = 80+length*(lap+1)-0.4
-		race.lane = 0
-		race.speed = 60
-		race.step(1.0/60,0,false,false,false)
-		check(race.laps_completed == lap+1,"Each start/finish crossing must count exactly one lap")
-		check(race.state == ("finished" if lap == 2 else "racing"),"Track must finish at three laps without a Tour countdown deadline")
+	# Lap counting and the three-lap finish need a real drive around the loop: see suncoast_world_checks.gd.
 	race.restart()
 	race.state = "racing"
 	race.distance = 80+length

@@ -22,7 +22,8 @@ func run(tree:SceneTree)->int:
  tree.root.add_child(r)
  r.set_physics_process(false)
  r.save_records=false
- for mode in ["tour","track"]:
+ # Road-space rail hits (Tour). Both circuits use real colliders: see world_crash_checks.gd.
+ for mode in ["tour"]:
   r.choose_mode(mode,1)
   reset(r)
   r.distance=80

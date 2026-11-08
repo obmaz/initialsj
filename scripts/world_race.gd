@@ -1,5 +1,5 @@
 extends Node3D
-# Fuji alone uses world-space car bodies. Road coordinates are race telemetry.
+# The two circuits (Fuji, Suncoast) use world-space car bodies. Road coordinates are race telemetry.
 const WorldCar = preload("res://scripts/world_car.gd")
 const Progress = preload("res://scripts/circuit_progress.gd")
 const Nitro = preload("res://scripts/nitro_system.gd")
@@ -174,6 +174,8 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	var outside := clampf((absf(race.lane)+0.8-race.track.half_width(race.distance))/1.6,0,1) if player_body.grounded else 0.0
 	race.offroad_amount = move_toward(race.offroad_amount,outside,delta*6)
 	update_air(delta,was_airborne)
+	# Boost lanes only count while the wheels are on the road.
+	race.surface.update_lane(race.track.active,Vector2(race.lane,race.distance),race.speed,brake,race.impact,player_body.grounded and not race.crash.active)
 	if player_body.grounded and not was_airborne and data.valid:
 		for event in race.surface.contact(race.track.active,old_position,Vector2(race.lane,race.distance),race.speed,brake,race.impact):
 			if event == "boost":
@@ -296,7 +298,7 @@ func impact(hit: Dictionary) -> void:
 	var closing: float = hit.get("closing_speed",hit.speed)
 	if barrier and hit.get("severe",false) and not race.crash.active:
 		var severity: float = race.crash.severity(incoming)
-		var up: float = race.crash.launch_up(incoming)
+		var up: float = Tuning.world_launch_up(race.crash.launch_up(incoming))
 		race.crash.start(incoming,local,player_body.feet_position().y,2.0*up/player_body.GRAVITY)
 		player_body.realign_time = 0.0
 		race.haptics.pulse(1.0,1.0,0.5,4)
@@ -305,7 +307,7 @@ func impact(hit: Dictionary) -> void:
 		var tangent := player_body.velocity.slide(normal)
 		tangent.y = 0
 		# A glancing hit still throws the car; the push away from the rail grows with speed.
-		var away := lerpf(3.5,12.0,severity)+clampf(closing*0.12,0,4)
+		var away := (lerpf(3.5,12.0,severity)+clampf(closing*0.12,0,4))*Tuning.LAUNCH_AWAY_SCALE
 		player_body.velocity = tangent*lerpf(0.82,0.66,severity)+outward*away+Vector3.UP*up
 		player_body.grounded = false
 		race.air.active = true

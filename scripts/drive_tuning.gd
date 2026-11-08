@@ -25,3 +25,14 @@ const FLIGHT_TURN_RATE := 3.5
 # Speed kept after a glancing rail hit: harder hits cost more, same curve in both controllers.
 static func glide_keep(hardness: float) -> float:
 	return lerpf(GLIDE_KEEP_SOFT,GLIDE_KEEP_HARD,clampf(hardness,0,1))
+
+# A launching rail hit should look the same in both controllers. The Tour jumps under gravity 27
+# and Fuji under 24, so Fuji launches slower by sqrt(24/27) to reach the same height, and its
+# push off the rail is scaled to match the Tour's lane bounce.
+const FUJI_GRAVITY := 24.0
+const TOUR_GRAVITY := 27.0
+const LAUNCH_AWAY_SCALE := 0.85
+static func world_launch_up(road_space_up: float) -> float:
+	# 0.9 absorbs the extra lift the real body gets from rail geometry and its own pitch.
+	return road_space_up*sqrt(FUJI_GRAVITY/TOUR_GRAVITY)*0.9
+

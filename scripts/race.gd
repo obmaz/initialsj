@@ -502,7 +502,7 @@ func choose_mode(value: String, course: int = 0) -> void:
 		sky.radiance_size = Sky.RADIANCE_SIZE_128
 		atmosphere.sky = sky
 		visual_theme = ""
-	if mode == "track" and selected_course == 0:
+	if mode == "track":
 		world_race = WorldRace.new()
 		world_race.race = self
 		add_child(world_race)

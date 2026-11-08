@@ -40,7 +40,8 @@ func run(tree: SceneTree) -> int:
 		race.brain.tick(race,0.8)
 		check(other.surface.puddles_hit == (0 if airborne else 1),"CPU landing must not collect a puddle flown over before touchdown; grounded crossing must still work")
 	race.track.active.features.assign(saved)
-	race.choose_mode("track",1)
+	# The Tour keeps the road-space controller, so it hosts this incline fixture.
+	race.choose_mode("tour")
 	var climb := 0.0
 	var at := 0.0
 	for i in range(1200):
