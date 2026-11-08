@@ -79,7 +79,22 @@ def check_docs():
             errors.append(f"Generated review artifact belongs in build/reports/: {path.relative_to(ROOT)}")
 
 
+def check_audio_licences():
+    """Every shipped sound must be covered by assets/audio/LICENSE.txt (and its vehicle pattern)."""
+    licence = text(ROOT / "assets/audio/LICENSE.txt")
+    for path in (ROOT / "assets/audio").rglob("*"):
+        if path.suffix not in (".wav", ".ogg", ".json"):
+            continue
+        name = path.relative_to(ROOT / "assets/audio").as_posix()
+        if name.startswith("vehicles/"):
+            if "vehicles/<id>-engine.ogg" not in licence:
+                errors.append("Vehicle audio is not covered by assets/audio/LICENSE.txt")
+        elif path.name not in licence:
+            errors.append(f"Audio file without a licence entry: assets/audio/{name}")
+
+
 reached = live_resources()
+check_audio_licences()
 check_sources(reached)
 check_docs()
 if errors:

@@ -78,4 +78,4 @@ touch build/site/.nojekyll
 
 `deploy-pages`는 커밋 해시를 배포 ID로 씁니다. 2026-11-07에 이 단계가 `syncing_files`에서 10분 제한까지 끝나지 않아 취소된 뒤, 같은 커밋으로 실패한 job을 다시 실행하거나 워크플로를 새로 실행한 두 번은 배포 상태가 끝까지 비어 있는 채 같은 제한에서 실패했습니다. 이럴 때는 같은 커밋을 반복해서 돌리지 말고 새 커밋을 `main`에 푸시해 새 배포 ID로 시도합니다. GitHub 상태 페이지가 정상이어도 일어날 수 있습니다.
 
-저작권·출처 문서는 에셋과 함께 보존합니다. 음원은 [출처·라이선스](../assets/audio/LICENSE.txt)를 확인합니다. 게임 규칙은 [GAMEPLAY.md](GAMEPLAY.md), 이번 정리의 검토 범위는 [CODE_REVIEW.md](CODE_REVIEW.md)에 있습니다. 터널 내 비밀길과 공사 장벽을 부수는 경로는 현재 구현 범위에 포함되지 않습니다.
+저작권·출처 문서는 에셋과 함께 보존합니다. 음원은 [출처·라이선스](../assets/audio/LICENSE.txt)를 확인하고, 모든 에셋의 출처와 라이선스는 [ASSET_LICENSES.md](ASSET_LICENSES.md)에 있습니다. 검사기는 라이선스 항목이 없는 음원 파일을 실패로 처리합니다. 게임 규칙은 [GAMEPLAY.md](GAMEPLAY.md), 이번 정리의 검토 범위는 [CODE_REVIEW.md](CODE_REVIEW.md)에 있습니다. 터널 내 비밀길과 공사 장벽을 부수는 경로는 현재 구현 범위에 포함되지 않습니다.
