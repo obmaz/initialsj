@@ -179,10 +179,22 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 				player_body.velocity += player_body.forward_direction()*8
 				race.score += 50
 				race.boost_kick = 0.55
+				race.haptics.pulse(0.25,0.8,0.18,2)
 			else:
 				player_body.velocity *= 0.96
 				if DisplayServer.get_name() != "headless": race.water_effect.burst(player_body.feet_position(),player_body.forward_direction(),race.motion_reduced)
-	for hit in contacts: impact(hit)
+	for hit in contacts:
+		impact(hit)
+		# Gliding along a rail throws sparks and rumbles until the car leaves it.
+		if hit.get("barrier",false) and not hit.get("severe",false) and race.speed > 10:
+			race.scrape(delta,-hit.normal,hit.point)
+	# A sliding car touches the rail only on the first frame, so keep the scrape going from its
+	# distance to the rail line while it stays pressed against it.
+	if player_body.grounded and race.speed > 10 and not race.crash.active:
+		var rail_side := signf(race.lane)
+		var rail_gap: float = race.track.half_width(race.distance)+race.track.active.rail_setback(race.distance,rail_side)-absf(race.lane)-1.1
+		if rail_gap < 0.45:
+			race.scrape(delta,player_body.global_basis.x*rail_side,player_body.feet_position()+player_body.global_basis.x*rail_side*1.1+Vector3.UP*0.4)
 	update_rivals(delta)
 	update_passes(old_gaps,old_position.y)
 	var road_forward: Vector3 = (race.track.point(race.distance+2)-race.track.point(race.distance-2)).normalized()
@@ -196,7 +208,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		race.last_lap = race.elapsed-race.lap_started
 		race.lap_started = race.elapsed
 		race.checkpoint_flash = 2
-		race.nitro = minf(100,race.nitro+25)
+		race.nitro = minf(100,race.nitro+15)
 		race.nitro_charges = mini(race.vehicle.charges,race.nitro_charges+1)
 		if laps >= 3: race.finish()
 	update_recovery(delta,data)
@@ -247,6 +259,7 @@ func update_air(delta: float, was_airborne: bool) -> void:
 		if airborne_time > 0.12 and landing_velocity < -1.5:
 			race.air.landing_flash = 0.65
 			race.air.landing_strength = clampf(-landing_velocity/14,0.25,1)
+			race.haptics.pulse(0.4+0.5*race.air.landing_strength,0.6,0.12+0.2*race.air.landing_strength,3)
 			if not crash_flight: race.score += 100
 			if DisplayServer.get_name() != "headless": race.landing_dust.burst(player_body.feet_position(),race.motion_reduced)
 		airborne_time = 0
@@ -283,6 +296,7 @@ func impact(hit: Dictionary) -> void:
 		var up: float = race.crash.launch_up(incoming)
 		race.crash.start(incoming,local,player_body.feet_position().y,2.0*up/player_body.GRAVITY)
 		player_body.realign_time = 0.0
+		race.haptics.pulse(1.0,1.0,0.5,4)
 		crash_flight = true
 		var outward := normal.slide(Vector3.UP).normalized()
 		var tangent := player_body.velocity.slide(normal)
@@ -516,6 +530,13 @@ func update_camera(delta: float) -> void:
 	var pace := clampf(race.speed/88,0,1)
 	var up := Vector3.UP.lerp(player_body.surface_normal,0.3).normalized()
 	var desired: Vector3 = -forward*(7.1+pace*0.9)+Vector3.UP*(3.0+race.camera_intro*1.5)
+	if not race.motion_reduced and race.state == "racing":
+		# Speed hum, kerb/rail rumble, boost pull-back and a dip when the car lands.
+		race.camera_time += delta
+		var jitter: float = 0.010*pace*pace+race.edge_rumble*pace*0.03+race.offroad_amount*pace*0.02
+		desired += right*sin(race.camera_time*53)*jitter+Vector3.UP*cos(race.camera_time*67)*jitter*0.55
+		desired += -forward*race.boost_kick*0.55
+		desired.y -= race.air.landing_flash*race.air.landing_strength*0.4
 	race.camera_intro = maxf(0,race.camera_intro-delta*0.8)
 	race.camera_offset = race.camera_offset.lerp(desired,1-exp(-delta*7))
 	var recoil: Vector3 = race.collision_camera_offset(forward,right)

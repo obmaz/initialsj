@@ -11,6 +11,7 @@ const Features = preload("res://scripts/road_features.gd")
 const Factory = preload("res://scripts/vehicle_factory.gd")
 const Circuit = preload("res://scripts/circuit_track.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
+const Haptics = preload("res://scripts/haptics.gd")
 const Pad = preload("res://scripts/gamepad_input.gd")
 const Nitro = preload("res://scripts/nitro_system.gd")
 const RenderBudget = preload("res://scripts/render_budget.gd")
@@ -165,6 +166,10 @@ var fullscreen_return_mode := DisplayServer.WINDOW_MODE_WINDOWED
 var motion_reduced := false
 var motion_user_set := false
 var pad := Pad.new()
+var haptics := Haptics.new()
+# 0-1 while a wheel is on the kerb or the car is scraping a rail: it shakes the camera and the pad.
+var edge_rumble := 0.0
+var scrape_timer := 0.0
 var gamepad_active := false
 var settings_focus := 0
 var preferences_path := "user://settings.cfg"
@@ -277,6 +282,7 @@ func _ready() -> void:
 	if DisplayServer.get_name() != "headless":
 		if OS.has_feature("web"):
 			lite_graphics = bool(JavaScriptBridge.eval("window.initialsjLiteGraphics ? window.initialsjLiteGraphics() : false"))
+			haptics.phone_buzz = bool(JavaScriptBridge.eval("typeof navigator.vibrate === 'function' && /Android/i.test(navigator.userAgent)"))
 		previews = preload("res://scripts/garage_previews.gd").new()
 		previews.lite = lite_graphics
 		add_child(previews)
@@ -551,6 +557,8 @@ func competitor_position(id: int) -> int:
 	return place
 
 func restart() -> void:
+	haptics.stop()
+	edge_rumble = 0
 	crash.reset()
 	recovery.reset()
 	player.body.rotation.x = 0
@@ -748,6 +756,7 @@ func _notification(what: int) -> void:
 
 func pause_tour() -> void:
 	if state in ["racing","countdown"]:
+		haptics.stop()
 		resume_state = state
 		state = "paused"
 		if hud != null: hud.fingers.clear()
@@ -888,6 +897,8 @@ func sync_world_rendering() -> void:
 		for r in rivals: r.car.visible = false
 
 func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool = false, cell_input: bool = false) -> void:
+	edge_rumble = move_toward(edge_rumble,0,delta*4)
+	haptics.enabled = not motion_reduced
 	if crash.advance(delta):
 		player.body.rotation.x = 0
 		player.body.rotation.z = 0
@@ -941,7 +952,9 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		drift_pending = 0
 	elif drift_pressed: drift_pending = 0.55
 	if not end_drift and speed > 25 and absf(steer) > 0.2 and (drift_pending > 0 or (previous_brake and brake_armed > 0 and gas)):
-		if not drift_latched: drift_sign = signf(steer)
+		if not drift_latched:
+			drift_sign = signf(steer)
+			haptics.pulse(0.15,0.45,0.12,1)
 		drift_latched = true
 		drift_pending = 0
 	if air.active or speed < 22 or (brake and absf(steer) < 0.14):
@@ -1022,6 +1035,14 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	limits += Vector2(radius-Contact.HALF_WIDTH,-radius+Contact.HALF_WIDTH)
 	var margin := minf(lane-limits.x,limits.y-lane)
 	if margin < 1.0: speed = move_toward(speed,minf(speed,38),delta*32)
+	# Kerb rumble near the edge, and sparks while the car scrapes the rail.
+	if margin < 1.1 and speed > 20 and not air.active:
+		edge_rumble = maxf(edge_rumble,0.5)
+		haptics.pulse(0.1,0.35,0.06,0)
+	if margin < 0.35 and speed > 14 and not air.active:
+		var rail_side := 1.0 if limits.y-lane < lane-limits.x else -1.0
+		var rail_forward := (track.point(distance+2)-track.point(distance)).normalized()
+		scrape(delta,Vector3(-rail_forward.z,0,rail_forward.x)*rail_side,track.point(distance,lane+rail_side*1.0)+Vector3.UP*0.4)
 	if lane < limits.x or lane > limits.y:
 		var side := -1.0 if lane < limits.x else 1.0
 		var incoming_speed := speed
@@ -1048,6 +1069,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			if Crash.launches(incoming_speed) and not crash.active:
 				var up := Crash.launch_up(incoming_speed)
 				crash.start(incoming_speed,Vector2(-side,0),0.0,2.0*up/air.GRAVITY)
+				haptics.pulse(1.0,1.0,0.5,4)
 				air.active = true
 				air.trick = false
 				air.world_y = track.point(distance,lane).y+0.15
@@ -1063,6 +1085,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			drift_charge = 0
 		elif event == "land" and air.trick:
 			score += 100
+			haptics.pulse(0.4+0.5*air.landing_strength,0.6,0.12+0.2*air.landing_strength,3)
 			if DisplayServer.get_name() != "headless": landing_dust.burst(track.point(distance,lane),motion_reduced)
 		elif event == "settle" and DisplayServer.get_name() != "headless":
 			landing_dust.burst(track.point(distance,lane),true)
@@ -1075,8 +1098,10 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			score += 50
 			boosting = true
 			boost_kick = 0.55
+			haptics.pulse(0.25,0.8,0.18,2)
 		elif event == "mud":
 			speed *= 0.86
+			haptics.pulse(0.6,0.25,0.3,2)
 			if DisplayServer.get_name() != "headless" and speed > 10: landing_dust.burst(track.point(distance,lane),motion_reduced)
 		elif event == "truck":
 			# A parked truck is a wall: the car loses most of its speed and is thrown to the open side.
@@ -1378,6 +1403,7 @@ func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vecto
 	impact_age = 0
 	# A freeze-frame on hard hits makes them land (skipped with reduced motion).
 	if strength > 0.55 and not motion_reduced: hitstop_until = Time.get_ticks_msec()+int(50+strength*70)
+	if strength > 0: haptics.pulse(0.35+0.65*strength,0.5+0.5*strength,0.1+0.3*strength,3)
 	cancel_nitro()
 	drifting = false
 	drift_charge = 0
@@ -1391,6 +1417,18 @@ func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vecto
 		var at := track.point(distance,lane) + Vector3.UP*0.55 - right*normal.x*1.25 + f*normal.y*2.0
 		if world_at.is_finite(): at = world_at
 		impacts.burst(at,-right*normal.x+f*normal.y-f*0.7,motion_reduced,strength)
+
+# Called every frame the car grinds along a rail: rumble, camera shake and a stream of sparks.
+func scrape(delta: float, outward: Vector3, at: Vector3) -> void:
+	edge_rumble = 1.0
+	haptics.pulse(0.25,0.6,0.08,1)
+	scrape_timer -= delta
+	if scrape_timer > 0 or impact_age < 0.5: return
+	scrape_timer = 0.14 if motion_reduced else 0.07
+	if DisplayServer.get_name() == "headless": return
+	var f := (track.point(distance+2)-track.point(distance)).normalized()
+	if world_race != null: f = world_race.player_body.forward_direction()
+	impacts.burst(at,-f*0.9-outward*0.25,motion_reduced,0.3)
 
 func place_cars(delta: float = 1.0) -> void:
 	if world_race != null:
@@ -1445,7 +1483,7 @@ func update_camera(delta: float) -> void:
 	var pace := clampf(speed/88,0,1)
 	var active := state == "racing"
 	camera_time += delta if active else 0
-	var shake := (0.012*pace*pace + impact*0.10 + offroad_amount*pace*0.022) if active and not motion_reduced else 0.0
+	var shake := (0.012*pace*pace + impact*0.10 + offroad_amount*pace*0.022 + edge_rumble*pace*0.03) if active and not motion_reduced else 0.0
 	var vibration := right*sin(camera_time*53)*shake + Vector3.UP*cos(camera_time*67)*shake*0.55
 	var desired := -forward*(5.3+pace*0.25+(boost_kick*0.55 if not motion_reduced else 0.0)-(0.25 if braking else 0.0)) + Vector3.UP*((2.75 if motion_reduced else 2.60)-pace*0.30) + vibration
 	if camera_intro > 0: desired += -forward*camera_intro*3.5+Vector3.UP*camera_intro*2.0

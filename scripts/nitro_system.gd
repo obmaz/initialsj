@@ -26,7 +26,9 @@ static func update(race: Node3D, delta: float, held: bool, cell: bool) -> void:
 	if race.nitro <= 0: race.nitro_locked = true
 	if race.nitro >= 12: race.nitro_locked = false
 	var gauge: bool = v.mode != "charges" and held and race.nitro > 0 and not race.nitro_locked
+	var was_active: bool = race.nitro_active
 	race.nitro_active = race.throttling and not blocked and race.speed > 25 and (burst or gauge)
+	if race.nitro_active and not was_active: race.haptics.pulse(0.5,0.7,0.25,2)
 	if race.nitro_active:
 		race.nitro_seconds += delta
 		if not burst: race.nitro = maxf(0,race.nitro-delta*v.drain)
