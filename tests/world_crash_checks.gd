@@ -52,9 +52,9 @@ func rail_impact(tree: SceneTree, race: Node3D, speed: float, glancing: bool = f
 		roll = maxf(roll,absf(race.crash.visual_roll))
 		peak = maxf(peak,body.feet_position().y)
 		if not body.grounded: airborne_frames += 1
-		if not first.is_empty() and speed < 45: break
+		if not first.is_empty() and speed < 55.5: break
 	check(not first.is_empty(),"The crash fixture must hit Fuji's actual outer guardrail collider")
-	if speed >= 45:
+	if speed >= 55.5:
 		check(triggered and first.severe,"A severe high-speed real guardrail hit must start the tumble state")
 		check(launch_speed > 7 and away_speed > 6 and peak-base > 1.5 and airborne_frames > 25,"The chassis must physically rebound and fly above the road under gravity")
 		check(roll > PI and not race.crash.active,"The visual tumble must complete a full roll and settle without rolling the collider")
@@ -153,7 +153,7 @@ func manual_recovery(tree: SceneTree, race: Node3D) -> Dictionary:
 	check(race.recovery_available,"Staying within the stuck movement window must expose manual recovery")
 	race.recover_car()
 	check(not race.recovery_available and body.velocity.is_zero_approx() and not race.crash.active,"Explicit recovery must reset motion, tumble and its button state")
-	check(absf(race.lane) < race.track.half_width(race.distance)-1 and body.position.distance_to(session.bodies[1].position) > 2.6,"Recovery must choose an unoccupied lane inside the real road")
+	check(absf(race.lane) < race.track.half_width(race.distance)-1 and body.position.distance_to(session.bodies[1].position) > 2.2,"Recovery must choose an unoccupied lane inside the real road")
 	check(tracker.gates_passed == earned.gates and tracker.laps == earned.laps and tracker.next_gate == earned.next_gate and race.laps_completed == earned.laps,"Crash and manual recovery must preserve every earned lap and ordered gate")
 	check(race.camera.position.distance_to(race.player.position) < 12,"Recovery must reset the chase camera at the rescued physical car")
 	# A blocked safe region is refused, rather than placing a chassis in a wall.

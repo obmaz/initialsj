@@ -2,7 +2,8 @@ extends RefCounted
 # A rail hit above LAUNCH_SPEED always throws the car. The faster the hit, the higher it goes,
 # the longer it stays up and the more it rolls and flips. World-space launch and contacts
 # remain in the motor; this only drives the visual tumble.
-const LAUNCH_SPEED := 45.0
+# 200 km/h on the speedometer (the speed is shown as m/s x 3.6).
+const LAUNCH_SPEED := 200.0/3.6
 const MAX_SPEED := 100.0
 var active := false
 var elapsed := 0.0

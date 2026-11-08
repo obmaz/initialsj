@@ -3,7 +3,7 @@ shader_type sky;
 uniform vec3 top_color : source_color = vec3(0.012, 0.03, 0.09);
 uniform vec3 horizon_color : source_color = vec3(0.07, 0.12, 0.24);
 uniform vec3 glow_color : source_color = vec3(0.45, 0.28, 0.18);
-uniform vec3 moon_direction = vec3(-0.35, 0.55, -0.75);
+uniform vec3 moon_direction = vec3(-0.35, 0.24, -0.75);
 uniform float star_density = 0.004;
 
 float hash(vec3 p) {
@@ -26,8 +26,8 @@ void sky() {
 		color += vec3(0.9, 0.95, 1.0) * star * twinkle * smoothstep(0.02, 0.35, height);
 	}
 	vec3 moon = normalize(moon_direction);
-	float disc = smoothstep(0.9988, 0.9993, dot(dir, moon));
-	float halo = pow(max(dot(dir, moon), 0.0), 220.0) * 0.35;
-	color += vec3(0.85, 0.9, 1.0) * disc + vec3(0.35, 0.45, 0.7) * halo;
+	float disc = smoothstep(0.9972, 0.9977, dot(dir, moon));
+	float halo = pow(max(dot(dir, moon), 0.0), 60.0) * 0.5;
+	color += vec3(1.0, 0.97, 0.88) * disc * 1.4 + vec3(0.35, 0.45, 0.7) * halo;
 	COLOR = color;
 }

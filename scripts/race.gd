@@ -1599,7 +1599,14 @@ func update_camera(delta: float) -> void:
 	camera.fov = lerpf(camera.fov,target_fov,1-exp(-delta*(8 if boosting else 4)))
 
 func update_atmosphere(delta: float) -> void:
-	if mode == "track" and selected_course == 2: return
+	if mode == "track" and selected_course == 2:
+		# The moon stays low in the sky ahead and slightly to the left, whichever way the road turns.
+		var look: Vector3 = -camera.global_transform.basis.z
+		look.y = 0
+		if look.length_squared() > 0.01 and atmosphere.sky != null and atmosphere.sky.sky_material is ShaderMaterial:
+			var heading := look.normalized().rotated(Vector3.UP,deg_to_rad(24))
+			(atmosphere.sky.sky_material as ShaderMaterial).set_shader_parameter("moon_direction",Vector3(heading.x,0.115,heading.z))
+		return
 	if mode == "track":
 		var sheltered: bool = track.active.in_tunnel(distance)
 		var blend := 1-exp(-delta*3)
