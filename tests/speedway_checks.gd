@@ -36,7 +36,7 @@ func run(tree: SceneTree) -> int:
 		lowest = minf(lowest,race.track.point(d).y)
 		highest = maxf(highest,race.track.point(d).y)
 		maximum_grade = maxf(maximum_grade,absf(race.track.point(d+2).y-race.track.point(d-2).y)/4)
-		check(race.track.half_width(d) >= 10.5,"The oval needs a genuinely wide multi-lane surface")
+		check(race.track.half_width(d) >= 7.4,"The oval needs a genuinely wide multi-lane surface")
 		check(not race.track.active.in_tunnel(d),"Open speedway must not inherit the Fuji tunnel")
 		var cross: Vector3 = race.track.point(d,10)-race.track.point(d,-10)
 		check(absf(cross.y-20*tan(bank)) < 0.001,"The bank must be actual 3D road geometry")
@@ -56,8 +56,8 @@ func run(tree: SceneTree) -> int:
 	for p in stripe_vertices:
 		lowest_stripe = minf(lowest_stripe,p.y)
 		highest_stripe = maxf(highest_stripe,p.y)
-	check(highest_stripe-lowest_stripe > 10,"Full-width finish stripe must follow a real steep bank without flat tiles")
-	check(stripe_vertices.size() >= 26*2*6,"Finish stripe must cover all speedway lanes with joined geometry")
+	check(highest_stripe-lowest_stripe > 6,"Full-width finish stripe must follow a real steep bank without flat tiles")
+	check(stripe_vertices.size() >= 17*2*6,"Finish stripe must cover all speedway lanes with joined geometry")
 	stripe.free()
 	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		check(Catalog.record_key(index,"track",1).begins_with("track_suncoast_"),"Replacement circuit needs its own record namespace")

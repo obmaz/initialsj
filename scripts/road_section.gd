@@ -181,14 +181,28 @@ static func width_profile(keys: Array, t: float) -> float:
 		if t <= b.x: return lerpf(a.y,b.y,smoothstep(a.x,b.x,t))
 	return (keys[keys.size()-1] as Vector2).y
 
-# Every road is drawn and driven about 10% narrower than its authored profile.
+# Roads are drawn and driven narrower than their authored profile: Tour 10%, Fuji 28%, Suncoast
+# 37% (the authored numbers below are the original widths).
 const WIDTH_SCALE := 0.9
+const FUJI_SCALE := 0.72
+const SUNCOAST_SCALE := 0.63
+
+# MIDNIGHT HARBOR keeps its authored width: wider on the straights and hairpin apexes (room to
+# slide), tighter through the linked bends.
+const NIGHT_WIDTH := [Vector2(0,8.4),Vector2(0.09,8.4),Vector2(0.11,7.4),Vector2(0.21,7.4),Vector2(0.26,8.0),Vector2(0.31,8.0),Vector2(0.35,7.2),Vector2(0.40,7.2),Vector2(0.43,8.2),Vector2(0.48,8.2),Vector2(0.53,7.0),Vector2(0.62,8.8),Vector2(0.66,8.8),Vector2(0.67,7.8),Vector2(0.72,8.2),Vector2(0.78,8.2),Vector2(0.80,7.6),Vector2(0.86,8.2),Vector2(0.89,7.4),Vector2(0.97,8.4),Vector2(1,8.4)]
+
+func width_scale() -> float:
+	if closed_loop and course_id == 2: return 1.0
+	if closed_loop and course_id == 0: return FUJI_SCALE
+	if closed_loop and course_id == 1: return SUNCOAST_SCALE
+	return WIDTH_SCALE
 
 func half_width(distance: float) -> float:
-	return authored_half_width(distance)*WIDTH_SCALE
+	return authored_half_width(distance)*width_scale()
 
 func authored_half_width(distance: float) -> float:
 	if closed_loop and course_id == 1: return width_profile(SUNCOAST_WIDTH,fposmod(distance,length)/length)
+	if closed_loop and course_id == 2: return width_profile(NIGHT_WIDTH,fposmod(distance,length)/length)
 	if closed_loop: return width_profile(FUJI_WIDTH,fposmod(distance,length)/length)
 	var t := clampf(distance/length,0,1)
 	var blend := smoothstep(180,360,distance)*(1-smoothstep(length-360,length-180,distance))
@@ -203,7 +217,7 @@ func authored_half_width(distance: float) -> float:
 	return lerpf(9.0,clampf(width,5.6,12.6),blend)
 
 func rail_setback(distance: float, side: float) -> float:
-	if closed_loop and course_id == 1: return 1.5
+	if closed_loop and course_id >= 1: return 1.5
 	var d := fposmod(distance,length) if closed_loop else clampf(distance,0,length)
 	if excavation_depth(d) > 0.05: return 1.5
 	var t := d/length
@@ -227,7 +241,7 @@ func rail_setback(distance: float, side: float) -> float:
 
 func roadside_point(distance: float, lane: float) -> Vector3:
 	var p: Vector3 = scenery.terrain_point(distance,lane)
-	if course_id == 1 or in_tunnel(distance) or excavation_depth(distance) > 0.05: return p
+	if course_id >= 1 or in_tunnel(distance) or excavation_depth(distance) > 0.05: return p
 	var side := signf(lane)
 	var flat_edge := half_width(distance)+rail_setback(distance,side)+1.3
 	var span := shoulder_bank_span(distance,side)
@@ -255,7 +269,7 @@ func on_bridge(distance: float) -> bool:
 	return d >= bridge_span.x and d <= bridge_span.y
 
 func in_tunnel(distance: float) -> bool:
-	if course_id == 1: return false
+	if course_id >= 1: return false
 	if closed_loop:
 		var d := fposmod(distance,length)
 		var span := underpass_span()
@@ -339,16 +353,17 @@ func _ready() -> void:
 	make_curve_markers()
 	make_skid_marks()
 	if course_id == 1: scenery = preload("res://scripts/speedway_environment.gd").new()
+	elif closed_loop and course_id == 2: scenery = preload("res://scripts/night_environment.gd").new()
 	else: scenery = preload("res://scripts/circuit_environment.gd").new() if closed_loop else Scenery.new()
 	scenery.track = self
 	add_child(scenery)
 	preload("res://scripts/roadside_geometry.gd").shoulders(self)
-	if course_id != 1: make_course_banners()
+	if course_id == 0 or not closed_loop: make_course_banners()
 	var stripe_d := 80.0 if stage == 0 else length - 10
 	if stage == 0 or stage == 4:
 		make_finish_stripe(stripe_d)
 	if closed_loop:
-		make_gantry(80,"SUNCOAST SPEEDWAY / START - FINISH" if course_id == 1 else "FUJI LAKESIDE / START - FINISH")
+		make_gantry(80,["FUJI LAKESIDE","SUNCOAST SPEEDWAY","MIDNIGHT HARBOR"][clampi(course_id,0,2)]+" / START - FINISH")
 	elif stage < 4:
 		make_gantry(checkpoint_distance(),"CHECKPOINT",Color("e3ad38"))
 		var titles := Library.next_titles(stage,route_node)

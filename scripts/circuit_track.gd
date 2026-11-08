@@ -16,6 +16,7 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 	active.closed_loop = true
 	active.course_id = course_id
 	if course_id == 1: preload("res://scripts/speedway_course.gd").build(active)
+	elif course_id == 2: preload("res://scripts/night_course.gd").build(active)
 	else: preload("res://scripts/fuji_course.gd").build(active)
 	map_bounds = Rect2(Vector2(active.point(0).x,active.point(0).z),Vector2.ZERO)
 	for sample in range(800):
@@ -29,4 +30,6 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 func build_previews() -> void: pass
 func maintain(_distance: float) -> void: pass
 func update_ground() -> void:
-	if base_material != null: base_material.albedo_color = Color("548e5d") if course_id == 1 else Color("617f65")
+	# The night circuit sits on a raised harbour floor under its embankments.
+	if ground_plane != null: ground_plane.position.y = 3.2 if course_id == 2 else -5.0
+	if base_material != null: base_material.albedo_color = Color("0b1018") if course_id == 2 else (Color("548e5d") if course_id == 1 else Color("617f65"))

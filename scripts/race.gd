@@ -77,10 +77,13 @@ var warming_world := false:
 var camera_intro := 0.0
 var selected_course := 0
 var world_race: Node3D
+const COURSE_TITLES := ["FUJI LAKESIDE","SUNCOAST SPEEDWAY","MIDNIGHT HARBOR"]
+const COURSE_LABELS := ["FUJI / CIRCUIT 01","SUNCOAST / CIRCUIT 02","MIDNIGHT / CIRCUIT 03"]
+const COURSE_COUNT := 3
 var course_title: String:
-	get: return "SUNCOAST SPEEDWAY" if selected_course == 1 else "FUJI LAKESIDE"
+	get: return COURSE_TITLES[clampi(selected_course,0,COURSE_COUNT-1)]
 var course_label: String:
-	get: return "SUNCOAST / CIRCUIT 02" if selected_course == 1 else "FUJI / CIRCUIT 01"
+	get: return COURSE_LABELS[clampi(selected_course,0,COURSE_COUNT-1)]
 var settings_return := "menu"
 # Shown on the loading card of the next screen transition (empty for an ordinary fade).
 var loading_title := ""
@@ -465,18 +468,18 @@ func route_banner() -> String:
 
 func mode_loading_title(value: String, course: int = 0) -> String:
 	if value != "track": return "COAST TOUR"
-	return "SUNCOAST SPEEDWAY" if course == 1 else "FUJI LAKESIDE"
+	return COURSE_TITLES[clampi(course,0,COURSE_COUNT-1)]
 
 # Opens a mode through the transition, with a loading card when the course must be rebuilt.
 func navigate_to_mode(value: String, course: int = 0) -> void:
 	var desired := "track" if value == "track" else "tour"
-	if not (mode == desired and (desired == "tour" or selected_course == clampi(course,0,1))):
+	if not (mode == desired and (desired == "tour" or selected_course == clampi(course,0,COURSE_COUNT-1))):
 		loading_title = mode_loading_title(value,course)
 	navigate(func(): choose_mode(value,course))
 
 func choose_mode(value: String, course: int = 0) -> void:
 	var desired := "track" if value == "track" else "tour"
-	if mode == desired and (desired == "tour" or selected_course == clampi(course,0,1)):
+	if mode == desired and (desired == "tour" or selected_course == clampi(course,0,COURSE_COUNT-1)):
 		open_garage()
 		load_record()
 		return
@@ -486,7 +489,7 @@ func choose_mode(value: String, course: int = 0) -> void:
 		world_race.queue_free()
 		world_race = null
 	mode = "track" if value == "track" else "tour"
-	selected_course = clampi(course,0,1)
+	selected_course = clampi(course,0,COURSE_COUNT-1)
 	remove_child(track)
 	track.queue_free()
 	track = Circuit.new() if mode == "track" else Track.new()
@@ -494,11 +497,27 @@ func choose_mode(value: String, course: int = 0) -> void:
 	add_child(track)
 	if mode == "track":
 		atmosphere.sky = track.scenery.make_sky()
-		atmosphere.fog_light_color = Color("b3d3df")
-		sun_light.light_energy = 1.0
-		sun_light.light_color = Color("ffe4be")
-		rim_light.light_energy = 0.10
-		atmosphere.ambient_light_energy = 0.28
+		if selected_course == 2:
+			# Night: a dim cool moon, deep blue ambient light and dark blue haze.
+			atmosphere.fog_light_color = Color("0c1a30")
+			atmosphere.fog_density = 0.0016
+			atmosphere.ambient_light_color = Color("5a78b8")
+			atmosphere.ambient_light_energy = 0.55
+			atmosphere.tonemap_exposure = 1.0
+			sun_light.rotation_degrees = Vector3(-38,150,0)
+			sun_light.light_energy = 0.32
+			sun_light.light_color = Color("a8c0ff")
+			rim_light.light_energy = 0.18
+		else:
+			atmosphere.fog_light_color = Color("b3d3df")
+			atmosphere.fog_density = 0.00065
+			atmosphere.ambient_light_color = Color("b5cce0")
+			atmosphere.tonemap_exposure = 0.88
+			sun_light.rotation_degrees = Vector3(-42,-32,0)
+			sun_light.light_energy = 1.0
+			sun_light.light_color = Color("ffe4be")
+			rim_light.light_energy = 0.10
+			atmosphere.ambient_light_energy = 0.28
 	else:
 		var sky := Sky.new()
 		sky.sky_material = sky_colors
@@ -686,6 +705,7 @@ func _input(event: InputEvent) -> void:
 		if state == "courses":
 			if event.keycode in [KEY_1,KEY_ENTER]: navigate_to_mode("track",0)
 			elif event.keycode == KEY_2: navigate_to_mode("track",1)
+			elif event.keycode == KEY_3: navigate_to_mode("track",2)
 			elif event.keycode == KEY_ESCAPE: navigate(open_menu)
 			return
 		if state == "settings":
@@ -731,10 +751,10 @@ func pad_pressed(button: int) -> void:
 				JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN: pad_focus(button)
 				JOY_BUTTON_A:
 					match menu_focus:
-						0: navigate_to_mode("track",0)
-						1: navigate_to_mode("track",1)
+						0, 1, 2: navigate_to_mode("track",menu_focus)
 						_: navigate(open_menu)
 				JOY_BUTTON_X: navigate_to_mode("track",1)
+				JOY_BUTTON_Y: navigate_to_mode("track",2)
 				JOY_BUTTON_B: navigate(open_menu)
 		"settings":
 			match button:
@@ -767,17 +787,19 @@ func pad_pressed(button: int) -> void:
 # D-pad (or the left stick, see pad_stick_navigation) moves the gold focus frame: left/right
 # between the two cards, up to the corner button, down back to the last card.
 func pad_focus(button: int) -> void:
+	# The home screen has two cards, the circuit screen three; the corner button comes after them.
+	var cards := COURSE_COUNT if state == "courses" else 2
 	match button:
 		JOY_BUTTON_DPAD_LEFT:
-			if menu_focus == 1: menu_focus = 0
+			if menu_focus > 0 and menu_focus < cards: menu_focus -= 1
 		JOY_BUTTON_DPAD_RIGHT:
-			if menu_focus == 0: menu_focus = 1
+			if menu_focus < cards-1: menu_focus += 1
 		JOY_BUTTON_DPAD_UP:
-			if menu_focus != 2:
+			if menu_focus != cards:
 				menu_last_card = menu_focus
-				menu_focus = 2
+				menu_focus = cards
 		JOY_BUTTON_DPAD_DOWN:
-			if menu_focus == 2: menu_focus = menu_last_card
+			if menu_focus == cards: menu_focus = menu_last_card
 
 # The left stick drives every menu like the D-pad, with a short repeat while held.
 func pad_stick_navigation(delta: float) -> void:
@@ -944,7 +966,7 @@ func _physics_process(delta: float) -> void:
 		apply_crash_pose()
 	if offroad_amount > 0.2:
 		for particles in player.smoke: particles.emitting = false
-	if player.headlight != null: player.headlight.visible = track.active.in_tunnel(distance) or track.scenery.theme == "neon"
+	if player.headlight != null: player.headlight.visible = track.active.in_tunnel(distance) or track.scenery.theme in ["neon","night"]
 	for r in rivals:
 		if not r.active or not r.car.visible or absf(relative_gap(r.distance,distance)) > 145:
 			if r.get("visual_running",true): r.car.animate(0,false,false,0)
@@ -1577,6 +1599,7 @@ func update_camera(delta: float) -> void:
 	camera.fov = lerpf(camera.fov,target_fov,1-exp(-delta*(8 if boosting else 4)))
 
 func update_atmosphere(delta: float) -> void:
+	if mode == "track" and selected_course == 2: return
 	if mode == "track":
 		var sheltered: bool = track.active.in_tunnel(distance)
 		var blend := 1-exp(-delta*3)

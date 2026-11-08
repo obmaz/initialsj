@@ -196,6 +196,8 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 	]
 	var ramp_d := gentle_distance(section,section.length*0.33) if section.course_id == 1 else 220.0
 	specifications.append(["ramp",ramp_d,side*0.5,16.0,3.8])
+	# MIDNIGHT HARBOR places everything by hand (below): the generic spots fall inside its hairpins.
+	if section.course_id == 2: specifications.clear()
 	if section.closed_loop and section.course_id == 0:
 		# Fuji: launch-straight, cutting approach, viaduct and return-road boosts.
 		# The paired pads leave enough run-up before each optional jump and an
@@ -208,11 +210,25 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 			["ramp",4030.0,0.36,22.0,4.6,1.55],
 			["boost",4850.0,-0.42,26.0,4.2]
 		])
+	if section.closed_loop and section.course_id == 2:
+		# MIDNIGHT HARBOR: a pad on each hairpin exit pays for a clean slide, a short jump and a
+		# boost lane on the long back straight, one puddle where the road is straight but slippery.
+		specifications.append_array([
+			["boost",170.0,-0.30,22.0,3.4],
+			["boost",870.0,-0.30,20.0,3.4],
+			["water",930.0,0.25,16.0,4.0],
+			["boost",1330.0,-0.35,24.0,3.6],
+			["ramp",1420.0,-0.35,18.0,3.8,0.9],
+			["boost_lane",1580.0,0.40,200.0,3.8],
+			["boost",2135.0,0.30,20.0,3.4],
+			["boost",2355.0,-0.30,20.0,3.4],
+			["boost",2670.0,0.0,24.0,3.6]
+		])
 	if section.closed_loop and section.course_id == 1:
 		# Two readable slaloms: a neutral line misses the alternating pads.
 		for start in [560.0,2490.0]:
 			for index in range(6):
-				specifications.append(["boost",start+index*78.0,-0.27 if index%2 == 0 else 0.27,12.0,3.6])
+				specifications.append(["boost",start+index*78.0,-0.40 if index%2 == 0 else 0.40,12.0,3.0])
 		specifications.append(["boost_lane",1050.0,0.42,240.0,4.4])
 		specifications.append(["boost_lane",2070.0,-0.42,280.0,4.4])
 	for i in range(specifications.size()):

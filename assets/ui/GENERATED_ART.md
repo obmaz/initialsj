@@ -9,6 +9,7 @@ Current artwork uses saturated coastal colours, strong directional lighting and 
 | [Garage](garage-bay.png) | `exec-013bcb89-1cda-4f48-ab68-254e386b4aee.png` |
 | [Fuji course card](course-fuji.png) | `exec-8be49d29-fe68-4ee5-94d1-43c803ed3ae1.png` |
 | [Suncoast course card](course-speedway.png) | `exec-80a07cec-f581-4b02-b13d-d7cb3c6984e7.png` |
+| [Midnight Harbor course card](course-night.png) | Screenshot of the game's own night render (no generated source) |
 
 Original generated PNGs are preserved in the local ignored `generated_images/` workspace; approved copies live beside this document. No photographic images, real manufacturer logos or original arcade-game assets are composited into these backgrounds. Titles, buttons, performance bars and progress indicators are rendered separately for readable mobile layouts.
 

@@ -1,7 +1,7 @@
 # Project working scope
 
 - Repository and Pages: `obmaz/initialsj`, `https://obmaz.github.io/initialsj/`.
-- The Godot project is at the repository root. Active modes are TOUR, Fuji TRACK01, and SUNCOAST SPEEDWAY TRACK02.
+- The Godot project is at the repository root. Active modes are TOUR, Fuji TRACK01, SUNCOAST SPEEDWAY TRACK02, and MIDNIGHT HARBOR TRACK03 (night).
 - Product names and signs are fictional. Keep the speedway's real-world inspiration out of game lettering.
 - Use Godot **4.7.2** through `./tools/godot`. `.godot-version` and `tests/verify_engine.gd` enforce the engine version.
 - Every vehicle owns its engine, boost, boost-start and drift sounds; never share or copy another vehicle's files. When adding, renaming or retuning a vehicle, follow `docs/VEHICLE_AUDIO.md` (catalog `audio` block, `tools/bake_vehicle_audio.py` recipe, import sidecars, provenance, docs); `tests/vehicle_audio_checks.gd` enforces it.

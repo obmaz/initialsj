@@ -18,10 +18,12 @@ const PAUSE_BUTTON := Rect2(814,15,66,60)
 const HOME_TOUR := Rect2(100,470,520,170)
 const HOME_TRACK := Rect2(660,470,520,170)
 const HOME_SETTINGS := Rect2(1000,24,250,84)
-const COURSE_FUJI := Rect2(100,150,520,440)
-const COURSE_SPEEDWAY := Rect2(660,150,520,440)
+const COURSE_FUJI := Rect2(50,150,376,440)
+const COURSE_SPEEDWAY := Rect2(452,150,376,440)
+const COURSE_NIGHT := Rect2(854,150,376,440)
 const FUJI_PREVIEW = preload("res://assets/ui/course-fuji.png")
 const SPEEDWAY_PREVIEW = preload("res://assets/ui/course-speedway.png")
+const NIGHT_PREVIEW = preload("res://assets/ui/course-night.png")
 const GARAGE_BACK := Rect2(60,24,220,84)
 const SETTINGS_SOUND := Rect2(365,98,550,77)
 const SETTINGS_MOTION := Rect2(365,178,550,77)
@@ -194,6 +196,7 @@ func handle_pointer(event: InputEvent) -> void:
 	if race.state == "courses":
 		if COURSE_FUJI.has_point(p): race.navigate_to_mode("track",0)
 		elif COURSE_SPEEDWAY.has_point(p): race.navigate_to_mode("track",1)
+		elif COURSE_NIGHT.has_point(p): race.navigate_to_mode("track",2)
 		elif GARAGE_BACK.has_point(p): race.navigate(race.open_menu)
 		return
 	if race.state == "settings":
@@ -275,9 +278,9 @@ func pad_hints(items: Array, y: float, center_x: float = 640.0) -> void:
 func draw_pad_focus() -> void:
 	var rects := []
 	if race.state == "menu": rects = [HOME_TOUR,HOME_TRACK,HOME_SETTINGS]
-	elif race.state == "courses": rects = [COURSE_FUJI,COURSE_SPEEDWAY,GARAGE_BACK]
+	elif race.state == "courses": rects = [COURSE_FUJI,COURSE_SPEEDWAY,COURSE_NIGHT,GARAGE_BACK]
 	if rects.is_empty(): return
-	var rect: Rect2 = rects[clampi(race.menu_focus,0,2)]
+	var rect: Rect2 = rects[clampi(race.menu_focus,0,rects.size()-1)]
 	draw_rect(rect.grow(5),GOLD,false,4.0)
 
 func draw_pad_hints() -> void:
@@ -285,7 +288,7 @@ func draw_pad_hints() -> void:
 	draw_pad_focus()
 	match race.state:
 		"menu": pad_hints([["dpad","MOVE"],["confirm","SELECT"],["alt","TRACK"],["alt2","SETTINGS"]],702)
-		"courses": pad_hints([["dpad","MOVE"],["confirm","SELECT"],["back","BACK"]],702)
+		"courses": pad_hints([["dpad","MOVE"],["confirm","SELECT"],["alt","SUNCOAST"],["alt2","MIDNIGHT"],["back","BACK"]],702)
 		"settings": pad_hints([["dpad","MOVE"],["confirm","CHANGE"],["back","CLOSE"]],704)
 		"ready": pad_hints([["dpad","CHOOSE CAR"],["confirm","DRIVE"],["back","BACK"]],698,560)
 		"paused": pad_hints([["confirm","RESUME"],["alt","MAIN MENU"],["alt2","RESTART"]],704)
@@ -729,12 +732,18 @@ func draw_courses() -> void:
 	slant(GARAGE_BACK,Color("20374a"),7)
 	centered(Vector2(170,78),"< BACK",28)
 	centered(Vector2(640,80),"SELECT CIRCUIT",38)
-	for i in range(2):
-		var rect: Rect2 = COURSE_FUJI if i == 0 else COURSE_SPEEDWAY
-		var accent := CYAN if i == 0 else Color("ffbc72")
+	var rects := [COURSE_FUJI,COURSE_SPEEDWAY,COURSE_NIGHT]
+	var accents := [CYAN,Color("ffbc72"),Color("c58cff")]
+	var textures := [FUJI_PREVIEW,SPEEDWAY_PREVIEW,NIGHT_PREVIEW]
+	var titles := ["01 / FUJI LAKESIDE","02 / SUNCOAST","03 / MIDNIGHT HARBOR"]
+	var subtitles := ["VIADUCT / RIDGE / UNDERPASS","HILLS / BOOST SLALOM","NIGHT / DRIFT GATES"]
+	var lengths := ["5.72 KM   /   3 LAPS","4.57 KM   /   3 LAPS","2.74 KM   /   3 LAPS"]
+	for i in range(3):
+		var rect: Rect2 = rects[i]
+		var accent: Color = accents[i]
 		slant(rect,Color("142738"),10)
-		var texture: Texture2D = FUJI_PREVIEW if i == 0 else SPEEDWAY_PREVIEW
-		var image_box := Rect2(rect.position+Vector2(12,12),Vector2(496,224))
+		var texture: Texture2D = textures[i]
+		var image_box := Rect2(rect.position+Vector2(12,12),Vector2(rect.size.x-24,224))
 		# Cover crop only; original generated assets remain intact.
 		var source := Rect2(Vector2.ZERO,texture.get_size())
 		var ratio := image_box.size.x/image_box.size.y
@@ -747,14 +756,14 @@ func draw_courses() -> void:
 			source.position.y = (source.size.y-height)*0.5
 			source.size.y = height
 		draw_texture_rect_region(texture,image_box,source)
-		var x := rect.position.x+26
-		text_at(Vector2(x,428),"01 / FUJI LAKESIDE" if i == 0 else "02 / SUNCOAST SPEEDWAY",32,accent)
-		text_at(Vector2(x,467),"VIADUCT / RIDGE / UNDERPASS" if i == 0 else "HILLS / BOOST SLALOM / BANKING",22,WHITE)
-		text_at(Vector2(x,501),"5.72 KM   /   3 LAPS" if i == 0 else "4.57 KM   /   3 LAPS",22,Color("adc2d0"))
-		var cta := Rect2(rect.position+Vector2(12,367),Vector2(496,61))
+		var x := rect.position.x+22
+		text_at(Vector2(x,428),titles[i],26,accent)
+		text_at(Vector2(x,467),subtitles[i],19,WHITE)
+		text_at(Vector2(x,501),lengths[i],20,Color("adc2d0"))
+		var cta := Rect2(rect.position+Vector2(12,367),Vector2(rect.size.x-24,61))
 		slant(cta,Color(accent,0.18),8)
-		centered(Vector2(rect.get_center().x,558),"CHOOSE TRACK  >",29,accent)
-	centered(Vector2(640,675),"TWO CIRCUITS / THREE LAPS / EIGHT RACERS",18,Color("8299a7"))
+		centered(Vector2(rect.get_center().x,558),"CHOOSE TRACK  >",26,accent)
+	centered(Vector2(640,675),"THREE CIRCUITS / THREE LAPS / EIGHT RACERS",18,Color("8299a7"))
 
 func draw_settings() -> void:
 	draw_rect(Rect2(0,0,1280,720),Color("020812d9"))

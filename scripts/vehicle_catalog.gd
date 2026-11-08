@@ -15,6 +15,7 @@ static func audio(index: int) -> Dictionary:
 	return spec(index).get("audio",{})
 
 static func record_key(index: int, mode: String = "tour", course: int = 0) -> String:
+	if mode == "track" and course == 2: return "track_midnight_scrub_v1_best_time_"+str(spec(index).id)
 	if mode == "track" and course == 1: return "track_suncoast_scrub_v4_best_time_"+str(spec(index).id)
 	return ("track_fuji_scrub_v3_best_time_" if mode == "track" else "tour_scrub_v5_best_time_")+str(spec(index).id)
 

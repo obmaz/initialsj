@@ -8,6 +8,7 @@ var sibling: Section
 var previews: Array[Section] = []
 var history: Array[int] = []
 var base_material: StandardMaterial3D
+var ground_plane: MeshInstance3D
 var length: float:
 	get: return active.length
 var scenery: Node3D:
@@ -28,9 +29,10 @@ func _ready() -> void:
 	material.roughness = 1
 	base.material_override = material
 	base_material = material
-	update_ground()
 	base.position.y = -5
+	ground_plane = base
 	add_child(base)
+	update_ground()
 
 func reset(stage: int = 0, node_index: int = 0) -> void:
 	for node in [active,previous,sibling]:

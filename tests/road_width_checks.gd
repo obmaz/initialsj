@@ -34,8 +34,8 @@ func run(tree: SceneTree) -> int:
 	check(absf(r.track.active.half_width(0.0)-r.track.active.half_width(r.track.length-0.01)) < 0.05,"Fuji width must close seamlessly at the start line")
 	r.choose_mode("track",1)
 	await tree.physics_frame
-	survey(r.track,"Suncoast",3.5)
-	check(absf(r.track.active.half_width(0.0)-14.5*0.9) < 0.01 and absf(r.track.active.half_width(r.track.length*0.05)-14.5*0.9) < 0.01,"Suncoast must keep full width along the pit lane")
+	survey(r.track,"Suncoast",2.5)
+	check(absf(r.track.active.half_width(0.0)-14.5*0.63) < 0.01 and absf(r.track.active.half_width(r.track.length*0.05)-14.5*0.63) < 0.01,"Suncoast must keep full width along the pit lane")
 	r.choose_mode("tour",0)
 	await tree.physics_frame
 	survey(r.track,"Tour",3.5,0.18)

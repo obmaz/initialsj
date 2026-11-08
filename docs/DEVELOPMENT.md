@@ -17,8 +17,8 @@ python3 tools/verify_repository.py
 | --- | --- |
 | [race.gd](../scripts/race.gd), [hud.gd](../scripts/hud.gd) | 화면 상태, 입력, 주행 진행, 카메라와 HUD |
 | [track.gd](../scripts/track.gd), [road_section.gd](../scripts/road_section.gd), [route_library.gd](../scripts/route_library.gd) | 투어 분기, 도로 좌표·폭·지형·테마 |
-| [circuit_track.gd](../scripts/circuit_track.gd), [fuji_course.gd](../scripts/fuji_course.gd), [speedway_course.gd](../scripts/speedway_course.gd) | 두 서킷의 형상·고저차·뱅킹 |
-| [world_race.gd](../scripts/world_race.gd), [world_car.gd](../scripts/world_car.gd), [fuji_collision.gd](../scripts/fuji_collision.gd) | 두 서킷(FUJI·SUNCOAST)의 월드 차량 이동과 실제 노면·장벽 충돌체 |
+| [circuit_track.gd](../scripts/circuit_track.gd), [fuji_course.gd](../scripts/fuji_course.gd), [speedway_course.gd](../scripts/speedway_course.gd), [night_course.gd](../scripts/night_course.gd) | 세 서킷의 형상·고저차·뱅킹 |
+| [world_race.gd](../scripts/world_race.gd), [world_car.gd](../scripts/world_car.gd), [fuji_collision.gd](../scripts/fuji_collision.gd) | 세 서킷(FUJI·SUNCOAST·MIDNIGHT)의 월드 차량 이동과 실제 노면·장벽 충돌체 |
 | [circuit_progress.gd](../scripts/circuit_progress.gd) | 서킷 위치 계측과 순차 게이트·랩 판정 |
 | [rival_brain.gd](../scripts/rival_brain.gd), [car_contact.gd](../scripts/car_contact.gd) | CPU 간격·차선·속도 판단과 차체 겹침 |
 | [road_features.gd](../scripts/road_features.gd), [road_surface_state.gd](../scripts/road_surface_state.gd), [air_state.gd](../scripts/air_state.gd) | 패드·물·진흙·트럭·점프대·급하강의 배치, 노면 효과와 점프 |
@@ -31,7 +31,7 @@ python3 tools/verify_repository.py
 | [vehicle_audio.gd](../scripts/vehicle_audio.gd), [racing_audio.gd](../scripts/racing_audio.gd), [file_audio.js](../web/file_audio.js) | 차량별 엔진·부스터·점화음·드리프트 소리의 매핑과 재생. 규칙은 [VEHICLE_AUDIO.md](VEHICLE_AUDIO.md) |
 | [web/coast-rush-shell.html](../web/coast-rush-shell.html) | 다운로드·회전·설치 안내와 브라우저 뒤로가기 |
 
-두 서킷은 `CharacterBody3D`의 실제 월드 위치·속도·차체 방향을 사용하며, `ConcavePolygonShape3D` 노면·장벽 충돌체와 접촉합니다. 도로 곡선 투영은 경기 정보용이고 일반 주행에서 차체를 곡선으로 이동시키지 않습니다. 고가 교차점의 위·아래 도로는 실제로 분리되어 있습니다. `circuit_progress.gd`는 높이와 순서가 있는 12개 게이트를 확인해 랩을 집계합니다.
+세 서킷은 `CharacterBody3D`의 실제 월드 위치·속도·차체 방향을 사용하며, `ConcavePolygonShape3D` 노면·장벽 충돌체와 접촉합니다. 도로 곡선 투영은 경기 정보용이고 일반 주행에서 차체를 곡선으로 이동시키지 않습니다. 고가 교차점의 위·아래 도로는 실제로 분리되어 있습니다. `circuit_progress.gd`는 높이와 순서가 있는 12개 게이트를 확인해 랩을 집계합니다.
 
 투어만 거리·차선 오프셋으로 이동하는 아케이드(도로 좌표) 컨트롤러를 씁니다(구간을 즉석에서 만들고 갈라지는 구조라서). 두 컨트롤러가 함께 쓰는 벽 충돌·진동·점프 수치는 [drive_tuning.gd](../scripts/drive_tuning.gd)에 모아 둡니다. 두 방식 모두 `VehicleBody3D` 타이어 시뮬레이션은 사용하지 않습니다. 내부 속도 단위는 m/s이며 HUD에서 km/h로 변환합니다. 레이스·카운트다운의 엔진 시간 배율은 1.2이고 메뉴·정지·장면 종료에서는 1로 복원합니다.
 
