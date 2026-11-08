@@ -155,6 +155,16 @@ func run(tree: SceneTree) -> int:
 	race.state = "finished"
 	tap(JOY_BUTTON_A)
 	check(race.state == "ready","Result A must return to the garage")
+	# The pad's Back (View) button pauses a running race instead of restarting it.
+	race.restart()
+	race.state = "racing"
+	race.pad_pressed(JOY_BUTTON_BACK)
+	check(race.state == "paused","Back (View) must pause a running race")
+	race.pad_pressed(JOY_BUTTON_BACK)
+	check(race.state == "racing","Back (View) must resume a paused race")
+	race.pad_pressed(JOY_BUTTON_START)
+	race.pad_pressed(JOY_BUTTON_Y)
+	check(race.state != "paused","Y on the pause screen must restart the race")
 	race.queue_free()
 	await tree.process_frame
 	print("Gamepad / racing layout / menus / pause / disconnect / prompts: ","PASS" if failures == 0 else "FAIL")

@@ -6,7 +6,7 @@ extends RefCounted
 #   RT gas            LT brake / reverse        Left stick, D-pad left/right  steer
 #   A nitro           X drift (tap to end)      B overdrive cell (Ironvale)
 #   Y reset car       LB / RB  tour route left / right
-#   Start pause       Back  restart             Menus: A confirm, B back, X / Y alternates
+#   Start pause       Back  pause             Menus: A confirm, B back, X / Y alternates
 const DEADZONE := 0.16
 const TRIGGER_ON := 0.25
 const ACTIVE_AXIS := 0.45

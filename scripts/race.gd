@@ -166,6 +166,9 @@ var sound_enabled := true
 var camera_time := 0.0
 var camera_offset := Vector3.ZERO
 var best_time := 0.0
+# Set when a run ends: the best before it, and whether this run beat it.
+var previous_best := 0.0
+var new_record := false
 var save_records := true
 var stage_index: int:
 	get: return track.active.stage
@@ -694,16 +697,15 @@ func pad_pressed(button: int) -> void:
 				JOY_BUTTON_RIGHT_SHOULDER, JOY_BUTTON_DPAD_RIGHT: select_vehicle((selected_vehicle+1)%count)
 		"racing","countdown":
 			match button:
-				JOY_BUTTON_START: pause_tour()
-				JOY_BUTTON_BACK: start_race()
+				JOY_BUTTON_START, JOY_BUTTON_BACK: pause_tour()
 				JOY_BUTTON_Y: recover_car()
 				JOY_BUTTON_LEFT_SHOULDER: select_route(0)
 				JOY_BUTTON_RIGHT_SHOULDER: select_route(1)
 		"paused":
 			match button:
-				JOY_BUTTON_A, JOY_BUTTON_B, JOY_BUTTON_START: resume_tour()
+				JOY_BUTTON_A, JOY_BUTTON_B, JOY_BUTTON_START, JOY_BUTTON_BACK: resume_tour()
 				JOY_BUTTON_X: navigate(open_menu)
-				JOY_BUTTON_BACK: start_race()
+				JOY_BUTTON_Y: start_race()
 		"finished","failed":
 			match button:
 				JOY_BUTTON_A: navigate(open_garage)
@@ -748,6 +750,8 @@ func resume_tour() -> void:
 
 func load_record() -> void:
 	best_time = 0
+	previous_best = 0
+	new_record = false
 	var saved := ConfigFile.new()
 	if saved.load("user://records.cfg") == OK: best_time = float(saved.get_value(RECORD_GROUP,Catalog.record_key(selected_vehicle,mode,selected_course),0))
 
@@ -1281,7 +1285,9 @@ func finish() -> void:
 	drifting = false
 	boosting = false
 	if mode == "tour": score += int(time_left)*100
-	if best_time == 0 or elapsed < best_time:
+	previous_best = best_time
+	new_record = best_time == 0 or elapsed < best_time
+	if new_record:
 		best_time = elapsed
 		if save_records:
 			var saved := ConfigFile.new()

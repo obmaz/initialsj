@@ -214,8 +214,8 @@ func handle_pointer(event: InputEvent) -> void:
 				if garage_card(i).has_point(p): race.select_vehicle(i)
 		return
 	if race.state in ["paused","finished","failed"]:
-		if SOUND_BUTTON.has_point(p): race.toggle_sound()
-		elif MOTION_BUTTON.has_point(p): race.toggle_motion()
+		if race.state == "paused" and SOUND_BUTTON.has_point(p): race.toggle_sound()
+		elif race.state == "paused" and MOTION_BUTTON.has_point(p): race.toggle_motion()
 		elif race.state == "paused" and MAIN_MENU_BUTTON.has_point(p): race.navigate(race.open_menu)
 		elif START_BUTTON.has_point(p) or (race.state == "paused" and hit_button("pause",p)):
 			if race.state == "paused": race.resume_tour()
@@ -276,7 +276,7 @@ func draw_pad_hints() -> void:
 		"courses": pad_hints([["confirm","FUJI LAKESIDE"],["alt","SUNCOAST"],["back","BACK"]],702)
 		"settings": pad_hints([["dpad","MOVE"],["confirm","CHANGE"],["back","CLOSE"]],704)
 		"ready": pad_hints([["shoulders","CHOOSE CAR"],["confirm","DRIVE"],["back","BACK"]],698,560)
-		"paused": pad_hints([["confirm","RESUME"],["alt","MAIN MENU"],["restart","RESTART"]],704)
+		"paused": pad_hints([["confirm","RESUME"],["alt","MAIN MENU"],["alt2","RESTART"]],704)
 		"finished","failed": pad_hints([["confirm","CHOOSE CAR"],["alt","RETRY"]],704)
 
 func draw_pad_badges() -> void:
@@ -806,30 +806,54 @@ func draw_menu() -> void:
 		slant(Rect2(235, 100, 810, 575), Color("10121bf7"), 30)
 		glow_line(PackedVector2Array([Vector2(265, 100), Vector2(1045, 100)]), CYAN, 2)
 		text_at(Vector2(307,150),"INITIAL SJ / "+race.course_title if race.mode == "track" else "INITIAL SJ / GRAND TOUR",22,CYAN)
-		text_at(Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD)
+		if race.state == "paused": text_at(Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD)
 		var title := ("RACE PAUSED" if race.mode == "track" else "TOUR PAUSED") if race.state == "paused" else (("RACE FINISHED" if race.mode == "track" else "GOAL CLEAR!") if race.state == "finished" else "TIME OVER")
 		text_at(Vector2(307, 224), title, 62)
 		if race.state == "finished":
 			var detail := ("POS %d / 8" % race.race_position()) if race.mode == "track" else ("SCORE %d" % int(race.score))
 			text_at(Vector2(307,288),detail,32,GOLD)
-			text_at(Vector2(307,338),time_label(race.elapsed),42)
 		elif race.state == "failed":
 			text_at(Vector2(307,292),"SCORE %d" % int(race.score),32,GOLD)
 		elif race.state == "paused":
 			text_at(Vector2(307,294),race.vehicle.name,28,Color(race.vehicle.accent))
 			text_at(Vector2(307,338),time_label(race.elapsed),35,Color("b9cedb"))
-		for rect in [MOTION_BUTTON, SOUND_BUTTON]:
-			slant(rect, Color("253548"), 8)
-		var motion_label := "MOTION: LOW" if race.motion_reduced else "MOTION: FULL"
-		var sound_label := "SOUND: ON" if race.sound_enabled else "SOUND: OFF"
-		centered(Vector2(MOTION_BUTTON.get_center().x, 454), motion_label, 21, CYAN)
-		centered(Vector2(SOUND_BUTTON.get_center().x, 454), sound_label, 21, CYAN)
+		if race.state == "paused":
+			for rect in [MOTION_BUTTON, SOUND_BUTTON]:
+				slant(rect, Color("253548"), 8)
+			var motion_label := "MOTION: LOW" if race.motion_reduced else "MOTION: FULL"
+			var sound_label := "SOUND: ON" if race.sound_enabled else "SOUND: OFF"
+			centered(Vector2(MOTION_BUTTON.get_center().x, 454), motion_label, 21, CYAN)
+			centered(Vector2(SOUND_BUTTON.get_center().x, 454), sound_label, 21, CYAN)
+		else:
+			draw_record_panel()
 		slant(START_BUTTON, CYAN, 13)
 		var cta := "RESUME" if race.state == "paused" else ("CHOOSE CAR")
 		centered(Vector2(640, 536), cta, 32, Color("0a1b2b"))
 		if race.state == "paused":
 			slant(MAIN_MENU_BUTTON,Color("253548"),8)
 			centered(Vector2(640,627),"MAIN MENU",26,CYAN)
+
+# This run next to the best time, with a gold NEW RECORD tag when it was beaten.
+func draw_record_panel() -> void:
+	var finished: bool = race.state == "finished"
+	var best: float = race.best_time
+	var this_run := time_label(race.elapsed) if finished else "--:--.---"
+	var cells := [
+		[Rect2(307,396,300,70),"THIS RUN",this_run,GOLD if (finished and race.new_record) else WHITE],
+		[Rect2(630,396,330,70),"BEST",time_label(best) if best > 0 else "--:--.---",CYAN],
+	]
+	for cell in cells:
+		var rect: Rect2 = cell[0]
+		slant(rect,Color("253548"),8)
+		text_at(rect.position+Vector2(22,26),cell[1],16,Color("9fb6c7"))
+		text_at(rect.position+Vector2(22,60),cell[2],34,cell[3])
+	if not finished: return
+	if race.new_record:
+		var tag := Rect2(307,352,176,32)
+		slant(tag,GOLD,8)
+		centered(Vector2(tag.get_center().x,tag.position.y+24),"NEW RECORD!",20,Color("1a1300"))
+	elif race.previous_best > 0:
+		text_at(Vector2(307,382),"+%.3f vs best" % (race.elapsed-race.previous_best),20,Color("ff9f8a"))
 
 func draw_competitor_markers() -> void:
 	if race.mode != "track" or race.state not in ["racing","countdown"]: return
