@@ -190,8 +190,6 @@ var stage_index: int:
 	get: return track.active.stage
 var route_node: int:
 	get: return track.active.route_node
-var journey_distance: float:
-	get: return completed_distance + distance - 80
 
 func _ready() -> void:
 	rendering_viewport = get_viewport()

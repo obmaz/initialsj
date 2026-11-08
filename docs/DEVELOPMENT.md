@@ -21,10 +21,13 @@ python3 tools/verify_repository.py
 | [world_race.gd](../scripts/world_race.gd), [world_car.gd](../scripts/world_car.gd), [fuji_collision.gd](../scripts/fuji_collision.gd) | 트랙 1의 월드 차량 이동과 실제 노면·장벽 충돌체 |
 | [circuit_progress.gd](../scripts/circuit_progress.gd) | 트랙 1 위치 계측과 순차 게이트·랩 판정 |
 | [rival_brain.gd](../scripts/rival_brain.gd), [car_contact.gd](../scripts/car_contact.gd) | CPU 간격·차선·속도 판단과 차체 겹침 |
-| [road_features.gd](../scripts/road_features.gd), [road_surface_state.gd](../scripts/road_surface_state.gd), [air_state.gd](../scripts/air_state.gd) | 패드·물·경사로의 배치, 노면 효과와 점프 |
+| [road_features.gd](../scripts/road_features.gd), [road_surface_state.gd](../scripts/road_surface_state.gd), [air_state.gd](../scripts/air_state.gd) | 패드·물·진흙·트럭·점프대·급하강의 배치, 노면 효과와 점프 |
 | [regional_props_3d.gd](../scripts/regional_props_3d.gd), [road_biome.gd](../scripts/road_biome.gd) | 지역별 입체 오브젝트·건축과 공간별 묶음 렌더링 |
 | [screen_transition.gd](../scripts/screen_transition.gd), [tunnel_lights.gd](../scripts/tunnel_lights.gd) | 화면 전환, 가려진 렌더 준비, 터널 조명 예산 |
-| [impact_effect.gd](../scripts/impact_effect.gd), [render_budget.gd](../scripts/render_budget.gd) | 재사용 충돌 이펙트와 자동 렌더 품질 |
+| [impact_effect.gd](../scripts/impact_effect.gd), [render_budget.gd](../scripts/render_budget.gd) | 재사용 충돌·레일 불꽃 이펙트와 자동 렌더 품질(콘솔 절약 모드 포함) |
+| [crash_state.gd](../scripts/crash_state.gd), [nitro_system.gd](../scripts/nitro_system.gd) | 가드레일 충돌 날아가기·구르기, 차량별 니트로 자원 |
+| [gamepad_input.gd](../scripts/gamepad_input.gd), [haptics.gd](../scripts/haptics.gd) | 패드 상태 추적·버튼 이름, 패드 진동과 폰 진동 |
+| [loading_card.gd](../scripts/loading_card.gd) | 코스를 다시 만들 때의 로딩 카드 |
 | [vehicle_audio.gd](../scripts/vehicle_audio.gd), [racing_audio.gd](../scripts/racing_audio.gd), [file_audio.js](../web/file_audio.js) | 차량별 엔진·부스터·점화음·드리프트 소리의 매핑과 재생. 규칙은 [VEHICLE_AUDIO.md](VEHICLE_AUDIO.md) |
 | [web/coast-rush-shell.html](../web/coast-rush-shell.html) | 다운로드·회전·설치 안내와 브라우저 뒤로가기 |
 
@@ -51,15 +54,41 @@ node tests/audio_lifecycle_review.cjs
 
 [fuji_geometry_checks.gd](../tests/fuji_geometry_checks.gd)는 실제 물리 공간의 광선으로 노면·교량·터널 충돌체를 검사합니다. [world_car_checks.gd](../tests/world_car_checks.gd)와 [fuji_world_checks.gd](../tests/fuji_world_checks.gd)는 실제 물리 프레임을 진행하며 조향·접지·입체 교차·정지·후진과 컨트롤러 분리를 확인합니다. 여러 차량을 연속 실행하는 검사는 `--fixed-fps 60`으로 시간 진행을 고정합니다. 수학적인 위치 샘플링만으로 물리 주행을 검증하지 않습니다.
 
-[world_rival_checks.gd](../tests/world_rival_checks.gd)는 정차 차량 추월·빈 차선 판단·후방 공간을 확인한 후진 복구를 실제 차체 간격과 함께 검사합니다. [circuit_drive_review.gd](../tests/circuit_drive_review.gd)는 세 차량을 직접 조향·제동해 각각 3랩을 달립니다. 명령 뒤 `-- 0`, `-- 1`, `-- 2`를 붙이면 차량별로 나누어 실행할 수 있습니다.
+[world_rival_checks.gd](../tests/world_rival_checks.gd)는 정차 차량 추월·빈 차선 판단·후방 공간을 확인한 후진 복구를 실제 차체 간격과 함께 검사합니다. [circuit_drive_review.gd](../tests/circuit_drive_review.gd)는 모든 차량을 직접 조향·제동해 각각 3랩을 달립니다. 오래 걸리므로 CI에는 넣지 않았고, 명령 뒤 `-- 0`~`-- 3`을 붙이면 차량별로 나누어 실행할 수 있습니다.
 
-검사 JSON과 캡처는 [report.gd](../tests/report.gd)를 통해 **`build/reports/`**에 생성하며 커밋하지 않습니다. 수치와 캡처가 필요하면 해당 검사로 다시 생성합니다. `tests/`의 독립 주행·오디오·시각 검사는 각 범위 확인용이며, 그래픽 검사는 실제 디스플레이가 필요합니다. 네이티브 렌더 제출 수나 브라우저 모의 검사를 휴대폰 프레임률로 해석하지 않습니다. 실제 안드로이드 뒤로가기·오디오·터널 프레임 간격은 실기기에서 추가로 확인합니다.
+검사 JSON과 캡처는 [report.gd](../tests/report.gd)를 통해 **`build/reports/`**에 생성하며 커밋하지 않습니다. 수치와 캡처가 필요하면 해당 검사로 다시 생성합니다. `race_test.gd`에 묶이지 않은 검사는 위의 긴 주행 검사와 아래 브라우저 검사뿐입니다. 네이티브 렌더 제출 수나 브라우저 모의 검사를 휴대폰 프레임률로 해석하지 않습니다. 실제 안드로이드 뒤로가기·오디오·터널 프레임 간격은 실기기에서 추가로 확인합니다.
 
 선택적인 `loading_review.cjs`, `orientation_button_review.cjs`, `touch_review.cjs`, `web_audio_review.cjs`는 Playwright와 Chromium, 실행 중인 Web export 서버가 필요합니다. `INITIALSJ_REVIEW_URL`로 서버 주소, `CHROMIUM_BIN`으로 Chromium 경로를 지정하며 기본 자동 검사에는 포함하지 않습니다.
 
 로고를 변경할 때는 `python3 tools/bake_logo.py`로 SVG와 웹 셸의 인라인 사본을 함께 갱신합니다. 이 제작 도구만 fontTools를 요구하며, 커밋된 SVG를 사용하는 게임 실행·빌드에는 추가 Python 패키지가 필요하지 않습니다. 아트 출처는 [GENERATED_ART.md](../assets/ui/GENERATED_ART.md)를 참고하세요.
 
 [resource_lifecycle_checks.gd](../tests/resource_lifecycle_checks.gd)는 전체 검사에서 코스 전환·재시작·차량 교체·충돌 반복 후 노드와 리소스 수가 누적되지 않는지, 장면 해제 후 노드 수와 뷰포트 상태가 복구되는지 확인합니다. `audio_lifecycle_review.cjs`는 실제 Web Audio 브리지 소스로 A→B→A 비동기 선택·지연 디코딩·종료를 재현하며 루프와 연결·이벤트·버퍼 해제를 검사합니다. 첫 방문에서 늘어나는 폰트·셰이더·지역 모델 캐시와 WASM 힙의 최대 확보 크기를 지속 누수로 단정하지 않습니다.
+
+## 에셋 압축
+
+큰 이미지 11장(`assets/ui/*.png`와 타일 질감을 뺀 `assets/environment/*.png`)은 가져오기 설정을 손실 WebP(`compress/mode=1`, `compress/lossy_quality=0.92`)로 두었습니다. 처음 14장 기준으로 가져온 크기가 약 22.1MB에서 5.7MB로 줄었고, 메뉴·차고 화면은 변경 전후 PSNR이 42dB 이상으로 눈에 띄는 차이가 없습니다. 원본 PNG는 그대로입니다. 새 큰 이미지를 넣을 때도 같은 설정을 씁니다. 이 방식은 내려받는 크기만 줄이고 그래픽 메모리 사용량은 그대로입니다(메모리는 VRAM 압축이나 해상도 축소가 필요합니다).
+
+### GPU 압축(타일 질감)
+
+도로·흙·잔디 타일 질감 3장(`asphalt`, `dirt-shoulder`, `lakeside-grass`)은 GPU 압축(`compress/mode=2`)으로 가져옵니다. 프로젝트 설정에서 PC용(S3TC)과 모바일용(ETC2) 형식을 모두 만들도록 켜 두었고(`textures/vram_compression/*`), 어떤 형식을 파일에 담을지는 내보내기 프리셋(`export_presets.cfg`의 `vram_texture_compression/for_desktop`·`for_mobile`)이 정합니다. 웹은 둘 다 담아 PC·모바일·콘솔 브라우저를 모두 지원하고, 나중에 Android 프리셋을 만들면 `for_mobile=true`, `for_desktop=false`로 두어 APK에는 모바일 형식만 담습니다. 게임 코드는 바뀌지 않습니다. 장당 그래픽 메모리는 약 5.6MB에서 0.7MB로 줄었고(세 장 합계 약 16.8MB에서 2.1MB), 내려받는 크기는 두 형식을 담기 때문에 약 2MB 늘었습니다. 메뉴 아트와 파노라마처럼 그라데이션이 많은 이미지는 밴딩 때문에 GPU 압축하지 않습니다.
+
+소리는 루프가 OGG이고, 짧은 WAV(효과음·점화음)는 가져올 때 QOA로 압축합니다([VEHICLE_AUDIO.md](VEHICLE_AUDIO.md)).
+
+## 회귀 검사 범위
+
+| 범위 | 확인하는 동작 |
+| --- | --- |
+| 경기 진행·입력 | 시간 만료 전 체크포인트·종료, 포커스·회전·정지, 중복 화면 이동, 키보드·패드·터치 메뉴 이동 |
+| 차량·니트로 | 서로 다른 능력, 세 자원 방식, 새 누름 감지, 취소·회복, 기록과 결과 화면 |
+| 충돌·피드백 | 차체 겹침 해소, 레일 스침·날아가기 단계, 히트스톱, 진동·불꽃, 재시작 초기화 |
+| CPU·노면·점프 | 앞차·차선 안전, 패드·물·진흙·트럭, 공중 통과 후 착지, 높은 점프대 |
+| 투어·터널 | 짧은 분기 직선, 급하강·좁은 도로·도로 폭, 터치 선택·수동 우선, 제한된 조명 |
+| 배경·서킷 | 실제 3D 모델과 도로 간격, 순차 게이트·랩, 높이별 교차·물리 접지, 뱅킹과 관중석 기초 |
+| 웹·품질 | 설치 안내, Back·Forward history, 로딩 화면, 오디오 수명, 느린 프레임 대응 |
+
+## 알려진 엔진 제약
+
+Godot 4.7.2 웹 런타임의 Emscripten `GL.getNewId`는 GL 객체 ID를 계속 늘리고, 삭제한 자리는 `null`로 남깁니다. 코스를 여러 번 오가면 실제 GL 객체 수는 일정해도 이 등록 배열과 GC 후 JS 힙은 커집니다. 앱의 노드·음원 누수와 구분해야 하며, 앱 쪽 수정으로는 해결되지 않습니다. 메뉴처럼 2D가 화면을 덮는 상태에서는 메인 뷰포트의 3D 렌더를 멈춰 불필요한 그리기를 줄입니다.
 
 ## 웹 내보내기와 배포
 
@@ -78,10 +107,4 @@ touch build/site/.nojekyll
 
 `deploy-pages`는 커밋 해시를 배포 ID로 씁니다. 2026-11-07에 이 단계가 `syncing_files`에서 10분 제한까지 끝나지 않아 취소된 뒤, 같은 커밋으로 실패한 job을 다시 실행하거나 워크플로를 새로 실행한 두 번은 배포 상태가 끝까지 비어 있는 채 같은 제한에서 실패했습니다. 이럴 때는 같은 커밋을 반복해서 돌리지 말고 새 커밋을 `main`에 푸시해 새 배포 ID로 시도합니다. GitHub 상태 페이지가 정상이어도 일어날 수 있습니다.
 
-저작권·출처 문서는 에셋과 함께 보존합니다. 음원은 [출처·라이선스](../assets/audio/LICENSE.txt)를 확인하고, 모든 에셋의 출처와 라이선스는 [ASSET_LICENSES.md](ASSET_LICENSES.md)에 있습니다. 검사기는 라이선스 항목이 없는 음원 파일을 실패로 처리합니다. 게임 규칙은 [GAMEPLAY.md](GAMEPLAY.md), 이번 정리의 검토 범위는 [CODE_REVIEW.md](CODE_REVIEW.md)에 있습니다. 터널 내 비밀길과 공사 장벽을 부수는 경로는 현재 구현 범위에 포함되지 않습니다.
-
-## 이미지 압축
-큰 이미지 14장(`assets/ui/*.png`, `assets/environment/*.png`)은 가져오기 설정을 손실 WebP(`compress/mode=1`, `compress/lossy_quality=0.92`)로 두었습니다. 가져온 크기가 약 22.1MB에서 5.7MB로 줄었고, 메뉴·차고 화면은 변경 전후 PSNR이 42dB 이상으로 눈에 띄는 차이가 없습니다. 원본 PNG는 그대로입니다. 새 큰 이미지를 넣을 때도 같은 설정을 씁니다. 이 방식은 내려받는 크기만 줄이고 그래픽 메모리 사용량은 그대로입니다(메모리는 VRAM 압축이나 해상도 축소가 필요합니다).
-
-### GPU 압축(타일 질감)
-도로·흙·잔디 타일 질감 3장(`asphalt`, `dirt-shoulder`, `lakeside-grass`)은 GPU 압축(`compress/mode=2`)으로 가져옵니다. 프로젝트 설정에서 PC용(S3TC)과 모바일용(ETC2) 형식을 모두 만들도록 켜 두었고(`textures/vram_compression/*`), 어떤 형식을 파일에 담을지는 내보내기 프리셋(`export_presets.cfg`의 `vram_texture_compression/for_desktop`·`for_mobile`)이 정합니다. 웹은 둘 다 담아 PC·모바일·콘솔 브라우저를 모두 지원하고, 나중에 Android 프리셋을 만들면 `for_mobile=true`, `for_desktop=false`로 두어 APK에는 모바일 형식만 담습니다. 게임 코드는 바뀌지 않습니다. 장당 그래픽 메모리는 약 5.6MB에서 0.7MB로 줄었고(세 장 합계 약 16.8MB에서 2.1MB), 내려받는 크기는 두 형식을 담기 때문에 약 2MB 늘었습니다. 메뉴 아트와 파노라마처럼 그라데이션이 많은 이미지는 밴딩 때문에 GPU 압축하지 않습니다.
+저작권·출처 문서는 에셋과 함께 보존합니다. 음원은 [출처·라이선스](../assets/audio/LICENSE.txt)를 확인하고, 모든 에셋의 출처와 라이선스는 [ASSET_LICENSES.md](ASSET_LICENSES.md)에 있습니다. 검사기는 라이선스 항목이 없는 음원 파일을 실패로 처리합니다. 게임 규칙은 [GAMEPLAY.md](GAMEPLAY.md)에 있습니다. 터널 내 비밀길과 공사 장벽을 부수는 경로는 현재 구현 범위에 포함되지 않습니다.

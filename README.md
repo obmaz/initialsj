@@ -1,6 +1,6 @@
 # Initial SJ — Coast Rush
 
-**[게임 실행](https://obmaz.github.io/initialsj/)** · [게임 규칙](docs/GAMEPLAY.md) · [개발·검사·배포](docs/DEVELOPMENT.md) · [차량별 사운드](docs/VEHICLE_AUDIO.md) · [검토 범위](docs/CODE_REVIEW.md)
+**[게임 실행](https://obmaz.github.io/initialsj/)** · [게임 규칙](docs/GAMEPLAY.md) · [개발·검사·배포](docs/DEVELOPMENT.md) · [차량별 사운드](docs/VEHICLE_AUDIO.md) · [에셋 출처·라이선스](docs/ASSET_LICENSES.md)
 
 Godot **4.7.2 / GL Compatibility**로 만드는 가로 화면용 3D 아케이드 레이싱 게임입니다. 프로젝트는 저장소 루트의 [project.godot](project.godot)에서 엽니다.
 
@@ -8,7 +8,7 @@ Godot **4.7.2 / GL Compatibility**로 만드는 가로 화면용 3D 아케이드
 - **TRACK**: 약 5.72km의 **FUJI LAKESIDE**와 약 4.57km의 **SUNCOAST SPEEDWAY**에서 8대가 3바퀴를 달립니다.
 - **트랙 1의 3D 주행**: 실제 차체 방향으로 조향하는 `CharacterBody3D`가 노면·장벽 충돌체 위를 달립니다. 약 60.8m 고저차, 약 12도 뱅킹과 실제 위아래로 교차하는 고가 구간이 있습니다.
 - **차량**: NIMORI H, VELTRIX S, IRONVALE V8, STRAUD 6R. 최고속도·가속도·부스트·핸들링과 니트로 자원 방식이 서로 다릅니다. 선택 화면과 주행은 같은 3D 모델을 사용합니다.
-- **주행**: 브레이크, 드리프트, 슬립스트림, 부스터 패드, 물웅덩이, 점프대와 충돌 피드백을 제공합니다. 길가 나무·건물·랜드마크는 실제 3D 모델이며, 하늘과 먼 능선은 생성형 이미지도 사용합니다.
+- **주행**: 브레이크, 드리프트, 슬립스트림, 부스터 패드, 물웅덩이·진흙, 점프대, 급하강, 정차 트럭과 속도에 따라 날아가는 충돌, 패드·폰 진동을 제공합니다. 길가 나무·건물·랜드마크는 실제 3D 모델이며, 하늘과 먼 능선은 생성형 이미지도 사용합니다.
 
 ## 조작
 
@@ -54,6 +54,7 @@ python3 tools/verify_repository.py
 node tests/install_bridge_review.cjs
 node tests/back_bridge_review.cjs
 node tests/fullscreen_bridge_review.cjs
+node tests/audio_lifecycle_review.cjs
 ```
 
 검사 보고서와 화면 캡처는 Git에서 제외하는 `build/reports/`에 생성합니다. `main` 푸시는 자동 검사 후 GitHub Pages의 `/initialsj/`에 배포됩니다. 자세한 내보내기 명령과 검사 범위는 [개발 문서](docs/DEVELOPMENT.md)를 참고하세요.

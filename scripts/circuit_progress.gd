@@ -23,8 +23,6 @@ var previous_trackable := false
 var last_valid_world := Vector3.ZERO
 var fast_updates := 0
 var full_searches := 0
-var wrapped_distance: float:
-	get: return fposmod(distance,float(section.length)) if is_instance_valid(section) else 0.0
 
 func configure(road: Node3D) -> void:
 	section = road
