@@ -243,6 +243,8 @@ func update_drift(delta: float, pressed: bool, brake: bool, gas: bool) -> void:
 	race.previous_brake = brake
 
 func update_air(delta: float, was_airborne: bool) -> void:
+	# A thrown car turns its nose back to where it is travelling, so it lands driving forward.
+	if crash_flight and not player_body.grounded: player_body.turn_toward(player_body.velocity,3.5,delta)
 	race.air.landing_flash = maxf(0,race.air.landing_flash-delta)
 	race.air.active = not player_body.grounded
 	race.air.world_y = player_body.feet_position().y
@@ -302,7 +304,7 @@ func impact(hit: Dictionary) -> void:
 		var tangent := player_body.velocity.slide(normal)
 		tangent.y = 0
 		# A glancing hit still throws the car; the push away from the rail grows with speed.
-		var away := lerpf(5.0,17.0,severity)+clampf(closing*0.18,0,6)
+		var away := lerpf(3.5,12.0,severity)+clampf(closing*0.12,0,4)
 		player_body.velocity = tangent*lerpf(0.82,0.66,severity)+outward*away+Vector3.UP*up
 		player_body.grounded = false
 		race.air.active = true

@@ -22,7 +22,7 @@ static func launches(incoming_speed: float) -> bool:
 
 # Upward launch speed for a hit; the hang time follows from gravity.
 static func launch_up(incoming_speed: float) -> float:
-	return lerpf(11.0,28.0,severity(incoming_speed))
+	return lerpf(7.7,19.6,severity(incoming_speed))
 
 func start(speed: float, normal: Vector2, _ground_y: float = 0, air_time: float = 0.0) -> void:
 	if active: return

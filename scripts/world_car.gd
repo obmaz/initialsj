@@ -19,8 +19,6 @@ const UNDERSTEER_SCRUB := 0.5
 # harder, costs more speed, spins it away from the wall and hops it off the road.
 const BARRIER_REBOUND := 0.46
 const BARRIER_REBOUND_MAX := 30.0
-const BARRIER_SPIN := 0.10
-const BARRIER_SPIN_MAX := 3.2
 const BARRIER_HOP_FROM := 14.0
 const REALIGN_TIME := 0.9
 const REALIGN_RATE := 7.0
@@ -90,6 +88,17 @@ func realigned(forward: Vector3, delta: float) -> Vector3:
 	if absf(error) > REALIGN_MAX_ERROR: error = signf(error)*REALIGN_MAX_ERROR
 	var step := error*clampf(delta*REALIGN_RATE*(realign_time/REALIGN_TIME+0.3),0,0.6)
 	return forward.rotated(surface_normal,step).normalized()
+
+# Yaw the upright chassis toward a horizontal direction (used while a crash throws the car).
+func turn_toward(direction: Vector3, rate: float, delta: float) -> void:
+	var flat := Vector3(direction.x,0,direction.z)
+	if flat.length_squared() < 25: return
+	var forward := forward_direction()
+	forward.y = 0
+	if forward.length_squared() < 0.01: return
+	var error := forward.normalized().signed_angle_to(flat.normalized(),Vector3.UP)
+	yaw_rate = 0
+	global_basis = Basis(Vector3.UP,error*clampf(rate*delta,0,1))*global_basis
 
 func forward_direction() -> Vector3:
 	return -global_basis.z.normalized()
@@ -228,7 +237,6 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 					if severe:
 						# Above the launch speed the car is thrown off the rail (see world_race.impact).
 						velocity = tangent*lerpf(0.92,0.62,hardness)+normal*clampf(closing*BARRIER_REBOUND,2.0,BARRIER_REBOUND_MAX)
-						yaw_rate += -normal.dot(global_basis.x)*clampf(closing*BARRIER_SPIN,0,BARRIER_SPIN_MAX)
 						if closing > BARRIER_HOP_FROM: velocity.y += clampf((closing-BARRIER_HOP_FROM)*0.09,0,3.0)
 					else:
 						# Below it the car does not bounce: it keeps most of its speed along the rail and its

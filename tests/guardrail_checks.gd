@@ -31,8 +31,9 @@ func run(tree: SceneTree) -> int:
 	check(fast.speed > 42*0.8,"A scrape must keep most of its speed")
 	# At and above the launch speed the car is thrown clear and the bounce grows with speed.
 	var hard := hit_road_space(r,60)
-	var harder := hit_road_space(r,85)
-	check(absf(hard.lane_velocity) < absf(harder.lane_velocity) and absf(harder.lane_velocity) > 12,"A launching hit must throw the car well clear of the rail, further when faster")
+	var harder := hit_road_space(r,85,0.4)
+	check(absf(harder.slip) < 0.3,"A launching hit must turn the nose back toward the road, not swing it out")
+	check(absf(hard.lane_velocity) < absf(harder.lane_velocity) and absf(harder.lane_velocity) > 8 and absf(harder.lane_velocity) < 17.5,"A launching hit must throw the car well clear of the rail, further when faster")
 	# A hard hit freezes the frame briefly; reduced motion skips it.
 	r.restart()
 	r.motion_reduced = false

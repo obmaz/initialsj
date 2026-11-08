@@ -58,6 +58,10 @@ func rail_impact(tree: SceneTree, race: Node3D, speed: float, glancing: bool = f
 		check(triggered and first.severe,"A severe high-speed real guardrail hit must start the tumble state")
 		check(launch_speed > 10 and away_speed > 7 and peak-base > 2.5 and airborne_frames > 30,"The chassis must physically rebound and fly above the road under gravity")
 		check(roll > PI and not race.crash.active,"The visual tumble must complete a full roll and settle without rolling the collider")
+		var travel: Vector3 = Vector3(body.velocity.x,0,body.velocity.z)
+		var nose: Vector3 = body.forward_direction()
+		nose.y = 0
+		if travel.length() > 5: check(absf(nose.normalized().signed_angle_to(travel.normalized(),Vector3.UP)) < 0.35,"A thrown car must land facing the way it travels")
 		check(body.global_basis.y.dot(Vector3.UP) > 0.9,"The upright motor collider must retain reliable road contacts throughout visual tumbling")
 		check(race.score == score,"A crash landing must not award a successful jump bonus")
 	else:

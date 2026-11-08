@@ -1108,9 +1108,13 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		# The bounce follows how fast the car hit, not just how fast it drifted sideways.
 		var launching := Crash.launches(incoming_speed)
 		if launching:
+			# Thrown clear but not across the road, and the nose settles back to the road
+			# direction so the car lands driving forward.
 			var bounce := maxf(closing_speed,incoming_speed*0.22)
-			lane_velocity = -side*clampf(bounce*0.9,2.0,24)
-			slip_angle += -side*clampf(incoming_speed*0.012,0,0.7)
+			lane_velocity = -side*clampf(bounce*0.63,1.5,17)
+			slip_angle *= 0.3
+			wall_assist = 0.9
+			wall_side = 0.0
 		else:
 			# No bounce below the launch speed: the car barely leaves the rail and its nose is
 			# swung parallel to it while it scrapes along.
