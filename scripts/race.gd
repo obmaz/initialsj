@@ -66,7 +66,12 @@ var mode := "tour"
 var graphics_mode := 0
 var render_budget := RenderBudget.new()
 var screen_transition: CanvasLayer
-var warming_world := false
+var rendering_viewport: Viewport
+var previous_disable_3d := false
+var warming_world := false:
+	set(value):
+		warming_world = value
+		sync_world_rendering()
 var camera_intro := 0.0
 var selected_course := 0
 var world_race: Node3D
@@ -89,6 +94,7 @@ var state := "menu":
 		state = value
 		_sync_web_back()
 		if state != "settings": _hide_fullscreen_control()
+		sync_world_rendering()
 var distance := 80.0
 var completed_distance := 0.0
 var lane := -3.2
@@ -178,6 +184,8 @@ var journey_distance: float:
 	get: return completed_distance + distance - 80
 
 func _ready() -> void:
+	rendering_viewport = get_viewport()
+	previous_disable_3d = rendering_viewport.disable_3d
 	track = Track.new()
 	add_child(track)
 	var world := WorldEnvironment.new()
@@ -294,6 +302,7 @@ func _ready() -> void:
 	elif OS.has_feature("android"):
 		get_tree().quit_on_go_back = false
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
+	sync_world_rendering()
 	if OS.has_feature("web"): _announce_ready()
 
 # The page keeps its loading screen until the first menu frames are drawn.
@@ -381,6 +390,7 @@ func _on_web_orientation(args: Array) -> void:
 
 func _exit_tree() -> void:
 	_hide_fullscreen_control()
+	if is_instance_valid(rendering_viewport): rendering_viewport.disable_3d = previous_disable_3d
 	Engine.time_scale = 1.0
 	if OS.has_feature("web"):
 		JavaScriptBridge.get_interface("window").initialsjObserveOrientation(null)
@@ -831,12 +841,8 @@ func _physics_process(delta: float) -> void:
 		var brake := Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake") or pad.brake()
 		step(delta,axis,Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift") or pad.drift(),gas,brake,nitro_input,cell_input)
 	place_cars(delta)
-	var world_visible := warming_world or state not in ["menu","courses","ready","settings"]
-	track.visible = world_visible
-	player.visible = world_visible
-	tire_trails.visible = world_visible
-	if not world_visible:
-		for r in rivals: r.car.visible = false
+	sync_world_rendering()
+	var world_visible := not rendering_viewport.disable_3d
 	shoulder_dust_clock = maxf(0,shoulder_dust_clock-delta)
 	shoulder_dust.visible = world_visible and state == "racing"
 	if state == "racing" and offroad_amount > 0.25 and speed > 12 and not air.active:
@@ -865,7 +871,21 @@ func _physics_process(delta: float) -> void:
 		r.visual_running = true
 		r.car.road_speed = r.speed if state == "racing" else 0.0
 		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),r.active and r.drifting and r.car.visible and absf(relative_gap(r.distance,distance)) < 80 and state == "racing",r.boosting and state == "racing",delta,r.visual_yaw)
-	hud.queue_redraw()
+	# HUD._process owns its redraw; physics ticks need not enqueue it again.
+
+func sync_world_rendering() -> void:
+	if not is_instance_valid(rendering_viewport) or not is_instance_valid(player): return
+	var world_visible := warming_world or state not in ["menu","courses","ready","settings"]
+	rendering_viewport.disable_3d = not world_visible
+	if is_instance_valid(track):
+		track.visible = world_visible
+		# Pause decorative animation without removing road collision bodies from
+		# the physics space (PROCESS_MODE_DISABLED would also disable colliders).
+		if track.scenery.has_method("_process"): track.scenery.set_process(world_visible)
+	player.visible = world_visible
+	tire_trails.visible = world_visible
+	if not world_visible:
+		for r in rivals: r.car.visible = false
 
 func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool = false, cell_input: bool = false) -> void:
 	if crash.advance(delta):

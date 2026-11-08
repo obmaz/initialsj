@@ -42,6 +42,7 @@ python3 tools/verify_repository.py
 node tests/install_bridge_review.cjs
 node tests/back_bridge_review.cjs
 node tests/fullscreen_bridge_review.cjs
+node tests/audio_lifecycle_review.cjs
 ```
 
 [vehicle_audio_checks.gd](../tests/vehicle_audio_checks.gd)는 모든 차량이 자기 엔진·부스터·점화음·드리프트 파일을 갖는지, 다른 차량 파일을 재사용하지 않는지, 웹 루프가 파일과 일치하는지, 선택한 차량의 소리로 실제 플레이어가 바뀌는지 확인합니다. 소리를 만들거나 바꿀 때는 ffmpeg와 numpy가 필요한 `python3 tools/bake_vehicle_audio.py --check`로 클리핑·차량 간 음색 차이까지 확인하며, 이는 CI에 포함하지 않습니다([VEHICLE_AUDIO.md](VEHICLE_AUDIO.md)).
@@ -57,6 +58,8 @@ node tests/fullscreen_bridge_review.cjs
 선택적인 `loading_review.cjs`, `orientation_button_review.cjs`, `touch_review.cjs`, `web_audio_review.cjs`는 Playwright와 Chromium, 실행 중인 Web export 서버가 필요합니다. `INITIALSJ_REVIEW_URL`로 서버 주소, `CHROMIUM_BIN`으로 Chromium 경로를 지정하며 기본 자동 검사에는 포함하지 않습니다.
 
 로고를 변경할 때는 `python3 tools/bake_logo.py`로 SVG와 웹 셸의 인라인 사본을 함께 갱신합니다. 이 제작 도구만 fontTools를 요구하며, 커밋된 SVG를 사용하는 게임 실행·빌드에는 추가 Python 패키지가 필요하지 않습니다. 아트 출처는 [GENERATED_ART.md](../assets/ui/GENERATED_ART.md)를 참고하세요.
+
+[resource_lifecycle_checks.gd](../tests/resource_lifecycle_checks.gd)는 전체 검사에서 코스 전환·재시작·차량 교체·충돌 반복 후 노드와 리소스 수가 누적되지 않는지, 장면 해제 후 노드 수와 뷰포트 상태가 복구되는지 확인합니다. `audio_lifecycle_review.cjs`는 실제 Web Audio 브리지 소스로 A→B→A 비동기 선택·지연 디코딩·종료를 재현하며 루프와 연결·이벤트·버퍼 해제를 검사합니다. 첫 방문에서 늘어나는 폰트·셰이더·지역 모델 캐시와 WASM 힙의 최대 확보 크기를 지속 누수로 단정하지 않습니다.
 
 ## 웹 내보내기와 배포
 

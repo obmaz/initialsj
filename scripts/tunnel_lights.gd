@@ -97,6 +97,7 @@ func update_lights(at: Vector3) -> void:
 			visibility_changes += 1
 
 func _process(delta: float) -> void:
+	if not is_visible_in_tree(): return
 	update_clock -= delta
 	if update_clock > 0: return
 	update_clock = UPDATE_PERIOD

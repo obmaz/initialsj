@@ -31,6 +31,7 @@ func run(tree: SceneTree) -> int:
 	await tree.process_frame
 	check(recorder.seen.size() == 2 and recorder.seen[1] == "SUNCOAST SPEEDWAY","Rebuilding a course must show its loading card")
 	r.screen_transition = null
+	recorder.free()
 	r.navigate_to_mode("track",0)
 	await tree.process_frame
 	check(r.loading_title == "","Without a transition no stale loading title may remain")

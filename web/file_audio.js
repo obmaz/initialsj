@@ -10,6 +10,7 @@ window.InitialSJFileAudio = class {
     this.voices = {};
     this.vehicle = null;
     this.closed = false;
+    this.revision = 0;
     this.ready = Promise.resolve();
     this.target = {active: false, pitch: 1, engine: 0, boost: 0, boostPitch: 1, drift: 0, driftPitch: 1};
     this.unlock = () => { if (!this.closed && this.context.state === 'suspended') this.context.resume(); };
@@ -32,17 +33,21 @@ window.InitialSJFileAudio = class {
   stopVoices() {
     for (const voice of Object.values(this.voices)) {
       voice.source.stop();
+      voice.source.disconnect();
       voice.gain.disconnect();
     }
     this.voices = {};
   }
   setVehicle(id) {
     if (this.closed || id === this.vehicle) return this.ready;
+    const revision = ++this.revision;
     this.vehicle = id;
     this.stopVoices();
     this.ready = Promise.all(['engine', 'boost', 'drift'].map(async name => {
       const buffer = await this.decode(id + '-' + name);
-      if (this.closed || this.vehicle !== id) return;
+      // A -> B -> A can finish an older A decode after the new A request.
+      // Only the latest request may create looping sources.
+      if (this.closed || this.revision !== revision) return;
       const source = this.context.createBufferSource();
       const gain = this.context.createGain();
       source.buffer = buffer;
@@ -51,10 +56,13 @@ window.InitialSJFileAudio = class {
       source.connect(gain).connect(this.context.destination);
       source.start();
       this.voices[name] = {source, gain};
-    })).then(() => this.apply()).catch(error => console.error('Initial SJ file audio:', error));
+    })).then(() => this.apply()).catch(error => {
+      if (!this.closed && this.revision === revision) console.error('Initial SJ file audio:', error);
+    });
     return this.ready;
   }
   update(active, pitch, engine, boost, boostPitch, drift, driftPitch) {
+    if (this.closed) return;
     this.target = {active, pitch, engine, boost, boostPitch, drift, driftPitch};
     this.apply();
   }
@@ -73,12 +81,19 @@ window.InitialSJFileAudio = class {
     }
   }
   close() {
+    if (this.closed) return;
     this.closed = true;
+    this.revision++;
     document.removeEventListener('pointerdown', this.unlock);
     document.removeEventListener('keydown', this.unlock);
     window.removeEventListener('blur', this.silence);
     document.removeEventListener('visibilitychange', this.visibility);
-    for (const voice of Object.values(this.voices)) voice.source.stop();
+    this.stopVoices();
+    this.files = {};
+    this.decoded = {};
+    this.vehicle = null;
+    this.target.active = false;
+    this.ready = Promise.resolve();
     this.context.close();
   }
 };

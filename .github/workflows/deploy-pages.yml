@@ -38,6 +38,7 @@ jobs:
           node tests/install_bridge_review.cjs
           node tests/back_bridge_review.cjs
           node tests/fullscreen_bridge_review.cjs
+          node tests/audio_lifecycle_review.cjs
       - name: Export game for Web
         run: |
           mkdir -p build/site
