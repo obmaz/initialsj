@@ -78,6 +78,9 @@ func run() -> void:
 	race.speed = 60
 	race.lane = 0
 	var other: Dictionary = race.rivals[0]
+	# The Tour runs without CPU cars; switch one on to test the contact code itself.
+	other.active = true
+	other.car.visible = true
 	other.distance = race.distance+3
 	other.lane = 0
 	other.target_lane = 0

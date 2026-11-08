@@ -11,20 +11,21 @@ const MAX_STEP_HEIGHT := 0.22
 # Grip-limited steering: ordinary steering cannot exceed this many times the
 # tyre grip in lateral acceleration, so a fast tight corner needs braking or a
 # drift. Drifting uses the (higher) drift grip with the same factor.
-const LATERAL_GRIP_FACTOR := 1.8
+const Tuning = preload("res://scripts/drive_tuning.gd")
+const LATERAL_GRIP_FACTOR := Tuning.LATERAL_GRIP_FACTOR
 # Asking for more turn than the grip allows slides the front tyres: they scrub
 # speed (understeer) instead of turning the car.
-const UNDERSTEER_SCRUB := 0.5
+const UNDERSTEER_SCRUB := Tuning.UNDERSTEER_SCRUB
 # Guardrail response grows with the closing speed: a harder hit throws the car back
 # harder, costs more speed, spins it away from the wall and hops it off the road.
 const BARRIER_REBOUND := 0.46
 const BARRIER_REBOUND_MAX := 30.0
 const BARRIER_HOP_FROM := 14.0
-const REALIGN_TIME := 0.9
+const REALIGN_TIME := Tuning.REALIGN_TIME
 const REALIGN_RATE := 7.0
 const REALIGN_MAX_ERROR := 1.3
-const GLIDE_REBOUND := 0.10
-const GLIDE_REBOUND_MAX := 3.0
+const GLIDE_REBOUND := Tuning.GLIDE_REBOUND
+const GLIDE_REBOUND_MAX := Tuning.GLIDE_REBOUND_MAX
 var specification: Dictionary = {}
 var grounded := false
 var surface_normal := Vector3.UP
@@ -241,7 +242,7 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 					else:
 						# Below it the car does not bounce: it keeps most of its speed along the rail and its
 						# nose is turned parallel to the road while it scrapes past.
-						velocity = tangent*lerpf(0.97,0.84,hardness)+normal*clampf(closing*GLIDE_REBOUND,0.4,GLIDE_REBOUND_MAX)
+						velocity = tangent*Tuning.glide_keep(hardness)+normal*clampf(closing*GLIDE_REBOUND,0.4,GLIDE_REBOUND_MAX)
 						realign_time = REALIGN_TIME
 				else:
 					velocity = tangent*0.86+normal*minf(closing*0.32,14.0)

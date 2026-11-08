@@ -4,6 +4,7 @@ const WorldCar = preload("res://scripts/world_car.gd")
 const Progress = preload("res://scripts/circuit_progress.gd")
 const Nitro = preload("res://scripts/nitro_system.gd")
 const Corner = preload("res://scripts/corner_resistance.gd")
+const Tuning = preload("res://scripts/drive_tuning.gd")
 var race: Node3D
 var player_body: CharacterBody3D
 var bodies: Array[CharacterBody3D] = []
@@ -186,11 +187,11 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	for hit in contacts:
 		impact(hit)
 		# Gliding along a rail throws sparks and rumbles until the car leaves it.
-		if hit.get("barrier",false) and not hit.get("severe",false) and race.speed > 10:
+		if hit.get("barrier",false) and not hit.get("severe",false) and race.speed > Tuning.SCRAPE_SPEED:
 			race.scrape(delta,-hit.normal,hit.point)
 	# A sliding car touches the rail only on the first frame, so keep the scrape going from its
 	# distance to the rail line while it stays pressed against it.
-	if player_body.grounded and race.speed > 10 and not race.crash.active:
+	if player_body.grounded and race.speed > Tuning.SCRAPE_SPEED and not race.crash.active:
 		var rail_side := signf(race.lane)
 		var rail_gap: float = race.track.half_width(race.distance)+race.track.active.rail_setback(race.distance,rail_side)-absf(race.lane)-1.1
 		if rail_gap < 0.45:
@@ -244,7 +245,7 @@ func update_drift(delta: float, pressed: bool, brake: bool, gas: bool) -> void:
 
 func update_air(delta: float, was_airborne: bool) -> void:
 	# A thrown car turns its nose back to where it is travelling, so it lands driving forward.
-	if crash_flight and not player_body.grounded: player_body.turn_toward(player_body.velocity,3.5,delta)
+	if crash_flight and not player_body.grounded: player_body.turn_toward(player_body.velocity,Tuning.FLIGHT_TURN_RATE,delta)
 	race.air.landing_flash = maxf(0,race.air.landing_flash-delta)
 	race.air.active = not player_body.grounded
 	race.air.world_y = player_body.feet_position().y

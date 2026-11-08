@@ -12,6 +12,7 @@ const Factory = preload("res://scripts/vehicle_factory.gd")
 const Circuit = preload("res://scripts/circuit_track.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
 const Haptics = preload("res://scripts/haptics.gd")
+const Tuning = preload("res://scripts/drive_tuning.gd")
 const Pad = preload("res://scripts/gamepad_input.gd")
 const Nitro = preload("res://scripts/nitro_system.gd")
 const RenderBudget = preload("res://scripts/render_budget.gd")
@@ -418,6 +419,11 @@ func initialize_traffic() -> void:
 			r.target_lane = r.lane
 			r.speed = 0.0
 			r.pace = vehicle.max_speed*(0.94+r.id*0.018)
+	else:
+		# The Tour is a solo time attack: no CPU cars on the road.
+		for r in rivals:
+			r.active = false
+			r.car.visible = false
 
 func navigate(action: Callable) -> void:
 	_hide_fullscreen_control()
@@ -1093,10 +1099,10 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	var margin := minf(lane-limits.x,limits.y-lane)
 	if margin < 1.0: speed = move_toward(speed,minf(speed,38),delta*32)
 	# Kerb rumble near the edge, and sparks while the car scrapes the rail.
-	if margin < 1.1 and speed > 20 and not air.active:
+	if margin < Tuning.KERB_MARGIN and speed > 20 and not air.active:
 		edge_rumble = maxf(edge_rumble,0.5)
 		haptics.pulse(0.1,0.35,0.06,0)
-	if margin < 0.35 and speed > 14 and not air.active:
+	if margin < 0.35 and speed > Tuning.SCRAPE_SPEED and not air.active:
 		var rail_side := 1.0 if limits.y-lane < lane-limits.x else -1.0
 		var rail_forward := (track.point(distance+2)-track.point(distance)).normalized()
 		scrape(delta,Vector3(-rail_forward.z,0,rail_forward.x)*rail_side,track.point(distance,lane+rail_side*1.0)+Vector3.UP*0.4)
@@ -1111,21 +1117,21 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			# Thrown clear but not across the road, and the nose settles back to the road
 			# direction so the car lands driving forward.
 			var bounce := maxf(closing_speed,incoming_speed*0.22)
-			lane_velocity = -side*clampf(bounce*0.63,1.5,17)
+			lane_velocity = -side*clampf(bounce*Tuning.LAUNCH_PUSH,1.5,17)
 			slip_angle *= 0.3
 			wall_assist = 0.9
 			wall_side = 0.0
 		else:
 			# No bounce below the launch speed: the car barely leaves the rail and its nose is
 			# swung parallel to it while it scrapes along.
-			lane_velocity = -side*clampf(closing_speed*0.12,0.3,2.5)
+			lane_velocity = -side*clampf(closing_speed*Tuning.GLIDE_REBOUND,0.3,2.5)
 			slip_angle = lerp_angle(slip_angle,0.0,0.65)
-			wall_assist = 0.9
+			wall_assist = Tuning.REALIGN_TIME
 			wall_side = side
 		if bump_cooldown <= 0:
 			wall_hits += 1
 			var scrape_speed := maxf(speed,absf(lane_velocity)*3)
-			speed *= lerpf(0.88,0.5,clampf(incoming_speed/70.0,0,1)) if launching else lerpf(0.97,0.86,clampf(incoming_speed/Crash.LAUNCH_SPEED,0,1))
+			speed *= lerpf(0.88,0.5,clampf(incoming_speed/70.0,0,1)) if launching else Tuning.glide_keep(incoming_speed/Crash.LAUNCH_SPEED)
 			register_impact(smoothstep(2.5,72,scrape_speed)*0.9,Vector2(-side,0))
 			if Crash.launches(incoming_speed) and not crash.active:
 				var up := Crash.launch_up(incoming_speed)
