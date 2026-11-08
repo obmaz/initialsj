@@ -169,6 +169,11 @@ var pad := Pad.new()
 var haptics := Haptics.new()
 # 0-1 while a wheel is on the kerb or the car is scraping a rail: it shakes the camera and the pad.
 var edge_rumble := 0.0
+# Gamepad focus on the home and course screens (0/1 the two big cards, 2 the corner button).
+var menu_focus := 0
+var menu_last_card := 0
+var nav_dir := ""
+var nav_wait := 0.0
 var scrape_timer := 0.0
 var gamepad_active := false
 var settings_focus := 0
@@ -442,6 +447,7 @@ func cycle_graphics() -> void:
 	render_budget.set_mode(graphics_mode,self)
 
 func open_courses() -> void:
+	menu_focus = 0
 	hud.fingers.clear()
 	state = "courses"
 
@@ -498,6 +504,7 @@ func choose_mode(value: String, course: int = 0) -> void:
 	load_record()
 
 func open_menu() -> void:
+	menu_focus = 0
 	cancel_nitro()
 	hud.fingers.clear()
 	state = "menu"
@@ -693,12 +700,22 @@ func pad_pressed(button: int) -> void:
 	match state:
 		"menu":
 			match button:
-				JOY_BUTTON_A: navigate_to_mode("tour")
+				JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN: pad_focus(button)
+				JOY_BUTTON_A:
+					match menu_focus:
+						0: navigate_to_mode("tour")
+						1: navigate(open_courses)
+						_: navigate(open_settings)
 				JOY_BUTTON_X: navigate(open_courses)
 				JOY_BUTTON_Y: navigate(open_settings)
 		"courses":
 			match button:
-				JOY_BUTTON_A: navigate_to_mode("track",0)
+				JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN: pad_focus(button)
+				JOY_BUTTON_A:
+					match menu_focus:
+						0: navigate_to_mode("track",0)
+						1: navigate_to_mode("track",1)
+						_: navigate(open_menu)
 				JOY_BUTTON_X: navigate_to_mode("track",1)
 				JOY_BUTTON_B: navigate(open_menu)
 		"settings":
@@ -728,6 +745,43 @@ func pad_pressed(button: int) -> void:
 			match button:
 				JOY_BUTTON_A: navigate(open_garage)
 				JOY_BUTTON_X, JOY_BUTTON_BACK: start_race()
+
+# D-pad (or the left stick, see pad_stick_navigation) moves the gold focus frame: left/right
+# between the two cards, up to the corner button, down back to the last card.
+func pad_focus(button: int) -> void:
+	match button:
+		JOY_BUTTON_DPAD_LEFT:
+			if menu_focus == 1: menu_focus = 0
+		JOY_BUTTON_DPAD_RIGHT:
+			if menu_focus == 0: menu_focus = 1
+		JOY_BUTTON_DPAD_UP:
+			if menu_focus != 2:
+				menu_last_card = menu_focus
+				menu_focus = 2
+		JOY_BUTTON_DPAD_DOWN:
+			if menu_focus == 2: menu_focus = menu_last_card
+
+# The left stick drives every menu like the D-pad, with a short repeat while held.
+func pad_stick_navigation(delta: float) -> void:
+	if state not in ["menu","courses","settings","ready"] or (screen_transition != null and screen_transition.busy):
+		nav_dir = ""
+		return
+	var x := pad.axis(JOY_AXIS_LEFT_X)
+	var y := pad.axis(JOY_AXIS_LEFT_Y)
+	var wanted := ""
+	if absf(x) > 0.6 and absf(x) >= absf(y): wanted = "right" if x > 0 else "left"
+	elif absf(y) > 0.6: wanted = "down" if y > 0 else "up"
+	if wanted == "":
+		nav_dir = ""
+		nav_wait = 0
+		return
+	nav_wait -= delta
+	if wanted == nav_dir and nav_wait > 0: return
+	var first: bool = wanted != nav_dir
+	nav_dir = wanted
+	nav_wait = 0.4 if first else 0.17
+	gamepad_active = true
+	pad_pressed({"left":JOY_BUTTON_DPAD_LEFT,"right":JOY_BUTTON_DPAD_RIGHT,"up":JOY_BUTTON_DPAD_UP,"down":JOY_BUTTON_DPAD_DOWN}[wanted])
 
 const SETTINGS_ROWS := 6
 func settings_activate(index: int) -> void:
@@ -1463,8 +1517,9 @@ func set_car_frame(car: Node3D, p: Vector3, forward: Vector3, delta: float, pitc
 	car.rotation.z = lerp_angle(car.rotation.z,bank,1-exp(-delta*10))
 	car.rotation.x = lerp_angle(car.rotation.x,asin(clampf(f.y,-1,1))+pitch_extra,1-exp(-delta*10))
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	render_budget.tick(self)
+	pad_stick_navigation(delta)
 
 func collision_camera_offset(forward: Vector3, right: Vector3) -> Vector3:
 	if state != "racing" or motion_reduced or impact_age > 0.42: return Vector3.ZERO

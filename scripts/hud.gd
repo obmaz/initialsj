@@ -269,13 +269,23 @@ func pad_hints(items: Array, y: float, center_x: float = 640.0) -> void:
 		text_at(Vector2(x+width+8,y+7),item[1],20,WHITE)
 		x += width+8+FONT.get_string_size(item[1],HORIZONTAL_ALIGNMENT_LEFT,-1,20).x+30
 
+# The gold frame shows which card the pad will open.
+func draw_pad_focus() -> void:
+	var rects := []
+	if race.state == "menu": rects = [HOME_TOUR,HOME_TRACK,HOME_SETTINGS]
+	elif race.state == "courses": rects = [COURSE_FUJI,COURSE_SPEEDWAY,GARAGE_BACK]
+	if rects.is_empty(): return
+	var rect: Rect2 = rects[clampi(race.menu_focus,0,2)]
+	draw_rect(rect.grow(5),GOLD,false,4.0)
+
 func draw_pad_hints() -> void:
 	if not pad_on(): return
+	draw_pad_focus()
 	match race.state:
-		"menu": pad_hints([["confirm","TOUR"],["alt","TRACK"],["alt2","SETTINGS"]],702)
-		"courses": pad_hints([["confirm","FUJI LAKESIDE"],["alt","SUNCOAST"],["back","BACK"]],702)
+		"menu": pad_hints([["dpad","MOVE"],["confirm","SELECT"],["alt","TRACK"],["alt2","SETTINGS"]],702)
+		"courses": pad_hints([["dpad","MOVE"],["confirm","SELECT"],["back","BACK"]],702)
 		"settings": pad_hints([["dpad","MOVE"],["confirm","CHANGE"],["back","CLOSE"]],704)
-		"ready": pad_hints([["shoulders","CHOOSE CAR"],["confirm","DRIVE"],["back","BACK"]],698,560)
+		"ready": pad_hints([["dpad","CHOOSE CAR"],["confirm","DRIVE"],["back","BACK"]],698,560)
 		"paused": pad_hints([["confirm","RESUME"],["alt","MAIN MENU"],["alt2","RESTART"]],704)
 		"finished","failed": pad_hints([["confirm","CHOOSE CAR"],["alt","RETRY"]],704)
 
