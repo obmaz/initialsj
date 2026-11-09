@@ -75,7 +75,8 @@ def check_docs():
             if target and not (path.parent / target).exists():
                 errors.append(f"Broken link in {path.relative_to(ROOT)}: {target}")
     for path in (ROOT / "docs").rglob("*"):
-        if path.is_file() and path.suffix != ".md":
+        # APK 기록 스키마는 임시 보고서가 아니라 문서가 참조하는 검증 기준입니다.
+        if path.is_file() and path.suffix != ".md" and path != ROOT / "docs/apk-build-record.schema.json":
             errors.append(f"Generated review artifact belongs in build/reports/: {path.relative_to(ROOT)}")
 
 
