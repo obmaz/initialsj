@@ -1,5 +1,7 @@
 # Project working scope
 
+- Every commit must use `obmaz <zambobmaz@gmail.com>` for both author and committer. Set this identity explicitly for API-created commits; local Git configuration does not control GitHub API attribution.
+
 - Repository and Pages: `obmaz/initialsj`, `https://obmaz.github.io/initialsj/`.
 - The Godot project is at the repository root. Active modes are TOUR, Fuji TRACK01, SUNCOAST SPEEDWAY TRACK02, and MIDNIGHT HARBOR TRACK03 (night).
 - Product names and signs are fictional. Keep the speedway's real-world inspiration out of game lettering.
