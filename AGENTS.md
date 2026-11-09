@@ -14,6 +14,12 @@
 - 사용자는 반복적인 검토·수정, 필요한 이미지 생성, 푸시와 Pages 배포를 승인했습니다. 검증된 기능 변경은 배포까지 진행합니다.
 - 지침과 스킬은 한국어로 작성합니다. 명령어·경로·API 식별자는 원래 표기를 유지합니다.
 
+## 도구별 지침과 스킬 위치
+
+- 공통 규칙의 정본은 `AGENTS.md`입니다. Claude Code는 같은 폴더의 `CLAUDE.md`에서 `@AGENTS.md`로 가져옵니다. 공통 규칙은 정본에만 작성합니다.
+- APK 전달 절차의 정본은 `.agents/skills/dropbox-apk/SKILL.md`입니다. `.claude/skills/dropbox-apk/SKILL.md`는 같은 정본을 읽도록 안내하는 포인터이며 절차를 복제하지 않습니다.
+- `.agents/skills/dropbox-apk/agents/openai.yaml`은 스킬의 표시 이름·설명·기본 요청을 정의합니다. 실제 빌드·전달 절차는 `SKILL.md`를 따릅니다.
+
 ## APK 빌드와 Dropbox 전달
 
 - APK 빌드·재빌드·Dropbox 업로드는 사용자가 명시적으로 요청했을 때만 수행합니다. 일반 개발·리뷰·검증·푸시·웹 배포에 APK 빌드를 추가하지 않습니다.
