@@ -9,6 +9,7 @@ var billboard_manifest: Array[Dictionary] = []
 var tower_distances: Array[float] = []
 var bridge_clearance := 68.0
 var ad_size := Vector2(16,7)
+var texture_regions: Array[Vector3] = []
 
 func _ready() -> void:
 	if bridge_span.y > bridge_span.x: make_bridge()
@@ -26,17 +27,29 @@ func boxes(label: String, poses: Array[Transform3D], color: Color, shadows: bool
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3.ONE
 	var mat: Material = material(color)
-	if "Concrete" in label or label == "BridgeStructuralDeck": mat = textured_surface(Vector2(1,0),Color.WHITE,.18,0.0,.9)
+	if "Concrete" in label or label == "BridgeStructuralDeck": mat = textured_surface(Vector2(1,0),Color.WHITE,.18,0.0,.9,true,true)
 	elif label.begins_with("Bridge") and "Foundations" not in label: mat = steel(color)
-	elif label.begins_with("Billboard") and "Lens" not in label: mat = textured_surface(Vector2(1,1),color.lightened(.35),.65,.65,.5)
+	elif label.begins_with("Billboard") and "Lens" not in label: mat = textured_surface(Vector2(1,1),color.lightened(.55),.65,.35,.65,true,false)
 	instances(label,mesh,poses,mat,shadows)
 
 func instances(label: String, mesh: Mesh, poses: Array[Transform3D], mat: Material, shadows: bool = true) -> void:
 	var multi := MultiMesh.new()
 	multi.transform_format = MultiMesh.TRANSFORM_3D
+	multi.use_custom_data = true
 	multi.mesh = mesh
 	multi.instance_count = poses.size()
-	for i in range(poses.size()): multi.set_instance_transform(i,poses[i])
+	for i in range(poses.size()):
+		multi.set_instance_transform(i,poses[i])
+		var origin := poses[i].origin
+		var variant := fposmod(floor(origin.x*.071)+floor(origin.z*.053),2.0)
+		if label.begins_with("Billboard"):
+			var nearest := INF
+			for region in range(texture_regions.size()):
+				var gap := origin.distance_squared_to(texture_regions[region])
+				if gap < nearest:
+					nearest = gap
+					variant = float(region%2)
+		multi.set_instance_custom_data(i,Color(.25+.5*variant,0,0,1))
 	var node := MultiMeshInstance3D.new()
 	node.name = label
 	node.multimesh = multi
@@ -69,10 +82,12 @@ func tubes(label: String, poses: Array[Transform3D], color: Color) -> void:
 	for pose in poses: turned.append(pose*Transform3D(Basis(Vector3.RIGHT,PI/2),Vector3.ZERO))
 	instances(label,mesh,turned,textured_surface(Vector2(1,1),color.lightened(.4),1.0,.65,.53),false)
 
-func textured_surface(tile: Vector2, tint: Color, scale: float, metallic: float, roughness: float) -> ShaderMaterial:
+func textured_surface(tile: Vector2, tint: Color, scale: float, metallic: float, roughness: float, varied: bool = false, concrete: bool = false) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/painted_steel.gdshader")
-	mat.set_shader_parameter("material_atlas",preload("res://assets/environment/generated-material-atlas.png"))
+	mat.set_shader_parameter("material_atlas",preload("res://assets/environment/generated-structure-variants.png") if varied else preload("res://assets/environment/generated-material-atlas.png"))
+	mat.set_shader_parameter("instance_variation",varied)
+	mat.set_shader_parameter("concrete_family",concrete)
 	mat.set_shader_parameter("material_tile",tile)
 	mat.set_shader_parameter("paint_color",tint)
 	mat.set_shader_parameter("texture_scale",scale)
@@ -198,7 +213,7 @@ func make_canyon(span: Vector2) -> void:
 	node.mesh = st.commit()
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/sandstone.gdshader")
-	mat.set_shader_parameter("rock_detail",preload("res://assets/environment/generated-material-atlas.png"))
+	mat.set_shader_parameter("rock_detail",preload("res://assets/environment/generated-rock-variants.png"))
 	node.material_override = mat
 	add_child(node)
 
@@ -214,6 +229,7 @@ func make_billboards(span: Vector2) -> void:
 		var side := -1.0 if i%2 == 0 else 1.0
 		var lane: float = side*(track.half_width(d)+18)
 		var p: Vector3 = track.point(d,lane)
+		texture_regions.append(p)
 		var board := MeshInstance3D.new()
 		board.name = "FictionalAdvertisement"
 		var mesh := QuadMesh.new()
