@@ -39,6 +39,7 @@ func _ready() -> void:
 	make_yard()
 	make_warehouses()
 	make_cranes()
+	make_harbor_props()
 	make_lamps()
 	make_gates()
 
@@ -173,6 +174,30 @@ func make_warehouses() -> void:
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(node)
 	batches.append(node)
+
+# Big harbour furniture from the shared prop set: stacked cargo, dock cranes, fuel tanks, sheds and
+# docked container ships, set back from the road so every bend has something large beside it.
+func make_harbor_props() -> void:
+	var Props = preload("res://scripts/regional_props_3d.gd")
+	var kinds := ["container_stack","dock_crane","container_stack","warehouse_shed","fuel_tank","container_stack","cargo_ship","container_stack"]
+	var placements: Array[Dictionary] = []
+	var spacing := 70.0
+	var count := int(track.length/spacing)
+	for i in range(count):
+		var d: float = 60+i*spacing+rng.randf_range(-8,8)
+		var side := -1.0 if i%2 == 0 else 1.0
+		var kind: String = kinds[i%kinds.size()]
+		var scale := rng.randf_range(0.95,1.2)
+		var radius: float = Props.radius(kind)*scale
+		var extra := 8.0 if kind in ["container_stack","fuel_tank"] else (30.0 if kind == "cargo_ship" else 16.0)
+		var lane: float = side*(track.half_width(d)+track.rail_setback(d,side)+extra+radius)
+		if not clear_of_road(d,lane,radius*0.9+4.0): continue
+		var base := pose(d,lane,0.0,PI*0.5 if kind in ["container_stack","cargo_ship","warehouse_shed"] else 0.0)
+		placements.append({"position":base.origin,"yaw":track.heading(d)+(PI*0.5 if kind == "cargo_ship" else rng.randf_range(-0.15,0.15)),"scale":scale,"kind":kind})
+	var props = Props.new()
+	props.name = "HarbourProps"
+	props.configure("harbor",placements)
+	add_child(props)
 
 # Gantry cranes along the quay, each with a red beacon on top.
 func make_cranes() -> void:

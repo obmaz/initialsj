@@ -5,9 +5,12 @@ const FAMILIES := {
  "fuji":["pine","sakura","japanese_pine"], "bamboo":["bamboo","bamboo","basalt"],
  "snow":["snow_pine","snow_pine","basalt"], "volcano":["basalt","charred","basalt"],
  "desert":["cactus","sandstone","cactus"], "pyramid":["obelisk","palm","sandstone"],
- "canyon":["sandstone","cactus","sandstone"], "city":["broadleaf","street_shop","plane_tree"],
- "seoul":["ginkgo","street_shop","pine"], "neon":["street_shop","plane_tree","broadleaf"],
- "ruins":["broken_column","charred","basalt"], "harbor":["containers","palm","containers"],
+ "canyon":["sandstone","cactus","sandstone"],
+ "city":["convenience_store","apartment","broadleaf","gas_station","billboard","plane_tree","bus_shelter","street_shop","apartment"],
+ "seoul":["apartment","ginkgo","convenience_store","billboard","bus_shelter","street_shop","gas_station","pine"],
+ "neon":["billboard","convenience_store","apartment","plane_tree","gas_station","street_shop","bus_shelter"],
+ "ruins":["broken_column","charred","basalt"],
+ "harbor":["containers","dock_crane","container_stack","warehouse_shed","fuel_tank","container_stack","palm","cargo_ship"],
  "amusement":["ticket_booth","broadleaf","sakura"]
 }
 const Models = preload("res://scripts/quaternius_props.gd")
@@ -216,6 +219,99 @@ static func model(kind: String) -> ArrayMesh:
    box(st,Vector3(0,4.5,1),Vector3(8,0.5,8),Color("cb654a") if kind == "street_shop" else Color("d595b6"))
    box(st,Vector3(0,5.1,3.7),Vector3(5,0.8,0.18),Color("e1cc90"))
    box(st,Vector3(0,0.15,0),Vector3(8,0.3,7),Color("858c87"))
+  "convenience_store":
+   box(st,Vector3(0,1.8,0),Vector3(10,3.6,6.4),Color("e8ebec"))
+   box(st,Vector3(0,3.85,0),Vector3(10.4,0.55,6.8),Color("2fa36b"))
+   box(st,Vector3(0,3.45,0),Vector3(10.45,0.12,6.85),Color("f08a1c"))
+   box(st,Vector3(0,1.5,3.22),Vector3(8,2.3,0.12),Color("274b66"))
+   box(st,Vector3(0,3.0,3.3),Vector3(8,0.5,0.2),Color("fff1a8"))
+   box(st,Vector3(2,5.2,-1.6),Vector3(2.4,1.8,1.6),Color("8b9296"))
+   box(st,Vector3(-3.4,4.8,3.0),Vector3(2.8,1.5,0.2),Color("ffd34a"))
+   box(st,Vector3(0,0.1,1.5),Vector3(12,0.2,11),Color("6c7176"))
+   for x in [-3.0,0.0,3.0]: box(st,Vector3(x,0.4,6.4),Vector3(2.2,0.8,0.5),Color("d9d9d4"))
+  "gas_station":
+   box(st,Vector3(0,5.4,0),Vector3(14,0.7,9),Color("f2f2ee"))
+   box(st,Vector3(0,5.0,0),Vector3(14.2,0.35,9.2),Color("d6342b"))
+   for x in [-5.5,5.5]:
+    for z in [-3.2,3.2]: column(st,Vector3(x,2.6,z),5.2,0.3,0.3,Color("c9ccce"),6)
+   for x in [-2.6,2.6]:
+    box(st,Vector3(x,0.9,0),Vector3(0.8,1.8,1.4),Color("d6342b"))
+    box(st,Vector3(x,1.55,0),Vector3(0.82,0.5,1.42),Color("1c2b36"))
+    box(st,Vector3(x,0.12,0),Vector3(1.6,0.24,3.6),Color("8e948f"))
+   box(st,Vector3(0,1.7,-8),Vector3(8,3.4,4.5),Color("d8d5c8"))
+   box(st,Vector3(0,3.6,-8),Vector3(8.4,0.4,4.9),Color("d6342b"))
+   column(st,Vector3(8.5,4.5,3.5),9.0,0.22,0.22,Color("737a7e"),6)
+   box(st,Vector3(8.5,8.6,3.5),Vector3(3.2,2.8,0.4),Color("ffd34a"))
+   box(st,Vector3(8.5,8.6,3.72),Vector3(2.7,0.6,0.1),Color("d6342b"))
+   box(st,Vector3(0,0.06,-1),Vector3(17,0.12,17),Color("5e6468"))
+  "apartment":
+   var wall := Color("c9bfae")
+   box(st,Vector3(0,8.5,0),Vector3(11,17,9),wall)
+   box(st,Vector3(0,17.2,0),Vector3(11.6,0.5,9.6),Color("8d8a82"))
+   for row in range(5):
+    for col in range(4):
+     var win := Color("2b4a66") if (row+col)%3 else Color("e9d38a")
+     box(st,Vector3(-3.75+col*2.5,2.6+row*3.1,4.53),Vector3(1.4,1.7,0.1),win)
+     box(st,Vector3(-3.75+col*2.5,1.9+row*3.1,4.7),Vector3(1.8,0.12,0.5),Color("9c968a"))
+   box(st,Vector3(0,8.5,-4.55),Vector3(11,17,0.1),wall.darkened(0.12))
+  "billboard":
+   for x in [-3.0,3.0]: column(st,Vector3(x,5,0),10,0.28,0.24,Color("6f777c"),6)
+   box(st,Vector3(0,10.4,0),Vector3(10.5,5.2,0.5),Color("33383d"))
+   box(st,Vector3(0,10.4,0.28),Vector3(10,4.7,0.1),Color("f3f0e4"))
+   box(st,Vector3(-2.2,10.9,0.36),Vector3(4.6,2.0,0.08),Color("2c8fd1"))
+   box(st,Vector3(2.6,10.1,0.36),Vector3(3.6,2.8,0.08),Color("f08a1c"))
+   box(st,Vector3(-1.2,9.1,0.36),Vector3(6.4,0.5,0.08),Color("d6342b"))
+  "bus_shelter":
+   box(st,Vector3(0,2.5,0),Vector3(5.2,0.18,2.2),Color("2a8aa3"))
+   for x in [-2.4,2.4]: box(st,Vector3(x,1.25,0.9),Vector3(0.12,2.5,0.12),Color("3b4247"))
+   box(st,Vector3(0,1.3,-0.95),Vector3(4.8,2.2,0.08),Color("a7c9d4"))
+   box(st,Vector3(0,0.55,-0.5),Vector3(3.6,0.14,0.7),Color("7a5638"))
+   box(st,Vector3(2.8,1.6,0.9),Vector3(0.1,3.2,0.1),Color("3b4247"))
+   box(st,Vector3(2.8,3.0,0.9),Vector3(0.9,0.9,0.1),Color("2a8aa3"))
+  "dock_crane":
+   var steel := Color("e08a2c")
+   for x in [-8.0,8.0]:
+    for z in [-4.0,4.0]: column(st,Vector3(x,12,z),24,0.7,0.5,steel,6)
+   for z in [-4.0,4.0]: box(st,Vector3(0,23,z),Vector3(17,1.6,1.4),steel)
+   box(st,Vector3(0,12,-4),Vector3(16,0.5,0.5),steel.darkened(0.15))
+   box(st,Vector3(0,12,4),Vector3(16,0.5,0.5),steel.darkened(0.15))
+   box(st,Vector3(0,25.2,0),Vector3(5,3,10),Color("c8c9c2"))
+   box(st,Vector3(0,24.9,-23),Vector3(2.2,2.0,38),steel)
+   box(st,Vector3(0,24.9,22),Vector3(2.2,2.0,12),steel)
+   for x in [-1.1,1.1]: box(st,Vector3(x,16,-10),Vector3(0.2,17,0.2),Color("3a3f44"))
+   box(st,Vector3(0,12,-10),Vector3(3,1.8,6),Color("3d6f9e"))
+   box(st,Vector3(0,27.5,0),Vector3(1.2,1.2,1.2),Color("e8332a"))
+  "container_stack":
+   var paints := [Color("a45540"),Color("466f7f"),Color("c49c4f"),Color("2f7a62"),Color("8a8f93"),Color("c9553f")]
+   for row in range(3):
+    for tier in range(4 if row != 1 else 3):
+     var paint: Color = paints[(row*2+tier*3)%paints.size()]
+     box(st,Vector3(row*2.7-2.7,1.3+tier*2.65,0),Vector3(2.5,2.55,12),paint)
+     for rib in range(6): box(st,Vector3(row*2.7-2.7,1.3+tier*2.65,-5.4+rib*2.15),Vector3(2.55,2.4,0.1),paint.darkened(0.25))
+  "warehouse_shed":
+   box(st,Vector3(0,3.2,0),Vector3(14,6.4,26),Color("8c97a0"))
+   box(st,Vector3(0,6.8,0),Vector3(14.6,0.5,26.6),Color("5f6a73"))
+   box(st,Vector3(0,7.3,0),Vector3(7,0.9,26.2),Color("6f7b84"))
+   for z in [-9.0,-3.0,3.0,9.0]: box(st,Vector3(7.05,3,z),Vector3(0.1,5.2,0.35),Color("6e7983"))
+   box(st,Vector3(7.08,2.2,0),Vector3(0.1,4.2,5),Color("d9a73a"))
+  "fuel_tank":
+   for i in range(3):
+    column(st,Vector3(i*9.5-9.5,4.2,0),8.4,4.2,4.2,Color("d9d9d4") if i != 1 else Color("c4472f"),12)
+    column(st,Vector3(i*9.5-9.5,8.7,0),0.7,4.0,3.2,Color("9fa6a8"),12)
+    box(st,Vector3(i*9.5-9.5,4.2,4.3),Vector3(0.5,8.4,0.5),Color("6f777c"))
+   box(st,Vector3(0,9.6,0),Vector3(21,0.35,0.5),Color("6f777c"))
+  "cargo_ship":
+   box(st,Vector3(0,3.2,0),Vector3(18,6.4,86),Color("2d3e57"))
+   box(st,Vector3(0,6.7,0),Vector3(18.4,0.5,86.4),Color("a8362b"))
+   box(st,Vector3(0,3.5,-43.5),Vector3(10,6,2.5),Color("2d3e57"))
+   box(st,Vector3(0,12,34),Vector3(12,11,10),Color("e9e9e2"))
+   box(st,Vector3(0,18.2,34),Vector3(13,2,10.5),Color("2c4a66"))
+   box(st,Vector3(0,22.5,34),Vector3(3,7,3),Color("c4472f"))
+   var paints2 := [Color("a45540"),Color("466f7f"),Color("c49c4f"),Color("2f7a62"),Color("c9553f"),Color("8a8f93")]
+   for row in range(3):
+    for bay in range(7):
+     for tier in range(1+(row+bay)%3):
+      box(st,Vector3(row*5.4-5.4,8.2+tier*2.65,-34+bay*8.4),Vector3(5.1,2.55,8.1),paints2[(row*3+bay+tier)%paints2.size()])
   "containers":
    for i in range(3):
     box(st,Vector3((i%2)*3.3,1.5+(i/2)*3.1,0),Vector3(3.1,3,8),Color(["a45540","466f7f","c49c4f"][i]))

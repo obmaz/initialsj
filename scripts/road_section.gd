@@ -366,6 +366,7 @@ func _ready() -> void:
 		make_gantry(80,["FUJI LAKESIDE","SUNCOAST SPEEDWAY","MIDNIGHT HARBOR"][clampi(course_id,0,2)]+" / START - FINISH")
 	elif stage < 4:
 		make_gantry(checkpoint_distance(),"CHECKPOINT",Color("e3ad38"))
+		make_checkpoint_stripe(checkpoint_distance())
 		var titles := Library.next_titles(stage,route_node)
 		make_gantry(length-55,"< "+titles[0]+"     "+titles[1]+" >")
 		make_fork_guides()
@@ -401,21 +402,71 @@ func make_finish_stripe(at: float) -> MeshInstance3D:
 	add_child(node)
 	return node
 
+# A gantry sized to the road: slim posts just outside the rails, a dark lit panel with big, high
+# contrast lettering, a chequered or hazard edge strip and a beacon on each post. Start/finish is
+# navy with white lettering and a chequered strip; the checkpoint is amber with dark lettering.
 func make_gantry(at: float, title: String, tint: Color = Color("173d46")) -> void:
+	var checkpoint := title == "CHECKPOINT"
 	var gantry := Node3D.new()
 	add_child(gantry)
 	gantry.position = point(at)
 	gantry.rotation.y = heading(at)
-	var steel := material(Color("8d9c9c"),0.6)
-	for side in [-1,1]: box(gantry,Vector3(side*16,4.5,0),Vector3(0.5,9,0.5),steel)
-	box(gantry,Vector3(0,8.5,0),Vector3(33,2.3,0.6),material(tint))
+	var reach := half_width(at)+maxf(rail_setback(at,1.0),rail_setback(at,-1.0))+2.2
+	var steel := material(Color("56626b"),0.5)
+	var panel_color := Color("f2b632") if checkpoint else (Color("0d1b2a") if title.ends_with("START - FINISH") or title.ends_with("GOAL") else tint)
+	var glow := StandardMaterial3D.new()
+	glow.albedo_color = panel_color
+	glow.emission_enabled = true
+	glow.emission = panel_color
+	glow.emission_energy_multiplier = 0.35
+	var beacon_color := Color("ffcf4a") if checkpoint else Color("5fe3ff")
+	var beacon := StandardMaterial3D.new()
+	beacon.albedo_color = beacon_color
+	beacon.emission_enabled = true
+	beacon.emission = beacon_color
+	beacon.emission_energy_multiplier = 2.2
+	for side in [-1,1]:
+		box(gantry,Vector3(side*reach,4.3,0),Vector3(0.45,8.6,0.45),steel)
+		box(gantry,Vector3(side*reach,0.25,0),Vector3(1.2,0.5,1.2),material(Color("2b3239")))
+		box(gantry,Vector3(side*reach,8.85,0),Vector3(0.7,0.5,0.7),beacon)
+	var width := reach*2.0
+	box(gantry,Vector3(0,8.1,0),Vector3(width,0.35,0.5),steel)
+	var panel_width := minf(width-1.2,maxf(20.0,title.length()*0.72))
+	box(gantry,Vector3(0,7.2,0),Vector3(panel_width,2.0,0.4),glow)
+	box(gantry,Vector3(0,7.2,-0.01),Vector3(panel_width+0.25,2.25,0.3),material(Color("e8ecee")))
+	# Edge strip under the panel: chequered for start/finish, hazard orange/dark for checkpoints.
+	var cells := 24
+	for i in range(cells):
+		var light := i%2 == 0
+		var strip: Color
+		if checkpoint: strip = Color("1b1f24") if light else Color("f2b632")
+		else: strip = Color("f7f7f2") if light else Color("14181c")
+		box(gantry,Vector3(-panel_width*0.5+panel_width*(i+0.5)/cells,5.95,0.05),Vector3(panel_width/cells,0.4,0.25),material(strip))
 	var label := Label3D.new()
 	label.text = title
-	label.font_size = 100
-	label.pixel_size = 0.008
-	label.position = Vector3(0,8.5,0.35)
-	label.modulate = Color("142431") if title == "CHECKPOINT" else Color.WHITE
+	label.font_size = 110
+	label.pixel_size = minf(0.0095,(panel_width-1.6)/(maxf(title.length(),8)*62.0))
+	label.outline_size = 0
+	label.position = Vector3(0,7.2,0.24)
+	label.modulate = Color("14181c") if checkpoint else Color("f7fbff")
 	gantry.add_child(label)
+
+# A bright band across the road under the checkpoint gantry.
+func make_checkpoint_stripe(at: float) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for row in range(2):
+		var a := at-1.3+row*1.4
+		var b := a+1.2
+		var points := [point(a,-half_width(a)),point(a,half_width(a)),point(b,-half_width(b)),point(b,half_width(b))]
+		for index in [0,2,1,1,2,3]: st.add_vertex(points[index]+Vector3.UP*0.04)
+	st.generate_normals()
+	var node := MeshInstance3D.new()
+	node.name = "CheckpointStripe"
+	node.mesh = st.commit()
+	node.material_override = paint(Color("f2b632"))
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(node)
 
 func make_fork_guides() -> void:
 	var mesh := SurfaceTool.new()

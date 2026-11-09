@@ -62,6 +62,12 @@ FUJI와 SUNCOAST 두 트랙은 실제 3D 노면·장벽 충돌체와 차량 몸�
 
 자리가 모자라면 해당 장치는 빠집니다.
 
+## 길가 배경과 표지판
+
+- **도시 배경**(투어의 city·seoul·neon): 편의점, 주유소, 아파트, 광고판, 버스 쉼터, 상가가 약 44m 간격으로 번갈아 서 있습니다. 모델은 [regional_props_3d.gd](../scripts/regional_props_3d.gd)의 `convenience_store`, `gas_station`, `apartment`, `billboard`, `bus_shelter`이고 배치는 `roadside_art.gd`가 합니다.
+- **항만 배경**(투어의 harbor와 MIDNIGHT HARBOR): 컨테이너 더미(`container_stack`), 부두 크레인(`dock_crane`), 창고(`warehouse_shed`), 연료 탱크(`fuel_tank`), 컨테이너선(`cargo_ship`)을 길가에 둡니다. MIDNIGHT는 `night_environment.gd`의 `make_harbor_props()`가 70m마다 도로에서 떨어뜨려 놓습니다.
+- **출발·결승과 체크포인트 표지**: 도로 폭에 맞춘 문형 표지입니다(`road_section.gd`의 `make_gantry`). 출발·결승은 짙은 남색 발광 판에 흰 글자와 체크무늬 띠, 체크포인트는 노란 판에 어두운 글자와 주황·검정 띠이며 기둥 위 표시등이 있고, 체크포인트에는 노란 노면 띠(`make_checkpoint_stripe`)가 있습니다.
+
 ## MIDNIGHT HARBOR (야간 서킷)
 
 드리프트를 잘 써야 빠른 세 번째 트랙입니다. 길이 약 2.75km에 곡률이 큰 헤어핀·연속 S자가 5곳 이상 있어 브레이크만으로 돌면 속도를 많이 잃습니다. 그런 급커브 앞에는 네온 **드리프트 게이트**가 서 있어 미끄러지기 시작할 위치를 알려 줍니다(`night_environment.gd`의 `find_drift_gates()`가 곡률 0.0125 초과 구간 30m 앞에 세웁니다). 헤어핀 출구에는 부스트 패드가, 긴 뒷직선에는 부스트 레인과 점프대, 직선 한가운데에는 웅덩이가 있습니다(`road_features.gd`). 레이아웃은 [night_course.gd](../scripts/night_course.gd)의 80개 제어점이고 [midnight_checks.gd](../tests/midnight_checks.gd)가 한 바퀴 주행·드리프트 구간 수·폭·벽 충돌 없는 주행을 확인합니다. 기록 키는 `track_midnight_scrub_v1_best_time_*`입니다.
