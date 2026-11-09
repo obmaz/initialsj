@@ -45,7 +45,7 @@ The workflow must be started from the `main` branch (other branches stop with a 
 | Orientation | landscape (from `project.godot`), immersive mode on |
 | Permissions | `VIBRATE` only (phone vibration for hits, landings and boosts). No internet |
 | Renderer | GL Compatibility; graphics start on the web-like AUTO level (shorter shadows, 1600x900 cap) |
-| Version | `version/code` 1, `version/name` 1.0: raise `version/code` for every update |
+| Version | Dropbox의 `latest-build.json`과 후속 전달 기록으로 다음 번호를 정해 Android 프리셋에 적용합니다. [APK 빌드 기록 형식](apk-build-record.md)을 따릅니다. |
 
 ## Release signing
 
