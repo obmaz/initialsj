@@ -30,14 +30,18 @@ func run(tree: SceneTree) -> int:
 	var section: Node3D = race.track.active
 	var landmarks: Node3D = section.scenery.landmarks
 	check(race.selected_course == 4 and race.COURSE_COUNT == 5,"다섯 번째 독립 코스가 있어야 합니다")
-	check(section.length > 4900 and section.length < 6000,"다리 직선과 협곡 S자를 연결한 긴 코스여야 합니다")
-	check(landmarks.tower_distances.size() == 2 and landmarks.billboard_manifest.size() >= 15,"트랙에도 주탑·케이블·협곡·광고판이 모두 있어야 합니다")
+	check(section.length > 3000 and section.length < 3800,"다리 직선과 협곡 S자를 연결한 긴 코스여야 합니다")
+	check(landmarks.tower_distances.size() == 2 and landmarks.billboard_manifest.size() >= 12,"트랙에도 주탑·케이블·협곡·광고판이 모두 있어야 합니다")
 	check(landmarks.bridge_clearance > 60,"대형 주탑 가로보가 도로 위를 충분히 높게 통과해야 합니다")
 	check(section.point(0).distance_to(section.point(section.length-0.05)) < 0.2,"코스 시작과 끝의 노면이 이어져야 합니다")
-	check(section.on_bridge(600),"트랙 장대교에도 흙 사면 대신 교량 바닥을 사용해야 합니다")
-	var outside: Vector3 = section.point(600,section.half_width(600)+10)
-	var outside_hit: Dictionary = section.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(outside+Vector3.UP*4,outside-Vector3.UP*60,1))
+	check(section.on_bridge(430),"트랙 장대교에도 흙 사면 대신 교량 바닥을 사용해야 합니다")
+	var outside: Vector3 = section.point(430,section.half_width(430)+10)
+	var outside_hit: Dictionary = section.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(outside+Vector3.UP*4,outside-Vector3.UP*120,1))
 	check(not outside_hit.is_empty() and outside_hit.position.y < outside.y-30,"장대교 밖을 흙 사면이 메우면 안 됩니다")
+	check(section.bridge_span.y-section.bridge_span.x < 600,"긴 다리 구간을 600m 미만으로 줄여야 합니다")
+	check(section.point(430).y-section.point(40).y > 20,"다리 정상으로 실제 20m 이상 올라가야 합니다")
+	check(section.features.filter(func(f): return f.kind == "boost").size() >= 6,"교차 주행선을 선택하는 부스터 패드가 있어야 합니다")
+	check(section.features.filter(func(f): return f.kind == "ramp").size() == 2,"착지 공간이 있는 점프 두 곳이 있어야 합니다")
 	var rays := 0
 	for i in range(120):
 		var d: float = section.length*i/120
@@ -77,6 +81,27 @@ func run(tree: SceneTree) -> int:
 	print("Gorge driving: length=",section.length," lap=",race.laps_completed," walls=",race.wall_hits," hearts=",peak_hearts," score=",race.score)
 	check(race.laps_completed == 1 and race.wall_hits == 0,"실제 입력으로 다리와 협곡을 장벽 접촉 없이 한 바퀴 완주해야 합니다")
 	check(peak_hearts > 0,"협곡 코너에서도 실제 슬라이드 보상이 발생해야 합니다")
+	for ramp in section.features.filter(func(f): return f.kind == "ramp"):
+		race.restart()
+		race.state = "racing"
+		for rival in race.rivals: rival.active = false
+		race.world_race.teleport(0,ramp.distance-35,ramp.lane)
+		body.velocity = body.forward_direction()*65
+		race.speed = 65
+		var flew := false
+		var landed := false
+		for frame in range(210):
+			var f: Vector3 = body.forward_direction()
+			var r := Vector3(-f.z,0,f.x).normalized()
+			var aim: Vector3 = race.track.point(race.distance+25,ramp.lane)-body.feet_position()
+			var angle := atan2(aim.dot(r),aim.dot(f))
+			var wheel: float = (0.46+race.vehicle.handling*.007)/(1+race.speed*.035)*race.world_race.WorldCar.steering_scale(race.speed)
+			var axis := clampf(atan(5.4*sin(angle)/25)/wheel,-1,1)
+			await tree.physics_frame
+			race.step(1.0/60,axis,false,false,false)
+			if frame>8 and not body.grounded and body.feet_position().y-race.track.point(race.distance).y>.5: flew = true
+			if flew and body.grounded and race.distance>ramp.distance+25: landed = true; break
+		check(flew and landed and race.wall_hits==0,"두 점프대 모두 실제 차체가 장벽 접촉 없이 이륙·착지해야 합니다")
 	race.open_courses()
 	race.menu_focus = 4
 	race.pad_pressed(JOY_BUTTON_A)

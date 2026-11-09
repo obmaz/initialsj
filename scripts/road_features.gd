@@ -224,6 +224,18 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 			["boost",2355.0,-0.30,20.0,3.4],
 			["boost",2670.0,0.0,24.0,3.6]
 		])
+	if section.closed_loop and section.course_id == 4:
+		# 착지 구간과 코너 진입을 비워 두고, 패드 선택에 따라 주행선을 바꿉니다.
+		for start in [170.0,1720.0]:
+			for index in range(3): specifications.append(["boost",start+index*70,-.42 if index%2 == 0 else .42,12.0,3.4])
+		specifications.append_array([
+			["boost_lane",440.0,.40,120.0,3.8],
+			["boost",700.0,-.38,18.0,3.8],
+			["ramp",770.0,-.38,18.0,4.4,.95],
+			["boost",2300.0,.38,20.0,3.8],
+			["ramp",2375.0,.38,20.0,4.4,1.1],
+			["boost_lane",section.length-340,-.40,140.0,3.8]
+		])
 	if section.closed_loop and section.course_id == 1:
 		# Two readable slaloms: a neutral line misses the alternating pads.
 		for start in [560.0,2490.0]:

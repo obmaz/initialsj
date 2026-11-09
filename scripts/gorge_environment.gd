@@ -15,7 +15,7 @@ func make_sky() -> Sky:
 func terrain_point(d: float, lane: float) -> Vector3:
 	var p: Vector3 = track.point(d,lane)
 	var road_y: float = track.point(d,clampf(lane,-17,17)).y-0.3
-	var bay := smoothstep(150,230,d)*(1-smoothstep(1040,1150,d))
+	var bay := smoothstep(track.bridge_span.x-25,track.bridge_span.x+45,d)*(1-smoothstep(track.bridge_span.y-55,track.bridge_span.y+20,d))
 	p.y = lerpf(road_y,1.0,bay)
 	return p
 
@@ -45,7 +45,7 @@ func _ready() -> void:
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(3500,1500)
 	water.mesh = plane
-	water.position = Vector3(0,2,-550)
+	water.position = Vector3(0,2,-500)
 	var sea := ShaderMaterial.new()
 	sea.shader = preload("res://shaders/coastal_water.gdshader")
 	sea.set_shader_parameter("deep_color",Color("143d55"))
@@ -55,5 +55,5 @@ func _ready() -> void:
 	landmarks = preload("res://scripts/scenic_landmarks.gd").new()
 	landmarks.track = track
 	landmarks.bridge_span = track.bridge_span
-	landmarks.canyon_spans.assign([Vector2(1800,track.length-360)])
+	landmarks.canyon_spans.assign([Vector2(1000,track.length-200)])
 	add_child(landmarks)
