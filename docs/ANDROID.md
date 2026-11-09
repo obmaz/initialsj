@@ -39,7 +39,7 @@ The upload reads three environment variables and never stores them in the reposi
 
 | Variable | Meaning |
 | --- | --- |
-| `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET` | The Dropbox app that owns the upload (App Console > Settings). The app needs the `files.content.write` and `sharing.write` scopes. |
+| `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET` | The Dropbox app that owns the upload (App Console > Settings). The app needs the `files.content.write`, `sharing.write` and `sharing.read` scopes (enable them on the Permissions tab before creating the token). |
 | `DROPBOX_REFRESH_TOKEN` | A long-lived refresh token for that app, created once with `token_access_type=offline`. The script trades it for a short-lived access token on every run. |
 | `DROPBOX_ACCESS_TOKEN` | Optional replacement for the three above: a ready access token, for a quick manual run. |
 
@@ -51,8 +51,7 @@ policy of a cloud session, allow `dl.google.com` (Android SDK), `api.dropboxapi.
 `content.dropboxapi.com`; the export templates and the engine come from github.com.
 
 The test-signed and the release-signed APK use different keys and cannot update each other, so install
-only one kind per phone. The project skill `android-apk` ([SKILL.md](../.claude/skills/android-apk/SKILL.md))
-lets Claude Code run this flow on request.
+only one kind per phone. The rules for AI assistants that run this flow are in [AGENTS.md](../AGENTS.md).
 
 ## Settings
 

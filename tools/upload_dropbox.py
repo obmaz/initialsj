@@ -9,7 +9,7 @@ expire, the script exchanges it for a short-lived access token on every run):
     DROPBOX_APP_KEY, DROPBOX_APP_SECRET, DROPBOX_REFRESH_TOKEN
 
 or, for a quick manual run, a ready access token in DROPBOX_ACCESS_TOKEN. The Dropbox app needs the
-`files.content.write` scope, plus `sharing.write` when you want a link (otherwise use --no-link).
+`files.content.write` scope, plus `sharing.write` and `sharing.read` when you want a link (otherwise use --no-link).
 
 The file is stored at <dest-dir>/<name> (default /initialsj/<file name>) and replaced in place, so the
 shared link stays the same across uploads. With an "App folder" app the path is relative to that
