@@ -18,17 +18,41 @@ accepts Google's SDK licence). JDK 17 or newer is required. The result is `build
 (about 37 MB). Install it on a phone with USB debugging: `adb install -r build/android/initialsj-debug.apk`,
 or copy the file to the phone and open it (allow installs from that source).
 
-## Download
+## Build and upload to Dropbox
 
-The APK is built only when you start it by hand: **Actions > Build Android APK > Run workflow**
-([build-apk.yml](../.github/workflows/build-apk.yml)). The normal web deploy does not build it.
+The APK is built on a machine you control, never in GitHub Actions (the repository has no APK
+workflow). `tools/publish_apk.sh` does the whole job: it installs the pinned Godot engine when it is
+missing (checksum-verified), imports the project, runs `tools/build_android.sh` and uploads the result
+with `tools/upload_dropbox.py`.
 
-| Input | Meaning |
+```sh
+ANDROID_ACCEPT_LICENSES=1 tools/publish_apk.sh     # test-signed APK -> Dropbox /initialsj/initialsj-test.apk
+INITIALSJ_KEYSTORE=~/initialsj-release.keystore INITIALSJ_KEY_ALIAS=initialsj INITIALSJ_KEY_PASSWORD=... \
+  ANDROID_ACCEPT_LICENSES=1 tools/publish_apk.sh release   # release APK -> /initialsj/initialsj-release.apk
+tools/publish_apk.sh --no-upload                   # build only (also INITIALSJ_NO_UPLOAD=1)
+```
+
+`ANDROID_ACCEPT_LICENSES=1` is only needed while the Android SDK is not installed yet (it accepts
+Google's SDK licence). A first run downloads about 1.5 GB; a repeat run takes a few minutes.
+
+The upload reads three environment variables and never stores them in the repository:
+
+| Variable | Meaning |
 | --- | --- |
-| `build_type` | `debug` (default) is signed with the shared test key `tools/android-test.keystore`, whose password is in the repository, so it is for test installs only and newer builds install over older ones. `release` is signed with your own key from repository secrets (see below). |
-| `publish` | On (default): also publishes the file as a public release: test builds go to the `apk-test` release as `initialsj-test.apk`, release builds to `apk-release` as `initialsj-release.apk` (each tag points at the commit that built it). The two keys cannot update each other, so install only one kind per phone. Newest test build: <https://github.com/obmaz/initialsj/releases/download/apk-test/initialsj-test.apk>. Off: the APK is only kept as a workflow artifact for 30 days (sign-in required to download). |
+| `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET` | The Dropbox app that owns the upload (App Console > Settings). The app needs the `files.content.write` and `sharing.write` scopes. |
+| `DROPBOX_REFRESH_TOKEN` | A long-lived refresh token for that app, created once with `token_access_type=offline`. The script trades it for a short-lived access token on every run. |
+| `DROPBOX_ACCESS_TOKEN` | Optional replacement for the three above: a ready access token, for a quick manual run. |
 
-The workflow must be started from the `main` branch (other branches stop with a message). The first link works only after the workflow has run once. A run takes about 6-10 minutes.
+The file is replaced in place under the same name, so the shared link printed at the end
+(`...?dl=1`, a direct download) stays valid for every later build. Upload only verified builds: the
+script compares Dropbox's content hash with the local file before it prints the link. Use
+`python3 tools/upload_dropbox.py FILE --no-link` if the app has no `sharing.write` scope. In the network
+policy of a cloud session, allow `dl.google.com` (Android SDK), `api.dropboxapi.com` and
+`content.dropboxapi.com`; the export templates and the engine come from github.com.
+
+The test-signed and the release-signed APK use different keys and cannot update each other, so install
+only one kind per phone. The project skill `android-apk` ([SKILL.md](../.claude/skills/android-apk/SKILL.md))
+lets Claude Code run this flow on request.
 
 ## Settings
 
@@ -54,10 +78,6 @@ INITIALSJ_KEYSTORE=~/initialsj-release.keystore INITIALSJ_KEY_ALIAS=initialsj IN
 ```
 
 Losing that keystore means you can no longer update the app under the same id.
-
-To build the release APK in GitHub Actions, add three repository secrets (Settings > Secrets and variables > Actions):
-`ANDROID_KEYSTORE_BASE64` (output of `base64 -w0 ~/initialsj-release.keystore`), `ANDROID_KEY_ALIAS` and
-`ANDROID_KEY_PASSWORD`, then run the workflow with `build_type` = `release`.
 
 ## What is and is not verified
 
