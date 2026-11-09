@@ -169,4 +169,4 @@ touch build/site/.nojekyll
 
 현수교의 주탑은 SurfaceTool로 테이퍼와 모서리를 만들고 케이블·행거는 원형 단면을 사용합니다. 보강재·접합판·기초·교량 바닥과 광고판의 패널·프레임·후면 지지대는 종류별 MultiMesh로 묶습니다. 광고판은 16×7m, 뒷판 두께 0.42m이며 앞면을 기둥이 가리지 않습니다. 동적 조명 수는 늘리지 않습니다. 실제 주행 노면·가드레일 충돌체는 유지합니다.
 
-사암 텍스처는 `python3 tools/bake_sandstone.py`로 다시 생성합니다(numpy·Pillow 필요). `sandstone.gdshader`가 RGB 색상과 알파 높이를 삼면 투영하며 높이 미분으로 미세 표면 법선을 보정합니다. 절벽의 면 분할·침식 요철은 메시에서, 미세 입자와 풍화는 텍스처·재질에서 처리합니다. 야자수는 `scenery_3d_checks.gd`의 개체별 3,200삼각형 한도를 유지합니다.
+재질은 `assets/environment/generated-material-atlas.png`의 생성형 색상 이미지를 사용합니다. `sandstone.gdshader`와 `painted_steel.gdshader`가 재질별 영역을 삼면 투영하며 밝기 미분으로 약한 요철을 보조합니다. 실측 노멀·거칠기 맵으로 간주하지 않습니다. 절벽의 면 분할·침식 요철은 메시에서, 미세 입자와 풍화는 텍스처·재질에서 처리합니다. 야자수는 `scenery_3d_checks.gd`의 개체별 3,200삼각형 한도를 유지합니다.

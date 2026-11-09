@@ -25,7 +25,11 @@ func material(color: Color) -> StandardMaterial3D:
 func boxes(label: String, poses: Array[Transform3D], color: Color, shadows: bool = true) -> void:
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3.ONE
-	instances(label,mesh,poses,material(color),shadows)
+	var mat: Material = material(color)
+	if "Concrete" in label or label == "BridgeStructuralDeck": mat = textured_surface(Vector2(1,0),Color.WHITE,.18,0.0,.9)
+	elif label.begins_with("Bridge") and "Foundations" not in label: mat = steel(color)
+	elif label.begins_with("Billboard") and "Lens" not in label: mat = textured_surface(Vector2(1,1),color.lightened(.35),.65,.65,.5)
+	instances(label,mesh,poses,mat,shadows)
 
 func instances(label: String, mesh: Mesh, poses: Array[Transform3D], mat: Material, shadows: bool = true) -> void:
 	var multi := MultiMesh.new()
@@ -63,13 +67,21 @@ func tubes(label: String, poses: Array[Transform3D], color: Color) -> void:
 	mesh.rings = 1
 	var turned: Array[Transform3D] = []
 	for pose in poses: turned.append(pose*Transform3D(Basis(Vector3.RIGHT,PI/2),Vector3.ZERO))
-	instances(label,mesh,turned,material(color),false)
+	instances(label,mesh,turned,textured_surface(Vector2(1,1),color.lightened(.4),1.0,.65,.53),false)
 
-func steel(color: Color) -> ShaderMaterial:
+func textured_surface(tile: Vector2, tint: Color, scale: float, metallic: float, roughness: float) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/painted_steel.gdshader")
-	mat.set_shader_parameter("paint_color",color)
+	mat.set_shader_parameter("material_atlas",preload("res://assets/environment/generated-material-atlas.png"))
+	mat.set_shader_parameter("material_tile",tile)
+	mat.set_shader_parameter("paint_color",tint)
+	mat.set_shader_parameter("texture_scale",scale)
+	mat.set_shader_parameter("metalness",metallic)
+	mat.set_shader_parameter("surface_roughness",roughness)
 	return mat
+
+func steel(_color: Color) -> ShaderMaterial:
+	return textured_surface(Vector2(0,1),Color("d5bfb2"),.65,.25,.66)
 
 func make_bridge() -> void:
 	var cables: Array[Transform3D] = []
@@ -186,7 +198,7 @@ func make_canyon(span: Vector2) -> void:
 	node.mesh = st.commit()
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/sandstone.gdshader")
-	mat.set_shader_parameter("rock_detail",preload("res://assets/environment/sandstone-detail.png"))
+	mat.set_shader_parameter("rock_detail",preload("res://assets/environment/generated-material-atlas.png"))
 	node.material_override = mat
 	add_child(node)
 
