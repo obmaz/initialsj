@@ -17,6 +17,7 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 	active.course_id = course_id
 	if course_id == 1: preload("res://scripts/speedway_course.gd").build(active)
 	elif course_id == 2: preload("res://scripts/night_course.gd").build(active)
+	elif course_id == 3: preload("res://scripts/riviera_course.gd").build(active)
 	else: preload("res://scripts/fuji_course.gd").build(active)
 	map_bounds = Rect2(Vector2(active.point(0).x,active.point(0).z),Vector2.ZERO)
 	for sample in range(800):

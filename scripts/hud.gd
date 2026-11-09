@@ -18,12 +18,14 @@ const PAUSE_BUTTON := Rect2(814,15,66,60)
 const HOME_TOUR := Rect2(100,470,520,170)
 const HOME_TRACK := Rect2(660,470,520,170)
 const HOME_SETTINGS := Rect2(1000,24,250,84)
-const COURSE_FUJI := Rect2(50,150,376,440)
-const COURSE_SPEEDWAY := Rect2(452,150,376,440)
-const COURSE_NIGHT := Rect2(854,150,376,440)
+const COURSE_FUJI := Rect2(24,150,296,440)
+const COURSE_SPEEDWAY := Rect2(336,150,296,440)
+const COURSE_NIGHT := Rect2(648,150,296,440)
+const COURSE_RIVIERA := Rect2(960,150,296,440)
 const FUJI_PREVIEW = preload("res://assets/ui/course-fuji.png")
 const SPEEDWAY_PREVIEW = preload("res://assets/ui/course-speedway.png")
 const NIGHT_PREVIEW = preload("res://assets/ui/course-night.png")
+const RIVIERA_PREVIEW = preload("res://assets/ui/course-riviera.png")
 const GARAGE_BACK := Rect2(60,24,220,84)
 const SETTINGS_SOUND := Rect2(365,98,550,77)
 const SETTINGS_MOTION := Rect2(365,178,550,77)
@@ -197,6 +199,7 @@ func handle_pointer(event: InputEvent) -> void:
 		if COURSE_FUJI.has_point(p): race.navigate_to_mode("track",0)
 		elif COURSE_SPEEDWAY.has_point(p): race.navigate_to_mode("track",1)
 		elif COURSE_NIGHT.has_point(p): race.navigate_to_mode("track",2)
+		elif COURSE_RIVIERA.has_point(p): race.navigate_to_mode("track",3)
 		elif GARAGE_BACK.has_point(p): race.navigate(race.open_menu)
 		return
 	if race.state == "settings":
@@ -278,7 +281,7 @@ func pad_hints(items: Array, y: float, center_x: float = 640.0) -> void:
 func draw_pad_focus() -> void:
 	var rects := []
 	if race.state == "menu": rects = [HOME_TOUR,HOME_TRACK,HOME_SETTINGS]
-	elif race.state == "courses": rects = [COURSE_FUJI,COURSE_SPEEDWAY,COURSE_NIGHT,GARAGE_BACK]
+	elif race.state == "courses": rects = [COURSE_FUJI,COURSE_SPEEDWAY,COURSE_NIGHT,COURSE_RIVIERA,GARAGE_BACK]
 	if rects.is_empty(): return
 	var rect: Rect2 = rects[clampi(race.menu_focus,0,rects.size()-1)]
 	draw_rect(rect.grow(5),GOLD,false,4.0)
@@ -561,6 +564,9 @@ func draw_circuit_map() -> void:
 	text_at(Vector2(1107,210),race.course_label,11,Color("b4d1df"))
 
 func draw_drift_score() -> void:
+	if race.mode == "track" and race.selected_course == 3:
+		draw_coast_drift()
+		return
 	if drift_fade <= 0:
 		return
 	var alpha := minf(1, drift_fade * 2)
@@ -722,7 +728,7 @@ func draw_home() -> void:
 		draw_line(rect.position+Vector2(15,0),rect.position+Vector2(rect.size.x,0),accent,3,true)
 		text_at(Vector2(x+32,rect.position.y+65),"TOUR" if index == 0 else "TRACK",54,WHITE)
 		text_at(Vector2(x+34,rect.position.y+108),"BRANCHING COAST RUN" if index == 0 else "CHOOSE YOUR CIRCUIT",24,accent)
-		text_at(Vector2(x+34,rect.position.y+144),"5 STAGES / 16 ROUTES" if index == 0 else "2 COURSES / 3 LAPS",20,Color("a5becd"))
+		text_at(Vector2(x+34,rect.position.y+144),"5 STAGES / 16 ROUTES" if index == 0 else "4 COURSES / 3 LAPS",20,Color("a5becd"))
 		text_at(Vector2(x+450,rect.position.y+85),">",48,accent)
 	slant(HOME_SETTINGS,Color("102637ed"),10)
 	centered(Vector2(HOME_SETTINGS.get_center().x,77),"SETTINGS",30)
@@ -732,13 +738,13 @@ func draw_courses() -> void:
 	slant(GARAGE_BACK,Color("20374a"),7)
 	centered(Vector2(170,78),"< BACK",28)
 	centered(Vector2(640,80),"SELECT CIRCUIT",38)
-	var rects := [COURSE_FUJI,COURSE_SPEEDWAY,COURSE_NIGHT]
-	var accents := [CYAN,Color("ffbc72"),Color("c58cff")]
-	var textures := [FUJI_PREVIEW,SPEEDWAY_PREVIEW,NIGHT_PREVIEW]
-	var titles := ["01 / FUJI LAKESIDE","02 / SUNCOAST","03 / MIDNIGHT HARBOR"]
-	var subtitles := ["VIADUCT / RIDGE / UNDERPASS","HILLS / BOOST SLALOM","NIGHT / DRIFT GATES"]
-	var lengths := ["5.72 KM   /   3 LAPS","4.57 KM   /   3 LAPS","2.74 KM   /   3 LAPS"]
-	for i in range(3):
+	var rects := [COURSE_FUJI,COURSE_SPEEDWAY,COURSE_NIGHT,COURSE_RIVIERA]
+	var accents := [CYAN,Color("ffbc72"),Color("c58cff"),Color("ff93ad")]
+	var textures := [FUJI_PREVIEW,SPEEDWAY_PREVIEW,NIGHT_PREVIEW,RIVIERA_PREVIEW]
+	var titles := ["01 / FUJI LAKESIDE","02 / SUNCOAST","03 / MIDNIGHT HARBOR","04 / AZURE RIVIERA"]
+	var subtitles := ["VIADUCT / RIDGE","HILLS / BOOST SLALOM","NIGHT / DRIFT GATES","COAST / HEART DRIFT"]
+	var lengths := ["5.72 KM / 3 LAPS","4.57 KM / 3 LAPS","2.74 KM / 3 LAPS","3.64 KM / 3 LAPS"]
+	for i in range(4):
 		var rect: Rect2 = rects[i]
 		var accent: Color = accents[i]
 		slant(rect,Color("142738"),10)
@@ -757,13 +763,13 @@ func draw_courses() -> void:
 			source.size.y = height
 		draw_texture_rect_region(texture,image_box,source)
 		var x := rect.position.x+22
-		text_at(Vector2(x,428),titles[i],26,accent)
-		text_at(Vector2(x,467),subtitles[i],19,WHITE)
-		text_at(Vector2(x,501),lengths[i],20,Color("adc2d0"))
+		text_at(Vector2(x,428),titles[i],20,accent)
+		text_at(Vector2(x,467),subtitles[i],16,WHITE)
+		text_at(Vector2(x,501),lengths[i],16,Color("adc2d0"))
 		var cta := Rect2(rect.position+Vector2(12,367),Vector2(rect.size.x-24,61))
 		slant(cta,Color(accent,0.18),8)
-		centered(Vector2(rect.get_center().x,558),"CHOOSE TRACK  >",26,accent)
-	centered(Vector2(640,675),"THREE CIRCUITS / THREE LAPS / EIGHT RACERS",18,Color("8299a7"))
+		centered(Vector2(rect.get_center().x,558),"CHOOSE TRACK  >",22,accent)
+	centered(Vector2(640,675),"FOUR CIRCUITS / THREE LAPS / EIGHT RACERS",18,Color("8299a7"))
 
 func draw_settings() -> void:
 	draw_rect(Rect2(0,0,1280,720),Color("020812d9"))
@@ -1103,3 +1109,28 @@ func draw_route_choice() -> void:
 		if selected:
 			draw_polyline(PackedVector2Array([rect.position+Vector2(272,31),rect.position+Vector2(277,36),rect.position+Vector2(286,24)]),accent,2.5,true)
 		draw_rect(Rect2(rect.position+Vector2(8,rect.size.y-3),Vector2((rect.size.x-16)*progress,3)),Color(accent,0.75))
+
+# 하트는 실제 미끄러짐으로 얻은 보상만 표시합니다. 슬롯은 일곱 개로 고정하여
+# 긴 드리프트에도 이펙트 노드가 쌓이지 않으며 저감 모드에서는 흔들리지 않습니다.
+func draw_coast_drift() -> void:
+	var chain: RefCounted = race.coast_drift
+	if chain.visible_time <= 0: return
+	var alpha: float = minf(1,chain.visible_time*2)
+	var rose := Color("ff739e")
+	rose.a = alpha
+	slant(Rect2(895,247,362,122),Color(0.025,0.08,0.14,alpha*0.76),14)
+	text_at(Vector2(914,276),"CHAIN BROKEN" if chain.broken else ("COAST DRIFT" if chain.active else "NICE SLIDE!"),22,rose)
+	text_at(Vector2(1217,275),"x%d" % chain.multiplier,28,Color(GOLD,alpha),true,NUMBER_FONT)
+	for i in range(7):
+		var center := Vector2(928+i*38,308)
+		var scale := 0.68
+		if i < chain.hearts and not race.motion_reduced: scale *= 1+0.09*sin(race.elapsed*6-i*0.8)
+		draw_heart(center,scale,rose if i < chain.hearts else Color(0.7,0.65,0.72,alpha*0.25))
+	text_at(Vector2(914,352),"+%s pts" % int(chain.points),30,Color(WHITE,alpha),false,NUMBER_FONT)
+
+func draw_heart(center: Vector2, size: float, color: Color) -> void:
+	var polygon := PackedVector2Array()
+	for i in range(48):
+		var t := TAU*i/48
+		polygon.append(center+Vector2(16*pow(sin(t),3),-(13*cos(t)-5*cos(2*t)-2*cos(3*t)-cos(4*t)))*size)
+	draw_colored_polygon(polygon,color)

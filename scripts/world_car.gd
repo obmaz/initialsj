@@ -44,6 +44,11 @@ var last_corner_loss := 0.0
 var contact_shape: CollisionShape3D
 # CPU cars settle onto the floor every other tick: one sweep less per car per frame.
 var cheap_adhesion := false
+# TRACK04만 미끄러짐 진입과 복귀를 완만하게 하여 다른 코스의 타이어 감각을 보존합니다.
+var coast_profile := false
+var coast_slide := 0.0
+var coast_angle := 0.0
+var coast_direction := 0.0
 
 func _init() -> void:
 	collision_layer = 4
@@ -72,6 +77,9 @@ func reset_pose(feet: Vector3, forward: Vector3, up: Vector3 = Vector3.UP) -> vo
 	steering = 0
 	yaw_rate = 0
 	slip_angle = 0
+	coast_slide = 0
+	coast_angle = 0
+	coast_direction = 0
 	grounded = false
 	ground_height = feet.y
 	corner_demand = 0
@@ -175,7 +183,10 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 	var handling: float = float(specification.get("handling",7.0))
 	var wheel_angle := steering*(0.46+handling*0.007)/(1+speed*0.035)*high_speed_scale
 	var signed_speed := velocity.dot(forward_direction())
+	if coast_profile and drifting and coast_slide < 0.01: coast_direction = signf(steering)
+	coast_slide = move_toward(coast_slide,1.0 if drifting and coast_profile else 0.0,delta*2.2)
 	var desired_rate := -signed_speed*tan(wheel_angle)/2.7
+	if coast_profile: desired_rate -= steering*coast_slide*0.16
 	var max_rate := (1.20 if drifting else 0.88)*lerpf(0.82,1.12,handling/10.0)*high_speed_scale
 	var tyre_grip: float = float(specification.get("drift_grip" if drifting else "grip",14.5))
 	max_rate = minf(max_rate,LATERAL_GRIP_FACTOR*tyre_grip/maxf(absf(signed_speed),1.0))
@@ -185,6 +196,14 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 	if not grounded: desired_rate *= 0.22
 	yaw_rate = move_toward(yaw_rate,desired_rate,delta*(5.5*high_speed_scale if grounded else 1.2))
 	var forward := forward_direction().rotated(surface_normal,yaw_rate*delta).slide(surface_normal).normalized()
+	var coast_motion := Vector3.ZERO
+	if coast_profile and speed > 20 and coast_slide > 0:
+		# 입력은 진행 방향을 돌리고 차체는 그 방향과 일정한 슬립각을 유지합니다.
+		# 노면 중심선에 붙이지 않으므로 조향·카운터와 실제 장벽 접촉은 계속 필요합니다.
+		if absf(steering) > 0.04 and (coast_direction == 0 or absf(steering) > 0.35): coast_direction = signf(steering)
+		coast_angle = move_toward(coast_angle,-coast_direction*(0.28+0.2*absf(steering))*coast_slide,delta*0.9)
+		coast_motion = velocity.slide(surface_normal).normalized().rotated(surface_normal,yaw_rate*delta)
+		forward = coast_motion.rotated(surface_normal,coast_angle).normalized()
 	if realign_time > 0:
 		realign_time = maxf(0,realign_time-delta)
 		if grounded and road_heading.length_squared() > 0.5:
@@ -195,8 +214,10 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 	if grounded:
 		var lateral := velocity.dot(right)
 		var grip: float = float(specification.get("drift_grip" if drifting else "grip",20.0))*clampf(grip_factor,0.12,1.5)
+		grip *= lerpf(1.0,0.40,coast_slide)
 		lateral = move_toward(lateral,0,grip*delta)
 		var planar: Vector3 = forward*target_speed+right*lateral
+		if coast_motion.length_squared() > 0.5: planar = coast_motion*target_speed
 		# Steering must not create kinetic energy from the retained lateral speed.
 		if planar.length() > absf(target_speed): planar = planar.limit_length(absf(target_speed))
 		corner_demand = speed*absf(yaw_rate)
@@ -204,6 +225,7 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 		corner_grip = maxf(3.0,grip+bank_assist)
 		var actual_slip := atan2(absf(planar.dot(right)),maxf(absf(planar.dot(forward)),0.01))
 		last_corner_loss = CornerResistance.loss_rate(speed,corner_demand,corner_grip,actual_slip,drifting)+understeer*tyre_grip*UNDERSTEER_SCRUB
+		last_corner_loss *= lerpf(1.0,0.48,coast_slide)
 		planar = planar.move_toward(Vector3.ZERO,last_corner_loss*delta)
 		velocity = planar-surface_normal*2.0
 	else:

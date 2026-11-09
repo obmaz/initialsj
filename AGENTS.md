@@ -4,7 +4,7 @@
 
 - 모든 커밋의 작성자와 커미터는 `obmaz <zambobmaz@gmail.com>`을 사용합니다. API로 커밋할 때도 이 정보를 명시합니다. 로컬 Git 설정은 GitHub API의 작성자 정보에 적용되지 않습니다.
 - 저장소는 `obmaz/initialsj`, GitHub Pages 주소는 `https://obmaz.github.io/initialsj/`입니다.
-- Godot 프로젝트는 저장소 루트에 있습니다. 현재 모드는 TOUR, Fuji TRACK01, SUNCOAST SPEEDWAY TRACK02, MIDNIGHT HARBOR TRACK03(야간)입니다.
+- Godot 프로젝트는 저장소 루트에 있습니다. 현재 모드는 TOUR, Fuji TRACK01, SUNCOAST SPEEDWAY TRACK02, MIDNIGHT HARBOR TRACK03(야간), AZURE RIVIERA TRACK04(해안 드리프트)입니다.
 - 제품명과 표지판은 가상 이름을 사용합니다. 스피드웨이의 실제 모티브를 게임 내 문구에 넣지 않습니다.
 - Godot **4.7.2**를 `./tools/godot`으로 실행합니다. `.godot-version`과 `tests/verify_engine.gd`가 엔진 버전을 검사합니다.
 - 새 환경은 `./tools/setup_env.sh`로 만듭니다(`--check`는 준비 상태 확인, `--templates web|android|all`은 export templates 추가). 이 스크립트가 특정 에이전트에 묶이지 않은 유일한 환경 구성 기준입니다. Codex·Claude·CI의 환경 설정에는 이 스크립트를 부르는 한 줄만 두고 단계를 복사하지 않습니다. 설치 로직을 바꾸면 스크립트에서 바꾸고 `docs/DEVELOPMENT.md`의 "처음 환경 만들기"도 함께 갱신합니다.

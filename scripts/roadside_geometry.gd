@@ -102,7 +102,8 @@ static func markings(section: Node3D, samples: Array[float]) -> void:
 			var b := samples[i+1]
 			var la: float = section.half_width(a)*center
 			var lb: float = section.half_width(b)*center
-			var points := [section.point(a,la-0.055),section.point(a,la+0.055),section.point(b,lb-0.055),section.point(b,lb+0.055)]
+			var half_paint := 0.14 if section.closed_loop and section.course_id == 3 else 0.055
+			var points := [section.point(a,la-half_paint),section.point(a,la+half_paint),section.point(b,lb-half_paint),section.point(b,lb+half_paint)]
 			for index in [0,2,1,1,2,3]:
 				lanes.set_uv(Vector2(0,a if index < 2 else b))
 				lanes.add_vertex(points[index]+Vector3.UP*0.027)
@@ -112,6 +113,10 @@ static func markings(section: Node3D, samples: Array[float]) -> void:
 	paint.mesh = lanes.commit()
 	var lane_material := ShaderMaterial.new()
 	lane_material.shader = preload("res://shaders/lane_dash.gdshader")
+	if section.closed_loop and section.course_id == 3:
+		lane_material.set_shader_parameter("dash_length",6.0)
+		lane_material.set_shader_parameter("dash_period",14.0)
+		lane_material.set_shader_parameter("paint_color",Color("f9f6df"))
 	paint.material_override = lane_material
 	paint.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	section.add_child(paint)

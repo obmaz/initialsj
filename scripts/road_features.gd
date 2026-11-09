@@ -197,7 +197,7 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 	var ramp_d := gentle_distance(section,section.length*0.33) if section.course_id == 1 else 220.0
 	specifications.append(["ramp",ramp_d,side*0.5,16.0,3.8])
 	# MIDNIGHT HARBOR places everything by hand (below): the generic spots fall inside its hairpins.
-	if section.course_id == 2: specifications.clear()
+	if section.course_id in [2,3]: specifications.clear()
 	if section.closed_loop and section.course_id == 0:
 		# Fuji: launch-straight, cutting approach, viaduct and return-road boosts.
 		# The paired pads leave enough run-up before each optional jump and an
