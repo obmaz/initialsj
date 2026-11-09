@@ -14,11 +14,11 @@ static func build(section: Node3D) -> void:
 				0: p = Vector3(-450+900*t,42+28*pow(sin(PI*t),2),-220)
 				1:
 					var a := -PI/2+PI*t
-					p = Vector3(450+220*cos(a),42+22*pow(sin(PI*t),2),220*sin(a))
-				2: p = Vector3(450-900*t,42+38*pow(sin(PI*t),2)+8*pow(sin(3*PI*t),2),220+65*pow(sin(2*PI*t),3))
+					p = Vector3(450+(220+50*pow(sin(PI*t),2))*cos(a),42+22*pow(sin(PI*t),2),220*sin(a))
+				2: p = Vector3(450-900*t+35*pow(sin(2*PI*t),3),42+38*pow(sin(PI*t),2)+8*pow(sin(3*PI*t),2),220+125*pow(sin(2*PI*t),3))
 				_:
 					var a := PI/2+PI*t
-					p = Vector3(-450+220*cos(a),42+26*pow(sin(PI*t),2),220*sin(a))
+					p = Vector3(-450+(220+80*pow(sin(PI*t),2))*cos(a),42+26*pow(sin(PI*t),2),220*sin(a))
 			points.append(p)
 	for i in range(points.size()+1):
 		var n := i%points.size()

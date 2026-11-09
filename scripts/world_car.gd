@@ -264,9 +264,9 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 						velocity = tangent*lerpf(0.92,0.62,hardness)+normal*clampf(closing*BARRIER_REBOUND,2.0,BARRIER_REBOUND_MAX)
 						if closing > BARRIER_HOP_FROM: velocity.y += clampf((closing-BARRIER_HOP_FROM)*0.09,0,3.0)
 					else:
-						# Below it the car does not bounce: it keeps most of its speed along the rail and its
-						# nose is turned parallel to the road while it scrapes past.
-						velocity = tangent*Tuning.glide_keep(hardness)+normal*clampf(closing*GLIDE_REBOUND,0.4,GLIDE_REBOUND_MAX)
+						# 비행하지 않는 접촉도 노면 방향으로 짧게 튕긴다. 수직 충격은 추가하지 않는다.
+						var away := normal.slide(surface_normal).normalized()
+						velocity = tangent*Tuning.glide_keep(hardness)+away*clampf(closing*GLIDE_REBOUND,0.85,GLIDE_REBOUND_MAX)
 						realign_time = REALIGN_TIME
 				else:
 					velocity = tangent*0.86+normal*minf(closing*0.32,14.0)

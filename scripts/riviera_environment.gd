@@ -6,6 +6,8 @@ var theme := "riviera"
 var tree_batches: Array[MultiMeshInstance3D] = []
 var tree_positions: Array[Vector3] = []
 var water: MeshInstance3D
+var rock_arches: Node3D
+var landmarks: Node3D
 
 func make_sky() -> Sky:
 	var sky := Sky.new()
@@ -64,6 +66,13 @@ func _ready() -> void:
 	add_child(water)
 	make_islands()
 	make_boulevard()
+	landmarks = preload("res://scripts/scenic_landmarks.gd").new()
+	landmarks.track = track
+	landmarks.canyon_spans.assign([Vector2(950,1320),Vector2(2220,2530)])
+	add_child(landmarks)
+	rock_arches = preload("res://scripts/rock_arches.gd").new()
+	rock_arches.track = track
+	add_child(rock_arches)
 
 func make_islands() -> void:
 	for i in range(11):

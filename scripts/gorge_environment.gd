@@ -56,4 +56,7 @@ func _ready() -> void:
 	landmarks.track = track
 	landmarks.bridge_span = track.bridge_span
 	landmarks.canyon_spans.assign([Vector2(1000,track.length-200)])
+	landmarks.advertisement_spans.assign([Vector2(1120,1900),Vector2(2200,track.length-140)])
+	landmarks.ad_spacing = 60
+	landmarks.generated_ads = true
 	add_child(landmarks)

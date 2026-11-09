@@ -10,12 +10,35 @@ var tower_distances: Array[float] = []
 var bridge_clearance := 68.0
 var ad_size := Vector2(16,7)
 var texture_regions: Array[Vector3] = []
+var advertisement_spans: Array[Vector2] = []
+var ad_spacing := 135.0
+var generated_ads := false
+const GENERATED_ADS = preload("res://assets/environment/generated-racing-ads.png")
 
 func _ready() -> void:
 	if bridge_span.y > bridge_span.x: make_bridge()
 	for span in canyon_spans:
 		make_canyon(span)
-		make_billboards(span)
+		if advertisement_spans.is_empty(): make_billboards(span)
+	for span in advertisement_spans: make_billboards(span)
+
+func advertisement_material(index: int) -> Material:
+	if generated_ads:
+		# 3D 재질은 AtlasTexture의 영역을 자동 적용하지 않으므로 UV를 셰이더에서 분리한다.
+		var printed := ShaderMaterial.new()
+		printed.shader = preload("res://shaders/billboard_ad.gdshader")
+		printed.set_shader_parameter("ad_atlas",GENERATED_ADS)
+		printed.set_shader_parameter("ad_tile",Vector2(index%2,(index%4)/2))
+		return printed
+	var mat := material(Color.WHITE)
+	mat.albedo_texture = AD_TEXTURES[index%AD_TEXTURES.size()]
+	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	mat.roughness = .78
+	mat.emission_enabled = true
+	mat.emission = Color.WHITE
+	mat.emission_texture = mat.albedo_texture
+	mat.emission_energy_multiplier = .15
+	return mat
 
 func material(color: Color) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
@@ -224,8 +247,8 @@ func make_billboards(span: Vector2) -> void:
 	var footings: Array[Transform3D] = []
 	var lamps: Array[Transform3D] = []
 	var lamps_metal: Array[Transform3D] = []
-	for i in range(int((span.y-span.x-160)/135)):
-		var d := span.x+100+i*135
+	for i in range(int((span.y-span.x-160)/ad_spacing)):
+		var d := span.x+100+i*ad_spacing
 		var side := -1.0 if i%2 == 0 else 1.0
 		var lane: float = side*(track.half_width(d)+18)
 		var p: Vector3 = track.point(d,lane)
@@ -239,15 +262,7 @@ func make_billboards(span: Vector2) -> void:
 		var basis := board.basis
 		var center := p+Vector3.UP*10
 		board.position = center+basis.z*.25
-		var mat := material(Color.WHITE)
-		mat.albedo_texture = AD_TEXTURES[i%AD_TEXTURES.size()]
-		mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-		mat.roughness = .78
-		mat.emission_enabled = true
-		mat.emission = Color.WHITE
-		mat.emission_texture = AD_TEXTURES[i%AD_TEXTURES.size()]
-		mat.emission_energy_multiplier = .15
-		board.material_override = mat
+		board.material_override = advertisement_material(i)
 		add_child(board)
 		backs.append(Transform3D(basis.scaled_local(Vector3(16.4,7.4,.42)),center))
 		for y in [-3.6,3.6]: frames.append(Transform3D(basis.scaled_local(Vector3(16.5,.18,.18)),center+Vector3.UP*y+basis.z*.26))

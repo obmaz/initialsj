@@ -176,3 +176,9 @@ touch build/site/.nojekyll
 건물 전용 이미지는 `generated-retail-facades.png`와 `generated-urban-facades.png`입니다. `regional_props_3d.gd`의 건물 몸체에만 전면 UV·UV2 표식을 부여하고 `prop_facade.gdshader`가 종류별 이미지를 선택합니다. 지붕·기둥·수목의 기존 색상은 유지합니다. 전면·측면 표식을 구분해 문이 옆면에 반복되지 않게 하며 도시 대형 건물은 `building_facade.gdshader`에서 층별 모듈을 반복합니다. 간판은 8종의 개별 이미지와 일반 오브젝트용 인쇄 아틀라스를 공유합니다.
 
 [tour_world_checks.gd](../tests/tour_world_checks.gd)는 실제 차체 가속·제동, 네 차량의 양쪽 분기, 체크포인트 보상, 구간 연결의 위치 연속성, 다섯 구간 완주와 제한시간을 검사합니다.
+
+### 전조등·암석 아치·협곡 광고
+
+`car.gd`는 전조등과 별도 발광 렌즈를 생성합니다. 렌즈는 정적 차체 병합에서 제외해 낮·야간 전환 때 켜고 끌 수 있습니다. `race.gd`는 야간·터널 여부로 조명을 전환하며 CPU 차량은 광원 없이 렌즈만 켭니다.
+
+`rock_arches.gd`는 트랙4 도로 위로 두께 6~8m, 깊이 약 13m의 층상 암석 아치를 만듭니다. 전용 생성형 암석 재질을 공유하며 차도·갓길 위 여유 높이는 `night_arch_checks.gd`가 메시 정점으로 확인합니다. 트랙5는 비대칭 외곽 커브와 깊은 S자, 두 광고 구역을 사용합니다. 광고 아틀라스 4종은 `billboard_ad.gdshader`의 UV 영역으로 선택하고 60m 간격으로 배치합니다. 코스 기록 키는 `track_gorge_v3`입니다.

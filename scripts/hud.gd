@@ -746,7 +746,7 @@ func draw_courses() -> void:
 	var textures := [FUJI_PREVIEW,SPEEDWAY_PREVIEW,NIGHT_PREVIEW,RIVIERA_PREVIEW,GORGE_PREVIEW]
 	var titles := [["01 / FUJI","LAKESIDE"],["02 / SUNCOAST","SPEEDWAY"],["03 / MIDNIGHT","HARBOR"],["04 / AZURE","RIVIERA"],["05 / SCARLET","GORGE"]]
 	var subtitles := ["VIADUCT / RIDGE","HILLS / BOOST SLALOM","NIGHT / DRIFT GATES","COAST / HEART DRIFT","BRIDGE / CANYON ADS"]
-	var lengths := ["5.72 KM / 3 LAPS","4.57 KM / 3 LAPS","2.74 KM / 3 LAPS","3.64 KM / 3 LAPS","3.24 KM / 3 LAPS"]
+	var lengths := ["5.72 KM / 3 LAPS","4.57 KM / 3 LAPS","2.74 KM / 3 LAPS","3.64 KM / 3 LAPS","3.54 KM / 3 LAPS"]
 	for i in range(5):
 		var rect: Rect2 = rects[i]
 		var accent: Color = accents[i]

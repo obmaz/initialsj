@@ -1,17 +1,15 @@
 extends RefCounted
-# Numbers both driving controllers share, so Fuji (real 3D physics) and the road-space Tour and
-# Suncoast controller feel alike. Change a value here and both follow.
+# 투어와 모든 트랙의 실제 차체가 공유하는 주행·충돌 조정값.
 
 # Ordinary steering never exceeds this multiple of the tyre grip in lateral acceleration.
 const LATERAL_GRIP_FACTOR := 1.8
 # How hard a steering input past the grip limit scrubs speed (understeer).
 const UNDERSTEER_SCRUB := 0.5
-# A rail hit below the launch speed: speed kept along the rail (soft hit .. hard hit), the small
-# push back off the rail and how long the nose takes to turn parallel to the road.
+# 비행 임계값 아래의 접촉: 전진 속도를 보존하며 노면을 따라 옆으로 짧게 튕긴다.
 const GLIDE_KEEP_SOFT := 0.97
 const GLIDE_KEEP_HARD := 0.84
-const GLIDE_REBOUND := 0.10
-const GLIDE_REBOUND_MAX := 3.0
+const GLIDE_REBOUND := 0.22
+const GLIDE_REBOUND_MAX := 3.6
 const REALIGN_TIME := 0.9
 # Scraping a rail above this speed throws sparks and rumbles.
 const SCRAPE_SPEED := 14.0

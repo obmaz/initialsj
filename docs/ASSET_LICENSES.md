@@ -51,3 +51,7 @@ Godot Engine 4.7.2, MIT. Its licence text ships with the web export as well.
    add anything that needs attribution unless it is listed here and in the credits.
 2. Put the licence text next to the file and add a row here and to the folder's own README or LICENSE.
 3. For sound, follow [VEHICLE_AUDIO.md](VEHICLE_AUDIO.md) and add the entry to `assets/audio/LICENSE.txt`.
+
+## 생성형 광고 이미지 추가
+
+`assets/environment/generated-racing-ads.png`는 2026-11-09 이미지 생성 도구로 제작한 원본 광고 아틀라스입니다. AEROVA·CANYON FIZZ·SUMMIT TIRE·ORBIT AUTO의 가상 광고 네 장을 2×2로 배치했습니다. 외부 사진이나 실존 브랜드 로고를 입력하지 않았으며 `scenic_landmarks.gd`의 `billboard_ad.gdshader`의 UV 영역으로 각 광고를 분리해 트랙5 간판에 사용합니다. 기존 벡터 광고와 별도 에셋입니다.

@@ -980,8 +980,10 @@ func _physics_process(delta: float) -> void:
 		apply_crash_pose()
 	if offroad_amount > 0.2:
 		for particles in player.smoke: particles.emitting = false
-	if player.headlight != null: player.headlight.visible = track.active.in_tunnel(distance) or track.scenery.theme in ["neon","night"]
+	var night: bool = track.scenery.theme in ["neon","night"]
+	player.set_headlights(track.active.in_tunnel(distance) or night)
 	for r in rivals:
+		r.car.set_headlights(r.active and (night or track.active.in_tunnel(r.distance)),false)
 		if not r.active or not r.car.visible or absf(relative_gap(r.distance,distance)) > 145:
 			if r.get("visual_running",true): r.car.animate(0,false,false,0)
 			r.visual_running = false

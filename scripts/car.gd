@@ -13,6 +13,7 @@ var road_speed := 0.0
 var traffic := false
 var material_cache := {}
 var headlight: SpotLight3D
+var headlamp_lenses: Array[MeshInstance3D] = []
 var traffic_wheels: MultiMeshInstance3D
 var nitro_flames: Array[MeshInstance3D] = []
 var wheels: Array[MeshInstance3D] = []
@@ -74,6 +75,7 @@ func _ready() -> void:
 		preload("res://scripts/gt_body.gd").build(self)
 	else:
 		make_sport_body()
+		add_headlight(Vector3(0,0.84,-2.02))
 	body.position.y = ride_offset
 	make_drift_smoke()
 	make_wheels()
@@ -295,7 +297,7 @@ func make_rim_mesh() -> ArrayMesh:
 func merge_static_body() -> void:
 	var groups := {}
 	for child in body.get_children():
-		if not child is MeshInstance3D or child in wheels or child in nitro_flames or child in nitro_glows: continue
+		if not child is MeshInstance3D or child in wheels or child in nitro_flames or child in nitro_glows or child in headlamp_lenses: continue
 		var material: Material = child.material_override
 		if not groups.has(material): groups[material] = []
 		groups[material].append(child)
@@ -377,9 +379,38 @@ func add_boost_jet(pos: Vector3, radius: float) -> void:
 func add_headlight(pos: Vector3) -> void:
 	headlight = SpotLight3D.new()
 	headlight.position = pos
-	headlight.spot_range = 65
-	headlight.spot_angle = 48
+	headlight.spot_range = 95
+	headlight.spot_angle = 38
+	headlight.rotation.x = -deg_to_rad(7)
 	headlight.light_color = Color("eaf3ff")
-	headlight.light_energy = 2.5
+	headlight.light_energy = 3.8
+	headlight.spot_angle_attenuation = 1.6
+	headlight.shadow_enabled = false
 	headlight.visible = false
 	body.add_child(headlight)
+	for side in [-1.0,1.0]:
+		var lens := MeshInstance3D.new()
+		lens.name = "NightHeadlamp"
+		var mesh := QuadMesh.new()
+		mesh.size = Vector2(0.26,0.13)
+		lens.mesh = mesh
+		lens.position = pos+Vector3(side*0.65,0,-0.26)
+		if model == "hatch": lens.position = Vector3(side*0.55,1.13,-1.967)
+		elif model == "wedge": lens.position = Vector3(side*0.64,0.78,-2.19)
+		elif model == "muscle": lens.position = Vector3(side*0.68,0.89,-2.24)
+		lens.rotation.y = PI
+		var luminous := StandardMaterial3D.new()
+		luminous.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		luminous.albedo_color = Color("f3f9ff")
+		luminous.emission_enabled = true
+		luminous.emission = Color("d2eaff")
+		luminous.emission_energy_multiplier = 3
+		lens.material_override = luminous
+		lens.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		lens.visible = false
+		body.add_child(lens)
+		headlamp_lenses.append(lens)
+
+func set_headlights(enabled: bool, illuminate_road: bool = true) -> void:
+	if headlight != null: headlight.visible = enabled and illuminate_road
+	for lens in headlamp_lenses: lens.visible = enabled
