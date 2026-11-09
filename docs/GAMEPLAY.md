@@ -65,6 +65,7 @@ FUJI와 SUNCOAST 두 트랙은 실제 3D 노면·장벽 충돌체와 차량 몸�
 ## 길가 배경과 표지판
 
 - **도시 배경**(투어의 city·seoul·neon): 편의점, 주유소, 아파트, 광고판, 버스 쉼터, 상가가 약 44m 간격으로 번갈아 서 있습니다. 모델은 [regional_props_3d.gd](../scripts/regional_props_3d.gd)의 `convenience_store`, `gas_station`, `apartment`, `billboard`, `bus_shelter`이고 배치는 `roadside_art.gd`가 합니다.
+- **FUJI 호반 마을**: 곧고 트인 네 구간(약 520~800m, 1750~2060m, 3300~3600m, 4700~4980m)의 육지 쪽 길가에 커피숍(차양·파라솔 테라스), 기념품 가게(노보리 깃발), 국수집(기와지붕·등), 여관, 자판기 줄이 어깨를 맞대고 서 있습니다(`circuit_environment.gd`의 `make_village`, 모델은 `regional_props_3d.gd`).
 - **항만 배경**(투어의 harbor와 MIDNIGHT HARBOR): 컨테이너 더미(`container_stack`), 부두 크레인(`dock_crane`), 창고(`warehouse_shed`), 연료 탱크(`fuel_tank`), 컨테이너선(`cargo_ship`)을 길가에 둡니다. MIDNIGHT는 `night_environment.gd`의 `make_harbor_props()`가 70m마다 도로에서 떨어뜨려 놓습니다.
 - **출발·결승과 체크포인트 표지**: 도로 폭에 맞춘 문형 표지입니다(`road_section.gd`의 `make_gantry`). 출발·결승은 짙은 남색 발광 판에 흰 글자와 체크무늬 띠, 체크포인트는 노란 판에 어두운 글자와 주황·검정 띠이며 기둥 위 표시등이 있고, 체크포인트에는 노란 노면 띠(`make_checkpoint_stripe`)가 있습니다.
 

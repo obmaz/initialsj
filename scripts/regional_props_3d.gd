@@ -312,6 +312,57 @@ static func model(kind: String) -> ArrayMesh:
     for bay in range(7):
      for tier in range(1+(row+bay)%3):
       box(st,Vector3(row*5.4-5.4,8.2+tier*2.65,-34+bay*8.4),Vector3(5.1,2.55,8.1),paints2[(row*3+bay+tier)%paints2.size()])
+  "coffee_shop":
+   box(st,Vector3(0,1.9,0),Vector3(8,3.8,6),Color("b08a5e"))
+   box(st,Vector3(0,3.95,0),Vector3(9,0.4,7),Color("4f3d30"))
+   box(st,Vector3(0,1.7,3.03),Vector3(6.2,2.3,0.1),Color("3d6074"))
+   for i in range(6): box(st,Vector3(-3.75+i*1.5,3.2,4.2),Vector3(1.5,0.14,2.0),Color("2f8a5a") if i%2 == 0 else Color("f3eadb"),0.0)
+   box(st,Vector3(-4.7,5.6,2.6),Vector3(0.12,1.8,0.12),Color("4f3d30"))
+   box(st,Vector3(-4.7,5.7,2.9),Vector3(0.2,1.5,1.5),Color("f6f1e6"))
+   round_part(st,Vector3(-4.7,5.5,3.7),Vector3(0.5,0.6,0.5),Color("6a4528"))
+   box(st,Vector3(0,0.1,5.8),Vector3(9,0.2,4),Color("9a7a52"))
+   for x in [-2.6,2.6]:
+    column(st,Vector3(x,0.7,5.8),1.4,0.35,0.35,Color("f3eadb"),8)
+    column(st,Vector3(x,2.2,5.8),2.6,0.04,0.04,Color("5b5148"),5)
+    column(st,Vector3(x,3.3,5.8),0.5,1.6,0.0,Color("d6452f") if x < 0 else Color("2f8a5a"),8)
+  "souvenir_shop":
+   box(st,Vector3(0,1.8,0),Vector3(9,3.6,6),Color("efe7d6"))
+   box(st,Vector3(0,3.9,0.2),Vector3(10,0.45,7.4),Color("b8432f"))
+   box(st,Vector3(0,4.45,-0.2),Vector3(7,0.5,5),Color("a63a29"))
+   box(st,Vector3(0,1.5,3.03),Vector3(7.4,2.2,0.1),Color("4a3a2e"))
+   for x in [-2.6,0.0,2.6]: box(st,Vector3(x,1.2,3.1),Vector3(2.0,1.2,0.12),Color("d9b46a"))
+   for i in range(4):
+    var x := -4.2+i*2.8
+    box(st,Vector3(x,3.0,5.2),Vector3(0.1,6.0,0.1),Color("4f4a45"))
+    box(st,Vector3(x+0.45,3.9,5.2),Vector3(0.8,3.4,0.05),Color("d6342b") if i%2 == 0 else Color("2c5fa6"))
+  "noodle_house":
+   box(st,Vector3(0,1.5,0),Vector3(9,3,7),Color("e4d9bf"))
+   box(st,Vector3(0,0.9,3.52),Vector3(9,1.8,0.08),Color("6b4a33"))
+   box(st,Vector3(0,3.3,0),Vector3(11,0.4,9),Color("3d4348"))
+   box(st,Vector3(0,3.85,0),Vector3(8,0.7,6.4),Color("4a5158"))
+   box(st,Vector3(0,4.4,0),Vector3(4,0.5,5),Color("3d4348"))
+   box(st,Vector3(0,2.0,3.56),Vector3(3.6,1.1,0.08),Color("1f3a5f"))
+   box(st,Vector3(0,2.0,3.62),Vector3(1.2,0.6,0.06),Color("f1ead8"))
+   for x in [-3.5,3.5]:
+    round_part(st,Vector3(x,2.1,4.4),Vector3(0.7,1.0,0.7),Color("d6342b"))
+    box(st,Vector3(x,2.9,4.4),Vector3(0.06,0.9,0.06),Color("3a3a3a"))
+  "ryokan":
+   box(st,Vector3(0,2.5,0),Vector3(17,5,9),Color("e9e1cf"))
+   box(st,Vector3(0,7.0,0),Vector3(15,3.2,8),Color("9a7550"))
+   box(st,Vector3(0,5.2,0),Vector3(19,0.5,11),Color("4a5760"))
+   box(st,Vector3(0,9.0,0),Vector3(17,0.6,10),Color("4a5760"))
+   box(st,Vector3(0,9.7,0),Vector3(9,0.8,8),Color("3f4a52"))
+   for i in range(6):
+    box(st,Vector3(-6.25+i*2.5,2.2,4.55),Vector3(1.8,2.2,0.1),Color("f0d99a") if i%2 else Color("3b5a73"))
+    box(st,Vector3(-6.25+i*2.5,7.0,4.1),Vector3(1.8,1.6,0.1),Color("f0d99a") if i%3 else Color("3b5a73"))
+   box(st,Vector3(0,2.0,4.6),Vector3(3.5,3.0,0.15),Color("5a3b27"))
+  "vending_row":
+   var cols := [Color("d6342b"),Color("2c5fa6"),Color("2f8a5a"),Color("e0a030")]
+   for i in range(4):
+    box(st,Vector3(-2.4+i*1.6,1.1,0),Vector3(1.2,2.2,0.9),cols[i])
+    box(st,Vector3(-2.4+i*1.6,1.3,0.47),Vector3(0.9,1.3,0.05),Color("f4f6f2"))
+   box(st,Vector3(0,2.5,0.1),Vector3(7.4,0.2,2.0),Color("5b5148"))
+   box(st,Vector3(0,0.06,0.4),Vector3(7.6,0.12,2.6),Color("858c87"))
   "containers":
    for i in range(3):
     box(st,Vector3((i%2)*3.3,1.5+(i/2)*3.1,0),Vector3(3.1,3,8),Color(["a45540","466f7f","c49c4f"][i]))

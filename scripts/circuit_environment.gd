@@ -47,6 +47,7 @@ func _ready() -> void:
 	terrain_band(10, 110, terrain)
 	make_water()
 	make_trees()
+	make_village()
 	landmarks = preload("res://scripts/circuit_landmarks.gd").new()
 	landmarks.scenery = self
 	add_child(landmarks)
@@ -137,6 +138,39 @@ func make_trees() -> void:
 
 # The deck sits at ground level; open retaining walls lead down to both portals.
 var tunnel_light_rig: Node3D
+# Lakeside villages: on a few straight, open stretches the shops stand shoulder to shoulder on the
+# land side, with cafes, souvenir stands, noodle houses, an inn and rows of vending machines.
+const VILLAGES := [[520.0,800.0],[1750.0,2060.0],[3300.0,3600.0],[4700.0,4980.0]]
+func make_village() -> void:
+	var Props = preload("res://scripts/regional_props_3d.gd")
+	var kinds := ["coffee_shop","souvenir_shop","noodle_house","vending_row","coffee_shop","ryokan","souvenir_shop","noodle_house","vending_row","coffee_shop"]
+	var placements: Array[Dictionary] = []
+	var index := 0
+	for village in VILLAGES:
+		var d: float = village[0]
+		while d < village[1]:
+			var kind: String = kinds[index%kinds.size()]
+			index += 1
+			var scale := rng.randf_range(0.95,1.1)
+			var radius: float = Props.radius(kind)*scale
+			var step := radius*1.5+rng.randf_range(2,5)
+			var ok: bool = not (track.in_tunnel(d) or track.excavation_depth(d) > 0.2 or track.on_bridge(d)) and absf(track.curvature(d)) < 0.006
+			if ok:
+				var lane: float = track.half_width(d)+track.rail_setback(d,1.0)+radius+3.5
+				var p: Vector3 = track.roadside_point(d,lane)
+				var closest: float = track.curve.get_closest_offset(p)
+				var center: Vector3 = track.point(closest)
+				if Vector2(p.x-center.x,p.z-center.z).length()-radius >= track.half_width(closest)+track.rail_setback(closest,1.0)+1.5:
+					# The shop front (local +Z) looks at the road.
+					var to_road := Vector2(center.x-p.x,center.z-p.z)
+					placements.append({"position":p,"yaw":atan2(to_road.x,to_road.y),"scale":scale,"kind":kind})
+			d += step
+	if placements.is_empty(): return
+	var props = Props.new()
+	props.name = "LakesideVillages"
+	props.configure("fuji",placements)
+	add_child(props)
+
 func make_underpass() -> void:
 	var walls: Array[Transform3D] = []
 	var roofs: Array[Transform3D] = []
