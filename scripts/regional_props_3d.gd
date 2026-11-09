@@ -15,7 +15,7 @@ const FAMILIES := {
 }
 const Models = preload("res://scripts/quaternius_props.gd")
 static var mesh_cache: Dictionary = {}
-static var shared_material: StandardMaterial3D
+static var shared_material: ShaderMaterial
 var theme := "hawaii"
 var placements: Array[Dictionary] = []
 var batches: Array[MultiMeshInstance3D] = []
@@ -27,11 +27,11 @@ func configure(region: String, points: Array[Dictionary]) -> void:
  placements.assign(points)
 func _ready() -> void:
  if shared_material == null:
-  shared_material = StandardMaterial3D.new()
-  shared_material.vertex_color_use_as_albedo = true
-  shared_material.vertex_color_is_srgb = true
-  shared_material.roughness = 0.95
-  shared_material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+  shared_material = ShaderMaterial.new()
+  shared_material.shader = preload("res://shaders/prop_facade.gdshader")
+  shared_material.set_shader_parameter("ad_prints",preload("res://assets/environment/ad-print-atlas.svg"))
+  shared_material.set_shader_parameter("retail_facades",preload("res://assets/environment/generated-retail-facades.png"))
+  shared_material.set_shader_parameter("urban_facades",preload("res://assets/environment/generated-urban-facades.png"))
  var groups: Dictionary = {}
  for i in range(placements.size()):
   var p: Dictionary = placements[i]
@@ -53,9 +53,16 @@ func _ready() -> void:
   for start in range(0,poses.size(),12):
    var multi := MultiMesh.new()
    multi.transform_format = MultiMesh.TRANSFORM_3D
+   multi.use_custom_data = true
+   multi.use_colors = true
    multi.mesh = model(kind)
    multi.instance_count = mini(12,poses.size()-start)
-   for i in range(multi.instance_count): multi.set_instance_transform(i,poses[start+i])
+   for i in range(multi.instance_count):
+    multi.set_instance_transform(i,poses[start+i])
+    multi.set_instance_color(i,Color.WHITE)
+    var origin: Vector3 = poses[start+i].origin
+    var appearance := posmod(floori(origin.x*.017)+floori(origin.z*.031),8)
+    multi.set_instance_custom_data(i,Color(float(appearance)/7,0,0,1))
    var node := MultiMeshInstance3D.new()
    node.name = "Regional3D_"+kind+"_"+str(start)
    node.multimesh = multi
@@ -73,10 +80,10 @@ func set_shadow_quality(_enabled: bool) -> void:
 static func radius(kind: String) -> float:
  var bounds := model(kind).get_aabb()
  return maxf(Vector2(bounds.position.x,bounds.position.z).length(),Vector2(bounds.end.x,bounds.end.z).length())
-static func box(st: SurfaceTool, center: Vector3, size: Vector3, color: Color, yaw: float = 0) -> void:
+static func box(st: SurfaceTool, center: Vector3, size: Vector3, color: Color, yaw: float = 0, facade: int = -1) -> void:
  var mesh := BoxMesh.new()
  mesh.size = Vector3.ONE
- append(st,mesh,Transform3D(Basis(Vector3.UP,yaw).scaled_local(size),center),color)
+ append(st,mesh,Transform3D(Basis(Vector3.UP,yaw).scaled_local(size),center),color,facade)
 static func round_part(st: SurfaceTool, center: Vector3, size: Vector3, color: Color) -> void:
  var mesh := SphereMesh.new()
  mesh.radius = 0.5
@@ -92,7 +99,7 @@ static func column(st: SurfaceTool, center: Vector3, height: float, bottom: floa
  mesh.radial_segments = sides
  mesh.rings = 1
  append(st,mesh,Transform3D(Basis.IDENTITY,center),color)
-static func append(st: SurfaceTool, mesh: Mesh, transform: Transform3D, color: Color) -> void:
+static func append(st: SurfaceTool, mesh: Mesh, transform: Transform3D, color: Color, facade: int = -1) -> void:
  var data := mesh.surface_get_arrays(0)
  var vertices: PackedVector3Array = data[Mesh.ARRAY_VERTEX]
  var normals: PackedVector3Array = data[Mesh.ARRAY_NORMAL]
@@ -101,6 +108,10 @@ static func append(st: SurfaceTool, mesh: Mesh, transform: Transform3D, color: C
  for i in range(indices.size() if not indices.is_empty() else vertices.size()):
   var index: int = indices[i] if not indices.is_empty() else i
   st.set_color(color)
+  var v := vertices[index]
+  var n := normals[index]
+  st.set_uv(Vector2(v.z+.5,.5-v.y) if absf(n.x)>.5 else Vector2((.5-v.x) if n.z>0 else (v.x+.5),.5-v.y))
+  st.set_uv2(Vector2(10+facade,1 if n.z>.5 else 0) if facade>=0 and absf(n.y)<.5 else Vector2.ZERO)
   st.set_normal((normal_basis*normals[index]).normalized())
   st.add_vertex(transform*vertices[index])
 static func model(kind: String) -> ArrayMesh:
@@ -110,6 +121,8 @@ static func model(kind: String) -> ArrayMesh:
   return mesh_cache[kind]
  var st := SurfaceTool.new()
  st.begin(Mesh.PRIMITIVE_TRIANGLES)
+ st.set_uv(Vector2.ZERO)
+ st.set_uv2(Vector2.ZERO)
  var bark := Color("73513a")
  var green := Color("367a48")
  match kind:
@@ -240,16 +253,14 @@ static func model(kind: String) -> ArrayMesh:
     column(st,p+Vector3.UP*(2+i*0.8),3.7+i*1.6,0.8,0.8,Color("9d9989"),8)
    box(st,Vector3(1.5,6.5,0),Vector3(6.5,0.8,1.9),Color("8b8679"),0.05)
   "street_shop", "ticket_booth":
-   box(st,Vector3(0,2.2,0),Vector3(7,4.4,6),Color("b4b2a0"))
-   box(st,Vector3(0,2.2,3.04),Vector3(5.8,2.5,0.1),Color("285766"))
+   box(st,Vector3(0,2.2,0),Vector3(7,4.4,6),Color("b4b2a0"),0,2)
    box(st,Vector3(0,4.5,1),Vector3(8,0.5,8),Color("cb654a") if kind == "street_shop" else Color("d595b6"))
    box(st,Vector3(0,5.1,3.7),Vector3(5,0.8,0.18),Color("e1cc90"))
    box(st,Vector3(0,0.15,0),Vector3(8,0.3,7),Color("858c87"))
   "convenience_store":
-   box(st,Vector3(0,1.8,0),Vector3(10,3.6,6.4),Color("e8ebec"))
+   box(st,Vector3(0,1.8,0),Vector3(10,3.6,6.4),Color("e8ebec"),0,1)
    box(st,Vector3(0,3.85,0),Vector3(10.4,0.55,6.8),Color("2fa36b"))
    box(st,Vector3(0,3.45,0),Vector3(10.45,0.12,6.85),Color("f08a1c"))
-   box(st,Vector3(0,1.5,3.22),Vector3(8,2.3,0.12),Color("274b66"))
    box(st,Vector3(0,3.0,3.3),Vector3(8,0.5,0.2),Color("fff1a8"))
    box(st,Vector3(2,5.2,-1.6),Vector3(2.4,1.8,1.6),Color("8b9296"))
    box(st,Vector3(-3.4,4.8,3.0),Vector3(2.8,1.5,0.2),Color("ffd34a"))
@@ -264,7 +275,7 @@ static func model(kind: String) -> ArrayMesh:
     box(st,Vector3(x,0.9,0),Vector3(0.8,1.8,1.4),Color("d6342b"))
     box(st,Vector3(x,1.55,0),Vector3(0.82,0.5,1.42),Color("1c2b36"))
     box(st,Vector3(x,0.12,0),Vector3(1.6,0.24,3.6),Color("8e948f"))
-   box(st,Vector3(0,1.7,-8),Vector3(8,3.4,4.5),Color("d8d5c8"))
+   box(st,Vector3(0,1.7,-8),Vector3(8,3.4,4.5),Color("d8d5c8"),0,3)
    box(st,Vector3(0,3.6,-8),Vector3(8.4,0.4,4.9),Color("d6342b"))
    column(st,Vector3(8.5,4.5,3.5),9.0,0.22,0.22,Color("737a7e"),6)
    box(st,Vector3(8.5,8.6,3.5),Vector3(3.2,2.8,0.4),Color("ffd34a"))
@@ -272,21 +283,12 @@ static func model(kind: String) -> ArrayMesh:
    box(st,Vector3(0,0.06,-1),Vector3(17,0.12,17),Color("5e6468"))
   "apartment":
    var wall := Color("c9bfae")
-   box(st,Vector3(0,8.5,0),Vector3(11,17,9),wall)
+   box(st,Vector3(0,8.5,0),Vector3(11,17,9),wall,0,5)
    box(st,Vector3(0,17.2,0),Vector3(11.6,0.5,9.6),Color("8d8a82"))
-   for row in range(5):
-    for col in range(4):
-     var win := Color("2b4a66") if (row+col)%3 else Color("e9d38a")
-     box(st,Vector3(-3.75+col*2.5,2.6+row*3.1,4.53),Vector3(1.4,1.7,0.1),win)
-     box(st,Vector3(-3.75+col*2.5,1.9+row*3.1,4.7),Vector3(1.8,0.12,0.5),Color("9c968a"))
-   box(st,Vector3(0,8.5,-4.55),Vector3(11,17,0.1),wall.darkened(0.12))
   "billboard":
    for x in [-3.0,3.0]: column(st,Vector3(x,5,0),10,0.28,0.24,Color("6f777c"),6)
    box(st,Vector3(0,10.4,0),Vector3(10.5,5.2,0.5),Color("33383d"))
-   box(st,Vector3(0,10.4,0.28),Vector3(10,4.7,0.1),Color("f3f0e4"))
-   box(st,Vector3(-2.2,10.9,0.36),Vector3(4.6,2.0,0.08),Color("2c8fd1"))
-   box(st,Vector3(2.6,10.1,0.36),Vector3(3.6,2.8,0.08),Color("f08a1c"))
-   box(st,Vector3(-1.2,9.1,0.36),Vector3(6.4,0.5,0.08),Color("d6342b"))
+   box(st,Vector3(0,10.4,0.28),Vector3(10,4.7,0.1),Color("f3f0e4"),0,8)
   "bus_shelter":
    box(st,Vector3(0,2.5,0),Vector3(5.2,0.18,2.2),Color("2a8aa3"))
    for x in [-2.4,2.4]: box(st,Vector3(x,1.25,0.9),Vector3(0.12,2.5,0.12),Color("3b4247"))
@@ -315,7 +317,7 @@ static func model(kind: String) -> ArrayMesh:
      box(st,Vector3(row*2.7-2.7,1.3+tier*2.65,0),Vector3(2.5,2.55,12),paint)
      for rib in range(6): box(st,Vector3(row*2.7-2.7,1.3+tier*2.65,-5.4+rib*2.15),Vector3(2.55,2.4,0.1),paint.darkened(0.25))
   "warehouse_shed":
-   box(st,Vector3(0,3.2,0),Vector3(14,6.4,26),Color("8c97a0"))
+   box(st,Vector3(0,3.2,0),Vector3(14,6.4,26),Color("8c97a0"),0,7)
    box(st,Vector3(0,6.8,0),Vector3(14.6,0.5,26.6),Color("5f6a73"))
    box(st,Vector3(0,7.3,0),Vector3(7,0.9,26.2),Color("6f7b84"))
    for z in [-9.0,-3.0,3.0,9.0]: box(st,Vector3(7.05,3,z),Vector3(0.1,5.2,0.35),Color("6e7983"))
@@ -339,9 +341,8 @@ static func model(kind: String) -> ArrayMesh:
      for tier in range(1+(row+bay)%3):
       box(st,Vector3(row*5.4-5.4,8.2+tier*2.65,-34+bay*8.4),Vector3(5.1,2.55,8.1),paints2[(row*3+bay+tier)%paints2.size()])
   "coffee_shop":
-   box(st,Vector3(0,1.9,0),Vector3(8,3.8,6),Color("b08a5e"))
+   box(st,Vector3(0,1.9,0),Vector3(8,3.8,6),Color("b08a5e"),0,0)
    box(st,Vector3(0,3.95,0),Vector3(9,0.4,7),Color("4f3d30"))
-   box(st,Vector3(0,1.7,3.03),Vector3(6.2,2.3,0.1),Color("3d6074"))
    for i in range(6): box(st,Vector3(-3.75+i*1.5,3.2,4.2),Vector3(1.5,0.14,2.0),Color("2f8a5a") if i%2 == 0 else Color("f3eadb"),0.0)
    box(st,Vector3(-4.7,5.6,2.6),Vector3(0.12,1.8,0.12),Color("4f3d30"))
    box(st,Vector3(-4.7,5.7,2.9),Vector3(0.2,1.5,1.5),Color("f6f1e6"))
@@ -352,11 +353,9 @@ static func model(kind: String) -> ArrayMesh:
     column(st,Vector3(x,2.2,5.8),2.6,0.04,0.04,Color("5b5148"),5)
     column(st,Vector3(x,3.3,5.8),0.5,1.6,0.0,Color("d6452f") if x < 0 else Color("2f8a5a"),8)
   "souvenir_shop":
-   box(st,Vector3(0,1.8,0),Vector3(9,3.6,6),Color("efe7d6"))
+   box(st,Vector3(0,1.8,0),Vector3(9,3.6,6),Color("efe7d6"),0,2)
    box(st,Vector3(0,3.9,0.2),Vector3(10,0.45,7.4),Color("b8432f"))
    box(st,Vector3(0,4.45,-0.2),Vector3(7,0.5,5),Color("a63a29"))
-   box(st,Vector3(0,1.5,3.03),Vector3(7.4,2.2,0.1),Color("4a3a2e"))
-   for x in [-2.6,0.0,2.6]: box(st,Vector3(x,1.2,3.1),Vector3(2.0,1.2,0.12),Color("d9b46a"))
    for i in range(4):
     var x := -4.2+i*2.8
     box(st,Vector3(x,3.0,5.2),Vector3(0.1,6.0,0.1),Color("4f4a45"))

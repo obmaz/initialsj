@@ -172,3 +172,5 @@ touch build/site/.nojekyll
 재질은 `assets/environment/generated-material-atlas.png`의 생성형 색상 이미지를 사용합니다. `sandstone.gdshader`와 `painted_steel.gdshader`가 재질별 영역을 삼면 투영하며 밝기 미분으로 약한 요철을 보조합니다. 실측 노멀·거칠기 맵으로 간주하지 않습니다. 절벽의 면 분할·침식 요철은 메시에서, 미세 입자와 풍화는 텍스처·재질에서 처리합니다. 야자수는 `scenery_3d_checks.gd`의 개체별 3,200삼각형 한도를 유지합니다.
 
 재질 변형은 `generated-rock-variants.png`의 암석 4종과 `generated-structure-variants.png`의 구조물 표면 4종을 추가로 사용합니다. 암벽은 월드 위치·높이로 인접 지질을 연속 혼합하며, 구조물은 MultiMesh의 custom data로 변형과 UV 오프셋을 선택합니다. 간판 한 개의 부품은 가장 가까운 광고판 기준점을 공유하여 임의의 얼룩무늬 조립처럼 보이지 않게 합니다. 고정된 위치 기반 선택으로 경기 중 깜박임을 방지합니다.
+
+건물 전용 이미지는 `generated-retail-facades.png`와 `generated-urban-facades.png`입니다. `regional_props_3d.gd`의 건물 몸체에만 전면 UV·UV2 표식을 부여하고 `prop_facade.gdshader`가 종류별 이미지를 선택합니다. 지붕·기둥·수목의 기존 색상은 유지합니다. 전면·측면 표식을 구분해 문이 옆면에 반복되지 않게 하며 도시 대형 건물은 `building_facade.gdshader`에서 층별 모듈을 반복합니다. 간판은 8종의 개별 이미지와 일반 오브젝트용 인쇄 아틀라스를 공유합니다.

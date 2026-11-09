@@ -30,3 +30,11 @@ No downloaded photographs or original arcade-game assets are used for the curren
 `generated-rock-variants.png`는 생성형 원본 `exec-80a6dc93-cad1-4e64-bd25-8786726df608.png`입니다. 좌상단 적색 층상 사암, 우상단 밝은 석회암, 좌하단 짙은 현무암, 우하단 분홍·자주색 퇴적암으로 색과 균열·층리 구조가 각각 다릅니다. 월드 위치로 정한 수백 m 지질 구간과 고도별 층리를 부드럽게 혼합합니다. 프레임·재시작마다 재질이 바뀌지 않습니다.
 
 `generated-structure-variants.png`는 생성형 원본 `exec-3f9b182c-c71a-40b7-8bab-b4edda0225b8.png`입니다. 따뜻한 건조 콘크리트·차가운 풍화 콘크리트·청회색 도장 철판·아이보리 도장 철판 4종입니다. 기존 아틀라스의 적색 철골·아연도금 강판도 유지합니다. 간판마다 프레임·지지대·뒷판의 변형을 일관되게 선택하고, 동일 모델의 다른 개체에는 다른 재질을 적용합니다. MultiMesh custom data로 선택하므로 변형별 노드·폴리곤을 추가하지 않습니다. 원본은 `/workspace/generated_images/`에 보존하며 색상 이미지의 밝기 보정은 보조 요철일 뿐 실측 PBR 노멀 맵이 아닙니다.
+
+## 건물 전용 외벽과 간판 디자인
+
+`generated-retail-facades.png`의 생성형 원본은 `exec-3aeee0ee-af59-42dc-9f45-93f69a574d89.png`입니다. 카페·편의점·기념품점·주유소 서비스 건물의 전면을 각 사분면으로 만들었으며 해당 건물 몸체의 전면 UV에 맞춥니다. 옆·뒷면은 외벽 부분만 사용하여 출입문을 반복하지 않습니다. 기존 단색 창문판은 사진형 전면을 가리지 않도록 정리했습니다.
+
+`generated-urban-facades.png`의 생성형 원본은 `exec-bb9f576f-78e1-4291-8c2c-65cc9972e4c8.png`입니다. 벽돌 주택·콘크리트 주택·유리 오피스·금속 창고의 창문 포함 층별 모듈입니다. 도시 건물 및 지역별 아파트·창고 모델에 연결합니다. 원본 두 장은 로컬 `generated_images/`에 보존하며 실측 PBR 자료는 아닙니다.
+
+간판은 SUMMIT TIRE, ROUTE 84, BLUEBAY, ORBIT AUTO를 추가해 8종입니다. 각 새 디자인은 사선·도로 차선·파도·궤도 그래픽과 별도 색상을 사용합니다. `tools/bake_scenic_ads.py`가 번들 Roboto 윤곽선으로 개별 SVG와 `ad-print-atlas.svg`를 생성하며 대형 협곡 간판과 일반 지역 간판에서 재사용합니다. 모두 가상 브랜드입니다.

@@ -227,6 +227,7 @@ func make_city() -> void:
 			multi.set_instance_custom_data(i,groups[style].dimensions[i])
 		var material := ShaderMaterial.new()
 		material.shader = preload("res://shaders/building_facade.gdshader")
+		material.set_shader_parameter("facade_images",preload("res://assets/environment/generated-urban-facades.png"))
 		material.set_shader_parameter("ruined",theme == "ruins")
 		material.set_shader_parameter("facade_style",style)
 		material.set_shader_parameter("night_city",theme == "neon")

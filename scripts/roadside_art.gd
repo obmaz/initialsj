@@ -35,6 +35,7 @@ func _ready() -> void:
   positions.append(p)
   widths.append(radius*2)
   var yaw: float = road.heading(d)+side*PI*0.5+random.randf_range(-0.2,0.2) if kind == "hareubang" else road.heading(d)+random.randf_range(-0.35,0.35)
+  if kind in ["coffee_shop","souvenir_shop","street_shop","convenience_store","apartment","gas_station","warehouse_shed"]: yaw = road.heading(d)-side*PI*.5
   placements.append({"position":p,"yaw":yaw,"scale":scale,"variant":variant})
   if kind in ["palm","broadleaf","pine","snow_pine","sakura","bamboo","plane_tree","ginkgo","japanese_pine"]: scenery.tree_positions.append(p)
  models = Props.new()

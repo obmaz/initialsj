@@ -94,13 +94,13 @@ func make_boulevard() -> void:
 		if i%4 == 0:
 			var lane: float = track.half_width(d)+23+(i%3)*6
 			var kind: String = ["coffee_shop","souvenir_shop","gas_station","street_shop"][(i/4)%4]
-			placements.append({"kind":kind,"position":terrain_point(d,lane),"yaw":track.heading(d)+PI*0.5,"scale":1.2})
+			placements.append({"kind":kind,"position":terrain_point(d,lane),"yaw":track.heading(d)-PI*0.5,"scale":1.2})
 	var props := Props.new()
 	props.name = "RivieraBoulevard"
 	props.configure("hawaii",placements)
 	add_child(props)
 	for batch in props.batches:
-		var matte: StandardMaterial3D = batch.material_override.duplicate()
-		matte.albedo_color = Color(0.72,0.76,0.7)
+		var matte: Material = batch.material_override.duplicate()
+		if matte is StandardMaterial3D: matte.albedo_color = Color(0.72,0.76,0.7)
 		batch.material_override = matte
 	tree_batches.assign(props.batches)

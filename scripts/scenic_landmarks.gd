@@ -1,6 +1,6 @@
 extends Node3D
 # 투어와 서킷이 공유하는 원본 입체 구조물입니다. 도로 안에는 장식 충돌체를 놓지 않습니다.
-const AD_TEXTURES := [preload("res://assets/environment/ad-aerova.svg"),preload("res://assets/environment/ad-shift.svg"),preload("res://assets/environment/ad-fizz.svg"),preload("res://assets/environment/ad-apex.svg")]
+const AD_TEXTURES := [preload("res://assets/environment/ad-aerova.svg"),preload("res://assets/environment/ad-shift.svg"),preload("res://assets/environment/ad-fizz.svg"),preload("res://assets/environment/ad-apex.svg"),preload("res://assets/environment/ad-summit.svg"),preload("res://assets/environment/ad-route84.svg"),preload("res://assets/environment/ad-bluebay.svg"),preload("res://assets/environment/ad-orbit.svg")]
 var track: Node3D
 var bridge_span := Vector2.ZERO
 var canyon_spans: Array[Vector2] = []
@@ -240,12 +240,12 @@ func make_billboards(span: Vector2) -> void:
 		var center := p+Vector3.UP*10
 		board.position = center+basis.z*.25
 		var mat := material(Color.WHITE)
-		mat.albedo_texture = AD_TEXTURES[i%4]
+		mat.albedo_texture = AD_TEXTURES[i%AD_TEXTURES.size()]
 		mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 		mat.roughness = .78
 		mat.emission_enabled = true
 		mat.emission = Color.WHITE
-		mat.emission_texture = AD_TEXTURES[i%4]
+		mat.emission_texture = AD_TEXTURES[i%AD_TEXTURES.size()]
 		mat.emission_energy_multiplier = .15
 		board.material_override = mat
 		add_child(board)

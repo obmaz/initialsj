@@ -1,4 +1,5 @@
 shader_type spatial;
+uniform sampler2D facade_images : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform bool ruined = false;
 uniform bool night_city = false;
 uniform int facade_style = 0;
@@ -46,7 +47,16 @@ void fragment() {
 	}
 	if (regional_style == 2) { concrete *= vec3(0.65,0.71,0.84); }
 	vec3 glass = mix(vec3(0.12,0.24,0.32),vec3(0.41,0.60,0.69),fract(floor(u/3.2)*0.37+floor(v/4.0)*0.21+dimensions.a));
-	ALBEDO = mix(concrete * (1.0-floor_line*0.3),glass,pane);
+	float module = 0.0;
+	if (facade_style == 1 || facade_style == 3) module=2.0;
+	else if (facade_style == 2 || facade_style == 4) module=1.0;
+	else if (facade_style == 5) module=3.0;
+	vec2 tile=vec2(mod(module,2.0),floor(module/2.0));
+	vec2 uv=tile*.5+vec2(.006)+vec2(cell.x,1.0-cell.y)*.488;
+	vec3 photographed=texture(facade_images,uv).rgb;
+	vec3 variant_tint=mix(vec3(1.03,.98,.91),vec3(.91,.98,1.04),dimensions.a);
+	ALBEDO = photographed*variant_tint;
+	if(abs(local_normal.y)>.5) ALBEDO=concrete;
 	METALLIC = pane * 0.65;
 	ROUGHNESS = mix(0.83,0.24,pane);
 	EMISSION = glass*pane*(night_city ? 0.7 : 0.07);
