@@ -37,6 +37,7 @@ func _ready() -> void:
 	ground.mesh = st.commit()
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/sandstone.gdshader")
+	mat.set_shader_parameter("rock_detail",preload("res://assets/environment/sandstone-detail.png"))
 	ground.material_override = mat
 	ground.set_meta("world_ground",true)
 	add_child(ground)

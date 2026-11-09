@@ -1,12 +1,20 @@
 shader_type spatial;
 render_mode cull_disabled;
+uniform sampler2D rock_detail : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 varying vec3 world_position;
-void vertex() { world_position = (MODEL_MATRIX * vec4(VERTEX,1.0)).xyz; }
+varying vec3 world_normal;
+void vertex() {
+ world_position=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;
+ world_normal=normalize(MODEL_NORMAL_MATRIX*NORMAL);
+}
 void fragment() {
-	float layers = sin(world_position.y*0.83+sin(world_position.x*0.016)*1.7+sin(world_position.z*0.021));
-	float seam = smoothstep(0.75,0.94,layers);
-	float grain = fract(sin(dot(floor(world_position.xz*2.0),vec2(12.9898,78.233)))*43758.5453);
-	ALBEDO = mix(vec3(0.44,0.17,0.09),vec3(0.80,0.47,0.25),layers*0.25+0.60)*(1.0-seam*0.18)*(0.92+grain*0.12);
-	ROUGHNESS = 1.0;
-	SPECULAR = 0.04;
+ vec3 w=pow(abs(world_normal),vec3(4.0));w/=max(w.x+w.y+w.z,0.001);
+ vec4 rock=texture(rock_detail,world_position.zy*.12)*w.x+texture(rock_detail,world_position.xz*.12)*w.y+texture(rock_detail,world_position.xy*.12)*w.z;
+ float band=sin(world_position.y*.19+sin(world_position.x*.013)*1.6+sin(world_position.z*.018)*1.3);
+ float stain=sin(world_position.x*.051+sin(world_position.z*.063))*sin(world_position.y*.047);
+ ALBEDO=rock.rgb*(.92+.055*band+.045*stain);
+ vec3 a=cross(dFdy(VERTEX),NORMAL);vec3 b=cross(NORMAL,dFdx(VERTEX));
+ float det=dot(dFdx(VERTEX),a);
+ NORMAL=normalize(abs(det)*NORMAL-sign(det)*(dFdx(rock.a)*a+dFdy(rock.a)*b)*.10);
+ ROUGHNESS=.93;SPECULAR=.04;
 }

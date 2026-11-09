@@ -11,3 +11,9 @@ No downloaded photographs or original arcade-game assets are used for the curren
 ## 장대교·협곡과 가상 광고
 
 `scenic_landmarks.gd`의 현수교와 층상 절벽은 이 프로젝트에서 직접 만든 절차적 3D 메시입니다. `ad-aerova.svg`, `ad-shift.svg`, `ad-fizz.svg`, `ad-apex.svg`는 가상 브랜드 광고이며 `tools/bake_scenic_ads.py`로 만듭니다. 번들 Roboto Bold Italic 글꼴(Apache-2.0, `assets/fonts/Roboto-LICENSE.txt`)의 윤곽선을 사용합니다. 외부 게임의 구조물·광고·상표를 추출하거나 복사하지 않았습니다. 광고판은 주행로 밖에 고정한 실제 패널이며 카메라를 따라 회전하지 않습니다.
+
+## 구조물·표면 디테일
+
+현수교는 테이퍼와 모서리가 있는 주탑, 콘크리트 기초, 원형 케이블, 별도 행거·접합판·가로보 보강재와 두께 있는 교량 바닥을 사용합니다. 광고판은 16×7m로 통일하며 42cm 두께의 뒷판, 금속 테두리, 후면 트러스·독립 기초·점검 발판·조명 하우징을 추가했습니다. 조명은 렌즈 재질로 표현하며 광고마다 동적 광원을 만들지 않습니다.
+
+`sandstone-detail.png`는 `tools/bake_sandstone.py`로 생성한 타일형 RGBA 표면입니다. RGB는 암석 색상, 알파는 미세 높이이며 밉맵·이방성 필터링과 삼면 투영으로 가파른 절벽의 늘어짐을 줄입니다. 외부 텍스처를 복사하지 않았습니다. 야자수는 연속 줄기·수피 마디와 잎맥·가느다란 소엽을 사용하며 기존의 개체별 폴리곤 예산 안에서 생성합니다.

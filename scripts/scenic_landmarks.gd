@@ -8,6 +8,7 @@ var batches: Array[MultiMeshInstance3D] = []
 var billboard_manifest: Array[Dictionary] = []
 var tower_distances: Array[float] = []
 var bridge_clearance := 68.0
+var ad_size := Vector2(16,7)
 
 func _ready() -> void:
 	if bridge_span.y > bridge_span.x: make_bridge()
@@ -24,6 +25,9 @@ func material(color: Color) -> StandardMaterial3D:
 func boxes(label: String, poses: Array[Transform3D], color: Color, shadows: bool = true) -> void:
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3.ONE
+	instances(label,mesh,poses,material(color),shadows)
+
+func instances(label: String, mesh: Mesh, poses: Array[Transform3D], mat: Material, shadows: bool = true) -> void:
 	var multi := MultiMesh.new()
 	multi.transform_format = MultiMesh.TRANSFORM_3D
 	multi.mesh = mesh
@@ -32,7 +36,7 @@ func boxes(label: String, poses: Array[Transform3D], color: Color, shadows: bool
 	var node := MultiMeshInstance3D.new()
 	node.name = label
 	node.multimesh = multi
-	node.material_override = material(color)
+	node.material_override = mat
 	if not shadows: node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(node)
 	batches.append(node)
@@ -49,44 +53,116 @@ func cable_height(d: float) -> float:
 	if d > b: return lerpf(90,4,(d-b)/(bridge_span.y-b))
 	return 22+68*pow((d-(a+b)*0.5)/((b-a)*0.5),2)
 
+# 원형 케이블과 지지대는 10면 단면을 공유하여 긴 구조물의 모서리를 줄입니다.
+func tubes(label: String, poses: Array[Transform3D], color: Color) -> void:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.5
+	mesh.bottom_radius = 0.5
+	mesh.height = 1
+	mesh.radial_segments = 10
+	mesh.rings = 1
+	var turned: Array[Transform3D] = []
+	for pose in poses: turned.append(pose*Transform3D(Basis(Vector3.RIGHT,PI/2),Vector3.ZERO))
+	instances(label,mesh,turned,material(color),false)
+
+func steel(color: Color) -> ShaderMaterial:
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/painted_steel.gdshader")
+	mat.set_shader_parameter("paint_color",color)
+	return mat
+
 func make_bridge() -> void:
-	var towers: Array[Transform3D] = []
 	var cables: Array[Transform3D] = []
 	var hangers: Array[Transform3D] = []
 	var ribs: Array[Transform3D] = []
+	var bracing: Array[Transform3D] = []
+	var fittings: Array[Transform3D] = []
+	var foundations: Array[Transform3D] = []
+	var deck_slabs: Array[Transform3D] = []
+	var tower_mesh := SurfaceTool.new()
+	tower_mesh.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for d in [bridge_span.x+95,bridge_span.y-95]:
 		tower_distances.append(d)
-		var w: float = track.half_width(d)+6
+		var w: float = track.half_width(d)+6.8
+		var basis := Basis(Vector3.UP,track.heading(d))
 		for side in [-1.0,1.0]:
 			var foot: Vector3 = track.point(d,side*w)
-			towers.append(beam(foot-Vector3.UP*50,foot+Vector3.UP*96,4.2))
-		for h in [bridge_clearance,90.0]: towers.append(beam(track.point(d,-w)+Vector3.UP*h,track.point(d,w)+Vector3.UP*h,3.6))
-	var count := int(ceil((bridge_span.y-bridge_span.x)/8))
+			# 기초와 하부 기둥은 실제 수면까지 내려갑니다.
+			var base_y := minf(foot.y-8,-5)
+			foundations.append(Transform3D(basis.scaled_local(Vector3(8,12,10)),Vector3(foot.x,base_y+3,foot.z)))
+			var levels := [base_y-foot.y+8,0.0,32.0,64.0,96.0]
+			for level in range(4):
+				var corners: Array[Vector3] = []
+				for y in [levels[level],levels[level+1]]:
+					var width := lerpf(5.4,3.0,clampf((y+15)/111,0,1))
+					var depth := width*1.24
+					for v in [Vector2(-.5,-.42),Vector2(-.42,-.5),Vector2(.42,-.5),Vector2(.5,-.42),Vector2(.5,.42),Vector2(.42,.5),Vector2(-.42,.5),Vector2(-.5,.42)]:
+						corners.append(foot+basis*Vector3(v.x*width,y,v.y*depth))
+				for face in range(8):
+					for index in [face,(face+1)%8,face+8,(face+1)%8,(face+1)%8+8,face+8]: tower_mesh.add_vertex(corners[index])
+			# 보강 리브와 접합판은 기둥 외면에 붙입니다.
+			for h in range(8,94,8):
+				var width := lerpf(5.4,3.0,clampf((h+15.0)/111,0,1))
+				for front in [-1.0,1.0]:
+					var center: Vector3 = foot+Vector3.UP*h+basis.z*front*(width*.62+.025)
+					fittings.append(Transform3D(basis.scaled_local(Vector3(width*.95,.12,.13)),center))
+					for x in [-.32,.32]:
+						fittings.append(Transform3D(basis.scaled_local(Vector3(.12,.3,.14)),center+basis.x*width*x))
+		for h in [bridge_clearance,90.0]:
+			var start: Vector3 = track.point(d,-w)+Vector3.UP*h
+			var end: Vector3 = track.point(d,w)+Vector3.UP*h
+			ribs.append(beam(start,end,2.2))
+			bracing.append(beam(start-Vector3.UP*7,end,0.48))
+			bracing.append(beam(start,end-Vector3.UP*7,0.48))
+	tower_mesh.generate_normals()
+	var towers := MeshInstance3D.new()
+	towers.name = "ScarletBridgeTowers"
+	towers.mesh = tower_mesh.commit()
+	towers.material_override = steel(Color("973c2e"))
+	add_child(towers)
+	var count := int(ceil((bridge_span.y-bridge_span.x)/4))
 	for i in range(count):
 		var a := lerpf(bridge_span.x,bridge_span.y,float(i)/count)
 		var b := lerpf(bridge_span.x,bridge_span.y,float(i+1)/count)
+		var midpoint := (a+b)*.5
+		var forward: Vector3 = (track.point(b)-track.point(a)).normalized()
+		deck_slabs.append(Transform3D(Basis.looking_at(forward,Vector3.UP).scaled_local(Vector3(track.half_width(midpoint)*2+3.5,.85,track.point(a).distance_to(track.point(b))+.05)),track.point(midpoint)-Vector3.UP*.7))
 		for side in [-1.0,1.0]:
-			var lane: float = side*(track.half_width(a)+5)
-			cables.append(beam(track.point(a,lane)+Vector3.UP*cable_height(a),track.point(b,side*(track.half_width(b)+5))+Vector3.UP*cable_height(b),0.62))
-			ribs.append(beam(track.point(a,side*(track.half_width(a)+1.5))-Vector3.UP*2.2,track.point(b,side*(track.half_width(b)+1.5))-Vector3.UP*2.2,1.5))
-			if i%3 == 0: hangers.append(beam(track.point(a,lane)+Vector3.UP*0.6,track.point(a,lane)+Vector3.UP*cable_height(a),0.20))
-		if i%4 == 0: ribs.append(beam(track.point(a,-track.half_width(a)-1.5)-Vector3.UP*2.2,track.point(a,track.half_width(a)+1.5)-Vector3.UP*2.2,0.9))
-	boxes("ScarletBridgeTowers",towers,Color("ad3e30"))
-	boxes("MainSuspensionCables",cables,Color("bd5841"),false)
-	boxes("VerticalHangers",hangers,Color("d98a63"),false)
-	boxes("BridgeDeckGirders",ribs,Color("6c5146"))
+			var lane: float = side*(track.half_width(a)+6.8)
+			cables.append(beam(track.point(a,lane)+Vector3.UP*cable_height(a),track.point(b,side*(track.half_width(b)+6.8))+Vector3.UP*cable_height(b),0.48))
+			var lower_a: Vector3 = track.point(a,side*(track.half_width(a)+1.4))-Vector3.UP*1.6
+			var lower_b: Vector3 = track.point(b,side*(track.half_width(b)+1.4))-Vector3.UP*1.6
+			ribs.append(beam(lower_a,lower_b,.65))
+			if i%3 == 0:
+				hangers.append(beam(track.point(a,lane)-Vector3.UP*.7,track.point(a,lane)+Vector3.UP*cable_height(a),.18))
+				fittings.append(Transform3D(Basis.IDENTITY.scaled_local(Vector3(.65,.3,.65)),track.point(a,lane)+Vector3.UP*cable_height(a)))
+			if i%4 == 0:
+				bracing.append(beam(lower_a-Vector3.UP*1.6,lower_b,.22))
+		if i%4 == 0: ribs.append(beam(track.point(a,-track.half_width(a)-1.4)-Vector3.UP*1.6,track.point(a,track.half_width(a)+1.4)-Vector3.UP*1.6,.45))
+	tubes("MainSuspensionCables",cables,Color("754a3c"))
+	tubes("VerticalHangers",hangers,Color("7e7970"))
+	boxes("BridgeDeckGirders",ribs,Color("853d30"))
+	boxes("BridgeDiagonalBraces",bracing,Color("66342b"))
+	boxes("BridgeJointPlates",fittings,Color("aa5b43"),false)
+	boxes("BridgeConcreteFoundations",foundations,Color("9a9588"))
+	boxes("BridgeStructuralDeck",deck_slabs,Color("747b77"))
 
-func cliff_point(d: float, side: float, tier: int) -> Vector3:
+func cliff_point(d: float, side: float, tier: float) -> Vector3:
 	var offsets := [32.0,40.0,56.0,68.0,102.0,180.0]
 	var heights := [-2.0,36.0,44.0,78.0,96.0,110.0]
 	var envelope := smoothstep(0,110,d-current_span.x)*(1-smoothstep(current_span.y-110,current_span.y,d))
 	var ripple := sin(d*0.033+side*1.7)*3+sin(d*0.011)*5
-	var lane: float = side*(track.half_width(d)+offsets[tier]+(0 if tier == 0 else ripple))
+	var k := mini(int(tier),4)
+	var blend := tier-k
+	var offset: float = lerpf(offsets[k],offsets[k+1],blend)
+	var elevation: float = lerpf(heights[k],heights[k+1],blend)
+	var erosion := (sin(d*.19+tier*3.7)+sin(d*.071-tier*2.3)*1.8)*sin(PI*blend)*1.7
+	var lane: float = side*(track.half_width(d)+offset+(0 if tier == 0 else ripple)+erosion)
 	var bend: float = track.curvature(d)
 	if side*bend < 0:
 		lane = side*minf(absf(lane),maxf(track.half_width(d)+40,0.64/maxf(absf(bend),0.0001)))
 	var p: Vector3 = track.point(d,lane)
-	p.y += heights[tier]*envelope+(0 if tier == 0 else ripple*envelope)
+	p.y += elevation*envelope+(0 if tier == 0 else ripple*envelope)
 	return p
 
 var current_span := Vector2.ZERO
@@ -94,25 +170,33 @@ func make_canyon(span: Vector2) -> void:
 	current_span = span
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var count := int(ceil((span.y-span.x)/14))
+	var count := int(ceil((span.y-span.x)/7))
 	for side in [-1.0,1.0]:
 		for i in range(count):
 			var a := lerpf(span.x,span.y,float(i)/count)
 			var b := lerpf(span.x,span.y,float(i+1)/count)
-			for tier in range(5):
-				var points := [cliff_point(a,side,tier),cliff_point(a,side,tier+1),cliff_point(b,side,tier),cliff_point(b,side,tier+1)]
+			for row in range(20):
+				var tier := row/4.0
+				var points := [cliff_point(a,side,tier),cliff_point(a,side,tier+.25),cliff_point(b,side,tier),cliff_point(b,side,tier+.25)]
 				for index in ([0,1,2,1,3,2] if side > 0 else [0,2,1,1,2,3]): st.add_vertex(points[index])
+	st.index()
 	st.generate_normals()
 	var node := MeshInstance3D.new()
 	node.name = "LayeredCanyonWalls"
 	node.mesh = st.commit()
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/sandstone.gdshader")
+	mat.set_shader_parameter("rock_detail",preload("res://assets/environment/sandstone-detail.png"))
 	node.material_override = mat
 	add_child(node)
 
 func make_billboards(span: Vector2) -> void:
 	var posts: Array[Transform3D] = []
+	var frames: Array[Transform3D] = []
+	var backs: Array[Transform3D] = []
+	var footings: Array[Transform3D] = []
+	var lamps: Array[Transform3D] = []
+	var lamps_metal: Array[Transform3D] = []
 	for i in range(int((span.y-span.x-160)/135)):
 		var d := span.x+100+i*135
 		var side := -1.0 if i%2 == 0 else 1.0
@@ -121,19 +205,43 @@ func make_billboards(span: Vector2) -> void:
 		var board := MeshInstance3D.new()
 		board.name = "FictionalAdvertisement"
 		var mesh := QuadMesh.new()
-		mesh.size = Vector2(23,10)
+		mesh.size = ad_size
 		board.mesh = mesh
-		board.position = p+Vector3.UP*12
-		board.rotation.y = track.heading(d)+side*0.22
+		board.rotation.y = track.heading(d)+side*.22
+		var basis := board.basis
+		var center := p+Vector3.UP*10
+		board.position = center+basis.z*.25
 		var mat := material(Color.WHITE)
 		mat.albedo_texture = AD_TEXTURES[i%4]
-		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+		mat.roughness = .78
+		mat.emission_enabled = true
+		mat.emission = Color.WHITE
+		mat.emission_texture = AD_TEXTURES[i%4]
+		mat.emission_energy_multiplier = .15
 		board.material_override = mat
-		board.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(board)
-		for offset in [-7.0,7.0]:
-			var foot: Vector3 = p+board.basis.x*offset
-			posts.append(beam(foot-Vector3.UP*2,foot+Vector3.UP*6.9,0.65))
-		billboard_manifest.append({"distance":d,"lane":lane,"width":23.0,"height":10.0,"position":board.position,"basis":board.basis})
-	boxes("BillboardSteelSupports",posts,Color("49423b"),false)
+		backs.append(Transform3D(basis.scaled_local(Vector3(16.4,7.4,.42)),center))
+		for y in [-3.6,3.6]: frames.append(Transform3D(basis.scaled_local(Vector3(16.5,.18,.18)),center+Vector3.UP*y+basis.z*.26))
+		for x in [-8.1,8.1]: frames.append(Transform3D(basis.scaled_local(Vector3(.18,7.4,.18)),center+basis.x*x+basis.z*.26))
+		for x in [-5.5,0.0,5.5]:
+			lamps_metal.append(Transform3D(basis.scaled_local(Vector3(.09,.09,1.25)),center+basis.x*x+Vector3.UP*3.85+basis.z*.65))
+			lamps_metal.append(Transform3D(basis.scaled_local(Vector3(.65,.20,.48)),center+basis.x*x+Vector3.UP*3.75+basis.z*1.1))
+			lamps.append(Transform3D(basis.scaled_local(Vector3(.49,.03,.32)),center+basis.x*x+Vector3.UP*3.64+basis.z*1.1))
+		for offset in [-5.0,5.0]:
+			var foot: Vector3 = p+basis.x*offset-basis.z*.65
+			posts.append(beam(foot-Vector3.UP*1.5,foot+Vector3.UP*13.4,.38))
+			footings.append(Transform3D(basis.scaled_local(Vector3(1.5,.7,1.5)),foot-Vector3.UP*.1))
+		for h in [7.0,10.0,13.0]:
+			frames.append(Transform3D(basis.scaled_local(Vector3(15.8,.16,.25)),p+Vector3.UP*h-basis.z*.55))
+		for sign_x in [-1.0,1.0]:
+			frames.append(beam(p+basis.x*sign_x*5+Vector3.UP*6.5-basis.z*.7,p+Vector3.UP*12.8-basis.z*.7,.13))
+		# 하부 점검 발판은 광고 면을 가리지 않습니다.
+		frames.append(Transform3D(basis.scaled_local(Vector3(16.6,.12,1.15)),p+Vector3.UP*6.15+basis.z*.65))
+		billboard_manifest.append({"distance":d,"lane":lane,"width":ad_size.x,"height":ad_size.y,"position":board.position,"basis":basis})
+	boxes("BillboardSteelSupports",posts,Color("555b5c"),false)
+	boxes("BillboardRimAndTruss",frames,Color("42494a"),false)
+	boxes("BillboardPanelBacks",backs,Color("747a76"))
+	boxes("BillboardConcreteFeet",footings,Color("ada99b"))
+	boxes("BillboardLampHousings",lamps_metal,Color("30393e"),false)
+	boxes("BillboardLampLenses",lamps,Color("eee4bf"),false)
