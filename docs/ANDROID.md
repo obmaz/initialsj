@@ -22,17 +22,11 @@ To bake the Godot engine and the Android templates into a cached container ahead
 `tools/setup_env.sh --templates android` first (see [DEVELOPMENT.md](DEVELOPMENT.md)); the build script then skips
 the 1.3 GB download. It does not install the Android SDK or JDK, which still need `ANDROID_ACCEPT_LICENSES=1` above.
 
-## Download
+## APK 전달
 
-The APK is built only when you start it by hand: **Actions > Build Android APK > Run workflow**
-([build-apk.yml](../.github/workflows/build-apk.yml)). The normal web deploy does not build it.
+APK는 사용자가 명시적으로 요청했을 때 로컬에서 빌드하며 GitHub Actions에서 만들지 않습니다. [APK 전달 스킬](../.agents/skills/dropbox-apk/SKILL.md)에 따라 연결된 Dropbox 플러그인으로 `/앱/initialsj`에 APK와 `latest-build.json`만 전달합니다.
 
-| Input | Meaning |
-| --- | --- |
-| `build_type` | 기본 `debug`는 `obmaz/commuzip`과 동일한 `tools/android-test.keystore`로 서명합니다. 별칭은 `androiddebugkey`, 비밀번호는 `android`이며 시험 설치용입니다. `release`는 사용자의 별도 키를 사용합니다. |
-| `publish` | On (default): also publishes the file as a public release: test builds go to the `apk-test` release as `initialsj-test.apk`, release builds to `apk-release` as `initialsj-release.apk` (each tag points at the commit that built it). The two keys cannot update each other, so install only one kind per phone. Newest test build: <https://github.com/obmaz/initialsj/releases/download/apk-test/initialsj-test.apk>. Off: the APK is only kept as a workflow artifact for 30 days (sign-in required to download). |
-
-The workflow must be started from the `main` branch (other branches stop with a message). The first link works only after the workflow has run once. A run takes about 6-10 minutes.
+버전은 빌드 전에 해당 폴더의 `latest-build.json`을 읽어 정합니다. 직접 API·환경변수 토큰·별도 업로드 스크립트는 사용하지 않습니다. 번호와 기록 형식은 [APK 빌드 기록 형식](apk-build-record.md)을 따릅니다.
 
 ## Settings
 
@@ -67,9 +61,7 @@ INITIALSJ_KEYSTORE=~/initialsj-release.keystore INITIALSJ_KEY_ALIAS=initialsj IN
 
 Losing that keystore means you can no longer update the app under the same id.
 
-To build the release APK in GitHub Actions, add three repository secrets (Settings > Secrets and variables > Actions):
-`ANDROID_KEYSTORE_BASE64` (output of `base64 -w0 ~/initialsj-release.keystore`), `ANDROID_KEY_ALIAS` and
-`ANDROID_KEY_PASSWORD`, then run the workflow with `build_type` = `release`.
+정식 서명도 위 환경변수를 사용해 로컬에서 수행합니다. 키스토어와 비밀번호를 저장소나 전달 폴더에 넣지 않습니다.
 
 ## What is and is not verified
 

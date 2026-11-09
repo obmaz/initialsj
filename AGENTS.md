@@ -17,7 +17,7 @@
 
 ## 도구별 지침과 스킬 위치
 
-- 공통 규칙의 정본은 `AGENTS.md`입니다. Claude Code는 같은 폴더의 `CLAUDE.md`에서 `@AGENTS.md`로 가져옵니다. 공통 규칙은 정본에만 작성합니다.
+- 공통 규칙의 정본은 `AGENTS.md`입니다. Claude Code는 같은 폴더의 `CLAUDE.md`에서 `@AGENTS.md`로 가져오며 Gemini CLI는 `GEMINI.md`에서 같은 정본을 가져옵니다. 공통 규칙은 정본에만 작성합니다.
 - APK 전달 절차의 정본은 `.agents/skills/dropbox-apk/SKILL.md`입니다. `.claude/skills/dropbox-apk/SKILL.md`는 같은 정본을 읽도록 안내하는 포인터이며 절차를 복제하지 않습니다.
 - `.agents/skills/dropbox-apk/agents/openai.yaml`은 스킬의 표시 이름·설명·기본 요청을 정의합니다. 실제 빌드·전달 절차는 `SKILL.md`를 따릅니다.
 
