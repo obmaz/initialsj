@@ -230,10 +230,10 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 			for index in range(3): specifications.append(["boost",start+index*70,-.42 if index%2 == 0 else .42,12.0,3.4])
 		specifications.append_array([
 			["boost_lane",440.0,.40,120.0,3.8],
-			["boost",700.0,-.38,18.0,3.8],
-			["ramp",770.0,-.38,18.0,4.4,.95],
-			["boost",2300.0,.38,20.0,3.8],
-			["ramp",2375.0,.38,20.0,4.4,1.1],
+			["boost",590.0,-.38,18.0,3.8],
+			["ramp",660.0,-.38,18.0,4.4,.70],
+			["boost",1930.0,.38,20.0,3.8],
+			["ramp",2000.0,.38,20.0,4.4,.75],
 			["boost_lane",section.length-340,-.40,140.0,3.8]
 		])
 	if section.closed_loop and section.course_id == 1:

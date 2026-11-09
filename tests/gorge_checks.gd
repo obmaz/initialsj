@@ -82,26 +82,27 @@ func run(tree: SceneTree) -> int:
 	check(race.laps_completed == 1 and race.wall_hits == 0,"실제 입력으로 다리와 협곡을 장벽 접촉 없이 한 바퀴 완주해야 합니다")
 	check(peak_hearts > 0,"협곡 코너에서도 실제 슬라이드 보상이 발생해야 합니다")
 	for ramp in section.features.filter(func(f): return f.kind == "ramp"):
-		race.restart()
-		race.state = "racing"
-		for rival in race.rivals: rival.active = false
-		race.world_race.teleport(0,ramp.distance-35,ramp.lane)
-		body.velocity = body.forward_direction()*65
-		race.speed = 65
-		var flew := false
-		var landed := false
-		for frame in range(210):
-			var f: Vector3 = body.forward_direction()
-			var r := Vector3(-f.z,0,f.x).normalized()
-			var aim: Vector3 = race.track.point(race.distance+25,ramp.lane)-body.feet_position()
-			var angle := atan2(aim.dot(r),aim.dot(f))
-			var wheel: float = (0.46+race.vehicle.handling*.007)/(1+race.speed*.035)*race.world_race.WorldCar.steering_scale(race.speed)
-			var axis := clampf(atan(5.4*sin(angle)/25)/wheel,-1,1)
-			await tree.physics_frame
-			race.step(1.0/60,axis,false,false,false)
-			if frame>8 and not body.grounded and body.feet_position().y-race.track.point(race.distance).y>.5: flew = true
-			if flew and body.grounded and race.distance>ramp.distance+25: landed = true; break
-		check(flew and landed and race.wall_hits==0,"두 점프대 모두 실제 차체가 장벽 접촉 없이 이륙·착지해야 합니다")
+		for launch_speed in [65.0,95.0]:
+			race.restart()
+			race.state = "racing"
+			for rival in race.rivals: rival.active = false
+			race.world_race.teleport(0,ramp.distance-35,ramp.lane)
+			body.velocity = body.forward_direction()*launch_speed
+			race.speed = launch_speed
+			var flew := false
+			var landed := false
+			for frame in range(210):
+				var f: Vector3 = body.forward_direction()
+				var r := Vector3(-f.z,0,f.x).normalized()
+				var aim: Vector3 = race.track.point(race.distance+25,ramp.lane)-body.feet_position()
+				var angle := atan2(aim.dot(r),aim.dot(f))
+				var wheel: float = (0.46+race.vehicle.handling*.007)/(1+race.speed*.035)*race.world_race.WorldCar.steering_scale(race.speed)
+				var axis := clampf(atan(5.4*sin(angle)/25)/wheel,-1,1)
+				await tree.physics_frame
+				race.step(1.0/60,axis,false,false,false)
+				if frame>8 and not body.grounded and body.feet_position().y-race.track.point(race.distance).y>.5: flew = true
+				if flew and body.grounded and race.distance>ramp.distance+25: landed = true; break
+			check(flew and landed and race.wall_hits==0,"두 점프대 모두 실제 차체가 장벽 접촉 없이 이륙·착지해야 합니다")
 	race.open_courses()
 	race.menu_focus = 4
 	race.pad_pressed(JOY_BUTTON_A)
