@@ -77,9 +77,9 @@ var warming_world := false:
 var camera_intro := 0.0
 var selected_course := 0
 var world_race: Node3D
-const COURSE_TITLES := ["FUJI LAKESIDE","SUNCOAST SPEEDWAY","MIDNIGHT HARBOR","AZURE RIVIERA"]
-const COURSE_LABELS := ["FUJI / CIRCUIT 01","SUNCOAST / CIRCUIT 02","MIDNIGHT / CIRCUIT 03","RIVIERA / CIRCUIT 04"]
-const COURSE_COUNT := 4
+const COURSE_TITLES := ["FUJI LAKESIDE","SUNCOAST SPEEDWAY","MIDNIGHT HARBOR","AZURE RIVIERA","SCARLET GORGE"]
+const COURSE_LABELS := ["FUJI / CIRCUIT 01","SUNCOAST / CIRCUIT 02","MIDNIGHT / CIRCUIT 03","RIVIERA / CIRCUIT 04","GORGE / CIRCUIT 05"]
+const COURSE_COUNT := 5
 var coast_drift := preload("res://scripts/coast_drift.gd").new()
 var course_title: String:
 	get: return COURSE_TITLES[clampi(selected_course,0,COURSE_COUNT-1)]
@@ -519,7 +519,7 @@ func choose_mode(value: String, course: int = 0) -> void:
 			sun_light.light_color = Color("ffe4be")
 			rim_light.light_energy = 0.10
 			atmosphere.ambient_light_energy = 0.28
-		if selected_course == 3:
+		if selected_course in [3,4]:
 			atmosphere.fog_light_color = Color("87bdcf")
 			atmosphere.fog_density = 0.00022
 			atmosphere.tonemap_exposure = 0.76
@@ -714,6 +714,7 @@ func _input(event: InputEvent) -> void:
 			elif event.keycode == KEY_2: navigate_to_mode("track",1)
 			elif event.keycode == KEY_3: navigate_to_mode("track",2)
 			elif event.keycode == KEY_4: navigate_to_mode("track",3)
+			elif event.keycode == KEY_5: navigate_to_mode("track",4)
 			elif event.keycode == KEY_ESCAPE: navigate(open_menu)
 			return
 		if state == "settings":
@@ -759,7 +760,7 @@ func pad_pressed(button: int) -> void:
 				JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN: pad_focus(button)
 				JOY_BUTTON_A:
 					match menu_focus:
-						0, 1, 2, 3: navigate_to_mode("track",menu_focus)
+						0, 1, 2, 3, 4: navigate_to_mode("track",menu_focus)
 						_: navigate(open_menu)
 				JOY_BUTTON_X: navigate_to_mode("track",1)
 				JOY_BUTTON_Y: navigate_to_mode("track",2)

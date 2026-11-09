@@ -17,6 +17,7 @@ func _ready() -> void:
  for i in range(count):
   var d: float = 240+i*spacing+random.randf_range(-5,5)
   if road.in_tunnel(d): continue
+  if road.bridge_span.y > road.bridge_span.x and d > road.bridge_span.x-65 and d < road.bridge_span.y+65: continue
   var side := -1.0 if i%2 == 0 else 1.0
   if road.entry_side != 0 and d < 650: side = float(road.entry_side)
   if theme in ["hawaii","jeju","fuji"]: side = 1.0

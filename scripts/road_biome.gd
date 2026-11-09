@@ -12,6 +12,7 @@ var roadside_art: Node3D
 var distant_art: Node3D
 var local_lights: Array[OmniLight3D] = []
 var building_manifest: Array[Dictionary] = []
+var landmarks: Node3D
 var water: MeshInstance3D
 
 func mat(color: Color, metal: float = 0, glow: float = 0) -> StandardMaterial3D:
@@ -64,6 +65,9 @@ func terrain_point(d: float, lane: float) -> Vector3:
 	else:
 		var rise := pow(clampf((absf(lane) - 18) / 140,0,1),1.5)
 		p.y = road_y - 0.3 + rise * (10 if theme in ["desert","pyramid","canyon","volcano"] else 5) * sin(d * 0.012 + lane * 0.035)
+	if track.bridge_span.y > track.bridge_span.x:
+		var bay := smoothstep(track.bridge_span.x-65,track.bridge_span.x+25,d)*(1-smoothstep(track.bridge_span.y-25,track.bridge_span.y+65,d))
+		p.y = lerpf(p.y,-1.0,bay)
 	return p
 
 func _ready() -> void:
@@ -101,6 +105,7 @@ func _ready() -> void:
 	distant_art.scenery = self
 	add_child(distant_art)
 	make_cover()
+	make_landmarks()
 
 func ground_lane(d: float, lane: float) -> float:
 	return lane+signf(lane)*(track.half_width(d)-9) if absf(lane) <= 19 or (theme == "harbor" and lane == -80) else lane
@@ -479,3 +484,31 @@ func _process(delta: float) -> void:
 		for light in local_lights:
 			light.visible = light.global_position.distance_to(camera.global_position) < light.omni_range+40
 	for node in rotating: node.rotate_object_local(Vector3.FORWARD,delta * 0.16)
+
+# 투어 도로는 유지하고 다리 아래 지형과 수면만 낮춥니다.
+func make_landmarks() -> void:
+	if theme not in ["hawaii","canyon"]: return
+	landmarks = preload("res://scripts/scenic_landmarks.gd").new()
+	landmarks.track = track
+	landmarks.bridge_span = track.bridge_span
+	if theme == "canyon": landmarks.canyon_spans.assign([Vector2(300,1700),Vector2(2390,track.length-280)])
+	add_child(landmarks)
+	if track.bridge_span.y <= track.bridge_span.x: return
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in range(80):
+		var a: float = track.bridge_span.x-60+(track.bridge_span.y-track.bridge_span.x+120)*i/80
+		var b: float = track.bridge_span.x-60+(track.bridge_span.y-track.bridge_span.x+120)*(i+1)/80
+		var points := [track.point(a,-240),track.point(a,240),track.point(b,-240),track.point(b,240)]
+		for n in [0,2,1,1,2,3]:
+			var p: Vector3 = points[n]
+			p.y = 0.05
+			st.set_normal(Vector3.UP)
+			st.add_vertex(p)
+	var bay := MeshInstance3D.new()
+	bay.name = "BridgeBayWater"
+	bay.mesh = st.commit()
+	bay.material_override = water.material_override
+	bay.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(bay)
+	ground_nodes.append(bay)

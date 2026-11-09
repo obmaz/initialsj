@@ -5,9 +5,10 @@
 Godot **4.7.2 / GL Compatibility**로 만드는 가로 화면용 3D 아케이드 레이싱 게임입니다. 프로젝트는 저장소 루트의 [project.godot](project.godot)에서 엽니다.
 
 - **TOUR**: 15개 지역 테마와 16개 경로로 구성한 5구간 오픈 로드 타임어택입니다. 체크포인트 뒤 직선 안내 구간에서 다음 갈림길을 고릅니다.
-- **TRACK**: 약 5.72km의 **FUJI LAKESIDE**, 약 4.57km의 **SUNCOAST SPEEDWAY**, 약 2.75km의 야간 서킷 **MIDNIGHT HARBOR**, 약 3.64km의 해안 드리프트 코스 **AZURE RIVIERA**에서 8대가 3바퀴를 달립니다.
-- **트랙의 3D 주행**(FUJI·SUNCOAST·MIDNIGHT·RIVIERA 공통): 실제 차체 방향으로 조향하는 `CharacterBody3D`가 노면·장벽 충돌체 위를 달립니다. FUJI에는 약 60.8m 고저차, 약 12도 뱅킹과 실제 위아래로 교차하는 고가 구간이 있습니다.
+- **TRACK**: 약 5.72km의 **FUJI LAKESIDE**, 약 4.57km의 **SUNCOAST SPEEDWAY**, 약 2.75km의 야간 서킷 **MIDNIGHT HARBOR**, 약 3.64km의 해안 드리프트 코스 **AZURE RIVIERA**, 약 5.20km의 장대교·협곡 코스 **SCARLET GORGE**에서 8대가 3바퀴를 달립니다.
+- **트랙의 3D 주행**(FUJI·SUNCOAST·MIDNIGHT·RIVIERA·GORGE 공통): 실제 차체 방향으로 조향하는 `CharacterBody3D`가 노면·장벽 충돌체 위를 달립니다. FUJI에는 약 60.8m 고저차, 약 12도 뱅킹과 실제 위아래로 교차하는 고가 구간이 있습니다.
 - **TRACK04 / AZURE RIVIERA**: 넓은 4차선 해안 도로와 굽이·고개를 이어 달립니다. 차체와 진행 방향이 어긋나는 지속 슬라이드, 실제 접지 드리프트로 모으는 하트·최대 5배 콤보를 제공합니다. 짧은 S자 전환은 이어지고 충돌·노면 이탈 시 콤보가 끊어집니다.
+- **투어의 새 풍경 / TRACK05**: PALM COAST의 바다 위 장대교와 RED CANYON의 높은 층상 절벽·가상 브랜드 광고판을 추가했습니다. TRACK05는 긴 다리 직선과 협곡 S자를 연결하며 트랙4의 슬라이드·하트 보상도 지원합니다.
 - **차량**: NIMORI H, VELTRIX S, IRONVALE V8, STRAUD 6R. 최고속도·가속도·부스트·핸들링과 니트로 자원 방식이 서로 다릅니다. 선택 화면과 주행은 같은 3D 모델을 사용합니다.
 - **주행**: 브레이크, 드리프트, 슬립스트림, 부스터 패드, 물웅덩이·진흙, 점프대, 급하강, 정차 트럭과 속도에 따라 날아가는 충돌, 패드·폰 진동을 제공합니다. 길가 나무·건물·랜드마크는 실제 3D 모델이며, 하늘과 먼 능선은 생성형 이미지도 사용합니다.
 

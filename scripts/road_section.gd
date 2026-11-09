@@ -192,7 +192,7 @@ const SUNCOAST_SCALE := 0.63
 const NIGHT_WIDTH := [Vector2(0,8.4),Vector2(0.09,8.4),Vector2(0.11,7.4),Vector2(0.21,7.4),Vector2(0.26,8.0),Vector2(0.31,8.0),Vector2(0.35,7.2),Vector2(0.40,7.2),Vector2(0.43,8.2),Vector2(0.48,8.2),Vector2(0.53,7.0),Vector2(0.62,8.8),Vector2(0.66,8.8),Vector2(0.67,7.8),Vector2(0.72,8.2),Vector2(0.78,8.2),Vector2(0.80,7.6),Vector2(0.86,8.2),Vector2(0.89,7.4),Vector2(0.97,8.4),Vector2(1,8.4)]
 
 func width_scale() -> float:
-	if closed_loop and course_id in [2,3]: return 1.0
+	if closed_loop and course_id in [2,3,4]: return 1.0
 	if closed_loop and course_id == 0: return FUJI_SCALE
 	if closed_loop and course_id == 1: return SUNCOAST_SCALE
 	return WIDTH_SCALE
@@ -203,6 +203,7 @@ func half_width(distance: float) -> float:
 func authored_half_width(distance: float) -> float:
 	if closed_loop and course_id == 1: return width_profile(SUNCOAST_WIDTH,fposmod(distance,length)/length)
 	if closed_loop and course_id == 2: return width_profile(NIGHT_WIDTH,fposmod(distance,length)/length)
+	if closed_loop and course_id == 4: return 11.6+1.0*pow(sin(TAU*fposmod(distance,length)/length),2)
 	if closed_loop and course_id == 3: return 12.4+1.4*pow(sin(TAU*fposmod(distance,length)/length),2)
 	if closed_loop: return width_profile(FUJI_WIDTH,fposmod(distance,length)/length)
 	var t := clampf(distance/length,0,1)
@@ -235,6 +236,9 @@ func rail_setback(distance: float, side: float) -> float:
 			first *= 1-shelter
 			second *= 1-shelter
 	var width := first*(5.0 if side > 0 else 2.8)+second*(2.5 if side > 0 else 4.0)
+	if not closed_loop and bridge_span.y > bridge_span.x:
+		var deck := smoothstep(bridge_span.x-100,bridge_span.x-30,d)*(1-smoothstep(bridge_span.y+30,bridge_span.y+100,d))
+		width *= 1-deck
 	if closed_loop and course_id == 0 and bridge_span.y > bridge_span.x:
 		var viaduct := smoothstep(bridge_span.x-90,bridge_span.x,d)*(1-smoothstep(bridge_span.y,bridge_span.y+90,d))
 		width *= 1-viaduct
@@ -265,8 +269,8 @@ func underpass_span() -> Vector2:
 	return Vector2(length*0.46,length*0.46+240) if closed_loop and course_id == 0 else Vector2.ZERO
 
 func on_bridge(distance: float) -> bool:
-	if not closed_loop or course_id != 0 or bridge_span.y <= bridge_span.x: return false
-	var d := fposmod(distance,length)
+	if bridge_span.y <= bridge_span.x or (closed_loop and course_id not in [0,4]): return false
+	var d := fposmod(distance,length) if closed_loop else distance
 	return d >= bridge_span.x and d <= bridge_span.y
 
 func in_tunnel(distance: float) -> bool:
@@ -330,6 +334,7 @@ func paint(color: Color) -> ShaderMaterial:
 	return mat
 
 func _ready() -> void:
+	if not closed_loop and stage == 0: bridge_span = Vector2(850,1380)
 	features = Features.layout(self)
 	rng.seed = 8417
 	var asphalt := ShaderMaterial.new()
@@ -356,6 +361,7 @@ func _ready() -> void:
 	if course_id == 1: scenery = preload("res://scripts/speedway_environment.gd").new()
 	elif closed_loop and course_id == 2: scenery = preload("res://scripts/night_environment.gd").new()
 	elif closed_loop and course_id == 3: scenery = preload("res://scripts/riviera_environment.gd").new()
+	elif closed_loop and course_id == 4: scenery = preload("res://scripts/gorge_environment.gd").new()
 	else: scenery = preload("res://scripts/circuit_environment.gd").new() if closed_loop else Scenery.new()
 	scenery.track = self
 	add_child(scenery)
@@ -365,7 +371,7 @@ func _ready() -> void:
 	if stage == 0 or stage == 4:
 		make_finish_stripe(stripe_d)
 	if closed_loop:
-		make_gantry(80,["FUJI LAKESIDE","SUNCOAST SPEEDWAY","MIDNIGHT HARBOR","AZURE RIVIERA"][clampi(course_id,0,3)]+" / START - FINISH")
+		make_gantry(80,["FUJI LAKESIDE","SUNCOAST SPEEDWAY","MIDNIGHT HARBOR","AZURE RIVIERA","SCARLET GORGE"][clampi(course_id,0,4)]+" / START - FINISH")
 	elif stage < 4:
 		make_gantry(checkpoint_distance(),"CHECKPOINT",Color("e3ad38"))
 		make_checkpoint_stripe(checkpoint_distance())
@@ -549,7 +555,7 @@ func make_curve_markers() -> void:
 	for i in range(int(length/65)):
 		var d := 35.0+i*65
 		var bend := wrapf(heading(d+40)-heading(d),-PI,PI)
-		if course_id == 1 and absf(bend) < 0.10: continue
+		if closed_loop and course_id in [1,4] and absf(bend) < 0.10: continue
 		var side := 1.0 if bend > 0 else -1.0
 		if d < 150 and side == -entry_side: continue
 		var wall_mounted := in_tunnel(d) or excavation_depth(d) > 0.05
@@ -582,6 +588,7 @@ func make_course_banners() -> void:
 	for i in range(int(length/95)):
 		var d := 55.0+i*95
 		if in_tunnel(d) or excavation_depth(d) > 0.05: continue
+		if bridge_span.y > bridge_span.x and d > bridge_span.x-50 and d < bridge_span.y+50: continue
 		for side in [-1.0,1.0]:
 			if d < 150 and side == -entry_side: continue
 			var base: Vector3 = roadside_point(d,side*(half_width(d)+rail_setback(d,side)+3.3))

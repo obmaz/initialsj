@@ -18,13 +18,14 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 	if course_id == 1: preload("res://scripts/speedway_course.gd").build(active)
 	elif course_id == 2: preload("res://scripts/night_course.gd").build(active)
 	elif course_id == 3: preload("res://scripts/riviera_course.gd").build(active)
+	elif course_id == 4: preload("res://scripts/gorge_course.gd").build(active)
 	else: preload("res://scripts/fuji_course.gd").build(active)
 	map_bounds = Rect2(Vector2(active.point(0).x,active.point(0).z),Vector2.ZERO)
 	for sample in range(800):
 		var p := active.point(active.length*sample/800)
 		map_bounds = map_bounds.expand(Vector2(p.x,p.z))
 	add_child(active)
-	# Both circuits are driven by real 3D physics on their actual road and rail triangles.
+	# All circuits are driven by real 3D physics on their actual road and rail triangles.
 	world_collision = preload("res://scripts/fuji_collision.gd").build(active)
 	active.add_child(world_collision)
 	update_ground()

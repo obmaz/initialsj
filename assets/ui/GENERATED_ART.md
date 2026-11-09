@@ -24,3 +24,7 @@ The home screen and loading card use this SVG. The builder embeds the identical 
 ## AZURE RIVIERA 코스 이미지
 
 [course-riviera.png](course-riviera.png)는 TRACK04의 실제 웹 주행 화면에서 HUD를 숨겨 직접 촬영했습니다. 프로젝트 자체 차량·해안·도로 리소스만 사용하며 외부 게임 화면이나 생성 이미지를 합성하지 않았습니다.
+
+## SCARLET GORGE 코스 이미지
+
+[course-gorge.png](course-gorge.png)는 TRACK05의 실제 웹 렌더에서 HUD를 숨겨 직접 촬영했습니다. 프로젝트 자체 차량·현수교·도로만 사용하며 외부 영상이나 게임 에셋을 합성하지 않았습니다.

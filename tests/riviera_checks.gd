@@ -24,7 +24,7 @@ func run(tree: SceneTree) -> int:
 	race.choose_mode("track",3)
 	await tree.physics_frame
 	var section: Node3D = race.track.active
-	check(race.selected_course == 3 and race.COURSE_COUNT == 4,"TRACK04가 독립 코스로 선택돼야 합니다")
+	check(race.selected_course == 3 and race.COURSE_COUNT == 5,"TRACK04가 독립 코스로 선택돼야 합니다")
 	check(section.scenery.theme == "riviera" and section.scenery.tree_positions.size() >= 300,"전용 해안 환경과 야자수 대로가 있어야 합니다")
 	check(section.length > 3000 and section.length < 6000,"긴 드리프트를 잇는 완결된 해안 코스여야 합니다")
 	var low := INF

@@ -44,7 +44,7 @@ var last_corner_loss := 0.0
 var contact_shape: CollisionShape3D
 # CPU cars settle onto the floor every other tick: one sweep less per car per frame.
 var cheap_adhesion := false
-# TRACK04만 미끄러짐 진입과 복귀를 완만하게 하여 다른 코스의 타이어 감각을 보존합니다.
+# TRACK04·05만 미끄러짐 진입과 복귀를 완만하게 하여 다른 코스의 타이어 감각을 보존합니다.
 var coast_profile := false
 var coast_slide := 0.0
 var coast_angle := 0.0
