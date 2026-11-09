@@ -11,6 +11,33 @@ python3 tools/verify_repository.py
 ./tools/godot --headless --path . --editor --import --quit
 ```
 
+### 처음 환경 만들기
+
+새로 clone했거나 클라우드 컨테이너를 새로 만들었다면 [tools/setup_env.sh](../tools/setup_env.sh) 하나로 준비합니다. 환경 구성의 유일한 기준이며 특정 에이전트에 묶여 있지 않습니다. 사람, Codex, Claude, CI 모두 같은 스크립트를 부릅니다.
+
+```sh
+./tools/setup_env.sh                     # Godot 4.7.2 설치 + 프로젝트 가져오기(.godot 캐시)
+./tools/setup_env.sh --templates web     # Web export 템플릿도 설치
+./tools/setup_env.sh --check             # 아무것도 설치하지 않고 준비 상태만 확인
+```
+
+- 엔진은 `.godot-version`을 읽어 `~/.local/share/godot/engines/<버전>/`에 설치합니다. [tools/godot](../tools/godot)이 찾는 위치와 같습니다. 릴리스에 함께 올라오는 `SHA512-SUMS.txt`로 내려받은 파일을 검증하고, 이미 맞는 엔진이 있으면 건너뜁니다. 다시 실행해도 안전합니다. `--skip-import`를 주면 `.godot` 가져오기 캐시 생성도 건너뜁니다.
+- `--templates web|android|all`은 export templates를 `${XDG_DATA_HOME:-~/.local/share}/godot/export_templates/<버전>.stable/`에 넣습니다. 템플릿 묶음은 약 1.3GB라서 기본 설치에서는 뺐습니다. 검사와 실행만 한다면 필요 없습니다. Android APK는 `tools/build_android.sh`가 템플릿과 SDK를 직접 설치하므로([ANDROID.md](ANDROID.md)) 컨테이너 캐시에 미리 넣어 두고 싶을 때만 `android`를 씁니다.
+- 자동 설치는 Linux x86_64만 지원합니다. 다른 환경은 4.7.2 stable을 직접 설치하고 `INITIALSJ_GODOT_BIN`을 지정합니다. 이 변수가 가리키는 파일이 4.7.2 stable이 아니면 조용히 다른 엔진을 깔지 않고 실패합니다.
+- 시스템 도구는 `curl`, `unzip`, `sha512sum`이 필요하고, 검사에는 `python3`와 `node`가 필요합니다. 없으면 어떤 도구가 없는지 알려 줍니다. 패키지는 스크립트가 설치하지 않습니다(권한이 필요한 작업이라서).
+
+**에이전트·CI 환경 설정에는 이 스크립트를 부르는 한 줄만 넣습니다.** 엔진 버전이나 설치 단계를 에이전트별 설정에 복사하면 `.godot-version`과 어긋납니다. 스크립트는 자기 위치에서 저장소 루트를 찾으므로 어느 디렉터리에서 불러도 됩니다.
+
+| 환경 | 넣을 곳 | 내용 |
+| --- | --- | --- |
+| Codex 클라우드 환경 | 환경의 setup script (컨테이너를 캐시한다면 maintenance script에도) | `./tools/setup_env.sh` (저장소 루트에서 실행될 때) |
+| Claude 클라우드 환경 | 환경의 setup script. 체크아웃들이 있는 상위 디렉터리에서 시작합니다. | `if [ -d initialsj ]; then ./initialsj/tools/setup_env.sh; fi` |
+| 로컬·CI | 직접 실행 | `./tools/setup_env.sh` (CI는 지금 `setup-godot` 액션을 씁니다) |
+
+- 네트워크가 제한된 환경이라면 `github.com`과 `release-assets.githubusercontent.com`을 허용해야 합니다. 에이전트가 일하는 단계에서 인터넷이 꺼져 있을 수 있으므로 설치는 setup 단계에서 끝냅니다. Web export가 필요한 환경이라면 `--templates web`을 붙입니다.
+- 엔진은 `$HOME` 기준으로 설치됩니다. setup 단계와 에이전트가 서로 다른 사용자로 실행되면 에이전트 쪽에서 `INITIALSJ_GODOT_BIN`으로 설치된 경로를 지정합니다.
+- 서명 키 같은 비밀값은 저장소나 이 스크립트에 넣지 않고 각 환경의 secret 기능으로 관리합니다([ANDROID.md](ANDROID.md)).
+
 ## 소스 구조
 
 | 위치 | 책임 |

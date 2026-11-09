@@ -44,9 +44,10 @@ Godot **4.7.2 / GL Compatibility**로 만드는 가로 화면용 3D 아케이드
 
 ## 실행과 검사
 
-Godot 4.7.2를 설치한 뒤 버전 고정 실행기를 사용합니다. 경로가 다르면 `INITIALSJ_GODOT_BIN`에 실행 파일을 지정합니다.
+처음 clone했다면 `./tools/setup_env.sh`가 고정된 Godot 4.7.2를 내려받아 설치하고 프로젝트를 가져옵니다(사람·Codex·Claude·CI 공통, 다시 실행해도 안전). 이후 버전 고정 실행기를 사용합니다. 직접 설치했거나 경로가 다르면 `INITIALSJ_GODOT_BIN`에 실행 파일을 지정합니다. Web export 템플릿과 에이전트 환경 설정 방법은 [개발 문서](docs/DEVELOPMENT.md)를 참고하세요.
 
 ```sh
+./tools/setup_env.sh
 ./tools/godot --path .
 python3 tools/verify_repository.py
 ./tools/godot --headless --path . --editor --import --quit

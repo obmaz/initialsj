@@ -18,6 +18,10 @@ accepts Google's SDK licence). JDK 17 or newer is required. The result is `build
 (about 37 MB). Install it on a phone with USB debugging: `adb install -r build/android/initialsj-debug.apk`,
 or copy the file to the phone and open it (allow installs from that source).
 
+To bake the Godot engine and the Android templates into a cached container ahead of time, run
+`tools/setup_env.sh --templates android` first (see [DEVELOPMENT.md](DEVELOPMENT.md)); the build script then skips
+the 1.3 GB download. It does not install the Android SDK or JDK, which still need `ANDROID_ACCEPT_LICENSES=1` above.
+
 ## Download
 
 The APK is built only when you start it by hand: **Actions > Build Android APK > Run workflow**

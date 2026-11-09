@@ -7,6 +7,7 @@
 - Godot 프로젝트는 저장소 루트에 있습니다. 현재 모드는 TOUR, Fuji TRACK01, SUNCOAST SPEEDWAY TRACK02, MIDNIGHT HARBOR TRACK03(야간)입니다.
 - 제품명과 표지판은 가상 이름을 사용합니다. 스피드웨이의 실제 모티브를 게임 내 문구에 넣지 않습니다.
 - Godot **4.7.2**를 `./tools/godot`으로 실행합니다. `.godot-version`과 `tests/verify_engine.gd`가 엔진 버전을 검사합니다.
+- 새 환경은 `./tools/setup_env.sh`로 만듭니다(`--check`는 준비 상태 확인, `--templates web|android|all`은 export templates 추가). 이 스크립트가 특정 에이전트에 묶이지 않은 유일한 환경 구성 기준입니다. Codex·Claude·CI의 환경 설정에는 이 스크립트를 부르는 한 줄만 두고 단계를 복사하지 않습니다. 설치 로직을 바꾸면 스크립트에서 바꾸고 `docs/DEVELOPMENT.md`의 "처음 환경 만들기"도 함께 갱신합니다.
 - 차량마다 엔진·부스터·부스터 시작·드리프트 음원을 독립적으로 소유하며 다른 차량의 파일을 공유하거나 복사하지 않습니다. 차량 추가·이름 변경·조정 시 `docs/VEHICLE_AUDIO.md`를 따릅니다(`catalog`의 `audio` 블록, `tools/bake_vehicle_audio.py` 생성법, 임포트 보조 파일, 출처, 문서). `tests/vehicle_audio_checks.gd`가 이 규칙을 검사합니다.
 - 현재 동작 문서는 README와 `docs/`에 둡니다. 생성 보고서·측정값·스크린샷은 Git에서 제외한 `build/reports/`에 두며 일회성 검토 산출물을 커밋하지 않습니다.
 - 대체된 소스와 리소스는 실행 코드·테스트의 참조를 확인한 뒤 `.uid`·`.import` 보조 파일과 함께 제거합니다. 글꼴·음원 라이선스와 에셋 출처를 최신 상태로 유지합니다.
