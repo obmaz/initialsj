@@ -33,24 +33,6 @@ func fixture_curve(race: Node3D, curvature: float, bank: float = 0, origin: Vect
 	if race.world_race != null:
 		for tracker in race.world_race.trackers: tracker.configure(road)
 
-func scalar_trial(race: Node3D, curvature: float, gas: bool = true, brake: bool = false, boost: bool = false, airborne: bool = false, bank: float = 0, initial: float = -1, duration: float = 0.55, axis: float = 0) -> Dictionary:
-	fixture_curve(race,curvature,bank)
-	race.restart()
-	race.state = "racing"
-	for rival in race.rivals: rival.active = false
-	race.distance = 400
-	race.lane = 0
-	race.speed = race.vehicle.max_speed if initial < 0 else initial
-	var before: float = race.speed
-	if airborne:
-		race.air.active = true
-		race.air.height = 30
-		race.air.world_y = race.track.point(race.distance).y+30
-		race.air.velocity = 0
-	for frame in range(roundi(duration*60)):
-		race.step(1.0/60,axis,false,gas,brake,boost)
-	return {"entry_mps":before,"exit_mps":race.speed,"lane":race.lane,"wall_hits":race.wall_hits,"offroad":race.offroad_amount,"airborne":race.air.active,"curvature":curvature,"boost":boost,"bank":bank,"seconds":duration}
-
 func physical_floor(tree: SceneTree) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.collision_layer = 1
@@ -105,36 +87,7 @@ func compare(rows: Dictionary, label: String) -> void:
 		check(rows[key].wall_hits == 0 and float(rows[key].offroad) < 0.01,label+": compare tyre resistance without impacts or dirt slowdown ("+key+")")
 
 func run(tree: SceneTree) -> int:
-	var scalar := make_race(tree)
 	var scalar_rows := []
-	for choice in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
-		scalar.open_garage()
-		scalar.select_vehicle(choice)
-		var k: float = scalar.vehicle.grip*2.8/pow(scalar.vehicle.max_speed,2)
-		var rows := {"vehicle":scalar.vehicle.id}
-		var trials := {
-			"straight":scalar_trial(scalar,0),
-			"mild":scalar_trial(scalar,k*0.075),
-			"tight":scalar_trial(scalar,k),
-			"boost":scalar_trial(scalar,k,true,false,true),
-			"boost_straight":scalar_trial(scalar,0,true,false,true),
-			"brake":scalar_trial(scalar,k,true,true),
-			"air":scalar_trial(scalar,k,true,false,false,true),
-			"launch":scalar_trial(scalar,k,true,false,false,false,0,10)
-		}
-		compare(trials,"Tour "+str(scalar.vehicle.id))
-		var banked := scalar_trial(scalar,k,true,false,false,false,0.3)
-		check(float(banked.exit_mps) > float(trials.tight.exit_mps)+0.1,"Supportive road banking must preserve more speed through the same corner")
-		var lane_change := scalar_trial(scalar,0,true,false,false,false,0,-1,0.55,0.7)
-		check(lane_change.exit_mps < trials.straight.exit_mps-0.2 and lane_change.wall_hits == 0 and lane_change.offroad < 0.01,"Straight lane-change acceleration must also scrub speed without wall or dirt contact")
-		var air_lane_change := scalar_trial(scalar,0,true,false,false,true,0,-1,0.55,0.7)
-		check(absf(air_lane_change.exit_mps-trials.straight.exit_mps) < 0.12 and air_lane_change.airborne,"Air steering must not add grounded lane-change scrub")
-		rows["lane_change"] = lane_change
-		rows["trials"] = trials
-		rows["banked"] = banked
-		scalar_rows.append(rows)
-	scalar.queue_free()
-	await tree.process_frame
 	var world := make_race(tree)
 	world.choose_mode("track",0)
 	var floor := physical_floor(tree)

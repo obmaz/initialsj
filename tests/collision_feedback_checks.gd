@@ -8,10 +8,18 @@ func ready_race(race: Node3D) -> void:
 	for r in race.rivals: r.active = false
 func wall_hit(race: Node3D, speed: float) -> float:
 	ready_race(race)
-	race.speed = speed
-	race.lane = 100
-	race.step(1.0/60,0,false,false,false)
-	check(race.wall_hits == 1,"Every wall fixture must exercise a real wall contact")
+	var d := 80.0
+	var edge: float = race.track.half_width(d)+race.track.active.rail_setback(d,1)
+	preload("res://tests/tour_world_checks.gd").new().set_car(race,d,edge-1.3,speed)
+	var body: CharacterBody3D = race.world_race.player_body
+	var up: Vector3 = race.world_race.road_up(d)
+	var direction: Vector3 = (race.track.point(d,1)-race.track.point(d,-1)).normalized()
+	body.reset_pose(body.feet_position(),direction,up)
+	body.velocity = direction*speed
+	for frame in range(30):
+		race.step(1.0/60,0,false,false,false)
+		if race.wall_hits > 0: break
+	if speed > 0: check(race.wall_hits == 1,"장벽 검사는 실제 차체를 가드레일에 충돌시켜야 한다")
 	return race.impact
 func run(tree: SceneTree) -> int:
 	var race = load("res://scenes/race.tscn").instantiate()

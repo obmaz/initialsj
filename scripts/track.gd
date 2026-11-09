@@ -34,11 +34,24 @@ func _ready() -> void:
 	add_child(base)
 	update_ground()
 
+func disable_collisions(node: Node) -> void:
+	if node is CollisionObject3D:
+		node.collision_layer = 0
+		node.collision_mask = 0
+	for child in node.get_children(): disable_collisions(child)
+
+func retire(node: Node) -> void:
+	disable_collisions(node)
+	node.queue_free()
+
+func _exit_tree() -> void:
+	disable_collisions(self)
+
 func reset(stage: int = 0, node_index: int = 0) -> void:
 	for node in [active,previous,sibling]:
-		if is_instance_valid(node): node.queue_free()
+		if is_instance_valid(node): retire(node)
 	for node in previews:
-		if is_instance_valid(node): node.queue_free()
+		if is_instance_valid(node): retire(node)
 	previews.clear()
 	history.clear()
 	previous = null
@@ -46,8 +59,12 @@ func reset(stage: int = 0, node_index: int = 0) -> void:
 	for i in range(stage): history.append(1 if i < node_index else 0)
 	active = Section.new(Vector3(0,6,0),-PI/2,stage,node_index)
 	add_child(active)
+	add_world_collision(active)
 	build_previews()
 	update_ground()
+
+func add_world_collision(section: Section) -> void:
+	section.add_child(preload("res://scripts/fuji_collision.gd").build(section))
 
 func update_ground() -> void:
 	if base_material != null:
@@ -61,14 +78,15 @@ func build_previews() -> void:
 	for side in [0,1]:
 		var section := Section.new(active.point(active.length),active.heading(active.length),active.stage+1,active.route_node+side,-1 if side == 0 else 1)
 		add_child(section)
+		add_world_collision(section)
 		previews.append(section)
 
 func maintain(distance: float) -> void:
 	if distance > 180: build_previews()
 	if distance > 420:
-		if is_instance_valid(sibling): sibling.queue_free()
+		if is_instance_valid(sibling): retire(sibling)
 		sibling = null
-		if is_instance_valid(previous): previous.queue_free()
+		if is_instance_valid(previous): retire(previous)
 		previous = null
 
 func point(distance: float, lane: float = 0) -> Vector3:
@@ -93,6 +111,9 @@ func traffic_point(distance: float, lane: float, side: int = 0) -> Vector3:
 
 func half_width(distance: float) -> float:
 	if distance < 0 and is_instance_valid(previous): return previous.half_width(previous.length+distance)
+	if distance > active.length and previews.size() == 2:
+		var d := distance-active.length
+		return previews[0].point(d).distance_to(previews[1].point(d))*0.5+minf(previews[0].half_width(d),previews[1].half_width(d))
 	return active.half_width(distance)
 
 func lane_centers(distance: float) -> Array[float]:
@@ -116,8 +137,8 @@ func lane_limits(distance: float) -> Vector2:
 func advance(side: int, distance: float, lane: float) -> Dictionary:
 	var world := point(distance,lane)
 	var old_length := active.length
-	if is_instance_valid(previous): previous.queue_free()
-	if is_instance_valid(sibling): sibling.queue_free()
+	if is_instance_valid(previous): retire(previous)
+	if is_instance_valid(sibling): retire(sibling)
 	previous = active
 	active = previews[side]
 	sibling = previews[1-side]

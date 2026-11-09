@@ -435,6 +435,7 @@ static func build_truck(section: Node3D, feature: Dictionary) -> void:
 	var d: float = feature.distance
 	var truck := Node3D.new()
 	truck.name = "ParkedTruck"
+	truck.set_meta("parked_truck",true)
 	var ahead: Vector3 = section.point(d+7,feature.lane)
 	var behind: Vector3 = section.point(d-7,feature.lane)
 	var middle: Vector3 = section.point(d,feature.lane)
@@ -504,6 +505,7 @@ static func build_skyway(section: Node3D, feature: Dictionary) -> void:
 	edges.generate_normals()
 	var deck_node := MeshInstance3D.new()
 	deck_node.name = "Skyway"
+	deck_node.set_meta("world_ground",true)
 	deck_node.mesh = deck.commit()
 	deck_node.material_override = section.material(Color("4a5157"))
 	section.add_child(deck_node)

@@ -34,6 +34,15 @@ static func build(section: Node3D) -> Node3D:
 		if child is MeshInstance3D and (child == section.road_surface or child.name == "RoadBase" or child.name == "DirtShoulders" or child.get_meta("world_ground",false)):
 			append_mesh(ground,child.mesh,relative*child.global_transform)
 	collect_scenery(section.scenery,section,ground,walls)
+	var trucks := PackedVector3Array()
+	for child in section.get_children():
+		if child.get_meta("parked_truck",false):
+			for part in child.get_children():
+				if part is MeshInstance3D: append_mesh(trucks,part.mesh,relative*part.global_transform)
+	if not trucks.is_empty():
+		var truck_body := body("ParkedTruckBody",trucks,2)
+		truck_body.set_meta("parked_truck",true)
+		root.add_child(truck_body)
 	var template := BoxMesh.new()
 	template.size = Vector3.ONE
 	# Straight stretches use 8 m boxes (every car sweeps against the wall mesh each frame, so fewer
@@ -47,6 +56,7 @@ static func build(section: Node3D) -> Node3D:
 		var middle := d+step*0.5
 		var basis := frame(section,middle)
 		for side in [-1.0,1.0]:
+			if not section.closed_loop and middle < 150 and side == -section.entry_side: continue
 			var lane: float = side*(section.half_width(middle)+section.rail_setback(middle,side))
 			append_box(walls,Transform3D(basis.scaled_local(Vector3(0.30,1.45,step+0.35)),section.point(middle,lane)+basis.y*0.65),template)
 		d += step

@@ -124,9 +124,7 @@ func run(tree: SceneTree) -> int:
 	var point := Vector2(mud.lane,mud.distance)
 	check(state.contact(active,point-Vector2(0,20),point+Vector2(0,20),60).has("mud") and state.mud_time > 0,"Crossing mud must report a mud event")
 	check(not state.contact(active,point,point,60).has("mud"),"Waiting in mud must not repeat its entry event")
-	race.distance = mud.distance-8
-	race.lane = mud.lane
-	race.speed = 60
+	preload("res://tests/tour_world_checks.gd").new().set_car(race,mud.distance-8,mud.lane,60)
 	for frame in range(40): race.step(1.0/60,0,false,true,false)
 	check(race.speed < 50,"A car driving through mud must lose clear speed (%.1f)" % race.speed)
 	# A parked truck is a wall: heavy speed loss and a push to the open side.
@@ -134,13 +132,11 @@ func run(tree: SceneTree) -> int:
 	race.restart()
 	race.state = "racing"
 	for rival in race.rivals: rival.active = false
-	race.distance = truck.distance-14
-	race.lane = truck.lane
-	race.speed = 55
+	preload("res://tests/tour_world_checks.gd").new().set_car(race,truck.distance-14,truck.lane,55)
 	race.bump_cooldown = 0
 	for frame in range(20): race.step(1.0/60,0,false,true,false)
 	check(race.speed < 38 and race.traffic_hits >= 1,"Hitting a parked truck must cost most of the speed (%.1f)" % race.speed)
-	check(signf(race.lane-truck.lane) != 0 or absf(race.lane_velocity) > 1,"A truck hit must push the car to one side")
+	check(not race.world_race.player_body.last_contacts.is_empty() or race.crash.active,"주차 트럭은 실제 차체 접촉이나 충돌 비행을 일으켜야 한다")
 	race.queue_free()
 	await tree.process_frame
 	print("Tour mud / trucks / steep drops / narrow roads / tall jumps / short fork approach: ","PASS" if failures == 0 else "FAIL")

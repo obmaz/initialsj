@@ -18,8 +18,7 @@ func drive(index: int) -> void:
 	race.lane = 0
 func tick(held: bool, cell: bool = false, brake: bool = false) -> void:
 	# Isolate nitro and acceleration from road curvature and traffic.
-	race.distance = 80
-	race.lane = 0
+	preload("res://tests/tour_world_checks.gd").new().set_car(race,80,0,race.speed)
 	race.step(1.0/60,0,false,true,brake,held,cell)
 func click(p: Vector2) -> void:
 	var event := InputEventScreenTouch.new()
@@ -47,9 +46,8 @@ func run(tree: SceneTree) -> int:
 		check(race.state == "failed" and race.checkpoints == 0,"Deadline must stop movement before a late checkpoint or finish")
 	# Reaching the line before the deadline remains legal.
 	drive(0)
-	race.distance = race.track.active.checkpoint_distance()-0.02
+	preload("res://tests/tour_world_checks.gd").new().set_car(race,race.track.active.checkpoint_distance()-0.02,0,80)
 	race.time_left = 0.001
-	race.speed = 80
 	race.step(1.0/60,0,false,true,false)
 	check(race.checkpoints == 1 and race.time_left > 50,"Checkpoint reached within remaining time must award time")
 	# P2: focus loss pauses countdown and resumes the same phase.

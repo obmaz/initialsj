@@ -140,6 +140,9 @@ func recycle(race: Node3D, r: Dictionary) -> void:
 	r.route_side = (int(r.id)+int(r.respawns))%2
 
 func stage_changed(race: Node3D) -> void:
+	if race.mode == "tour":
+		for rival in race.rivals: rival.active = false
+		return
 	var count := mini(race.rivals.size(),8+race.stage_index+race.route_node)
 	for r in race.rivals:
 		if not r.active and r.id < count: recycle(race,r)

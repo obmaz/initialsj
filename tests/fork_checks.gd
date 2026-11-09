@@ -43,8 +43,7 @@ func run(tree: SceneTree) -> int:
 	race.restart()
 	race.state = "racing"
 	for r in race.rivals: r.active = false
-	race.distance = race.track.active.checkpoint_distance()-0.5
-	race.speed = 65
+	preload("res://tests/tour_world_checks.gd").new().set_car(race,race.track.active.checkpoint_distance()-0.5,0,65)
 	for frame in range(4): race.step(1.0/60,0,false,true,false)
 	check(race.checkpoints == 1 and race.stage_index == 0 and race.route_choices_visible(),"Checkpoint must award time and expose route choices before changing stage")
 	var checkpoint_time: float = race.time_left
@@ -59,11 +58,10 @@ func run(tree: SceneTree) -> int:
 			race.select_vehicle(index)
 			race.restart()
 			race.state = "racing"
+			await tree.physics_frame
 			for r in race.rivals: r.active = false
 			race.award_checkpoint()
-			race.distance = race.track.length-165
-			race.lane = 3.5 if side == 0 else -3.5
-			race.speed = 65
+			preload("res://tests/tour_world_checks.gd").new().set_car(race,race.track.length-165,3.5 if side == 0 else -3.5,65)
 			race.hud.fingers[1] = race.hud.buttons.gas.get_center()
 			var tap := InputEventScreenTouch.new()
 			tap.index = 7

@@ -1,7 +1,8 @@
 extends Node3D
-# The two circuits (Fuji, Suncoast) use world-space car bodies. Road coordinates are race telemetry.
+# 트랙과 투어의 공통 실제 3D 차체·접지·충돌·카메라. 도로 좌표는 계측에만 사용한다.
 const WorldCar = preload("res://scripts/world_car.gd")
 const Progress = preload("res://scripts/circuit_progress.gd")
+const TourProgress = preload("res://scripts/tour_progress.gd")
 const Nitro = preload("res://scripts/nitro_system.gd")
 const Corner = preload("res://scripts/corner_resistance.gd")
 const Tuning = preload("res://scripts/drive_tuning.gd")
@@ -25,11 +26,11 @@ func setup() -> void:
 		var body: CharacterBody3D = WorldCar.new()
 		body.name = "PlayerWorldBody" if i == 0 else "RivalWorldBody"+str(i)
 		body.cheap_adhesion = i > 0
-		body.coast_profile = i == 0 and race.selected_course in [3,4]
+		body.coast_profile = i == 0 and (race.mode == "tour" or race.selected_course in [3,4])
 		add_child(body)
 		bodies.append(body)
-		var tracker: RefCounted = Progress.new()
-		tracker.configure(race.track.active)
+		var tracker: RefCounted = Progress.new() if race.mode == "track" else TourProgress.new()
+		tracker.configure(race.track.active if race.mode == "track" else race.track)
 		trackers.append(tracker)
 	player_body = bodies[0]
 
@@ -152,7 +153,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	if player_body.grounded: accel *= Corner.engine_factor(race.speed,cap,player_body.corner_demand,player_body.corner_grip)
 	var target: float = move_toward(race.speed,cap,accel*delta) if gas else maxf(0,race.speed-5*delta)
 	if race.drifting:
-		target = move_toward(race.speed,cap*0.98,accel*0.45*delta) if race.selected_course in [3,4] and gas else maxf(0,race.speed-delta*0.35)
+		target = move_toward(race.speed,cap*0.98,accel*0.45*delta) if (race.mode == "tour" or race.selected_course in [3,4]) and gas else maxf(0,race.speed-delta*0.35)
 	if brake: target = maxf(0,race.speed-race.vehicle.brake*delta)
 	reverse_wait = reverse_wait+delta if brake and race.speed < 1.5 else 0.0
 	if not brake: reversing = false
@@ -186,9 +187,13 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 				race.score += 50
 				race.boost_kick = 0.55
 				race.haptics.pulse(0.25,0.8,0.18,2)
-			else:
+			elif event == "mud":
+				player_body.velocity *= 0.88
+			elif event == "water":
 				player_body.velocity *= 0.96
 				if DisplayServer.get_name() != "headless": race.water_effect.burst(player_body.feet_position(),player_body.forward_direction(),race.motion_reduced)
+	if race.surface.mud_time > 0 and player_body.grounded:
+		player_body.velocity = player_body.velocity.move_toward(Vector3(0,player_body.velocity.y,0),24*delta)
 	for hit in contacts:
 		impact(hit)
 		# Gliding along a rail throws sparks and rumbles until the car leaves it.
@@ -196,17 +201,21 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			race.scrape(delta,-hit.normal,hit.point)
 	# A sliding car touches the rail only on the first frame, so keep the scrape going from its
 	# distance to the rail line while it stays pressed against it.
-	if player_body.grounded and race.speed > Tuning.SCRAPE_SPEED and not race.crash.active:
+	if player_body.grounded and race.speed > Tuning.SCRAPE_SPEED and not race.crash.active and not fork_area():
 		var rail_side := signf(race.lane)
 		var rail_gap: float = race.track.half_width(race.distance)+race.track.active.rail_setback(race.distance,rail_side)-absf(race.lane)-1.1
 		if rail_gap < 0.45:
 			race.scrape(delta,player_body.global_basis.x*rail_side,player_body.feet_position()+player_body.global_basis.x*rail_side*1.1+Vector3.UP*0.4)
+		elif rail_gap < 1.25:
+			race.edge_rumble = maxf(race.edge_rumble,0.5)
+			race.haptics.pulse(0.08,0.12,0.05,1)
+	if race.mode == "tour": race.speed = speed_of(player_body)
 	update_rivals(delta)
 	update_passes(old_gaps,old_position.y)
 	var road_forward: Vector3 = (race.track.point(race.distance+2)-race.track.point(race.distance-2)).normalized()
 	wrong_way_time = wrong_way_time+delta if player_body.velocity.dot(road_forward) < -5 and player_body.grounded else 0.0
 	race.boosting = race.nitro_active or race.pad_active or (race.draft_charge > 0.65 and race.throttling)
-	if race.selected_course in [3,4]:
+	if (race.mode == "tour" or race.selected_course in [3,4]):
 		race.score += race.coast_drift.step(delta,race.speed,race.slip_angle,race.drifting,player_body.grounded,race.offroad_amount < 0.15 and race.impact < 0.15 and not race.crash.active)
 	elif race.drifting and player_body.grounded and race.offroad_amount < 0.15:
 		race.score += delta*race.speed*(2+race.drift_charge)
@@ -233,12 +242,12 @@ func update_drift(delta: float, pressed: bool, brake: bool, gas: bool) -> void:
 	elif tap: race.drift_pending = 0.55
 	if brake and not race.previous_brake: race.brake_armed = 0.45
 	race.brake_armed = maxf(0,race.brake_armed-delta)
-	if not ended and race.speed > 25 and absf(race.steer) > (0.08 if race.selected_course in [3,4] else 0.2) and (race.drift_pending > 0 or (race.previous_brake and race.brake_armed > 0 and gas)):
+	if not ended and race.speed > 25 and absf(race.steer) > (0.08 if (race.mode == "tour" or race.selected_course in [3,4]) else 0.2) and (race.drift_pending > 0 or (race.previous_brake and race.brake_armed > 0 and gas)):
 		race.drift_latched = true
 		race.drift_sign = signf(race.steer)
 		race.drift_pending = 0
-	if not player_body.grounded or race.speed < 22 or brake and absf(race.steer) < (0.04 if race.selected_course in [3,4] else 0.14): race.drift_latched = false
-	if absf(race.steer) < (0.04 if race.selected_course in [3,4] else 0.12) and absf(player_body.slip_angle) < 0.12:
+	if not player_body.grounded or race.speed < 22 or brake and absf(race.steer) < (0.04 if (race.mode == "tour" or race.selected_course in [3,4]) else 0.14): race.drift_latched = false
+	if absf(race.steer) < (0.04 if (race.mode == "tour" or race.selected_course in [3,4]) else 0.12) and absf(player_body.slip_angle) < 0.12:
 		race.drift_straight += delta
 		if race.drift_straight > 0.4: race.drift_latched = false
 	else: race.drift_straight = 0
@@ -326,7 +335,7 @@ func impact(hit: Dictionary) -> void:
 		# A recent gentle scrape must not suppress a genuine severe impact.
 		race.bump_cooldown = 0
 	if race.bump_cooldown > 0: return
-	if hit.collider is CharacterBody3D: race.traffic_hits += 1
+	if hit.collider is CharacterBody3D or hit.collider.get_meta("parked_truck",false): race.traffic_hits += 1
 	else: race.wall_hits += 1
 	race.register_impact(smoothstep(2.5,65,float(hit.speed)),local,hit.point)
 
@@ -520,6 +529,7 @@ func update_outside(delta: float) -> void:
 	var side := signf(race.lane)
 	var edge: float = race.track.half_width(race.distance)+race.track.active.rail_setback(race.distance,side)+1.2
 	outside_time = outside_time+delta if absf(race.lane) > edge else 0.0
+	if fork_area(): outside_time = 0
 	if outside_time > 1.0:
 		outside_time = 0.0
 		race.return_to_road()
@@ -594,7 +604,7 @@ func recover_player() -> bool:
 
 func update_camera(delta: float) -> void:
 	var forward: Vector3 = player_body.forward_direction()
-	if race.selected_course in [3,4] and race.drifting and player_body.velocity.length() > 25:
+	if (race.mode == "tour" or race.selected_course in [3,4]) and race.drifting and player_body.velocity.length() > 25:
 		forward = forward.lerp(player_body.velocity.normalized(),0.65).normalized()
 	var right := Vector3(-forward.z,0,forward.x).normalized()
 	var pace := clampf(race.speed/88,0,1)
@@ -620,3 +630,6 @@ func update_camera(delta: float) -> void:
 	race.camera.look_at(race.player.position+forward*(5.0+pace*3.0)+up*0.8,up)
 	var fov: float = 68 if race.motion_reduced else 66+pace*17+(6 if race.boosting else 0)
 	race.camera.fov = lerpf(race.camera.fov,fov,1-exp(-delta*5))
+
+func fork_area() -> bool:
+	return race.mode == "tour" and (race.distance > race.track.length-5 or (race.distance < 155 and is_instance_valid(race.track.sibling)))

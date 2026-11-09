@@ -5,8 +5,7 @@ func check(value: bool, message: String) -> void:
 		push_error(message)
 		failures += 1
 func step(race: Node3D, drift: bool, axis: float = 0.6, brake: bool = false) -> void:
-	race.distance = 80
-	race.lane = 0
+	# 차체를 움직이지 않고 입력 상태 전이만 검사한다.
 	race.step(0.05,axis,drift,true,brake)
 func touch(race: Node3D, action: String, index: int, pressed: bool) -> void:
 	var event := InputEventScreenTouch.new()
@@ -23,7 +22,7 @@ func run(tree: SceneTree) -> int:
 	race.restart()
 	race.state = "racing"
 	for rival in race.rivals: rival.active = false
-	race.speed = 55
+	preload("res://tests/tour_world_checks.gd").new().set_car(race,80,0,55)
 	step(race,true,0)
 	check(race.drift_pending > 0 and not race.drifting,"A drift tap before steering must briefly arm entry")
 	step(race,false)
@@ -45,7 +44,7 @@ func run(tree: SceneTree) -> int:
 	race.restart()
 	race.state = "racing"
 	for rival in race.rivals: rival.active = false
-	race.speed = 50
+	preload("res://tests/tour_world_checks.gd").new().set_car(race,80,0,50)
 	touch(race,"right",11,true)
 	touch(race,"drift",12,true)
 	for frame in range(4): race.step(0.05,race.hud.touch_axis(),race.hud.held("drift"),true,false)

@@ -22,42 +22,9 @@ func run(tree:SceneTree)->int:
  tree.root.add_child(r)
  r.set_physics_process(false)
  r.save_records=false
- # Road-space rail hits (Tour). Both circuits use real colliders: see world_crash_checks.gd.
+ # 투어도 같은 3D 차체를 사용한다. 실제 충돌 비행은 world_crash_checks에서 함께 검사한다.
  for mode in ["tour"]:
   r.choose_mode(mode,1)
-  reset(r)
-  r.distance=80
-  r.lane=r.track.lane_limits(r.distance).y-0.1
-  r.speed=80
-  r.lane_velocity=18
-  r.step(0.05,1,false,true,false)
-  check(r.crash.active and r.air.active and r.lane_velocity<0,"A fast hard guardrail hit must rebound inward and launch a tumble")
-  r.crash.advance(0.3)
-  check(absf(r.crash.visual_roll)>0.2,"A launched crash must visibly roll the chassis")
-  r.apply_crash_pose()
-  var centre:Vector3=r.player.body.transform*Vector3(0,0.7,0)
-  check(centre.distance_to(Vector3(0,r.player.ride_offset+0.7,0))<0.001,"The visual tumble must rotate around the chassis centre rather than its tyre contact point")
-  reset(r)
-  r.lane=r.track.lane_limits(r.distance).y-0.01
-  r.speed=85
-  r.lane_velocity=1
-  r.step(0.02,1,false,true,false)
-  check(r.crash.active and r.air.active,"Any rail hit above the launch speed must throw the car, even a shallow one")
-  reset(r)
-  r.lane=r.track.lane_limits(r.distance).y-0.01
-  r.speed=35
-  r.lane_velocity=12
-  r.step(0.02,1,false,true,false)
-  check(not r.crash.active,"A rail hit below the launch speed must only bounce")
-  reset(r)
-  r.speed=75
-  var other:Dictionary=r.rivals[0]
-  other.active=true
-  other.distance=r.distance+3
-  other.lane=r.lane
-  other.speed=30
-  r.resolve_contact(other,{"normal":Vector2(0,-1),"depth":0.3})
-  check(r.speed<other.speed and not r.crash.active,"Ordinary car contact must rebound by exchanging relative momentum without an automatic flip")
   reset(r)
   for frame in range(42):r.step(0.1,0,false,false,false)
   check(r.recovery_available,"The actual stationary race must offer recovery")
@@ -68,8 +35,8 @@ func run(tree:SceneTree)->int:
   r.air.consumed["used-ramp"]=true
   r.air.launches=5
   r.rivals[0].active=true
-  r.rivals[0].distance=r.distance
-  r.rivals[0].lane=0
+  r.world_race.teleport(1,r.distance,0)
+  await tree.physics_frame
   r.recover_car()
   check(not r.recovery_available and r.speed==0 and not r.crash.active,"Manual recovery must restore an upright stopped car and clear its button")
   check(absf(r.lane-r.rivals[0].lane)>2.6,"Recovery must select a road lane clear of the occupied car")

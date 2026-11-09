@@ -36,22 +36,18 @@ func run(tree: SceneTree) -> int:
 	r.restart()
 	r.state = "racing"
 	for rival in r.rivals: rival.active = false
-	r.distance = 400
-	r.speed = 40
-	r.lane = r.track.lane_limits(r.distance).y-0.05
-	r.lane_velocity = 0
+	var edge: float = r.track.half_width(80)+r.track.active.rail_setback(80,1)
+	preload("res://tests/tour_world_checks.gd").new().set_car(r,80,edge-1.3,40)
 	r.haptics.busy_until = 0
 	before = r.haptics.pulses
 	r.step(1.0/60,0,false,true,false)
 	check(r.edge_rumble >= 0.99 and r.haptics.pulses > before,"Scraping a rail must rumble and shake")
 	var rumble: float = r.edge_rumble
-	r.lane = 0.0
-	r.speed = 40
+	preload("res://tests/tour_world_checks.gd").new().set_car(r,80,0,40)
 	for frame in range(90): r.step(1.0/60,0,false,true,false)
 	check(r.edge_rumble < 0.05 and rumble > 0.5,"The rumble must fade once the car is back in the middle of the road")
 	# Kerb rumble is gentler than a rail scrape.
-	r.lane = r.track.lane_limits(r.distance).y-0.8
-	r.speed = 40
+	preload("res://tests/tour_world_checks.gd").new().set_car(r,80,edge-2.0,40)
 	r.step(1.0/60,0,false,true,false)
 	check(r.edge_rumble >= 0.45 and r.edge_rumble < 0.99,"The kerb must shake less than a rail scrape")
 	r.queue_free()

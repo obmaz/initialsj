@@ -276,7 +276,7 @@ func run(tree: SceneTree) -> int:
 	race.choose_mode("track",1)
 	check(race.world_race != null and race.track.world_collision != null,"Suncoast must use real world bodies and colliders like Fuji")
 	race.choose_mode("tour")
-	check(race.world_race == null and not race.track.active.closed_loop,"Tour must retain its existing branching controller")
+	check(race.world_race != null and not race.track.active.closed_loop,"투어도 실제 3D 차체로 분기 도로를 주행해야 한다")
 	FileAccess.open(Report.path("fuji-world-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"crossing_car_heights_m":heights,"failures":failures,"world_telemetry_does_not_move_car":true,"shoulders":shoulders,"traffic":traffic,"passes":passes,"recovery":recovery,"ramps":ramps},"\t")+"\n")
 	race.queue_free()
 	await tree.process_frame

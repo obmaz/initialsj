@@ -5,9 +5,9 @@ var map_bounds := Rect2()
 var world_collision: Node3D
 func reset(_stage: int = 0, _node_index: int = 0) -> void:
 	for node in [active,previous,sibling]:
-		if is_instance_valid(node): node.queue_free()
+		if is_instance_valid(node): retire(node)
 	for node in previews:
-		if is_instance_valid(node): node.queue_free()
+		if is_instance_valid(node): retire(node)
 	previews.clear()
 	history.clear()
 	previous = null

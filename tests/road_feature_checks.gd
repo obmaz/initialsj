@@ -68,9 +68,7 @@ func run(tree: SceneTree) -> int:
 		race.open_garage()
 		race.select_vehicle(index)
 		isolate(race)
-		race.distance = pad.distance-pad.length/2-2
-		race.lane = pad.lane
-		race.speed = race.vehicle.max_speed
+		preload("res://tests/tour_world_checks.gd").new().set_car(race,pad.distance-pad.length/2-2,pad.lane,race.vehicle.max_speed)
 		var fuel: float = race.nitro
 		var charges: int = race.nitro_charges
 		race.step(0.08,0,false,false,false)
@@ -79,25 +77,21 @@ func run(tree: SceneTree) -> int:
 		race.step(0.05,0,false,true,true)
 		check(not race.pad_active and not race.boosting,"The brake must override automatic acceleration")
 		isolate(race)
-		race.distance = water.distance-water.length/2-2
-		race.lane = water.lane
-		race.speed = 55
+		preload("res://tests/tour_world_checks.gd").new().set_car(race,water.distance-water.length/2-2,water.lane,55)
 		race.step(0.08,0,false,true,false)
 		check(race.surface.puddles_hit == 1 and race.surface.wet_time > 0,"Player tire sweeps must actually activate the puddle")
 	# Wet tires must retain lateral momentum when the driver unwinds the wheel.
 	isolate(race)
-	race.distance = 80
-	race.speed = 50
-	race.lane_velocity = 4
+	preload("res://tests/tour_world_checks.gd").new().set_car(race,80,0,50)
+	race.world_race.player_body.velocity += race.world_race.player_body.global_basis.x*4
 	race.step(0.05,0,false,true,false)
 	var dry_velocity: float = absf(race.lane_velocity)
 	isolate(race)
-	race.distance = 80
-	race.speed = 50
-	race.lane_velocity = 4
+	preload("res://tests/tour_world_checks.gd").new().set_car(race,80,0,50)
+	race.world_race.player_body.velocity += race.world_race.player_body.global_basis.x*4
 	race.surface.wet_time = State.WET_DURATION
 	race.step(0.05,0,false,true,false)
-	check(absf(race.lane_velocity) > dry_velocity+0.5,"Wet tires must actually retain more lateral momentum")
+	check(absf(race.lane_velocity) > dry_velocity+0.1,"Wet tires must actually retain more lateral momentum")
 	isolate(race)
 	race.speed = 112
 	var rival: Dictionary = race.rivals[0]

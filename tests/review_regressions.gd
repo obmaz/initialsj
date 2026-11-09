@@ -40,28 +40,7 @@ func run(tree: SceneTree) -> int:
 		race.brain.tick(race,0.8)
 		check(other.surface.puddles_hit == (0 if airborne else 1),"CPU landing must not collect a puddle flown over before touchdown; grounded crossing must still work")
 	race.track.active.features.assign(saved)
-	# The Tour keeps the road-space controller, so it hosts this incline fixture.
-	race.choose_mode("tour")
-	var climb := 0.0
-	var at := 0.0
-	for i in range(1200):
-		var d: float = race.track.length*i/1200
-		var rise: float = race.track.point(d).y-race.track.point(d-2.8).y
-		if rise > climb: climb = rise; at = d
-	check(climb > 0.08,"Vertical collision regression needs a real steep road segment")
-	for player_higher in [true,false]:
-		other = isolated(race)
-		race.distance = at if player_higher else at-2.8
-		other.distance = at-2.8 if player_higher else at
-		race.air.active = true
-		race.air.height = 1.65-climb*0.5 if player_higher else 1.65+climb*0.5
-		race.air.world_y = race.track.point(race.distance).y+race.air.height
-		race.air.velocity = 0
-		var world_gap: float = absf(race.air.world_y-race.track.point(other.distance).y)
-		check((world_gap > 1.65) == player_higher,"The independent world-height fixture must straddle the collision boundary")
-		check(race.contact_with(other).is_empty() == player_higher,"Body overlap must use actual world heights on an incline")
-		race.step(1.0/60,0,false,false,false)
-		check((race.traffic_hits == 0) == player_higher,"The real collision step must agree with world-height clearance")
+	# 실제 차체의 높이별 충돌은 world_car_checks 및 tour_world_checks에서 검증한다.
 	var budget = race.render_budget
 	race.state = "racing"
 	race.elapsed = 10

@@ -3,37 +3,18 @@ extends RefCounted
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
-func hit_road_space(r: Node3D, speed: float, start_slip: float = 0.0) -> Dictionary:
-	r.restart()
-	r.state = "racing"
-	for rival in r.rivals: rival.active = false
-	r.distance = 400
-	r.lane = r.track.lane_limits(r.distance).y-0.01
-	r.speed = speed
-	r.lane_velocity = 8
-	r.slip_angle = start_slip
-	r.step(1.0/60,0,false,true,false)
-	return {"lane_velocity":r.lane_velocity,"speed":r.speed,"slip":r.slip_angle}
 func run(tree: SceneTree) -> int:
 	var r = load("res://scenes/race.tscn").instantiate()
 	tree.root.add_child(r)
 	r.set_physics_process(false)
 	r.save_records = false
-	# Tour / Suncoast below the launch speed: no bounce, the nose turns parallel to the rail and
-	# a faster hit costs a larger share of the speed.
+	# 투어와 트랙은 같은 실제 장벽 접촉을 사용한다.
 	r.choose_mode("tour")
-	var slow := hit_road_space(r,20,0.5)
-	var medium := hit_road_space(r,32,0.5)
-	var fast := hit_road_space(r,42,0.5)
-	check(absf(slow.lane_velocity) < 3 and absf(medium.lane_velocity) < 3 and absf(fast.lane_velocity) < 3,"A hit below the launch speed must not bounce the car off the rail")
-	check(absf(fast.slip) < 0.3 and absf(medium.slip) < 0.3,"A scraping car must turn its nose toward the rail direction, not swing away from it")
-	check(slow.speed/20.0 > fast.speed/42.0,"A faster hit must lose a larger share of its speed")
-	check(fast.speed > 42*0.8,"A scrape must keep most of its speed")
-	# At and above the launch speed the car is thrown clear and the bounce grows with speed.
-	var hard := hit_road_space(r,60)
-	var harder := hit_road_space(r,85,0.4)
-	check(absf(harder.slip) < 0.3,"A launching hit must turn the nose back toward the road, not swing it out")
-	check(absf(hard.lane_velocity) < absf(harder.lane_velocity) and absf(harder.lane_velocity) > 8 and absf(harder.lane_velocity) < 17.5,"A launching hit must throw the car well clear of the rail, further when faster")
+	await tree.physics_frame
+	var world_checks := preload("res://tests/world_crash_checks.gd").new()
+	await world_checks.rail_impact(tree,r,40)
+	await world_checks.rail_impact(tree,r,72)
+	failures += world_checks.failures
 	# A hard hit freezes the frame briefly; reduced motion skips it.
 	r.restart()
 	r.motion_reduced = false
@@ -107,9 +88,6 @@ func run(tree: SceneTree) -> int:
 	check(after < before and after > before*0.8,"A rail hit must ease the nose toward the road without snapping it straight")
 	car.road_heading = Vector3.BACK
 	check(car.realigned(turned,1.0/60).is_equal_approx(turned),"A car facing against the road must not be spun around")
-	r.choose_mode("tour")
-	hit_road_space(r,30)
-	check(r.wall_assist > 0,"A road-space rail hit must start the road alignment assist")
 	r.queue_free()
 	await tree.process_frame
 	print("Guardrail response scales with speed / spin / freeze-frame / return to road: ","PASS" if failures == 0 else "FAIL")
