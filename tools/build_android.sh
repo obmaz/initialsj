@@ -5,13 +5,13 @@
 #   tools/build_android.sh release    release template  -> build/android/initialsj-release.apk
 #
 # First run installs what is missing: the Android export templates (about 1.3 GB download), the
-# Android SDK command-line tools with platform 35 and build-tools 35.0.1, and a debug keystore.
+# Android SDK command-line tools with platform 35 and build-tools 35.0.1.
 # Installing the SDK means accepting Google's Android SDK licence, so it only happens when you
 # set ANDROID_ACCEPT_LICENSES=1.
 #
-# The debug build is signed with tools/android-test.keystore, a shared TEST key (its password is in
-# this script and in the repository, so anyone can sign with it). It keeps the signature stable so
-# test builds update over each other. Never publish an app signed with it.
+# 디버그 빌드는 obmaz/commuzip의 android/app/debug-keystore.jks와 동일한
+# tools/android-test.keystore를 사용합니다(별칭 androiddebugkey, 비밀번호 android).
+# 환경마다 새 키를 생성하지 않으며 이 공개 시험용 키로 스토어에 배포하지 않습니다.
 #
 # A release APK must be signed with YOUR keystore (never commit it). Provide it with
 #   INITIALSJ_KEYSTORE=/path/release.keystore INITIALSJ_KEY_ALIAS=alias INITIALSJ_KEY_PASSWORD=...
@@ -22,8 +22,7 @@ version="$(tr -d '[:space:]' < .godot-version)"
 kind="${1:-debug}"
 sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}}"
 templates="$HOME/.local/share/godot/export_templates/$version.stable"
-keystore_dir="$HOME/.local/share/godot/keystores"
-debug_keystore="$keystore_dir/debug.keystore"
+debug_keystore="$PWD/tools/android-test.keystore"
 settings="$HOME/.config/godot/editor_settings-${version%.*}.tres"
 
 if [[ ! -f "$templates/android_debug.apk" || ! -f "$templates/android_release.apk" ]]; then
@@ -56,9 +55,8 @@ if [[ ! -x "$sdk/build-tools/35.0.1/apksigner" || ! -d "$sdk/platforms/android-3
 fi
 
 if [[ ! -f "$debug_keystore" ]]; then
-  mkdir -p "$keystore_dir"
-  keytool -genkeypair -keystore "$debug_keystore" -storepass android -alias androiddebugkey -keypass android \
-    -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+  echo "저장소의 공통 디버그 키가 없습니다: $debug_keystore" >&2
+  exit 2
 fi
 
 # Godot reads the SDK, JDK and debug keystore from its editor settings.
@@ -86,9 +84,9 @@ if [[ "$kind" == "release" ]]; then
   ./tools/godot --headless --path . --export-release Android "$out"
 else
   out="build/android/initialsj-debug.apk"
-  export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$PWD/tools/android-test.keystore"
-  export GODOT_ANDROID_KEYSTORE_DEBUG_USER="initialsj-test"
-  export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="initialsj-test"
+  export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$debug_keystore"
+  export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+  export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
   ./tools/godot --headless --path . --export-debug Android "$out"
 fi
 "$sdk/build-tools/35.0.1/apksigner" verify "$out" > /dev/null

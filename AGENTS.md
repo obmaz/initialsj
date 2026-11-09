@@ -23,6 +23,8 @@
 
 ## APK 빌드와 Dropbox 전달
 
+- Android 디버그 서명은 `obmaz/commuzip`의 키와 동일한 `tools/android-test.keystore`를 사용합니다. 별칭은 `androiddebugkey`, 비밀번호는 `android`이며 키를 환경마다 재생성하지 않습니다. 자세한 지문과 전환 시 주의사항은 `docs/ANDROID.md`를 따릅니다.
+
 - 빌드 전에 Dropbox의 `/앱/initialsj/latest-build.json`을 읽어 다음 `versionCode`를 정합니다. `versionCode + 1`을 사용하고 후속 전달 이력과 다르면 기록부터 정정하며, 기준 파일을 읽지 못하면 번호를 추정하거나 빌드하지 않습니다. 세부와 JSON 형식은 APK 전달 스킬을 따릅니다.
 
 - APK 빌드·재빌드·Dropbox 업로드는 사용자가 명시적으로 요청했을 때만 수행합니다. 일반 개발·리뷰·검증·푸시·웹 배포에 APK 빌드를 추가하지 않습니다.

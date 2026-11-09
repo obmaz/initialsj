@@ -36,7 +36,7 @@ python3 tools/prepare_apk_version.py --project initialsj \
 ## 로컬 빌드와 검증
 
 1. `AGENTS.md`, 현재 브랜치와 작업 트리를 읽고 원격 HEAD를 확인한다. 동기화를 요청받지 않았다면 작업 트리를 임의로 변경하지 않는다.
-2. [Android 안내](../../../docs/ANDROID.md)와 [개발 안내](../../../docs/DEVELOPMENT.md)를 따른다. 엔진은 `./tools/godot`이 검증하는 Godot 4.7.2를 사용한다. 기본은 저장소의 기존 테스트 키로 서명하는 `tools/build_android.sh`이다. 정식 배포용 서명은 명시적으로 요청받았을 때만 사용한다.
+2. [Android 안내](../../../docs/ANDROID.md)와 [개발 안내](../../../docs/DEVELOPMENT.md)를 따른다. 엔진은 `./tools/godot`이 검증하는 Godot 4.7.2를 사용한다. 기본은 `obmaz/commuzip`과 동일한 `tools/android-test.keystore`(별칭 `androiddebugkey`, 비밀번호 `android`)로 서명하는 `tools/build_android.sh`이다. 환경별 키를 생성하지 않는다. 종전 Initial SJ 전용 서명에서 공통 키로 전환한 설치본은 최초 재설치가 필요하다는 점을 전달한다. 정식 배포용 서명은 명시적으로 요청받았을 때만 사용한다.
 3. SDK·템플릿·Java 경로를 확인한다. `JAVA_HOME`은 실제 Java 설치 디렉터리를 가리켜야 한다. `XDG_CONFIG_HOME`을 사용한다면 빌드 스크립트가 쓰는 `$HOME/.config/godot` 설정을 엔진도 읽도록 맞춘다. `XDG_DATA_HOME`을 사용한다면 Android export template도 엔진이 읽는 위치에 있어야 한다.
 4. 필요한 저장소 검사와 주행 회귀 검사를 수행한다. 같은 소스에서 이미 통과한 검사는 반복하지 않는다. 검증 실패 시 전달하지 않는다.
 5. 새 APK 생성과 빌드 성공을 확인한다. 실패한 빌드 대신 이전 산출물을 전달하지 않는다. `aapt dump badging`으로 실제 버전·패키지·arm64 ABI·권한을 확인하고 `apksigner verify --verbose --print-certs` 및 `zipalign -c -P 16 4`로 서명과 정렬을 확인한다. 기기에서 실행하지 않았다면 그 범위를 명시한다.
