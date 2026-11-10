@@ -52,18 +52,22 @@ func run(tree: SceneTree) -> int:
 	check(race.track.active.has_node("SolidRoadEdges"),"도로 옆면은 실제 두께를 가진 입체 메시여야 한다")
 	for d in [424.0,430.0,436.0]:
 		check(not ray(race,d,8).is_empty(),"붕괴 전에는 상판 세 조각에 실제 바닥이 있어야 한다")
+	for i in range(collapse.PIECES): check(not ray(race,collapse.span.x+(i+.5)*collapse.PIECE_LENGTH,8).is_empty(),"확장 상판의 모든 조각에 최초 실제 바닥이 있어야 한다")
 	check(collapse.warning(200).contains("KEEP LEFT"),"붕괴 전에 왼쪽 통과로를 안내해야 한다")
 	collapse.advance(.6,300)
 	await tree.physics_frame
 	check(not ray(race,430,8).is_empty(),"경고 단계에서는 도로가 먼저 사라지면 안 된다")
 	for frame in range(120): collapse.advance(1.0/60,300)
 	check(not collapse.broken and not ray(race,430,8).is_empty(),"접근 경고만으로는 무너지면 안 된다")
+	collapse.advance(5,430)
+	check(not collapse.broken and not ray(race,430,8).is_empty(),"차체가 상판 위에 있는 동안 뒤쪽부터 무너뜨리면 안 된다")
 	collapse.advance(.01,550)
 	for frame in range(120): collapse.advance(1.0/60,550)
 	await tree.physics_frame
 	for d in [424.0,430.0,436.0]:
 		check(ray(race,d,8).is_empty(),"붕괴한 도로에 보이지 않는 충돌 바닥을 남기면 안 된다")
 		check(not ray(race,d,-3).is_empty(),"붕괴 뒤에도 왼쪽 차선은 실제로 통과할 수 있어야 한다")
+	for i in range(collapse.PIECES): check(ray(race,collapse.span.x+(i+.5)*collapse.PIECE_LENGTH,8).is_empty(),"확장 상판의 모든 조각에서 실제 바닥이 사라져야 한다")
 	check(collapse.span.y-collapse.span.x >= 100 and collapse.wreckage.visible,"100m 이상 붕괴와 지속되는 파단 흔적이 있어야 한다")
 	collapse.advance(.1,race.track.length+200)
 	check(collapse.broken and collapse.wreckage.visible and collapse.floors[0].collision_layer == 0,"한 바퀴 뒤에도 파손과 도로 소실이 남아야 한다")

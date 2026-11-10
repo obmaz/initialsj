@@ -1,6 +1,6 @@
 extends Node3D
 # 투어와 서킷이 공유하는 원본 입체 구조물입니다. 도로 안에는 장식 충돌체를 놓지 않습니다.
-const AD_TEXTURES := [preload("res://assets/environment/ad-aerova.svg"),preload("res://assets/environment/ad-shift.svg"),preload("res://assets/environment/ad-fizz.svg"),preload("res://assets/environment/ad-apex.svg"),preload("res://assets/environment/ad-summit.svg"),preload("res://assets/environment/ad-route84.svg"),preload("res://assets/environment/ad-bluebay.svg"),preload("res://assets/environment/ad-orbit.svg")]
+const Ads = preload("res://scripts/advertisement_library.gd")
 var track: Node3D
 var bridge_span := Vector2.ZERO
 var canyon_spans: Array[Vector2] = []
@@ -13,9 +13,6 @@ const AD_METRE_SCALE := 1.25
 var texture_regions: Array[Vector3] = []
 var advertisement_spans: Array[Vector2] = []
 var ad_spacing := 135.0
-var generated_ads := false
-const PROJECT_ADS = preload("res://assets/environment/project-promo-ads.png")
-const GENERATED_ADS = preload("res://assets/environment/generated-racing-ads.png")
 
 func _ready() -> void:
 	if bridge_span.y > bridge_span.x: make_bridge()
@@ -25,26 +22,7 @@ func _ready() -> void:
 	for span in advertisement_spans: make_billboards(span)
 
 func advertisement_material(index: int) -> Material:
-	if generated_ads:
-		# 3D 재질은 AtlasTexture의 영역을 자동 적용하지 않으므로 UV를 셰이더에서 분리한다.
-		var printed := ShaderMaterial.new()
-		printed.shader = preload("res://shaders/billboard_ad.gdshader")
-		var slot := posmod(index,10)
-		var grid := Vector2(3,2) if slot < 6 else Vector2(2,2)
-		var cell := slot if slot < 6 else slot-6
-		printed.set_shader_parameter("ad_atlas",PROJECT_ADS if slot < 6 else GENERATED_ADS)
-		printed.set_shader_parameter("ad_grid",grid)
-		printed.set_shader_parameter("ad_tile",Vector2(cell%int(grid.x),cell/int(grid.x)))
-		return printed
-	var mat := material(Color.WHITE)
-	mat.albedo_texture = AD_TEXTURES[index%AD_TEXTURES.size()]
-	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-	mat.roughness = .78
-	mat.emission_enabled = true
-	mat.emission = Color.WHITE
-	mat.emission_texture = mat.albedo_texture
-	mat.emission_energy_multiplier = .15
-	return mat
+	return Ads.material(index)
 
 func material(color: Color) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
@@ -275,7 +253,9 @@ func make_billboards(span: Vector2) -> void:
 		var basis := board.basis
 		var center := p+Vector3.UP*10
 		board.position = p+(center+basis.z*.25-p)*AD_METRE_SCALE
-		board.material_override = advertisement_material(i)
+		var ad_index := Ads.choose()
+		board.material_override = advertisement_material(ad_index)
+		board.add_to_group("racing_advertisement")
 		add_child(board)
 		backs.append(Transform3D(basis.scaled_local(Vector3(16.4,7.4,.42)),center))
 		for y in [-3.6,3.6]: frames.append(Transform3D(basis.scaled_local(Vector3(16.5,.18,.18)),center+Vector3.UP*y+basis.z*.26))
@@ -299,7 +279,9 @@ func make_billboards(span: Vector2) -> void:
 			for n in range(starts[part],geometry[part].size()):
 				var pose: Transform3D = geometry[part][n]
 				geometry[part][n] = Transform3D(pose.basis.scaled(Vector3.ONE*AD_METRE_SCALE),p+(pose.origin-p)*AD_METRE_SCALE)
-		billboard_manifest.append({"distance":d,"lane":lane,"width":ad_size.x,"height":ad_size.y,"position":board.position,"basis":basis})
+		var record := {"distance":d,"lane":lane,"width":ad_size.x,"height":ad_size.y,"position":board.position,"basis":basis,"ad_index":ad_index}
+		billboard_manifest.append(record)
+		board.set_meta("ad_record",record)
 	boxes("BillboardSteelSupports",posts,Color("555b5c"),false)
 	boxes("BillboardRimAndTruss",frames,Color("42494a"),false)
 	boxes("BillboardPanelBacks",backs,Color("747a76"))

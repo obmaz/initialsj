@@ -67,3 +67,5 @@ Godot Engine 4.7.2, MIT. Its licence text ships with the web export as well.
 `rural-fronts.png`, `rural-sides.png`는 생성형 이미지로 만든 시골집·작은 가게10종의 전용 정면·측면 원본입니다. 실제 프롬프트·참조·원본 식별자·해시는 `assets/environment/rural-village-source.md`에 보존했습니다.
 
 `project-promo-ads.png`는 사용자가 소유한 SJRPG·킹왕짱 RPG를 홍보하는 생성형 이미지6종입니다. 실제 첨부 자료·프롬프트·원본 해시는 `assets/environment/project-promo-source.md`에 보존했습니다. SJRPG는 개발 중 표기를 유지하고 킹왕짱은 저장소에서 확인한 영단어 학습·전투·장비 수집과 공개 주소를 표현합니다.
+
+`product-ads-{home,tech,play,life,travel}.png`는 이미지 생성 도구로 만든 가상 상품 광고30종입니다. 실제 제품 사진이나 외부 광고 이미지를 입력하지 않았으며 원본 식별자·실제 프롬프트·해시는 `assets/environment/product-ad-source.md`를 따릅니다.

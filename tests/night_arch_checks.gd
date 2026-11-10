@@ -42,12 +42,12 @@ func run(tree: SceneTree) -> int:
 	race.choose_mode("track",4)
 	var ads: Node3D = race.track.scenery.landmarks
 	check(ads.billboard_manifest.size() > riviera_ads*3 and ads.ad_spacing == 60,"협곡 광고 구역은 트랙4보다 세 배 이상 많은 간판을 촘촘히 배치해야 한다")
-	for index in range(10):
+	var Library = preload("res://scripts/advertisement_library.gd")
+	for index in range(Library.count()):
 		var mat: Material = ads.advertisement_material(index)
-		check(mat is ShaderMaterial and mat.get_shader_parameter("ad_atlas") == (ads.PROJECT_ADS if index < 6 else ads.GENERATED_ADS),"SJRPG·킹왕짱 각3종과 기존 생성형 광고를 사용해야 한다")
-		var cell: int = index if index < 6 else index-6
-		var cols: int = 3 if index < 6 else 2
-		check(mat.get_shader_parameter("ad_tile") == Vector2(cell%cols,cell/cols),"각 광고판에는 아틀라스 전체 대신 광고 한 장의 영역만 적용해야 한다")
+		var info: Dictionary = Library.selection(index)
+		check(mat is ShaderMaterial and mat.get_shader_parameter("ad_atlas") == info.atlas,"광고판은 해당 광고의 실제 생성형 원본을 사용해야 한다")
+		check(mat.get_shader_parameter("ad_tile") == info.tile and mat.get_shader_parameter("ad_grid") == info.grid,"각 광고판에는 광고 한 장의 영역만 적용해야 한다")
 	race.queue_free()
 	await tree.process_frame
 	print("야간 전조등 / 암석 아치 여유 높이 / 생성형 광고 구역: ","PASS" if failures == 0 else "FAIL")

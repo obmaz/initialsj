@@ -1,5 +1,4 @@
 shader_type spatial;
-uniform sampler2D ad_prints : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D building_fronts : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D building_sides : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D restaurant_facades : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
@@ -21,11 +20,6 @@ void fragment() {
   if(front>.5) ALBEDO=textureGrad(rural_fronts,uv,dFdx(q)*cell,dFdy(q)*cell).rgb;
   else ALBEDO=textureGrad(rural_sides,uv,dFdx(q)*cell,dFdy(q)*cell).rgb;
   ROUGHNESS=.9;SPECULAR=.12;
- } else if(style>29.5) {
-  float ad=floor(min(variant,.999)*8.0);
-  vec2 tile=vec2(mod(ad,4.0),floor(ad/4.0));
-  ALBEDO=texture(ad_prints,tile*vec2(.25,.5)+vec2(.002)+UV*vec2(.246,.496)).rgb;
-  ROUGHNESS=.75;
  } else if(style>9.5) {
   float index=floor(style+.5)-10.0;
   vec2 q=UV;

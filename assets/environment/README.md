@@ -10,7 +10,7 @@ No downloaded photographs or original arcade-game assets are used for the curren
 
 ## 장대교·협곡과 가상 광고
 
-`scenic_landmarks.gd`의 현수교와 층상 절벽은 이 프로젝트에서 직접 만든 절차적 3D 메시입니다. `ad-aerova.svg`, `ad-shift.svg`, `ad-fizz.svg`, `ad-apex.svg`는 가상 브랜드 광고이며 `tools/bake_scenic_ads.py`로 만듭니다. 번들 Roboto Bold Italic 글꼴(Apache-2.0, `assets/fonts/Roboto-LICENSE.txt`)의 윤곽선을 사용합니다. 외부 게임의 구조물·광고·상표를 추출하거나 복사하지 않았습니다. 광고판은 주행로 밖에 고정한 실제 패널이며 카메라를 따라 회전하지 않습니다.
+`scenic_landmarks.gd`의 현수교와 층상 절벽은 이 프로젝트에서 직접 만든 절차적 3D 메시입니다. `ad-print-atlas.svg`의 가상 브랜드8종는 가상 브랜드 광고이며 `tools/bake_scenic_ads.py`로 만듭니다. 번들 Roboto Bold Italic 글꼴(Apache-2.0, `assets/fonts/Roboto-LICENSE.txt`)의 윤곽선을 사용합니다. 외부 게임의 구조물·광고·상표를 추출하거나 복사하지 않았습니다. 광고판은 주행로 밖에 고정한 실제 패널이며 카메라를 따라 회전하지 않습니다.
 
 ## 구조물·표면 디테일
 
@@ -35,7 +35,7 @@ No downloaded photographs or original arcade-game assets are used for the curren
 
 
 
-간판은 SUMMIT TIRE, ROUTE 84, BLUEBAY, ORBIT AUTO를 추가해 8종입니다. 각 새 디자인은 사선·도로 차선·파도·궤도 그래픽과 별도 색상을 사용합니다. `tools/bake_scenic_ads.py`가 번들 Roboto 윤곽선으로 개별 SVG와 `ad-print-atlas.svg`를 생성하며 대형 협곡 간판과 일반 지역 간판에서 재사용합니다. 모두 가상 브랜드입니다.
+간판은 SUMMIT TIRE, ROUTE 84, BLUEBAY, ORBIT AUTO를 추가해 8종입니다. 각 새 디자인은 사선·도로 차선·파도·궤도 그래픽과 별도 색상을 사용합니다. `tools/bake_scenic_ads.py`가 번들 Roboto 윤곽선으로 `ad-print-atlas.svg`의8개 인쇄 영역을 생성하며 대형 협곡 간판과 일반 지역 간판에서 재사용합니다. 모두 가상 브랜드입니다.
 
 건물 전용 정면 `building-front-elevations.png`와 측면 `building-side-elevations.png`는 각각 `exec-662a932d-5b8b-4067-b69c-1906b514bd9f.png`, `exec-848aea2a-7be2-456e-9b1a-5815401c15ca.png`에서 복사했습니다. 4×3 구성의 각 영역이 서로 다른 건물의 정면·측면에 대응합니다. 국수집·기념품점의 `restaurant-elevations.png`는 `exec-16d888b4-e4bc-4d2a-a0c7-8faaf1a6a180.png`의 2×2 전용 외벽입니다. 이미지 생성 도구로 제작한 원본이며 외부 사진·실존 브랜드를 입력하지 않았습니다. 이전 소매점·도시 공용 외벽 두 장은 이 전용 이미지로 교체했습니다.
 

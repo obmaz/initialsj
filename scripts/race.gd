@@ -624,6 +624,7 @@ func restart() -> void:
 	if mode == "tour" and (track.active.stage != 0 or not track.history.is_empty()): track.reset()
 	if track.active.collapse != null: track.active.collapse.reset_effect()
 	if track.active.rockfall != null: track.active.rockfall.reset_effect()
+	preload("res://scripts/advertisement_library.gd").reshuffle(get_tree())
 	distance = 80
 	completed_distance = 0
 	lane = -3.2

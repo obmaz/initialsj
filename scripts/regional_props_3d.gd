@@ -13,6 +13,7 @@ const FAMILIES := {
  "harbor":["containers","dock_crane","container_stack","warehouse_shed","fuel_tank","container_stack","palm","cargo_ship"],
  "amusement":["ticket_booth","broadleaf","sakura"]
 }
+const Ads = preload("res://scripts/advertisement_library.gd")
 const Models = preload("res://scripts/quaternius_props.gd")
 const RURAL_KINDS := ["rural_farmhouse","rural_stone_cottage","rural_brick_house","rural_timber_house","rural_chalet","rural_grocer","rural_bakery","rural_fruit_shop","rural_cafe","rural_garage"]
 const RURAL_DIMS := [Vector3(14,6.4,10),Vector3(10,3.7,8),Vector3(12,3.9,9),Vector3(11,5.8,8),Vector3(10,5.5,9),Vector3(14,4.2,10),Vector3(12,4.3,9),Vector3(13,3.8,9),Vector3(12,6,9),Vector3(16,4.5,12)]
@@ -48,7 +49,6 @@ func _ready() -> void:
  if shared_material == null:
   shared_material = ShaderMaterial.new()
   shared_material.shader = preload("res://shaders/prop_facade.gdshader")
-  shared_material.set_shader_parameter("ad_prints",preload("res://assets/environment/ad-print-atlas.svg"))
   shared_material.set_shader_parameter("building_fronts",preload("res://assets/environment/building-front-elevations.png"))
   shared_material.set_shader_parameter("building_sides",preload("res://assets/environment/building-side-elevations.png"))
   shared_material.set_shader_parameter("rural_fronts",preload("res://assets/environment/rural-fronts.png"))
@@ -60,7 +60,9 @@ func _ready() -> void:
   var family: Array = FAMILIES.get(theme,FAMILIES.hawaii)
   var kind: String = p.get("kind",family[int(p.get("variant",i))%family.size()])
   var group := kind+":"+str(floori(p.position.x/180))+":"+str(floori(p.position.z/180))
-  if not groups.has(group): groups[group] = {"kind":kind,"poses":[]}
+  var ad_index: int = Ads.choose() if kind == "billboard" else -1
+  if kind == "billboard": group += ":ad"+str(ad_index)
+  if not groups.has(group): groups[group] = {"kind":kind,"poses":[],"ad_index":ad_index}
   var scale: float = p.get("scale",1.0)
   var transform := Transform3D(Basis(Vector3.UP,float(p.get("yaw",0))).scaled_local(Vector3.ONE*scale),p.position)
   groups[group].poses.append(transform)
@@ -88,7 +90,10 @@ func _ready() -> void:
    var node := MultiMeshInstance3D.new()
    node.name = "Regional3D_"+kind+"_"+str(start)
    node.multimesh = multi
-   node.material_override = shared_material
+   node.material_override = Ads.prop_material(groups[group].ad_index) if kind == "billboard" else shared_material
+   if kind == "billboard":
+    node.add_to_group("racing_advertisement")
+    node.set_meta("ad_index",groups[group].ad_index)
    node.visibility_range_end = 400 if kind in ["palm","pine","snow_pine"] else (190 if kind.begins_with("lake_bush") or kind.begins_with("lake_rock") else (330 if Models.is_tree(kind) else 310))
    node.visibility_range_end_margin = 24
    node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

@@ -20,6 +20,7 @@ def text(label, x, y, size, color):
     return f'<g fill="{color}">'+''.join(paths)+'</g>'
 
 def main():
+    designs = {}
     for name, brand, slogan, bg, fg in [
         ('aerova','AEROVA','CHASE THE HORIZON','#143e72','#ffffff'),
         ('shift','SHIFT 96','FIND YOUR NEXT GEAR','#f2b830','#18232a'),
@@ -39,11 +40,11 @@ def main():
         svg += text(brand,173,231,104 if len(brand)<10 else 88,fg)
         svg += text(slogan,173,310,36,fg)
         svg += f'<path d="M173 352H951" stroke="{fg}" stroke-width="7"/><path d="M887 78L957 78L940 99L870 99Z" fill="{fg}"/>'
-        (ROOT / f'assets/environment/ad-{name}.svg').write_text(svg+'</svg>\n')
+        designs[name] = svg+'</svg>\n'
     names=['aerova','shift','fizz','apex','summit','route84','bluebay','orbit']
     pieces=['<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="448" viewBox="0 0 4096 896">']
     for i,name in enumerate(names):
-        source=(ROOT/f'assets/environment/ad-{name}.svg').read_text()
+        source=designs[name]
         body=source[source.index('>')+1:source.rindex('</svg>')]
         pieces.append(f'<g transform="translate({i%4*1024} {i//4*448})">{body}</g>')
     (ROOT/'assets/environment/ad-print-atlas.svg').write_text(''.join(pieces)+'</svg>\n')
