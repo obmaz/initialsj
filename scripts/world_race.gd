@@ -26,7 +26,7 @@ func setup() -> void:
 		var body: CharacterBody3D = WorldCar.new()
 		body.name = "PlayerWorldBody" if i == 0 else "RivalWorldBody"+str(i)
 		body.cheap_adhesion = i > 0
-		body.coast_profile = i == 0 and (race.mode == "tour" or race.selected_course in [3,4])
+		body.coast_profile = i == 0 and race.coast_handling
 		add_child(body)
 		bodies.append(body)
 		var tracker: RefCounted = Progress.new() if race.mode == "track" else TourProgress.new()
@@ -153,7 +153,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	if player_body.grounded: accel *= Corner.engine_factor(race.speed,cap,player_body.corner_demand,player_body.corner_grip)
 	var target: float = move_toward(race.speed,cap,accel*delta) if gas else maxf(0,race.speed-5*delta)
 	if race.drifting:
-		target = move_toward(race.speed,cap*0.98,accel*0.45*delta) if (race.mode == "tour" or race.selected_course in [3,4]) and gas else maxf(0,race.speed-delta*0.35)
+		target = move_toward(race.speed,cap*0.98,accel*0.45*delta) if race.coast_handling and gas else maxf(0,race.speed-delta*0.35)
 	if brake: target = maxf(0,race.speed-race.vehicle.brake*delta)
 	reverse_wait = reverse_wait+delta if brake and race.speed < 1.5 else 0.0
 	if not brake: reversing = false
@@ -215,7 +215,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	var road_forward: Vector3 = (race.track.point(race.distance+2)-race.track.point(race.distance-2)).normalized()
 	wrong_way_time = wrong_way_time+delta if player_body.velocity.dot(road_forward) < -5 and player_body.grounded else 0.0
 	race.boosting = race.nitro_active or race.pad_active or (race.draft_charge > 0.65 and race.throttling)
-	if (race.mode == "tour" or race.selected_course in [3,4]):
+	if race.coast_handling:
 		race.score += race.coast_drift.step(delta,race.speed,race.slip_angle,race.drifting,player_body.grounded,race.offroad_amount < 0.15 and race.impact < 0.15 and not race.crash.active)
 	elif race.drifting and player_body.grounded and race.offroad_amount < 0.15:
 		race.score += delta*race.speed*(2+race.drift_charge)
@@ -242,12 +242,12 @@ func update_drift(delta: float, pressed: bool, brake: bool, gas: bool) -> void:
 	elif tap: race.drift_pending = 0.55
 	if brake and not race.previous_brake: race.brake_armed = 0.45
 	race.brake_armed = maxf(0,race.brake_armed-delta)
-	if not ended and race.speed > 25 and absf(race.steer) > (0.08 if (race.mode == "tour" or race.selected_course in [3,4]) else 0.2) and (race.drift_pending > 0 or (race.previous_brake and race.brake_armed > 0 and gas)):
+	if not ended and race.speed > 25 and absf(race.steer) > (0.08 if race.coast_handling else 0.2) and (race.drift_pending > 0 or (race.previous_brake and race.brake_armed > 0 and gas)):
 		race.drift_latched = true
 		race.drift_sign = signf(race.steer)
 		race.drift_pending = 0
-	if not player_body.grounded or race.speed < 22 or brake and absf(race.steer) < (0.04 if (race.mode == "tour" or race.selected_course in [3,4]) else 0.14): race.drift_latched = false
-	if absf(race.steer) < (0.04 if (race.mode == "tour" or race.selected_course in [3,4]) else 0.12) and absf(player_body.slip_angle) < 0.12:
+	if not player_body.grounded or race.speed < 22 or brake and absf(race.steer) < (0.04 if race.coast_handling else 0.14): race.drift_latched = false
+	if absf(race.steer) < (0.04 if race.coast_handling else 0.12) and absf(player_body.slip_angle) < 0.12:
 		race.drift_straight += delta
 		if race.drift_straight > 0.4: race.drift_latched = false
 	else: race.drift_straight = 0
@@ -610,7 +610,7 @@ func recover_player() -> bool:
 
 func update_camera(delta: float) -> void:
 	var forward: Vector3 = player_body.forward_direction()
-	if (race.mode == "tour" or race.selected_course in [3,4]) and race.drifting and player_body.velocity.length() > 25:
+	if race.coast_handling and race.drifting and player_body.velocity.length() > 25:
 		forward = forward.lerp(player_body.velocity.normalized(),0.65).normalized()
 	var right := Vector3(-forward.z,0,forward.x).normalized()
 	var pace := clampf(race.speed/88,0,1)

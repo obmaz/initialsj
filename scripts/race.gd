@@ -196,6 +196,9 @@ var best_time := 0.0
 var previous_best := 0.0
 var new_record := false
 var save_records := true
+# 투어와 TRACK04·05의 해안 드리프트 규칙: 쉬운 드리프트 진입·유지와 드리프트 점수를 쓴다.
+var coast_handling: bool:
+	get: return mode == "tour" or selected_course in [3,4]
 var stage_index: int:
 	get: return track.active.stage
 var route_node: int:

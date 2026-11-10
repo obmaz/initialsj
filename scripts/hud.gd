@@ -586,7 +586,7 @@ func draw_circuit_map() -> void:
 	text_at(Vector2(1107,210),race.course_label,11,Color("b4d1df"))
 
 func draw_drift_score() -> void:
-	if race.mode == "tour" or race.selected_course in [3,4]:
+	if race.coast_handling:
 		draw_coast_drift()
 		return
 	if drift_fade <= 0:
