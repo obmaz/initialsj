@@ -3,6 +3,7 @@ extends RefCounted
 static var owners := 0
 static var quads: Dictionary = {}
 static var box_mesh: ArrayMesh
+static var vehicle_body: ShaderMaterial
 # 작업 스레드에서 읽는 중인 리소스 경로. fetch()가 결과를 받아 가면 지운다.
 static var warming: Dictionary = {}
 
@@ -15,12 +16,15 @@ static func release_owner() -> bool:
 	if owners != 0: return false
 	quads.clear()
 	box_mesh = null
+	vehicle_body = null
 	for path in warming: ResourceLoader.load_threaded_get(path)
 	warming.clear()
 	return true
 
 # 주행 중에 만드는 구간이 처음 쓰는 텍스처·모델을 작업 스레드에서 미리 읽기 시작한다.
 static func warm(path: String) -> void:
+	# 화면 없는 실행의 더미 렌더러는 스레드에서 리소스를 만들 수 없다. 그때는 fetch()가 바로 읽는다.
+	if DisplayServer.get_name() == "headless": return
 	if warming.has(path) or ResourceLoader.has_cached(path): return
 	if ResourceLoader.load_threaded_request(path) == OK: warming[path] = true
 
@@ -28,6 +32,13 @@ static func warm(path: String) -> void:
 static func fetch(path: String) -> Resource:
 	if warming.erase(path): return ResourceLoader.load_threaded_get(path)
 	return load(path)
+
+# 모든 차량의 차체·바퀴가 함께 쓰는 재질. 조각별 차이는 정점 자료에 있다.
+static func vehicle_body_material() -> ShaderMaterial:
+	if vehicle_body == null:
+		vehicle_body = ShaderMaterial.new()
+		vehicle_body.shader = preload("res://shaders/vehicle_body.gdshader")
+	return vehicle_body
 
 # 미리 읽기 시작했지만 쓰이지 않은 리소스를 놓는다.
 static func release(path: String) -> void:

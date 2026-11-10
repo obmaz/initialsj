@@ -79,32 +79,35 @@ func make_drift_smoke() -> void:
 		particles.position = Vector3(x, 0.25, wheel_half_base)
 		smoke.append(particles)
 
+# 타이어와 림을 한 메시로 만들어 바퀴 하나를 한 번에 그린다. 좌우는 림이 붙는 면만 다르다.
+func make_wheel_mesh(side: float) -> ArrayMesh:
+	var tire := CylinderMesh.new()
+	tire.top_radius = wheel_radius
+	tire.bottom_radius = wheel_radius
+	tire.height = wheel_thickness
+	tire.radial_segments = 24
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	append_baked(surface,tire,Transform3D.IDENTITY,mat(Color("131b23")))
+	var rim_pose := Transform3D(Basis.IDENTITY.scaled(Vector3.ONE*rim_scale),Vector3(0,-side*(wheel_thickness*0.5+0.015),0))
+	if side > 0: rim_pose.basis = Basis(Vector3(0,0,1),PI)*rim_pose.basis
+	append_baked(surface,make_rim_mesh(),rim_pose,mat(model_definition.parameters.rim_color, 0.85))
+	surface.index()
+	return surface.commit()
+
 func make_wheels() -> void:
-	var rim_mesh := make_rim_mesh()
 	var axle := wheel_half_track
 	var wheelbase := wheel_half_base
 	for x in [-axle, axle]:
+		var mesh := make_wheel_mesh(signf(x))
 		for z in [-wheelbase, wheelbase]:
 			var wheel := MeshInstance3D.new()
-			var mesh := CylinderMesh.new()
-			mesh.top_radius = wheel_radius
-			mesh.bottom_radius = wheel_radius
-			mesh.height = wheel_thickness
-			mesh.radial_segments = 24
 			wheel.mesh = mesh
-			wheel.material_override = mat(Color("131b23"))
+			wheel.material_override = shared_body_material()
 			body.add_child(wheel)
 			wheel.position = Vector3(x, wheel_radius + 0.02, z)
 			wheel.rotation.z = PI / 2
 			wheels.append(wheel)
-			var rim := MeshInstance3D.new()
-			rim.mesh = rim_mesh
-			rim.scale = Vector3.ONE*rim_scale
-			rim.material_override = mat(model_definition.parameters.rim_color, 0.85)
-			wheel.add_child(rim)
-			rim.position.y = -signf(x) * (wheel_thickness*0.5+0.015)
-			if x > 0:
-				rim.rotation.z = PI
 
 func animate(steer: float, drifting: bool, boosting: bool, delta: float, yaw: float = NAN, braking: bool = false, hit: float = 0) -> void:
 	body.rotation.z = lerp(body.rotation.z, -steer * 0.06, delta * 8)
@@ -157,20 +160,61 @@ func make_rim_mesh() -> ArrayMesh:
 			st.add_vertex(p)
 	return st.commit()
 
-# Untextured body pieces share a surface per material instead of individual draw calls.
+# 재질이 다른 차체 조각도 한 메시로 합쳐 한 번에 그린다. 조각별 색·금속성·거칠기·클리어코트·발광은
+# 정점 자료로 옮긴다(shaders/vehicle_body.gdshader). 밝기가 바뀌는 브레이크등만 재질별로 따로 둔다.
+static func shared_body_material() -> ShaderMaterial:
+	return preload("res://scripts/render_resources.gd").vehicle_body_material()
+
+# 정점 자료로 옮겨도 모양이 같은 재질인지: 불투명·기본 음영·뒷면 제거·무텍스처.
+static func bakeable(material: Material) -> bool:
+	if not material is BaseMaterial3D: return false
+	if material.vertex_color_use_as_albedo or material.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED: return false
+	if material.shading_mode != BaseMaterial3D.SHADING_MODE_PER_PIXEL or material.cull_mode != BaseMaterial3D.CULL_BACK: return false
+	for slot in range(BaseMaterial3D.TEXTURE_MAX):
+		if material.get_texture(slot) != null: return false
+	return true
+
+static func append_baked(surface: SurfaceTool, mesh: Mesh, pose: Transform3D, material: BaseMaterial3D) -> void:
+	var arrays: Array = mesh.surface_get_arrays(0)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+	if indices.is_empty(): indices = PackedInt32Array(range(vertices.size()))
+	var surface_data := Vector2(material.metallic,material.roughness)
+	var coat := Vector2(material.clearcoat if material.clearcoat_enabled else 0.0,material.emission_energy_multiplier if material.emission_enabled else 0.0)
+	# 발광 재질은 발광색과 표면색이 같은 색으로 만들어진다(mat()).
+	surface.set_color(material.albedo_color)
+	surface.set_uv(surface_data)
+	surface.set_uv2(coat)
+	for index in indices:
+		surface.set_normal((pose.basis*normals[index]).normalized())
+		surface.add_vertex(pose*vertices[index])
+
 func merge_static_body() -> void:
+	var baked := SurfaceTool.new()
+	baked.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var baked_count := 0
 	var groups := {}
 	for child in body.get_children():
 		if not child is MeshInstance3D or child in wheels or child in nitro_flames or child in nitro_glows or child in headlamp_lenses: continue
 		var material: Material = child.material_override
 		# 외부 모델의 텍스처·UV·셰이더·다중 표면을 보존한다.
-		if child.mesh.get_surface_count() != 1 or not material is BaseMaterial3D: continue
-		var textured: bool = material.vertex_color_use_as_albedo
-		for slot in range(BaseMaterial3D.TEXTURE_MAX):
-			if material.get_texture(slot) != null: textured = true
-		if textured: continue
-		if not groups.has(material): groups[material] = []
-		groups[material].append(child)
+		if child.mesh.get_surface_count() != 1 or not bakeable(material): continue
+		if material in brake_lights:
+			if not groups.has(material): groups[material] = []
+			groups[material].append(child)
+			continue
+		append_baked(baked,child.mesh,child.transform,material)
+		baked_count += 1
+		body.remove_child(child)
+		child.queue_free()
+	if baked_count > 0:
+		baked.index()
+		var shell := MeshInstance3D.new()
+		shell.name = "BodyShell"
+		shell.mesh = baked.commit()
+		shell.material_override = shared_body_material()
+		body.add_child(shell)
 	for material in groups:
 		var surface := SurfaceTool.new()
 		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -187,16 +231,14 @@ func merge_static_body() -> void:
 			child.queue_free()
 		surface.index()
 		var merged := MeshInstance3D.new()
+		merged.name = "BrakeLights"
 		merged.mesh = surface.commit()
 		merged.material_override = material
-		# Keep body shadows; tiny lights, glazing and far traffic details need none.
-		if material.emission_enabled or material.albedo_color == Color("78818c") or material.albedo_color == Color("253e50") or (traffic and material.albedo_color != paint):
-			merged.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		merged.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		body.add_child(merged)
 	if traffic:
 		for wheel in wheels:
 			wheel.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			for rim in wheel.get_children(): rim.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var multi := MultiMesh.new()
 		multi.transform_format = MultiMesh.TRANSFORM_3D
 		var tire := BoxMesh.new()
