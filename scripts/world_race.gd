@@ -1,5 +1,6 @@
 extends Node3D
 # 트랙과 투어의 공통 실제 3D 차체·접지·충돌·카메라. 도로 좌표는 계측에만 사용한다.
+const RaceState = preload("res://scripts/race_state.gd")
 const WorldCar = preload("res://scripts/world_car.gd")
 const Progress = preload("res://scripts/circuit_progress.gd")
 const TourProgress = preload("res://scripts/tour_progress.gd")
@@ -617,7 +618,7 @@ func update_camera(delta: float) -> void:
 	var pace := clampf(race.speed/88,0,1)
 	var up := Vector3.UP.lerp(player_body.surface_normal,0.3).normalized()
 	var desired: Vector3 = -forward*(7.1+pace*0.9)+Vector3.UP*(3.0+race.camera_intro*1.5)
-	if not race.motion_reduced and race.state == "racing":
+	if not race.motion_reduced and race.state == RaceState.RACING:
 		# Speed hum, kerb/rail rumble, boost pull-back and a dip when the car lands.
 		race.camera_time += delta
 		var jitter: float = 0.010*pace*pace+race.edge_rumble*pace*0.03+race.offroad_amount*pace*0.02

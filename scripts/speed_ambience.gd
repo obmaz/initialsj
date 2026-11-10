@@ -1,8 +1,9 @@
 extends Node3D
 # Celebration bursts only. Driving has no continuous pollen, petals or dust emitter.
+const RaceState = preload("res://scripts/race_state.gd")
 var petals := CPUParticles3D.new()
 var last_checkpoint := 0
-var last_state := "ready"
+var last_state := RaceState.READY
 func _ready() -> void:
 	petals.amount = 24
 	petals.lifetime = 0.7
@@ -25,13 +26,13 @@ func _ready() -> void:
 	petals.material_override = material
 	add_child(petals)
 func update(race: Node3D) -> void:
-	var celebrate: bool = race.checkpoints > last_checkpoint or (race.state == "finished" and last_state != "finished")
+	var celebrate: bool = race.checkpoints > last_checkpoint or (race.state == RaceState.FINISHED and last_state != RaceState.FINISHED)
 	last_checkpoint = race.checkpoints
 	last_state = race.state
-	petals.visible = not race.motion_reduced and race.state in ["racing","finished"]
+	petals.visible = not race.motion_reduced and race.state in [RaceState.RACING,RaceState.FINISHED]
 	if celebrate and petals.visible:
 		petals.position = race.track.point(race.distance+12)+Vector3.UP*4
 		petals.restart()
 		petals.emitting = true
-	elif race.state not in ["racing","finished"] or race.motion_reduced:
+	elif race.state not in [RaceState.RACING,RaceState.FINISHED] or race.motion_reduced:
 		petals.emitting = false

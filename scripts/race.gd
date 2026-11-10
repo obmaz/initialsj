@@ -1,4 +1,5 @@
 extends Node3D
+const RaceState = preload("res://scripts/race_state.gd")
 const Track = preload("res://scripts/track.gd")
 const Car = preload("res://scripts/car.gd")
 const HUD = preload("res://scripts/hud.gd")
@@ -26,13 +27,13 @@ var recovery := Recovery.new()
 var recovery_distance := 80.0
 var recovery_lane := -3.2
 var recovery_available: bool:
-	get: return state == "racing" and recovery.available
+	get: return state == RaceState.RACING and recovery.available
 const GAME_PACE := 1.2
 const RECORD_GROUP := "coast_rush_v3"
 var selected_vehicle := 0
 var vehicle: Dictionary = Catalog.spec(0)
 var previews: Node
-var resume_state := "racing"
+var resume_state := RaceState.RACING
 var nitro_charges := 0
 var nitro_burst_left := 0.0
 var nitro_cooldown := 0.0
@@ -66,7 +67,7 @@ var shoulder_dust_clock := 0.0
 var landing_dust: Node3D
 var water_effect: Node3D
 var pad_active: bool:
-	get: return state == "racing" and not crash.active and (surface.pad_time > 0 or surface.lane_active) and not braking and impact < 0.15
+	get: return state == RaceState.RACING and not crash.active and (surface.pad_time > 0 or surface.lane_active) and not braking and impact < 0.15
 var mode := "tour"
 var graphics_mode := 0
 var render_budget := RenderBudget.new()
@@ -88,7 +89,7 @@ var course_title: String:
 	get: return COURSE_TITLES[clampi(selected_course,0,COURSE_COUNT-1)]
 var course_label: String:
 	get: return COURSE_LABELS[clampi(selected_course,0,COURSE_COUNT-1)]
-var settings_return := "menu"
+var settings_return := RaceState.MENU
 # Shown on the loading card of the next screen transition (empty for an ordinary fade).
 var loading_title := ""
 # Low-memory rendering for consoles and browsers that already lost their GPU context.
@@ -98,11 +99,15 @@ var hazard_text := ""
 var laps_completed := 0
 var lap_started := 0.0
 var last_lap := 0.0
-var state := "menu":
+var state := RaceState.MENU:
 	set(value):
+		# 오타로 생긴 상태는 모든 비교에서 조용히 빠진다. 선언된 값만 받는다.
+		if value not in RaceState.ALL:
+			push_error("Unknown race state: "+str(value))
+			return
 		state = value
 		_sync_web_back()
-		if state != "settings": _hide_fullscreen_control()
+		if state != RaceState.SETTINGS: _hide_fullscreen_control()
 		sync_world_rendering()
 var distance := 80.0
 var completed_distance := 0.0
@@ -321,7 +326,7 @@ func _ready() -> void:
 		web_orientation_callback = JavaScriptBridge.create_callback(_on_web_orientation)
 		JavaScriptBridge.get_interface("window").initialsjObserveOrientation(web_orientation_callback)
 		web_back_callback = JavaScriptBridge.create_callback(_on_web_back)
-		JavaScriptBridge.get_interface("window").initialsjObserveBack(web_back_callback,state != "menu")
+		JavaScriptBridge.get_interface("window").initialsjObserveBack(web_back_callback,state != RaceState.MENU)
 		web_fullscreen_callback = JavaScriptBridge.create_callback(_on_web_fullscreen)
 		JavaScriptBridge.get_interface("window").initialsjObserveFullscreen(web_fullscreen_callback)
 	elif OS.has_feature("android"):
@@ -343,7 +348,7 @@ func _on_web_fullscreen(args: Array) -> void:
 	web_fullscreen_active = active
 	web_dom_fullscreen_active = dom_active
 	# Android Back can leave browser fullscreen before dispatching popstate.
-	if exited and state in ["racing","countdown","paused"]:
+	if exited and state in [RaceState.RACING,RaceState.COUNTDOWN,RaceState.PAUSED]:
 		pause_tour()
 		# Some browser versions emit both fullscreenchange and popstate for
 		# one Back gesture; do not let the second event immediately resume.
@@ -374,7 +379,7 @@ func _hide_fullscreen_control() -> void:
 
 func sync_fullscreen_button(design_rect: Rect2) -> void:
 	if not OS.has_feature("web"): return
-	if state != "settings" or (screen_transition != null and screen_transition.busy):
+	if state != RaceState.SETTINGS or (screen_transition != null and screen_transition.busy):
 		_hide_fullscreen_control()
 		return
 	var viewport_size := get_viewport().get_visible_rect().size
@@ -387,7 +392,7 @@ func sync_fullscreen_button(design_rect: Rect2) -> void:
 func _sync_web_back() -> void:
 	if web_back_callback != null:
 		var transitioning: bool = screen_transition != null and screen_transition.busy
-		JavaScriptBridge.get_interface("window").initialsjSetBackEnabled(state != "menu" or transitioning)
+		JavaScriptBridge.get_interface("window").initialsjSetBackEnabled(state != RaceState.MENU or transitioning)
 
 func _on_web_back(_args: Array) -> void:
 	navigate_back()
@@ -398,12 +403,12 @@ func navigate_back() -> bool:
 	if Time.get_ticks_msec() < web_back_after_fullscreen_until: return true
 	if screen_transition != null and screen_transition.busy: return true
 	match state:
-		"racing", "countdown": pause_tour()
-		"paused": resume_tour()
-		"ready": navigate(open_courses if mode == "track" else open_menu)
-		"courses": navigate(open_menu)
-		"settings": navigate(close_settings)
-		"finished", "failed": navigate(open_garage)
+		RaceState.RACING,RaceState.COUNTDOWN: pause_tour()
+		RaceState.PAUSED: resume_tour()
+		RaceState.READY: navigate(open_courses if mode == "track" else open_menu)
+		RaceState.COURSES: navigate(open_menu)
+		RaceState.SETTINGS: navigate(close_settings)
+		RaceState.FINISHED,RaceState.FAILED: navigate(open_garage)
 		_: return false
 	return true
 
@@ -477,7 +482,7 @@ func cycle_graphics() -> void:
 func open_courses() -> void:
 	menu_focus = 0
 	hud.fingers.clear()
-	state = "courses"
+	state = RaceState.COURSES
 
 # The region name plus its style, e.g. "SKYLINE DRIVE / SKYWAY CITY".
 func route_banner() -> String:
@@ -564,7 +569,7 @@ func choose_mode(value: String, course: int = 0) -> void:
 		visual_theme = ""
 	create_world_controller()
 	render_budget.apply(self)
-	state = "ready"
+	state = RaceState.READY
 	open_garage()
 	load_record()
 
@@ -578,13 +583,13 @@ func open_menu() -> void:
 	menu_focus = 0
 	cancel_nitro()
 	hud.fingers.clear()
-	state = "menu"
+	state = RaceState.MENU
 
 func open_settings() -> void:
 	if OS.has_feature("web"): JavaScriptBridge.eval("window.initialsjPrepareInstall && window.initialsjPrepareInstall()")
 	settings_return = state
 	hud.fingers.clear()
-	state = "settings"
+	state = RaceState.SETTINGS
 
 func close_settings() -> void:
 	state = settings_return
@@ -718,7 +723,7 @@ func restart(start_countdown: bool = true) -> void:
 	launch_flash = 0
 	camera_offset = Vector3.ZERO
 	camera_intro = 0
-	state = "countdown" if start_countdown else "ready"
+	state = RaceState.COUNTDOWN if start_countdown else RaceState.READY
 	initialize_traffic()
 	if world_race != null:
 		world_race.reset()
@@ -745,12 +750,12 @@ func _input(event: InputEvent) -> void:
 	if web_portrait: return
 	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION: return
 	if event is InputEventKey and event.pressed and not event.echo:
-		if state == "menu":
+		if state == RaceState.MENU:
 			if event.keycode in [KEY_ENTER,KEY_1,KEY_T]: navigate_to_mode("tour")
 			elif event.keycode in [KEY_2,KEY_C]: navigate(open_courses)
 			elif event.keycode == KEY_TAB: navigate(open_settings)
 			return
-		if state == "courses":
+		if state == RaceState.COURSES:
 			if event.keycode in [KEY_1,KEY_ENTER]: navigate_to_mode("track",0)
 			elif event.keycode == KEY_2: navigate_to_mode("track",1)
 			elif event.keycode == KEY_3: navigate_to_mode("track",2)
@@ -758,25 +763,25 @@ func _input(event: InputEvent) -> void:
 			elif event.keycode == KEY_5: navigate_to_mode("track",4)
 			elif event.keycode == KEY_ESCAPE: navigate(open_menu)
 			return
-		if state == "settings":
+		if state == RaceState.SETTINGS:
 			if event.keycode in [KEY_ESCAPE,KEY_TAB]: navigate(close_settings)
 			return
-		if state == "ready" and event.keycode == KEY_ESCAPE:
+		if state == RaceState.READY and event.keycode == KEY_ESCAPE:
 			if mode == "track": navigate(open_courses)
 			else: navigate(open_menu)
 			return
 		if event.keycode == KEY_ENTER:
-			if state == "ready": start_race()
-			elif state in ["finished","failed"]: navigate(open_garage)
-		elif state == "ready" and event.keycode >= KEY_1 and event.keycode < KEY_1+Catalog.SPECS.size(): select_vehicle(event.keycode-KEY_1)
-		elif state == "ready" and event.keycode in [KEY_A,KEY_LEFT]: select_vehicle(posmod(selected_vehicle-1,Catalog.SPECS.size()))
-		elif state == "ready" and event.keycode in [KEY_D,KEY_RIGHT]: select_vehicle((selected_vehicle+1)%Catalog.SPECS.size())
+			if state == RaceState.READY: start_race()
+			elif state in RaceState.ENDED: navigate(open_garage)
+		elif state == RaceState.READY and event.keycode >= KEY_1 and event.keycode < KEY_1+Catalog.SPECS.size(): select_vehicle(event.keycode-KEY_1)
+		elif state == RaceState.READY and event.keycode in [KEY_A,KEY_LEFT]: select_vehicle(posmod(selected_vehicle-1,Catalog.SPECS.size()))
+		elif state == RaceState.READY and event.keycode in [KEY_D,KEY_RIGHT]: select_vehicle((selected_vehicle+1)%Catalog.SPECS.size())
 		elif event.keycode == KEY_V: toggle_sound()
 		elif event.keycode == KEY_M: toggle_motion()
-		elif event.keycode == KEY_R and state != "ready": start_race()
-		elif event.keycode == KEY_G and state == "paused": navigate(open_menu)
+		elif event.keycode == KEY_R and state != RaceState.READY: start_race()
+		elif event.keycode == KEY_G and state == RaceState.PAUSED: navigate(open_menu)
 		elif event.keycode in [KEY_ESCAPE,KEY_P]:
-			if state == "paused": resume_tour()
+			if state == RaceState.PAUSED: resume_tour()
 			else: pause_tour()
 	if event is InputEventScreenTouch or event is InputEventMouseButton: hud.handle_pointer(event)
 	if event is InputEventScreenDrag: hud.move_pointer(event.index,event.position)
@@ -786,7 +791,7 @@ func _input(event: InputEvent) -> void:
 func pad_pressed(button: int) -> void:
 	var count := Catalog.SPECS.size()
 	match state:
-		"menu":
+		RaceState.MENU:
 			match button:
 				JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN: pad_focus(button)
 				JOY_BUTTON_A:
@@ -796,7 +801,7 @@ func pad_pressed(button: int) -> void:
 						_: navigate(open_settings)
 				JOY_BUTTON_X: navigate(open_courses)
 				JOY_BUTTON_Y: navigate(open_settings)
-		"courses":
+		RaceState.COURSES:
 			match button:
 				JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN: pad_focus(button)
 				JOY_BUTTON_A:
@@ -806,30 +811,30 @@ func pad_pressed(button: int) -> void:
 				JOY_BUTTON_X: navigate_to_mode("track",1)
 				JOY_BUTTON_Y: navigate_to_mode("track",2)
 				JOY_BUTTON_B: navigate(open_menu)
-		"settings":
+		RaceState.SETTINGS:
 			match button:
 				JOY_BUTTON_DPAD_UP: settings_focus = posmod(settings_focus-1,SETTINGS_ROWS)
 				JOY_BUTTON_DPAD_DOWN: settings_focus = posmod(settings_focus+1,SETTINGS_ROWS)
 				JOY_BUTTON_A: settings_activate(settings_focus)
 				JOY_BUTTON_B, JOY_BUTTON_START: navigate(close_settings)
-		"ready":
+		RaceState.READY:
 			match button:
 				JOY_BUTTON_A, JOY_BUTTON_START: start_race()
 				JOY_BUTTON_B: navigate(open_courses if mode == "track" else open_menu)
 				JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_DPAD_LEFT: select_vehicle(posmod(selected_vehicle-1,count))
 				JOY_BUTTON_RIGHT_SHOULDER, JOY_BUTTON_DPAD_RIGHT: select_vehicle((selected_vehicle+1)%count)
-		"racing","countdown":
+		RaceState.RACING,RaceState.COUNTDOWN:
 			match button:
 				JOY_BUTTON_START, JOY_BUTTON_BACK: pause_tour()
 				JOY_BUTTON_Y: recover_car()
 				JOY_BUTTON_LEFT_SHOULDER: select_route(0)
 				JOY_BUTTON_RIGHT_SHOULDER: select_route(1)
-		"paused":
+		RaceState.PAUSED:
 			match button:
 				JOY_BUTTON_A, JOY_BUTTON_B, JOY_BUTTON_START, JOY_BUTTON_BACK: resume_tour()
 				JOY_BUTTON_X: navigate(open_menu)
 				JOY_BUTTON_Y: start_race()
-		"finished","failed":
+		RaceState.FINISHED,RaceState.FAILED:
 			match button:
 				JOY_BUTTON_A: navigate(open_garage)
 				JOY_BUTTON_X, JOY_BUTTON_BACK: start_race()
@@ -838,7 +843,7 @@ func pad_pressed(button: int) -> void:
 # between the two cards, up to the corner button, down back to the last card.
 func pad_focus(button: int) -> void:
 	# The home screen has two cards, the circuit screen three; the corner button comes after them.
-	var cards := COURSE_COUNT if state == "courses" else 2
+	var cards := COURSE_COUNT if state == RaceState.COURSES else 2
 	match button:
 		JOY_BUTTON_DPAD_LEFT:
 			if menu_focus > 0 and menu_focus < cards: menu_focus -= 1
@@ -853,7 +858,7 @@ func pad_focus(button: int) -> void:
 
 # The left stick drives every menu like the D-pad, with a short repeat while held.
 func pad_stick_navigation(delta: float) -> void:
-	if state not in ["menu","courses","settings","ready"] or (screen_transition != null and screen_transition.busy):
+	if state not in RaceState.MENUS or (screen_transition != null and screen_transition.busy):
 		nav_dir = ""
 		return
 	var x := pad.axis(JOY_AXIS_LEFT_X)
@@ -900,15 +905,15 @@ func _notification(what: int) -> void:
 		pause_tour()
 
 func pause_tour() -> void:
-	if state in ["racing","countdown"]:
+	if state in RaceState.DRIVING:
 		haptics.stop()
 		resume_state = state
-		state = "paused"
+		state = RaceState.PAUSED
 		if hud != null: hud.fingers.clear()
 
 func resume_tour() -> void:
 	if web_portrait: return
-	if state == "paused":
+	if state == RaceState.PAUSED:
 		hud.fingers.clear()
 		state = resume_state
 
@@ -921,7 +926,7 @@ func load_record() -> void:
 	if mode == "track" and selected_course == 1: track.active.speedway_board.bind(self)
 
 func select_vehicle(index: int) -> void:
-	if state != "ready": return
+	if state != RaceState.READY: return
 	if selected_vehicle == clampi(index,0,Catalog.SPECS.size()-1): return
 	var old_index := selected_vehicle
 	selected_vehicle = clampi(index,0,Catalog.SPECS.size()-1)
@@ -967,7 +972,7 @@ func gear_number() -> int:
 	return clampi(ceili(speed/(vehicle.max_speed/5.8)),1,6)
 
 func engine_rpm() -> float:
-	if state in ["menu","courses","ready","settings","finished","failed"]: return 0
+	if state in [RaceState.MENU,RaceState.COURSES,RaceState.READY,RaceState.SETTINGS,RaceState.FINISHED,RaceState.FAILED]: return 0
 	var band: float = vehicle.max_speed/5.8
 	var gear := maxi(1,gear_number())
 	var progress := clampf((speed-(gear-1)*band)/band,0,1)
@@ -978,17 +983,17 @@ func nitro_ratio() -> float:
 	return nitro/100
 
 func _physics_process(delta: float) -> void:
-	Engine.time_scale = (GAME_PACE if state in ["racing","countdown"] else 1.0)*(0.15 if Time.get_ticks_msec() < hitstop_until else 1.0)
+	Engine.time_scale = (GAME_PACE if state in RaceState.DRIVING else 1.0)*(0.15 if Time.get_ticks_msec() < hitstop_until else 1.0)
 	return_flash = maxf(0,return_flash-delta)
 	update_atmosphere(delta)
-	if state == "countdown":
+	if state == RaceState.COUNTDOWN:
 		if mode == "track" and selected_course == 1: preload("res://scripts/rolling_start.gd").advance(self,minf(delta,countdown))
 		countdown -= delta
 		if countdown <= 0:
 			if mode == "track" and selected_course == 1: preload("res://scripts/rolling_start.gd").release(self)
-			state = "racing"
+			state = RaceState.RACING
 			launch_flash = 0.7
-	if state == "racing":
+	if state == RaceState.RACING:
 		var axis := float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
 		axis = clampf(axis + hud.touch_axis() + pad.steer(),-1,1)
 		var nitro_input := Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("nitro") or pad.nitro()
@@ -1000,20 +1005,20 @@ func _physics_process(delta: float) -> void:
 	sync_world_rendering()
 	var world_visible := not rendering_viewport.disable_3d
 	shoulder_dust_clock = maxf(0,shoulder_dust_clock-delta)
-	shoulder_dust.visible = world_visible and state == "racing"
-	if state == "racing" and offroad_amount > 0.25 and speed > 12 and not air.active:
+	shoulder_dust.visible = world_visible and state == RaceState.RACING
+	if state == RaceState.RACING and offroad_amount > 0.25 and speed > 12 and not air.active:
 		if shoulder_dust_clock <= 0:
 			shoulder_dust.burst(player.position if world_race != null else track.point(distance-2,lane),true)
 			shoulder_dust_clock = 0.24
 	else: shoulder_dust.particles.emitting = false
 	tire_trails.update(self)
 	speed_ambience.update(self)
-	speed_effect.visible = state == "racing" and not motion_reduced and speed > 35 and render_budget.level < 2
+	speed_effect.visible = state == RaceState.RACING and not motion_reduced and speed > 35 and render_budget.level < 2
 	speed_effect.material.set_shader_parameter("strength",clampf((speed-35)/53*1.2,0,1))
 	speed_effect.material.set_shader_parameter("high_quality",render_budget.level == 0)
 	update_camera(delta)
-	player.road_speed = speed if state == "racing" else 0.0
-	player.animate(steer,drifting and state == "racing",(nitro_active or pad_active) and state == "racing",delta,0.0 if world_race != null else slip_angle,braking and state == "racing",impact if state == "racing" and not motion_reduced else 0.0)
+	player.road_speed = speed if state == RaceState.RACING else 0.0
+	player.animate(steer,drifting and state == RaceState.RACING,(nitro_active or pad_active) and state == RaceState.RACING,delta,0.0 if world_race != null else slip_angle,braking and state == RaceState.RACING,impact if state == RaceState.RACING and not motion_reduced else 0.0)
 	if crash.active:
 		apply_crash_pose()
 	if offroad_amount > 0.2:
@@ -1027,13 +1032,13 @@ func _physics_process(delta: float) -> void:
 			r.visual_running = false
 			continue
 		r.visual_running = true
-		r.car.road_speed = r.speed if state == "racing" else 0.0
-		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),r.active and r.drifting and r.car.visible and absf(relative_gap(r.distance,distance)) < 80 and state == "racing",r.boosting and state == "racing",delta,0)
+		r.car.road_speed = r.speed if state == RaceState.RACING else 0.0
+		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),r.active and r.drifting and r.car.visible and absf(relative_gap(r.distance,distance)) < 80 and state == RaceState.RACING,r.boosting and state == RaceState.RACING,delta,0)
 	# HUD._process owns its redraw; physics ticks need not enqueue it again.
 
 func sync_world_rendering() -> void:
 	if not is_instance_valid(rendering_viewport) or not is_instance_valid(player): return
-	var world_visible := warming_world or state not in ["menu","courses","ready","settings"]
+	var world_visible := warming_world or state not in RaceState.MENUS
 	# GLES3는 첫 렌더 전 교체된 Sky의 대기 중 큐브맵을 남길 수 있다.
 	# 가려진 코스 선택에서는 만들지 않고 실제 렌더·프리워밍 때 생성한다.
 	if world_visible and atmosphere.sky == null:
@@ -1110,7 +1115,7 @@ func apply_crash_pose() -> void:
 
 # Back on the road after leaving it past the guardrail; no button, no waiting.
 func return_to_road() -> void:
-	if world_race == null or state != "racing": return
+	if world_race == null or state != RaceState.RACING: return
 	world_race.rescue_player()
 	crash.reset()
 	recovery.reset()
@@ -1163,7 +1168,7 @@ func recover_car() -> void:
 	camera.reset_physics_interpolation()
 
 func route_choices_visible() -> bool:
-	return mode == "tour" and state == "racing" and stage_index < Library.STAGES-1 and checkpoint_stage == stage_index
+	return mode == "tour" and state == RaceState.RACING and stage_index < Library.STAGES-1 and checkpoint_stage == stage_index
 
 func select_route(side: int) -> void:
 	if not route_choices_visible(): return
@@ -1196,7 +1201,7 @@ func advance_route() -> void:
 	for rival in rivals: rival.active = false
 
 func finish() -> void:
-	state = "finished"
+	state = RaceState.FINISHED
 	cancel_nitro()
 	drifting = false
 	boosting = false
@@ -1260,7 +1265,7 @@ func _process(delta: float) -> void:
 	pad_stick_navigation(delta)
 
 func collision_camera_offset(forward: Vector3, right: Vector3) -> Vector3:
-	if state != "racing" or motion_reduced or impact_age > 0.42: return Vector3.ZERO
+	if state != RaceState.RACING or motion_reduced or impact_age > 0.42: return Vector3.ZERO
 	# A quick directional compression and a single diminishing rebound rather
 	# than an arbitrary shake that looks identical for left and right impacts.
 	var pulse := impact_recoil*exp(-impact_age*16)*cos(impact_age*22)

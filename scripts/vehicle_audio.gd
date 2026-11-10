@@ -2,6 +2,7 @@ extends RefCounted
 # Which of the selected vehicle's own sounds play, how loud and how pitched.
 # racing_audio.gd plays the result on Web Audio or Godot players. The files and
 # tuning live in vehicle_catalog.gd; docs/VEHICLE_AUDIO.md explains how to add a vehicle.
+const RaceState = preload("res://scripts/race_state.gd")
 const Catalog = preload("res://scripts/vehicle_catalog.gd")
 # Linear gains at the baked A-weighted level (tools/bake_vehicle_audio.py). The
 # per-vehicle *_gain values in the catalog scale these.
@@ -37,10 +38,10 @@ static func mix(race: Node3D) -> Dictionary:
 	var gear := maxi(1,race.gear_number())
 	var rpm01 := clampf((race.engine_rpm()-900)/6400,0,1)
 	var speed01 := clampf(race.speed/SPEED_FULL,0,1)
-	var engine_level := ENGINE_LEVEL_COUNTDOWN if race.state == "countdown" else (ENGINE_LEVEL_BOOSTING if race.boosting else ENGINE_LEVEL)
+	var engine_level := ENGINE_LEVEL_COUNTDOWN if race.state == RaceState.COUNTDOWN else (ENGINE_LEVEL_BOOSTING if race.boosting else ENGINE_LEVEL)
 	# Nitro shots and cells get the full roar; road boost pads and lanes a lighter one.
 	var boost_share := 0.0
-	if race.state == "racing": boost_share = 1.0 if race.nitro_active else (BOOST_PAD_SHARE if race.pad_active else 0.0)
+	if race.state == RaceState.RACING: boost_share = 1.0 if race.nitro_active else (BOOST_PAD_SHARE if race.pad_active else 0.0)
 	var drift_share := 1.0 if race.drifting else (PUDDLE_SHARE if race.surface.wet_time > 0 else 0.0)
 	return {
 		"engine_pitch": float(p.engine_pitch)+rpm01*float(p.engine_span)+(gear-1)*float(p.engine_gear),

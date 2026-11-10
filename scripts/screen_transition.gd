@@ -1,4 +1,5 @@
 extends CanvasLayer
+const RaceState = preload("res://scripts/race_state.gd")
 var busy := false
 var race: Node3D
 var cover: ColorRect
@@ -43,7 +44,7 @@ func play(action: Callable) -> void:
 		loading.advance(1,0.35)
 		await RenderingServer.frame_post_draw
 	action.call()
-	race.warming_world = race.state == "ready"
+	race.warming_world = race.state == RaceState.READY
 	if title != "":
 		loading.advance(2,0.7)
 		await RenderingServer.frame_post_draw

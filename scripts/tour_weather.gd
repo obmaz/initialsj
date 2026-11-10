@@ -1,4 +1,5 @@
 extends Node3D
+const RaceState = preload("res://scripts/race_state.gd")
 var race: Node
 var particles: CPUParticles3D
 var current_weather := ""
@@ -44,7 +45,7 @@ func configure(weather: String) -> void:
  particles.mesh=mesh
  particles.restart()
 func _process(_delta: float) -> void:
- if race.mode != "tour" or race.state not in ["racing","countdown"] or not race.track.visible:
+ if race.mode != "tour" or race.state not in RaceState.DRIVING or not race.track.visible:
   particles.emitting=false
   return
  var road: Node3D=race.track.active

@@ -1,5 +1,6 @@
 extends Node3D
 # A fixed pool: one draw call and bounded memory, regardless of race length.
+const RaceState = preload("res://scripts/race_state.gd")
 const CAPACITY := 160
 var instances := MultiMesh.new()
 var material := ShaderMaterial.new()
@@ -30,7 +31,7 @@ func reset() -> void:
 
 func update(race: Node3D) -> void:
 	material.set_shader_parameter("clock", race.elapsed)
-	if race.state != "racing" or race.air.active or not race.drifting or absf(race.lane) > race.track.half_width(race.distance)-1.1:
+	if race.state != RaceState.RACING or race.air.active or not race.drifting or absf(race.lane) > race.track.half_width(race.distance)-1.1:
 		previous.clear()
 		return
 	var points: Array[Vector3] = []

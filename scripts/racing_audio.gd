@@ -3,6 +3,7 @@ extends AudioStreamPlayer
 # the mapping; docs/VEHICLE_AUDIO.md the rules). Loops use native Web Audio looping
 # in the browser; transient WAV cues use Godot sample playback. Native builds stream.
 # This node itself is the engine loop player.
+const RaceState = preload("res://scripts/race_state.gd")
 const VehicleAudio = preload("res://scripts/vehicle_audio.gd")
 var race: Node3D
 var gain := 0.0
@@ -65,8 +66,8 @@ func apply_vehicle() -> void:
 
 func _process(delta: float) -> void:
 	if vehicle != race.selected_vehicle: apply_vehicle()
-	var active: bool = race.state in ["countdown", "racing"] and race.sound_enabled
-	var number: int = ceili(race.countdown) if race.state == "countdown" else (ceili(race.time_left) if race.state == "racing" and race.mode == "tour" and race.time_left <= 10 else 0)
+	var active: bool = race.state in RaceState.DRIVING and race.sound_enabled
+	var number: int = ceili(race.countdown) if race.state == RaceState.COUNTDOWN else (ceili(race.time_left) if race.state == RaceState.RACING and race.mode == "tour" and race.time_left <= 10 else 0)
 	if active:
 		var tone: AudioStream
 		if number > 0 and number != last_count:
@@ -93,7 +94,7 @@ func _process(delta: float) -> void:
 			impact_sound.volume_db = -21 if race.air.trick else -25
 			impact_sound.play()
 		# Each nitro shot, cell or held gauge starts with the vehicle's own ignition hit.
-		if race.state == "racing" and race.nitro_active and not last_nitro: start_sound.play()
+		if race.state == RaceState.RACING and race.nitro_active and not last_nitro: start_sound.play()
 	else:
 		cue.stop()
 		impact_sound.stop()

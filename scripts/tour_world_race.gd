@@ -60,7 +60,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	race.track.maintain(race.distance)
 
 func fail_run() -> void:
-	race.state = "failed"
+	race.state = RaceState.FAILED
 	race.cancel_nitro()
 	race.drifting = false
 	race.boosting = false

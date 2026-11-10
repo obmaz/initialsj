@@ -1,4 +1,5 @@
 extends Control
+const RaceState = preload("res://scripts/race_state.gd")
 
 const AppVersion = preload("res://scripts/app_version.gd")
 const DESIGN := Vector2(1280, 720)
@@ -193,12 +194,12 @@ func handle_pointer(event: InputEvent) -> void:
 		return
 	if recovery_touches.has(index): return
 	var p := to_design(event.position)
-	if race.state == "menu":
+	if race.state == RaceState.MENU:
 		if HOME_TOUR.has_point(p): race.navigate_to_mode("tour")
 		elif HOME_TRACK.has_point(p): race.navigate(race.open_courses)
 		elif HOME_SETTINGS.has_point(p): race.navigate(race.open_settings)
 		return
-	if race.state == "courses":
+	if race.state == RaceState.COURSES:
 		if COURSE_FUJI.has_point(p): race.navigate_to_mode("track",0)
 		elif COURSE_SPEEDWAY.has_point(p): race.navigate_to_mode("track",1)
 		elif COURSE_NIGHT.has_point(p): race.navigate_to_mode("track",2)
@@ -206,7 +207,7 @@ func handle_pointer(event: InputEvent) -> void:
 		elif COURSE_GORGE.has_point(p): race.navigate_to_mode("track",4)
 		elif GARAGE_BACK.has_point(p): race.navigate(race.open_menu)
 		return
-	if race.state == "settings":
+	if race.state == RaceState.SETTINGS:
 		if SETTINGS_SOUND.has_point(p): race.toggle_sound()
 		elif SETTINGS_MOTION.has_point(p): race.toggle_motion()
 		elif SETTINGS_GRAPHICS.has_point(p): race.cycle_graphics()
@@ -216,7 +217,7 @@ func handle_pointer(event: InputEvent) -> void:
 		elif SETTINGS_INSTALL.has_point(p): install_game()
 		elif SETTINGS_CLOSE.has_point(p): race.navigate(race.close_settings)
 		return
-	if race.state == "ready":
+	if race.state == RaceState.READY:
 		if GARAGE_BACK.has_point(p):
 			if race.mode == "track": race.navigate(race.open_courses)
 			else: race.navigate(race.open_menu)
@@ -225,12 +226,12 @@ func handle_pointer(event: InputEvent) -> void:
 			for i in range(Catalog.SPECS.size()):
 				if garage_card(i).has_point(p): race.select_vehicle(i)
 		return
-	if race.state in ["paused","finished","failed"]:
-		if race.state == "paused" and SOUND_BUTTON.has_point(p): race.toggle_sound()
-		elif race.state == "paused" and MOTION_BUTTON.has_point(p): race.toggle_motion()
-		elif race.state == "paused" and MAIN_MENU_BUTTON.has_point(p): race.navigate(race.open_menu)
-		elif START_BUTTON.has_point(p) or (race.state == "paused" and hit_button("pause",p)):
-			if race.state == "paused": race.resume_tour()
+	if race.state in [RaceState.PAUSED,RaceState.FINISHED,RaceState.FAILED]:
+		if race.state == RaceState.PAUSED and SOUND_BUTTON.has_point(p): race.toggle_sound()
+		elif race.state == RaceState.PAUSED and MOTION_BUTTON.has_point(p): race.toggle_motion()
+		elif race.state == RaceState.PAUSED and MAIN_MENU_BUTTON.has_point(p): race.navigate(race.open_menu)
+		elif START_BUTTON.has_point(p) or (race.state == RaceState.PAUSED and hit_button("pause",p)):
+			if race.state == RaceState.PAUSED: race.resume_tour()
 			else: race.navigate(race.open_garage)
 		return
 	if recovery_visible() and recovery_touch_rect().has_point(p):
@@ -241,7 +242,7 @@ func handle_pointer(event: InputEvent) -> void:
 	if race.route_choices_visible():
 		if route_touch_rect(0).has_point(p): race.select_route(0); return
 		if route_touch_rect(1).has_point(p): race.select_route(1); return
-	if hit_button("pause",p) and race.state in ["racing","countdown"]:
+	if hit_button("pause",p) and race.state in RaceState.DRIVING:
 		race.pause_tour()
 	else: move_pointer(index,event.position)
 
@@ -284,8 +285,8 @@ func pad_hints(items: Array, y: float, center_x: float = 640.0) -> void:
 # The gold frame shows which card the pad will open.
 func draw_pad_focus() -> void:
 	var rects := []
-	if race.state == "menu": rects = [HOME_TOUR,HOME_TRACK,HOME_SETTINGS]
-	elif race.state == "courses": rects = [COURSE_FUJI,COURSE_SPEEDWAY,COURSE_NIGHT,COURSE_RIVIERA,COURSE_GORGE,GARAGE_BACK]
+	if race.state == RaceState.MENU: rects = [HOME_TOUR,HOME_TRACK,HOME_SETTINGS]
+	elif race.state == RaceState.COURSES: rects = [COURSE_FUJI,COURSE_SPEEDWAY,COURSE_NIGHT,COURSE_RIVIERA,COURSE_GORGE,GARAGE_BACK]
 	if rects.is_empty(): return
 	var rect: Rect2 = rects[clampi(race.menu_focus,0,rects.size()-1)]
 	draw_rect(rect.grow(5),GOLD,false,4.0)
@@ -294,15 +295,15 @@ func draw_pad_hints() -> void:
 	if not pad_on(): return
 	draw_pad_focus()
 	match race.state:
-		"menu": pad_hints([["dpad","MOVE"],["confirm","SELECT"],["alt","TRACK"],["alt2","SETTINGS"]],702)
-		"courses": pad_hints([["dpad","MOVE"],["confirm","SELECT"],["alt","SUNCOAST"],["alt2","MIDNIGHT"],["back","BACK"]],702)
-		"settings": pad_hints([["dpad","MOVE"],["confirm","CHANGE"],["back","CLOSE"]],704)
-		"ready": pad_hints([["dpad","CHOOSE CAR"],["confirm","DRIVE"],["back","BACK"]],698,560)
-		"paused": pad_hints([["confirm","RESUME"],["alt","MAIN MENU"],["alt2","RESTART"]],704)
-		"finished","failed": pad_hints([["confirm","CHOOSE CAR"],["alt","RETRY"]],704)
+		RaceState.MENU: pad_hints([["dpad","MOVE"],["confirm","SELECT"],["alt","TRACK"],["alt2","SETTINGS"]],702)
+		RaceState.COURSES: pad_hints([["dpad","MOVE"],["confirm","SELECT"],["alt","SUNCOAST"],["alt2","MIDNIGHT"],["back","BACK"]],702)
+		RaceState.SETTINGS: pad_hints([["dpad","MOVE"],["confirm","CHANGE"],["back","CLOSE"]],704)
+		RaceState.READY: pad_hints([["dpad","CHOOSE CAR"],["confirm","DRIVE"],["back","BACK"]],698,560)
+		RaceState.PAUSED: pad_hints([["confirm","RESUME"],["alt","MAIN MENU"],["alt2","RESTART"]],704)
+		RaceState.FINISHED,RaceState.FAILED: pad_hints([["confirm","CHOOSE CAR"],["alt","RETRY"]],704)
 
 func draw_pad_badges() -> void:
-	if not pad_on() or race.state not in ["racing","countdown","paused"]: return
+	if not pad_on() or race.state not in [RaceState.RACING,RaceState.COUNTDOWN,RaceState.PAUSED]: return
 	for action in ["gas","brake","drift","nitro"]:
 		var rect: Rect2 = buttons[action]
 		pad_badge(rect.get_center()+Vector2(-1,-1)*rect.size.x*0.36,action)
@@ -313,7 +314,7 @@ func draw_pad_badges() -> void:
 	pad_badge(PAUSE_BUTTON.get_center()+Vector2(0,48),"pause")
 
 func move_pointer(index: int, pos: Vector2) -> void:
-	if recovery_touches.has(index) or race.state not in ["racing","countdown"]: return
+	if recovery_touches.has(index) or race.state not in RaceState.DRIVING: return
 	fingers[index] = to_design(pos)
 
 func held(action: String) -> bool:
@@ -331,7 +332,7 @@ func art(path: String) -> Texture2D:
 
 # 메뉴로 돌아오면 배경을 작업 스레드에서 다시 읽기 시작하고, 주행 중에는 참조를 놓는다.
 func sync_menu_art() -> void:
-	if race.state in ["countdown","racing"]:
+	if race.state in RaceState.DRIVING:
 		if menu_art_requested or not menu_art.is_empty():
 			menu_art_requested = false
 			menu_art.clear()
@@ -345,17 +346,17 @@ func _process(delta: float) -> void:
 	if race == null:
 		return
 	sync_menu_art()
-	if race.state != "racing": recovery_touches.clear()
+	if race.state != RaceState.RACING: recovery_touches.clear()
 	selection_blend = minf(1,selection_blend+delta*5)
 	var target: Dictionary = Catalog.abilities(race.selected_vehicle)
 	if shown_abilities.size() != 4:
 		for key in Catalog.ABILITY_KEYS: shown_abilities.append(target[key])
 	for i in range(4): shown_abilities[i] = lerpf(shown_abilities[i],target[Catalog.ABILITY_KEYS[i]],1.0 if race.motion_reduced else 1-exp(-delta*12))
-	if race.state in ["ready", "countdown"] or race.score < last_score:
+	if race.state in [RaceState.READY,RaceState.COUNTDOWN] or race.score < last_score:
 		drift_combo = 0
 		drift_fade = 0
 		was_drifting = false
-	if race.state == "racing":
+	if race.state == RaceState.RACING:
 		if race.drifting:
 			if not was_drifting:
 				drift_combo = 0
@@ -368,8 +369,8 @@ func _process(delta: float) -> void:
 	if rpm_ring != null:
 		rpm_ring.position = ui_offset()+Vector2(137,413)*ui_scale()
 		rpm_ring.scale = Vector2.ONE*ui_scale()*0.82
-		rpm_ring.visible = race.state not in ["menu","courses","ready","settings"]
-		rpm_ring.self_modulate.a = 0.4 if race.state == "paused" else 1.0
+		rpm_ring.visible = race.state not in RaceState.MENUS
+		rpm_ring.self_modulate.a = 0.4 if race.state == RaceState.PAUSED else 1.0
 		rpm_material.set_shader_parameter("rpm_ratio",clampf(race.engine_rpm()/7500,0,1))
 	queue_redraw()
 
@@ -451,16 +452,16 @@ func _draw() -> void:
 	if race == null:
 		return
 	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
-	if race.state == "courses":
+	if race.state == RaceState.COURSES:
 		draw_courses()
 		draw_pad_hints()
 		return
-	if race.state in ["menu","settings"]:
+	if race.state in [RaceState.MENU,RaceState.SETTINGS]:
 		draw_home()
-		if race.state == "settings": draw_settings()
+		if race.state == RaceState.SETTINGS: draw_settings()
 		draw_pad_hints()
 		return
-	if race.state == "ready":
+	if race.state == RaceState.READY:
 		draw_garage()
 		draw_pad_hints()
 		return
@@ -510,7 +511,7 @@ func comma_number(value: int) -> String:
 	return result
 
 func draw_lap_time() -> void:
-	if race.state in ["racing","countdown","paused"]:
+	if race.state in [RaceState.RACING,RaceState.COUNTDOWN,RaceState.PAUSED]:
 		slant(PAUSE_BUTTON,Color("15151ce6"),9)
 		for x in [838,851]: draw_rect(Rect2(x,33,5,24),WHITE)
 	if race.mode == "track":
@@ -863,31 +864,31 @@ func draw_garage() -> void:
 	centered(Vector2(GARAGE_START.get_center().x,680),"DRIVE",34,Color("07111e"))
 
 func draw_menu() -> void:
-	if race.state == "ready":
+	if race.state == RaceState.READY:
 		draw_garage()
 		return
-	if race.state == "countdown":
+	if race.state == RaceState.COUNTDOWN:
 		if race.mode == "track" and race.selected_course == 1: centered(Vector2(640,420),"ROLLING START / 16 CARS",27,CYAN)
 		slant(Rect2(568, 248, 144, 136), Color("11121bba"), 24)
 		var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
 		centered(Vector2(640, 353), str(maxi(1, ceili(race.countdown))), int(90 + 18 * pulse), GOLD)
-	elif race.state in ["paused", "finished", "failed"]:
+	elif race.state in [RaceState.PAUSED,RaceState.FINISHED,RaceState.FAILED]:
 		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("060b168f"))
 		slant(Rect2(235, 100, 810, 575), Color("10121bf7"), 30)
 		glow_line(PackedVector2Array([Vector2(265, 100), Vector2(1045, 100)]), CYAN, 2)
 		text_at(Vector2(307,150),"INITIAL SJ / "+race.course_title if race.mode == "track" else "INITIAL SJ / GRAND TOUR",22,CYAN)
-		if race.state == "paused": text_at(Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD)
-		var title := ("RACE PAUSED" if race.mode == "track" else "TOUR PAUSED") if race.state == "paused" else (("RACE FINISHED" if race.mode == "track" else "GOAL CLEAR!") if race.state == "finished" else "TIME OVER")
+		if race.state == RaceState.PAUSED: text_at(Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD)
+		var title := ("RACE PAUSED" if race.mode == "track" else "TOUR PAUSED") if race.state == RaceState.PAUSED else (("RACE FINISHED" if race.mode == "track" else "GOAL CLEAR!") if race.state == RaceState.FINISHED else "TIME OVER")
 		text_at(Vector2(307, 224), title, 62)
-		if race.state == "finished":
+		if race.state == RaceState.FINISHED:
 			var detail := ("POS %d / %d" % [race.race_position(),race.competitor_count()]) if race.mode == "track" else ("SCORE %d" % int(race.score))
 			text_at(Vector2(307,288),detail,32,GOLD)
-		elif race.state == "failed":
+		elif race.state == RaceState.FAILED:
 			text_at(Vector2(307,292),"SCORE %d" % int(race.score),32,GOLD)
-		elif race.state == "paused":
+		elif race.state == RaceState.PAUSED:
 			text_at(Vector2(307,294),race.vehicle.name,28,Color(race.vehicle.accent))
 			text_at(Vector2(307,338),time_label(race.elapsed),35,Color("b9cedb"))
-		if race.state == "paused":
+		if race.state == RaceState.PAUSED:
 			for rect in [MOTION_BUTTON, SOUND_BUTTON]:
 				slant(rect, Color("253548"), 8)
 			var motion_label := "MOTION: LOW" if race.motion_reduced else "MOTION: FULL"
@@ -897,15 +898,15 @@ func draw_menu() -> void:
 		else:
 			draw_record_panel()
 		slant(START_BUTTON, CYAN, 13)
-		var cta := "RESUME" if race.state == "paused" else ("CHOOSE CAR")
+		var cta := "RESUME" if race.state == RaceState.PAUSED else ("CHOOSE CAR")
 		centered(Vector2(640, 536), cta, 32, Color("0a1b2b"))
-		if race.state == "paused":
+		if race.state == RaceState.PAUSED:
 			slant(MAIN_MENU_BUTTON,Color("253548"),8)
 			centered(Vector2(640,627),"MAIN MENU",26,CYAN)
 
 # This run next to the best time, with a gold NEW RECORD tag when it was beaten.
 func draw_record_panel() -> void:
-	var finished: bool = race.state == "finished"
+	var finished: bool = race.state == RaceState.FINISHED
 	var best: float = race.best_time
 	var this_run := time_label(race.elapsed) if finished else "--:--.---"
 	var cells := [
@@ -941,7 +942,7 @@ func draw_fps() -> void:
 	text_at(Vector2(24,204),fps_text,18,color)
 
 func draw_competitor_markers() -> void:
-	if race.mode != "track" or race.state not in ["racing","countdown"]: return
+	if race.mode != "track" or race.state not in RaceState.DRIVING: return
 	var nearby: Array[Dictionary] = []
 	for rival in race.rivals:
 		if not rival.active or not rival.car.visible: continue
@@ -1014,7 +1015,7 @@ func fresh(remaining: float, duration: float, window: float = 0.18) -> float:
 	return clampf((remaining-(duration-window))/window,0,1)
 
 func draw_pace_feedback() -> void:
-	if race.state != "racing": return
+	if race.state != RaceState.RACING: return
 	var banner := BANNER_Y
 	if race.world_race != null and race.world_race.wrong_way_time > 0.65:
 		toast(Vector2(640,banner),"WRONG WAY",34,WARNING)
@@ -1056,14 +1057,14 @@ func draw_pace_feedback() -> void:
 # Road boosts get one short activation pulse, separate from nitro fuel and
 # ordinary speed lines. Motion reduction keeps only the informative badge.
 func boost_feedback_strength() -> float:
-	if race == null or race.state != "racing" or not race.pad_active or race.motion_reduced: return 0
+	if race == null or race.state != RaceState.RACING or not race.pad_active or race.motion_reduced: return 0
 	var lane_active: bool = race.surface.lane_active
 	var duration := 0.65 if lane_active else 1.1
 	var pulse: float = pow(clampf(race.surface.pad_flash/duration,0,1),2)
 	return pulse if lane_active else pulse*smoothstep(0,0.25,race.surface.pad_time)
 
 func boost_feedback_label() -> String:
-	if race == null or race.state != "racing" or not race.pad_active: return ""
+	if race == null or race.state != RaceState.RACING or not race.pad_active: return ""
 	return "BOOST LANE" if race.surface.lane_active else "BOOST PAD"
 
 func draw_boost_feedback() -> void:
@@ -1090,7 +1091,7 @@ func draw_boost_badge() -> void:
 	hint(label,GOLD,minf(1,race.surface.pad_flash*2))
 
 func recovery_visible() -> bool:
-	return race != null and race.state == "racing" and race.get("recovery_available") == true
+	return race != null and race.state == RaceState.RACING and race.get("recovery_available") == true
 
 func recovery_touch_rect() -> Rect2:
 	return RECOVERY_BUTTON.grow(6)
