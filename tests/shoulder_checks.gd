@@ -14,6 +14,11 @@ func run(tree: SceneTree) -> int:
 		var section: Node3D = race.track.active
 		var rail: MeshInstance3D = section.get_node("ContinuousGuardrails")
 		check(rail.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() > 3000,"Guardrails must be indexed continuous curved ribbons")
+		var vertices: PackedVector3Array = rail.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		check(vertices[0].distance_to(vertices[7]) < .001,"레일 단면은 뒤판과 상하 면이 닫혀 있어야 한다")
+		check(vertices[0].distance_to(vertices[6]) > .30,"레일은 종이 띠가 아닌30cm 이상의 입체 깊이를 가져야 한다")
+		var case_mesh: BoxMesh = section.get_node("CurveSignCases").multimesh.mesh
+		check(case_mesh.size.z >= .2 and case_mesh.size.x > 3 and case_mesh.size.y > 1.5,"화살표 인쇄면 뒤에는 두꺼운 케이스와 테두리가 있어야 한다")
 		var widest := 0.0
 		var at := 0.0
 		var minimum_radius_margin := INF

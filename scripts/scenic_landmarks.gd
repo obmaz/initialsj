@@ -262,23 +262,23 @@ func make_billboards(span: Vector2) -> void:
 		board.material_override = advertisement_material(ad_index)
 		board.add_to_group("racing_advertisement")
 		add_child(board)
-		backs.append(Transform3D(basis.scaled_local(Vector3(16.4,7.4,.42)),center))
-		for y in [-3.6,3.6]: frames.append(Transform3D(basis.scaled_local(Vector3(16.5,.18,.18)),center+Vector3.UP*y+basis.z*.26))
-		for x in [-8.1,8.1]: frames.append(Transform3D(basis.scaled_local(Vector3(.18,7.4,.18)),center+basis.x*x+basis.z*.26))
+		backs.append(Transform3D(basis.scaled_local(Vector3(16.4,7.4,.80)),center-basis.z*.19))
+		for y in [-3.6,3.6]: frames.append(Transform3D(basis.scaled_local(Vector3(16.5,.28,.5)),center+Vector3.UP*y+basis.z*.10))
+		for x in [-8.1,8.1]: frames.append(Transform3D(basis.scaled_local(Vector3(.28,7.4,.5)),center+basis.x*x+basis.z*.10))
 		for x in [-5.5,0.0,5.5]:
 			lamps_metal.append(Transform3D(basis.scaled_local(Vector3(.09,.09,1.25)),center+basis.x*x+Vector3.UP*3.85+basis.z*.65))
 			lamps_metal.append(Transform3D(basis.scaled_local(Vector3(.65,.20,.48)),center+basis.x*x+Vector3.UP*3.75+basis.z*1.1))
 			lamps.append(Transform3D(basis.scaled_local(Vector3(.49,.03,.32)),center+basis.x*x+Vector3.UP*3.64+basis.z*1.1))
 		for offset in [-5.0,5.0]:
 			var foot: Vector3 = p+basis.x*offset-basis.z*.65
-			posts.append(beam(foot-Vector3.UP*1.5,foot+Vector3.UP*13.4,.38))
-			footings.append(Transform3D(basis.scaled_local(Vector3(1.5,.7,1.5)),foot-Vector3.UP*.1))
+			posts.append(beam(foot-Vector3.UP*1.5,foot+Vector3.UP*13.4,.55))
+			footings.append(Transform3D(basis.scaled_local(Vector3(2.0,.9,2.0)),foot-Vector3.UP*.1))
 		for h in [7.0,10.0,13.0]:
-			frames.append(Transform3D(basis.scaled_local(Vector3(15.8,.16,.25)),p+Vector3.UP*h-basis.z*.55))
+			frames.append(Transform3D(basis.scaled_local(Vector3(15.8,.25,.35)),p+Vector3.UP*h-basis.z*.55))
 		for sign_x in [-1.0,1.0]:
-			frames.append(beam(p+basis.x*sign_x*5+Vector3.UP*6.5-basis.z*.7,p+Vector3.UP*12.8-basis.z*.7,.13))
+			frames.append(beam(p+basis.x*sign_x*5+Vector3.UP*6.5-basis.z*.7,p+Vector3.UP*12.8-basis.z*.7,.22))
 		# 하부 점검 발판은 광고 면을 가리지 않습니다.
-		frames.append(Transform3D(basis.scaled_local(Vector3(16.6,.12,1.15)),p+Vector3.UP*6.15+basis.z*.65))
+		frames.append(Transform3D(basis.scaled_local(Vector3(16.6,.24,1.15)),p+Vector3.UP*6.15+basis.z*.65))
 		# 패널·기초·지지대·조명을 같은 지면 피벗에서 확대해 접합부를 유지한다.
 		for part in range(geometry.size()):
 			for n in range(starts[part],geometry[part].size()):

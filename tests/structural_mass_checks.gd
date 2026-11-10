@@ -33,7 +33,7 @@ func run(tree: SceneTree) -> int:
 		var height: float = Props.model(kind).get_aabb().size.y
 		check(height >= 14 and height <= 30,"성목은 승용차 높이의 여러 배인 실제 수고를 가져야 한다: "+kind)
 	var advert := Props.model("billboard").get_aabb().size
-	check(advert.x >= 14 and advert.y >= 15,"도로변 광고판은 자동차 여러 대 길이의 패널과 지주를 가져야 한다")
+	check(advert.x >= 14 and advert.y >= 15 and advert.z >= 1.5,"도로변 광고판은 자동차 여러 대 길이의 패널과 지주를 가져야 한다")
 	var station_arrays: Array = Props.model("gas_station").surface_get_arrays(0)
 	var canopy_under := INF
 	for i in range(station_arrays[Mesh.ARRAY_VERTEX].size()):

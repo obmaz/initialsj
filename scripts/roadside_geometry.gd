@@ -112,7 +112,8 @@ static func edge_strand(section: Node3D, table: Dictionary, side: float, with_se
 	return [side,base,skip]
 
 static func rail(section: Node3D, table: Dictionary) -> void:
-	var profile := [Vector2(-0.055,1.12),Vector2(0.055,1.04),Vector2(-0.035,0.93),Vector2(0.055,0.83),Vector2(-0.055,0.68)]
+	# 차도 쪽 면은 보존하고 바깥쪽으로 두께를 더한 닫힌 W형 단면.
+	var profile := [Vector2(-0.055,1.12),Vector2(0.10,1.04),Vector2(-0.035,0.93),Vector2(0.10,0.83),Vector2(-0.055,0.68),Vector2(0.26,0.68),Vector2(0.26,1.12),Vector2(-0.055,1.12)]
 	var node := MeshInstance3D.new()
 	node.name = "ContinuousGuardrails"
 	var steel: StandardMaterial3D = section.material(Color("9aa9af"),0.65)

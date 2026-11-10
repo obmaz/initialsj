@@ -82,6 +82,7 @@ func build() -> void:
 	environment.background_mode = Environment.BG_COLOR
 	environment.background_color = Color("26323c")
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color("b5cce0")
 	environment.ambient_light_energy = .65
 	world.environment = environment
 	stage.add_child(world)

@@ -442,12 +442,12 @@ func _ready() -> void:
 	build_queue.append(func(): Roadside.road_mass(self))
 	build_queue.append(func():
 		var post_transforms: Array[Transform3D] = []
-		for i in range(0,int(length / 5),3):
+		for i in range(0,int(length / 5),2):
 			var d := i * 5.0
 			for side in [-1, 1]:
 				if d < 150 and side == -entry_side: continue
-				post_transforms.append(Transform3D(Basis.IDENTITY, point(d, side * (half_width(d)+rail_setback(d,side))) + Vector3.UP * 0.4))
-		box_batch(Vector3(0.16, 1.0, 0.16), material(Color("8d9c9c"), 0.6), post_transforms)
+				post_transforms.append(Transform3D(Basis.IDENTITY, point(d, side * (half_width(d)+rail_setback(d,side))) + Vector3.UP * 0.6))
+		box_batch(Vector3(0.24, 1.2, 0.28), material(Color("8d9c9c"), 0.6), post_transforms)
 		make_curve_markers())
 	build_queue.append(make_skid_marks)
 	build_queue.append(func():
@@ -654,10 +654,11 @@ func make_curve_markers() -> void:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_texture = preload("res://assets/environment/curve-chevron.svg")
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	var mesh := QuadMesh.new()
 	mesh.size = Vector2(3,1.5)
 	var poses: Array[Transform3D] = []
+	var cases: Array[Transform3D] = []
+	var supports: Array[Transform3D] = []
 	for i in range(int(length/65)):
 		var d := 35.0+i*65
 		var bend := wrapf(heading(d+40)-heading(d),-PI,PI)
@@ -670,9 +671,15 @@ func make_curve_markers() -> void:
 		if wall_mounted:
 			# Exterior boards cross the shell when placed across the road. Mount
 			# these parallel to the inside face, with a real gap from the wall.
-			offset = 1.10 if closed_loop else 2.15
+			offset = 0.75 if closed_loop else 1.80
 			angle -= side*PI/2
 		poses.append(Transform3D(Basis(Vector3.UP,angle).scaled_local(Vector3(side,1,1)),point(d,side*(half_width(d)+offset))+Vector3.UP*1.9))
+		var pose: Transform3D = poses[-1]
+		cases.append(pose*Transform3D(Basis.IDENTITY,Vector3(0,0,-.13)))
+		if wall_mounted:
+			for y in [-.38,.38]: supports.append(pose*Transform3D(Basis.IDENTITY.scaled_local(Vector3(2.6,.12,.10)),Vector3(0,y,-.30)))
+		else:
+			supports.append(pose*Transform3D(Basis.IDENTITY.scaled_local(Vector3(.20,1.60,.24)),Vector3(0,-1.10,-.16)))
 		curve_marker_distances.append(d)
 		curve_marker_tunnel.append(wall_mounted)
 	var multi := MultiMesh.new()
@@ -688,6 +695,13 @@ func make_curve_markers() -> void:
 	curve_markers.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(curve_markers)
 
+	box_batch(Vector3(3.16,1.66,.24),material(Color("343f49"),.5),cases)
+	prop_batches[-1].name = "CurveSignCases"
+	prop_batches[-1].cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	box_batch(Vector3.ONE,material(Color("809097"),.65),supports)
+	prop_batches[-1].name = "CurveSignSupports"
+	prop_batches[-1].cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
 func make_course_banners() -> void:
 	var poles: Array[Transform3D] = []
 	var poses: Array[Transform3D] = []
@@ -702,7 +716,7 @@ func make_course_banners() -> void:
 			var center := point(d,side*(half_width(d)+rail_setback(d,side)+2.5))
 			center.y = base.y+4.3
 			poses.append(Transform3D(Basis(Vector3.UP,heading(d)).scaled_local(Vector3(-side,1,1)),center))
-	box_batch(Vector3(0.08,7.6,0.08),material(Color("899aa1"),0.6),poles)
+	box_batch(Vector3(0.16,7.6,0.16),material(Color("899aa1"),0.6),poles)
 	var flags := MultiMesh.new()
 	flags.transform_format = MultiMesh.TRANSFORM_3D
 	var mesh := QuadMesh.new()

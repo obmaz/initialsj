@@ -25,22 +25,23 @@ func run(tree: SceneTree) -> int:
 			var right := Vector3(-f.z,0,f.x).normalized()
 			var side := signf((transform.origin-section.point(d)).dot(right))
 			check(transform.basis.z.normalized().dot(-right*side) > 0.99,"Tunnel arrow boards must face across the road from the wall")
-			# Sample the real curved wall alignment at both ends of the 3m board.
+			# Sample the real curved wall alignment at both ends of the case including rear mounting brackets.
 			for end in [-1.0,1.0]:
-				var corner: Vector3 = transform*Vector3(end*1.5,0,0)
-				var nearest := d
-				var best := INF
-				for step in range(-20,21):
-					var at := d+step*0.2
-					var p: Vector3 = section.point(at)
-					var gap := Vector2(corner.x-p.x,corner.z-p.z).length_squared()
-					if gap < best: best = gap; nearest = at
-				var center: Vector3 = section.point(nearest)
-				var direction: Vector3 = (section.point(nearest+1)-section.point(nearest-1)).normalized()
-				var normal := Vector3(-direction.z,0,direction.x).normalized()
-				var gap: float = section.half_width(nearest)+(1.25 if section.closed_loop else 2.4)-absf((corner-center).dot(normal))
-				closest_wall_gap = minf(closest_wall_gap,gap)
-				check(gap > 0.06,"Both corners of a tunnel sign must clear the curved wall")
+				for back in [0.0,-.35]:
+					var corner: Vector3 = transform*Vector3(end*1.58,0,back)
+					var nearest := d
+					var best := INF
+					for step in range(-20,21):
+						var at := d+step*0.2
+						var p: Vector3 = section.point(at)
+						var gap := Vector2(corner.x-p.x,corner.z-p.z).length_squared()
+						if gap < best: best = gap; nearest = at
+					var center: Vector3 = section.point(nearest)
+					var direction: Vector3 = (section.point(nearest+1)-section.point(nearest-1)).normalized()
+					var normal := Vector3(-direction.z,0,direction.x).normalized()
+					var gap: float = section.half_width(nearest)+(1.25 if section.closed_loop else 2.4)-absf((corner-center).dot(normal))
+					closest_wall_gap = minf(closest_wall_gap,gap)
+					check(gap > 0.06,"Both corners of a tunnel sign must clear the curved wall")
 		check(count >= 3,"Regression needs several actual wall-mounted signs in both tunnel types")
 		var rig: Node3D = Rig.collect_rigs(section)[0]
 		var p: Vector3 = section.point((rig.span.x+rig.span.y)*0.5)+Vector3.UP*2
