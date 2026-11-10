@@ -3,6 +3,7 @@ extends Node3D
 const WorldCar = preload("res://scripts/world_car.gd")
 const Progress = preload("res://scripts/circuit_progress.gd")
 const TourProgress = preload("res://scripts/tour_progress.gd")
+const RivalState = preload("res://scripts/rival_state.gd")
 const Nitro = preload("res://scripts/nitro_system.gd")
 const Corner = preload("res://scripts/corner_resistance.gd")
 const Tuning = preload("res://scripts/drive_tuning.gd")
@@ -81,7 +82,7 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		race.player.reset_physics_interpolation()
 		race.camera.reset_physics_interpolation()
 	else:
-		var rival: Dictionary = race.rivals[index-1]
+		var rival: RivalState = race.rivals[index-1]
 		rival.distance = d
 		rival.lane = lane
 		rival.target_lane = lane
@@ -102,7 +103,7 @@ func place_cars() -> void:
 	race.player.global_transform = frame(player_body,race.player)
 	race.player.body.rotation.y = 0
 	for i in range(1,bodies.size()):
-		var rival: Dictionary = race.rivals[i-1]
+		var rival: RivalState = race.rivals[i-1]
 		rival.car.global_transform = frame(bodies[i],rival.car)
 		rival.car.body.rotation.y = 0
 		rival.car.visible = rival.active and bodies[i].position.distance_to(player_body.position) < 460
@@ -288,7 +289,7 @@ func update_air(delta: float, was_airborne: bool) -> void:
 func update_passes(old_gaps: Array[float], previous_distance: float) -> void:
 	if race.distance <= previous_distance or player_body.velocity.dot(player_body.forward_direction()) < 10: return
 	for i in range(bodies.size()-1):
-		var rival: Dictionary = race.rivals[i]
+		var rival: RivalState = race.rivals[i]
 		if not rival.active: continue
 		var gap: float = race.relative_gap(rival.distance,race.distance)
 		var relative := bodies[i+1].position-player_body.position
@@ -342,7 +343,7 @@ func impact(hit: Dictionary) -> void:
 	if not hit.get("severe",false): race.hitstop_until = 0
 
 func rival_lane(index: int, d: float, look: float, delta: float) -> float:
-	var rival: Dictionary = race.rivals[index-1]
+	var rival: RivalState = race.rivals[index-1]
 	var edge: float = minf(race.track.half_width(d),race.track.half_width(d+look))-1.5
 	rival.target_lane = clampf(float(rival.target_lane),-edge,edge)
 	rival.decision -= delta
@@ -408,7 +409,7 @@ func rival_stride(body: CharacterBody3D) -> int:
 # A rival far from the player can touch nothing the player sees: skip its body physics and move
 # it along its lane, at the speed the AI would have chosen. It becomes a real body again, with the
 # same pose and speed, when it comes within range.
-func carry_rival(index: int, rival: Dictionary, target_lane: float, target_speed: float, dt: float) -> void:
+func carry_rival(index: int, rival: RivalState, target_lane: float, target_speed: float, dt: float) -> void:
 	var body := bodies[index]
 	var tracker: RefCounted = trackers[index]
 	var now := speed_of(body)
@@ -434,14 +435,14 @@ func carry_rival(index: int, rival: Dictionary, target_lane: float, target_speed
 
 func update_rivals(delta: float) -> void:
 	for i in range(1,bodies.size()):
-		var rival: Dictionary = race.rivals[i-1]
+		var rival: RivalState = race.rivals[i-1]
 		if not rival.active: continue
 		var body := bodies[i]
 		var stride := rival_stride(body)
 		var carried := stride == 0
 		# A car in the air or recovering from a hit always gets the full simulation.
 		if carried or not body.grounded or rival.air.active or not body.last_contacts.is_empty(): stride = 1
-		var owed: float = float(rival.get("lod_time",0.0))+delta
+		var owed: float = rival.lod_time+delta
 		# Stride-2 cars take turns: odd cars on odd ticks, even cars on even ticks.
 		if stride > 1 and (Engine.get_physics_frames()+i)%stride != 0:
 			rival.lod_time = owed
@@ -491,9 +492,9 @@ func update_rivals(delta: float) -> void:
 		if carried:
 			carry_rival(i,rival,target_lane,target_speed,dt)
 			continue
-		rival.world_reverse_cooldown = maxf(0,float(rival.get("world_reverse_cooldown",0))-dt)
-		var reversing_cpu: float = maxf(0,float(rival.get("world_reverse",0))-dt)
-		var stuck: float = float(rival.get("world_stuck",0))+dt if body.grounded and speed_of(body) < 1.5 and (blocked or target_speed > 5) else 0.0
+		rival.world_reverse_cooldown = maxf(0,rival.world_reverse_cooldown-dt)
+		var reversing_cpu: float = maxf(0,rival.world_reverse-dt)
+		var stuck: float = rival.world_stuck+dt if body.grounded and speed_of(body) < 1.5 and (blocked or target_speed > 5) else 0.0
 		if stuck > 1.25 and reversing_cpu <= 0 and rival.world_reverse_cooldown <= 0 and rival_rear_clear(i):
 			reversing_cpu = 1.0
 			rival.world_reverse_cooldown = 4.0

@@ -102,7 +102,7 @@ func run(tree: SceneTree) -> int:
 	race.state = "racing"
 	race.distance = 80+length
 	race.speed = 60
-	var other: Dictionary = race.rivals[0]
+	var other = race.rivals[0]
 	other.distance = 83.2
 	other.lane = race.lane
 	other.speed = 40.0

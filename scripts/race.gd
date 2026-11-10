@@ -57,7 +57,7 @@ var speed_effect: ColorRect
 var tire_trails: Node3D
 var speed_ambience: Node3D
 var impacts: Node3D
-var rivals: Array[Dictionary] = []
+var rivals: Array[RivalState] = []
 var surface := SurfaceState.new()
 var air := AirState.new()
 var shoulder_dust: Node3D
@@ -271,7 +271,7 @@ func _ready() -> void:
 		car.traffic = true
 		car.paint = Color(colors[i % colors.size()])
 		add_child(car)
-		rivals.append({"car":car})
+		rivals.append(RivalState.new(car))
 	initialize_traffic()
 	camera = Camera3D.new()
 	camera.far = 1800
@@ -434,7 +434,7 @@ func competitor_count() -> int:
 	return 16 if mode == "track" and selected_course == 1 else 8
 
 func initialize_traffic() -> void:
-	RivalState.initialize(rivals)
+	for i in range(rivals.size()): rivals[i].reset(i)
 	if mode == "track":
 		for r in rivals:
 			r.active = r.id < competitor_count()-1
@@ -1023,7 +1023,7 @@ func _physics_process(delta: float) -> void:
 	for r in rivals:
 		r.car.set_headlights(r.active and (night or track.active.in_tunnel(r.distance)),false)
 		if not r.active or not r.car.visible or absf(relative_gap(r.distance,distance)) > 145:
-			if r.get("visual_running",true): r.car.animate(0,false,false,0)
+			if r.visual_running: r.car.animate(0,false,false,0)
 			r.visual_running = false
 			continue
 		r.visual_running = true

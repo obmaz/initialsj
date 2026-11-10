@@ -950,7 +950,7 @@ func draw_competitor_markers() -> void:
 	nearby.sort_custom(func(a: Dictionary,b: Dictionary) -> bool: return a.gap < b.gap)
 	var occupied: Array[Rect2] = []
 	for entry in nearby:
-		var rival: Dictionary = entry.rival
+		var rival: RefCounted = entry.rival
 		var world: Vector3 = rival.car.position+Vector3.UP*2.2
 		if race.camera.is_position_behind(world): continue
 		var point := to_design(race.camera.unproject_position(world))
