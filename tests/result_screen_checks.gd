@@ -41,7 +41,7 @@ func run(tree: SceneTree) -> int:
 	r.state = "settings"
 	r.hud.handle_pointer(_tap(r.hud.SETTINGS_FPS.get_center()))
 	check(r.show_fps,"The SHOW FPS row must switch the counter on")
-	r.settings_activate(3)
+	r.controls.settings_activate(3)
 	check(not r.show_fps,"Pad row 3 must toggle the FPS counter")
 	r.queue_free()
 	await tree.process_frame

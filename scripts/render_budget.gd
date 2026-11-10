@@ -37,7 +37,7 @@ func tick(race: Node3D) -> void:
 	var dt := (now-last_tick)/1000000.0 if last_tick > 0 else 0.0
 	last_tick = now
 	if Vector2i(race.get_viewport().get_texture().get_size()) != viewport_size: resize(race)
-	if mode != 0 or race.state != RaceState.RACING or race.elapsed < 6 or race.web_portrait or dt <= 0:
+	if mode != 0 or race.state != RaceState.RACING or race.elapsed < 6 or race.shell.portrait or dt <= 0:
 		seconds = 0
 		frames = 0
 		slow_windows = 0

@@ -2,12 +2,12 @@
 
 ## 실행과 주행
 
-진입 씬은 `scenes/race.tscn`입니다. `race.gd`가 화면·입력·모드·경기 상태를 조정하고 `hud.gd`가 표시와 터치 좌표를 담당합니다.
+진입 씬은 `scenes/race.tscn`입니다. `race.gd`가 모드·경기 상태·화면 전환을 조정하고 `hud.gd`가 표시와 터치 좌표를 담당합니다. 화면 상태 값은 `race_state.gd`의 상수가 정본이며 `race.state`는 선언된 값만 받습니다. `race.gd`는 세 보조 객체에 일을 맡깁니다: `race_input.gd`(`race.controls`, 키보드·게임패드·터치 입력을 화면별 동작으로 연결), `race_lighting.gd`(`race.lighting`, 하늘·안개·조명과 지역·날씨 전환), `web_shell.gd`(`race.shell`, 브라우저 전체화면·뒤로 가기·화면 방향).
 
 | 영역 | 책임과 정본 |
 | --- | --- |
 | 차체 물리 | `world_car.gd`: 실제 위치·방향·접지·벽 충돌·공중 운동 |
-| 경기·CPU 차량 | `world_race.gd`: 차체 생성, 조향·속도 판단, 순위·복구·카메라 |
+| 경기·CPU 차량 | `world_race.gd`: 차체 생성, 조향·속도 판단, 순위·복구·카메라. 상대 차량 상태는 `rival_state.gd`의 타입 있는 객체 |
 | 투어 | `tour_world_race.gd`, `tour_progress.gd`, `track.gd`: 열린 도로 계측·분기·체크포인트·제한시간 |
 | 서킷 | `circuit_track.gd`, 코스별 `*_course.gd`, `circuit_progress.gd`: 코스 형상과 순서 있는 게이트·랩 |
 | 도로 | `road_section.gd`, `roadside_geometry.gd`, `world_collision.gd`: 공통 좌표·폭·뱅킹과 실제 충돌체 |

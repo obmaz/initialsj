@@ -36,7 +36,7 @@ func run(tree: SceneTree) -> int:
 	race.state = "racing"
 	race.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
 	check(race.state == "paused","Native Android back notification must use the same pause action")
-	race._on_web_back([])
+	race.shell.on_back([])
 	check(race.state == "racing","The JavaScript back callback must reach the shared state handler")
 	race.state = "courses"
 	var transition := BusyTransition.new()
@@ -47,12 +47,12 @@ func run(tree: SceneTree) -> int:
 	transition.free()
 	# A transition that finishes after the device rotated must not run unseen
 	# behind the rotate guide; it waits paused until landscape returns.
-	race.web_portrait = true
+	race.shell.portrait = true
 	race.restart()
 	check(race.state == "paused" and race.resume_state == "countdown","A race started while portrait must wait paused instead of counting down under the rotate guide")
 	race.resume_tour()
 	check(race.state == "paused","Resume must stay blocked while portrait")
-	race.web_portrait = false
+	race.shell.portrait = false
 	race.resume_tour()
 	check(race.state == "countdown","Rotating back to landscape must allow the manual resume")
 	race.queue_free()

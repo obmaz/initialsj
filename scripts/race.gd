@@ -106,8 +106,8 @@ var state := RaceState.MENU:
 			push_error("Unknown race state: "+str(value))
 			return
 		state = value
-		_sync_web_back()
-		if state != RaceState.SETTINGS: _hide_fullscreen_control()
+		shell.sync_back()
+		if state != RaceState.SETTINGS: shell.hide_control()
 		sync_world_rendering()
 var distance := 80.0
 var completed_distance := 0.0
@@ -166,16 +166,9 @@ var impact_age := 1.0
 var boost_kick := 0.0
 var bump_cooldown := 0.0
 var launch_flash := 0.0
-var web_portrait := false
-var web_orientation_callback: JavaScriptObject
-var web_back_callback: JavaScriptObject
-var web_fullscreen_callback: JavaScriptObject
-var web_fullscreen_active := false
-var web_dom_fullscreen_active := false
-var web_back_after_fullscreen_until := 0
-var fullscreen_control_rect := Rect2()
-var fullscreen_control_visible := false
-var fullscreen_return_mode := DisplayServer.WINDOW_MODE_WINDOWED
+var shell := preload("res://scripts/web_shell.gd").new(self)
+var lighting := preload("res://scripts/race_lighting.gd").new(self)
+var controls := preload("res://scripts/race_input.gd").new(self)
 var motion_reduced := false
 var motion_user_set := false
 var pad := Pad.new()
@@ -218,44 +211,7 @@ func _ready() -> void:
 	previous_disable_3d = rendering_viewport.disable_3d
 	track = Track.new()
 	add_child(track)
-	var world := WorldEnvironment.new()
-	var env := Environment.new()
-	atmosphere = env
-	var sky_material := ProceduralSkyMaterial.new()
-	sky_colors = sky_material
-	sky_material.sky_top_color = Color("438cce")
-	sky_material.sky_horizon_color = Color("cce5e9")
-	sky_material.ground_bottom_color = Color("688370")
-	sky_material.ground_horizon_color = Color("c3d9db")
-	env.background_mode = Environment.BG_SKY
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("b5cce0")
-	env.ambient_light_energy = 0.35
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.tonemap_exposure = 0.88
-	env.fog_enabled = true
-	env.fog_light_color = Color("b3d3df")
-	env.fog_density = 0.00065
-	env.fog_sky_affect = 0
-	world.environment = env
-	add_child(world)
-	var sun := DirectionalLight3D.new()
-	sun_light = sun
-	sun.rotation_degrees = Vector3(-42,-32,0)
-	sun.light_color = Color("fff0d4")
-	sun.light_energy = 0.95
-	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = 220
-	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
-	sun.directional_shadow_blend_splits = true
-	add_child(sun)
-	rim_light = DirectionalLight3D.new()
-	rim_light.rotation_degrees = Vector3(-18,145,0)
-	rim_light.light_color = Color("a1bce8")
-	rim_light.light_energy = 0.10
-	rim_light.shadow_enabled = false
-	rim_light.sky_mode = DirectionalLight3D.SKY_MODE_LIGHT_ONLY
-	add_child(rim_light)
+	lighting.setup()
 	tire_trails = preload("res://scripts/tire_trails.gd").new()
 	add_child(tire_trails)
 	speed_ambience = preload("res://scripts/speed_ambience.gd").new()
@@ -322,14 +278,8 @@ func _ready() -> void:
 	world_race.reset()
 	place_cars()
 	update_camera(1)
-	if OS.has_feature("web"):
-		web_orientation_callback = JavaScriptBridge.create_callback(_on_web_orientation)
-		JavaScriptBridge.get_interface("window").initialsjObserveOrientation(web_orientation_callback)
-		web_back_callback = JavaScriptBridge.create_callback(_on_web_back)
-		JavaScriptBridge.get_interface("window").initialsjObserveBack(web_back_callback,state != RaceState.MENU)
-		web_fullscreen_callback = JavaScriptBridge.create_callback(_on_web_fullscreen)
-		JavaScriptBridge.get_interface("window").initialsjObserveFullscreen(web_fullscreen_callback)
-	elif OS.has_feature("android"):
+	shell.attach()
+	if OS.has_feature("android"):
 		get_tree().quit_on_go_back = false
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	sync_world_rendering()
@@ -341,66 +291,10 @@ func _announce_ready() -> void:
 	await RenderingServer.frame_post_draw
 	JavaScriptBridge.eval("window.initialsjGameReady && window.initialsjGameReady()")
 
-func _on_web_fullscreen(args: Array) -> void:
-	var active: bool = bool(args[0])
-	var dom_active: bool = bool(args[1])
-	var exited: bool = (web_fullscreen_active and not active) or (web_dom_fullscreen_active and not dom_active)
-	web_fullscreen_active = active
-	web_dom_fullscreen_active = dom_active
-	# Android Back can leave browser fullscreen before dispatching popstate.
-	if exited and state in [RaceState.RACING,RaceState.COUNTDOWN,RaceState.PAUSED]:
-		pause_tour()
-		# Some browser versions emit both fullscreenchange and popstate for
-		# one Back gesture; do not let the second event immediately resume.
-		web_back_after_fullscreen_until = Time.get_ticks_msec()+350
-
-func is_fullscreen() -> bool:
-	if OS.has_feature("web"): return bool(JavaScriptBridge.eval("window.initialsjIsFullscreen && window.initialsjIsFullscreen()"))
-	if DisplayServer.get_name() == "headless": return false
-	return DisplayServer.window_get_mode() in [DisplayServer.WINDOW_MODE_FULLSCREEN,DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN]
-
-func fullscreen_label() -> String:
-	if OS.has_feature("web"): return str(JavaScriptBridge.eval("window.initialsjFullscreenLabel ? window.initialsjFullscreenLabel() : 'ENTER FULLSCREEN'"))
-	return "EXIT FULLSCREEN" if is_fullscreen() else "ENTER FULLSCREEN"
-
-func toggle_fullscreen() -> void:
-	if OS.has_feature("web"):
-		JavaScriptBridge.eval("window.initialsjToggleFullscreen && window.initialsjToggleFullscreen()")
-	elif DisplayServer.get_name() != "headless":
-		if is_fullscreen(): DisplayServer.window_set_mode(fullscreen_return_mode)
-		else:
-			fullscreen_return_mode = DisplayServer.window_get_mode()
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-
-func _hide_fullscreen_control() -> void:
-	if not fullscreen_control_visible: return
-	fullscreen_control_visible = false
-	if OS.has_feature("web"): JavaScriptBridge.get_interface("window").initialsjFullscreenControl(false,0,0,0,0)
-
-func sync_fullscreen_button(design_rect: Rect2) -> void:
-	if not OS.has_feature("web"): return
-	if state != RaceState.SETTINGS or (screen_transition != null and screen_transition.busy):
-		_hide_fullscreen_control()
-		return
-	var viewport_size := get_viewport().get_visible_rect().size
-	var rect := Rect2((design_rect.position*hud.ui_scale()+hud.ui_offset())/viewport_size,design_rect.size*hud.ui_scale()/viewport_size)
-	if fullscreen_control_visible and fullscreen_control_rect.is_equal_approx(rect): return
-	fullscreen_control_visible = true
-	fullscreen_control_rect = rect
-	JavaScriptBridge.get_interface("window").initialsjFullscreenControl(true,rect.position.x,rect.position.y,rect.size.x,rect.size.y)
-
-func _sync_web_back() -> void:
-	if web_back_callback != null:
-		var transitioning: bool = screen_transition != null and screen_transition.busy
-		JavaScriptBridge.get_interface("window").initialsjSetBackEnabled(state != RaceState.MENU or transitioning)
-
-func _on_web_back(_args: Array) -> void:
-	navigate_back()
-
 # Keep hardware/browser Back consistent with the visible screen's back action.
 # Repeated Back during a transition is consumed rather than queued.
 func navigate_back() -> bool:
-	if Time.get_ticks_msec() < web_back_after_fullscreen_until: return true
+	if Time.get_ticks_msec() < shell.back_ignored_until: return true
 	if screen_transition != null and screen_transition.busy: return true
 	match state:
 		RaceState.RACING,RaceState.COUNTDOWN: pause_tour()
@@ -412,12 +306,6 @@ func navigate_back() -> bool:
 		_: return false
 	return true
 
-func _on_web_orientation(args: Array) -> void:
-	web_portrait = bool(args[0])
-	if web_portrait:
-		hud.fingers.clear()
-		pause_tour()
-
 func _exit_tree() -> void:
 	if owns_render_resources:
 		owns_render_resources = false
@@ -425,15 +313,9 @@ func _exit_tree() -> void:
 			preload("res://scripts/advertisement_library.gd").clear_cache()
 			preload("res://scripts/regional_props_3d.gd").clear_cache()
 			preload("res://scripts/tour_vegetation.gd").clear_cache()
-	_hide_fullscreen_control()
+	shell.detach()
 	if is_instance_valid(rendering_viewport): rendering_viewport.disable_3d = previous_disable_3d
 	Engine.time_scale = 1.0
-	if OS.has_feature("web"):
-		JavaScriptBridge.get_interface("window").initialsjObserveOrientation(null)
-		JavaScriptBridge.get_interface("window").initialsjObserveBack(null,false)
-		JavaScriptBridge.get_interface("window").initialsjObserveFullscreen(null)
-		web_back_callback = null
-		web_fullscreen_callback = null
 
 func competitor_count() -> int:
 	return 16 if mode == "track" and selected_course == 1 else 8
@@ -455,14 +337,14 @@ func initialize_traffic() -> void:
 			r.car.visible = false
 
 func navigate(action: Callable) -> void:
-	_hide_fullscreen_control()
+	shell.hide_control()
 	if screen_transition == null:
 		loading_title = ""
 		action.call()
 	else:
-		if web_back_callback != null: JavaScriptBridge.get_interface("window").initialsjSetBackEnabled(true)
+		shell.hold_back()
 		await screen_transition.play(action)
-		_sync_web_back()
+		shell.sync_back()
 
 func start_race() -> void:
 	navigate(func():
@@ -524,49 +406,7 @@ func choose_mode(value: String, course: int = 0) -> void:
 	track = Circuit.new() if mode == "track" else Track.new()
 	if mode == "track": track.course_id = selected_course
 	add_child(track)
-	atmosphere.sky = null
-	rim_light.light_color = Color.WHITE
-	if mode == "track":
-		if selected_course == 2:
-			# Night: a dim cool moon, deep blue ambient light and dark blue haze.
-			atmosphere.fog_light_color = Color("0c1a30")
-			atmosphere.fog_density = 0.0016
-			atmosphere.ambient_light_color = Color("5a78b8")
-			atmosphere.ambient_light_energy = 0.55
-			atmosphere.tonemap_exposure = 1.0
-			sun_light.rotation_degrees = Vector3(-38,150,0)
-			sun_light.light_energy = 0.32
-			sun_light.light_color = Color("a8c0ff")
-			rim_light.light_energy = 0.18
-		else:
-			atmosphere.fog_light_color = Color("b3d3df")
-			atmosphere.fog_density = 0.00065
-			atmosphere.ambient_light_color = Color("b5cce0")
-			atmosphere.tonemap_exposure = 0.88
-			sun_light.rotation_degrees = Vector3(-42,-32,0)
-			sun_light.light_energy = 1.0
-			sun_light.light_color = Color("ffe4be")
-			rim_light.light_energy = 0.10
-			atmosphere.ambient_light_energy = 0.28
-		if selected_course in [3,4]:
-			atmosphere.fog_light_color = Color("87bdcf")
-			atmosphere.fog_density = 0.00022
-			atmosphere.tonemap_exposure = 0.76
-			sun_light.light_energy = 0.85
-		if selected_course == 4:
-			# 파노라마 태양 U=.65,V=.49와 같은 방위·낮은 고도의 주광을 고정한다.
-			sun_light.rotation_degrees = Vector3(-5,54,0)
-			sun_light.light_color = Color("ffbf82")
-			sun_light.light_energy = .78
-			atmosphere.ambient_light_color = Color("899ec5")
-			atmosphere.ambient_light_energy = .38
-			atmosphere.fog_light_color = Color("bd9fa8")
-			atmosphere.fog_density = .00038
-			atmosphere.tonemap_exposure = .9
-			rim_light.light_color = Color("a2b6db")
-			rim_light.light_energy = .14
-	else:
-		visual_theme = ""
+	lighting.apply_course()
 	create_world_controller()
 	render_budget.apply(self)
 	state = RaceState.READY
@@ -736,158 +576,10 @@ func restart(start_countdown: bool = true) -> void:
 	for r in rivals: r.car.reset_physics_interpolation()
 	# A screen transition can finish after the device rotated to portrait. The
 	# rotate guide hides the road, so wait paused rather than run unseen.
-	if web_portrait: pause_tour()
+	if shell.portrait: pause_tour()
 
 func _input(event: InputEvent) -> void:
-	if Pad.is_pad_event(event):
-		# State is always tracked, so a button released during a transition cannot stick.
-		if pad.handle(event): gamepad_active = true
-		var blocked: bool = (screen_transition != null and screen_transition.busy) or web_portrait
-		if event is InputEventJoypadButton and event.pressed and not blocked: pad_pressed(event.button_index)
-		return
-	if (event is InputEventKey or event is InputEventScreenTouch or event is InputEventMouseButton) and event.pressed: gamepad_active = false
-	if screen_transition != null and screen_transition.busy: return
-	if web_portrait: return
-	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION: return
-	if event is InputEventKey and event.pressed and not event.echo:
-		if state == RaceState.MENU:
-			if event.keycode in [KEY_ENTER,KEY_1,KEY_T]: navigate_to_mode("tour")
-			elif event.keycode in [KEY_2,KEY_C]: navigate(open_courses)
-			elif event.keycode == KEY_TAB: navigate(open_settings)
-			return
-		if state == RaceState.COURSES:
-			if event.keycode in [KEY_1,KEY_ENTER]: navigate_to_mode("track",0)
-			elif event.keycode == KEY_2: navigate_to_mode("track",1)
-			elif event.keycode == KEY_3: navigate_to_mode("track",2)
-			elif event.keycode == KEY_4: navigate_to_mode("track",3)
-			elif event.keycode == KEY_5: navigate_to_mode("track",4)
-			elif event.keycode == KEY_ESCAPE: navigate(open_menu)
-			return
-		if state == RaceState.SETTINGS:
-			if event.keycode in [KEY_ESCAPE,KEY_TAB]: navigate(close_settings)
-			return
-		if state == RaceState.READY and event.keycode == KEY_ESCAPE:
-			if mode == "track": navigate(open_courses)
-			else: navigate(open_menu)
-			return
-		if event.keycode == KEY_ENTER:
-			if state == RaceState.READY: start_race()
-			elif state in RaceState.ENDED: navigate(open_garage)
-		elif state == RaceState.READY and event.keycode >= KEY_1 and event.keycode < KEY_1+Catalog.SPECS.size(): select_vehicle(event.keycode-KEY_1)
-		elif state == RaceState.READY and event.keycode in [KEY_A,KEY_LEFT]: select_vehicle(posmod(selected_vehicle-1,Catalog.SPECS.size()))
-		elif state == RaceState.READY and event.keycode in [KEY_D,KEY_RIGHT]: select_vehicle((selected_vehicle+1)%Catalog.SPECS.size())
-		elif event.keycode == KEY_V: toggle_sound()
-		elif event.keycode == KEY_M: toggle_motion()
-		elif event.keycode == KEY_R and state != RaceState.READY: start_race()
-		elif event.keycode == KEY_G and state == RaceState.PAUSED: navigate(open_menu)
-		elif event.keycode in [KEY_ESCAPE,KEY_P]:
-			if state == RaceState.PAUSED: resume_tour()
-			else: pause_tour()
-	if event is InputEventScreenTouch or event is InputEventMouseButton: hud.handle_pointer(event)
-	if event is InputEventScreenDrag: hud.move_pointer(event.index,event.position)
-	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT): hud.move_pointer(-1,event.position)
-
-# A pad button press, mapped like the keyboard shortcuts of the same screen.
-func pad_pressed(button: int) -> void:
-	var count := Catalog.SPECS.size()
-	match state:
-		RaceState.MENU:
-			match button:
-				JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN: pad_focus(button)
-				JOY_BUTTON_A:
-					match menu_focus:
-						0: navigate_to_mode("tour")
-						1: navigate(open_courses)
-						_: navigate(open_settings)
-				JOY_BUTTON_X: navigate(open_courses)
-				JOY_BUTTON_Y: navigate(open_settings)
-		RaceState.COURSES:
-			match button:
-				JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN: pad_focus(button)
-				JOY_BUTTON_A:
-					match menu_focus:
-						0, 1, 2, 3, 4: navigate_to_mode("track",menu_focus)
-						_: navigate(open_menu)
-				JOY_BUTTON_X: navigate_to_mode("track",1)
-				JOY_BUTTON_Y: navigate_to_mode("track",2)
-				JOY_BUTTON_B: navigate(open_menu)
-		RaceState.SETTINGS:
-			match button:
-				JOY_BUTTON_DPAD_UP: settings_focus = posmod(settings_focus-1,SETTINGS_ROWS)
-				JOY_BUTTON_DPAD_DOWN: settings_focus = posmod(settings_focus+1,SETTINGS_ROWS)
-				JOY_BUTTON_A: settings_activate(settings_focus)
-				JOY_BUTTON_B, JOY_BUTTON_START: navigate(close_settings)
-		RaceState.READY:
-			match button:
-				JOY_BUTTON_A, JOY_BUTTON_START: start_race()
-				JOY_BUTTON_B: navigate(open_courses if mode == "track" else open_menu)
-				JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_DPAD_LEFT: select_vehicle(posmod(selected_vehicle-1,count))
-				JOY_BUTTON_RIGHT_SHOULDER, JOY_BUTTON_DPAD_RIGHT: select_vehicle((selected_vehicle+1)%count)
-		RaceState.RACING,RaceState.COUNTDOWN:
-			match button:
-				JOY_BUTTON_START, JOY_BUTTON_BACK: pause_tour()
-				JOY_BUTTON_Y: recover_car()
-				JOY_BUTTON_LEFT_SHOULDER: select_route(0)
-				JOY_BUTTON_RIGHT_SHOULDER: select_route(1)
-		RaceState.PAUSED:
-			match button:
-				JOY_BUTTON_A, JOY_BUTTON_B, JOY_BUTTON_START, JOY_BUTTON_BACK: resume_tour()
-				JOY_BUTTON_X: navigate(open_menu)
-				JOY_BUTTON_Y: start_race()
-		RaceState.FINISHED,RaceState.FAILED:
-			match button:
-				JOY_BUTTON_A: navigate(open_garage)
-				JOY_BUTTON_X, JOY_BUTTON_BACK: start_race()
-
-# D-pad (or the left stick, see pad_stick_navigation) moves the gold focus frame: left/right
-# between the two cards, up to the corner button, down back to the last card.
-func pad_focus(button: int) -> void:
-	# The home screen has two cards, the circuit screen three; the corner button comes after them.
-	var cards := COURSE_COUNT if state == RaceState.COURSES else 2
-	match button:
-		JOY_BUTTON_DPAD_LEFT:
-			if menu_focus > 0 and menu_focus < cards: menu_focus -= 1
-		JOY_BUTTON_DPAD_RIGHT:
-			if menu_focus < cards-1: menu_focus += 1
-		JOY_BUTTON_DPAD_UP:
-			if menu_focus != cards:
-				menu_last_card = menu_focus
-				menu_focus = cards
-		JOY_BUTTON_DPAD_DOWN:
-			if menu_focus == cards: menu_focus = menu_last_card
-
-# The left stick drives every menu like the D-pad, with a short repeat while held.
-func pad_stick_navigation(delta: float) -> void:
-	if state not in RaceState.MENUS or (screen_transition != null and screen_transition.busy):
-		nav_dir = ""
-		return
-	var x := pad.axis(JOY_AXIS_LEFT_X)
-	var y := pad.axis(JOY_AXIS_LEFT_Y)
-	var wanted := ""
-	if absf(x) > 0.6 and absf(x) >= absf(y): wanted = "right" if x > 0 else "left"
-	elif absf(y) > 0.6: wanted = "down" if y > 0 else "up"
-	if wanted == "":
-		nav_dir = ""
-		nav_wait = 0
-		return
-	nav_wait -= delta
-	if wanted == nav_dir and nav_wait > 0: return
-	var first: bool = wanted != nav_dir
-	nav_dir = wanted
-	nav_wait = 0.4 if first else 0.17
-	gamepad_active = true
-	pad_pressed({"left":JOY_BUTTON_DPAD_LEFT,"right":JOY_BUTTON_DPAD_RIGHT,"up":JOY_BUTTON_DPAD_UP,"down":JOY_BUTTON_DPAD_DOWN}[wanted])
-
-const SETTINGS_ROWS := 7
-func settings_activate(index: int) -> void:
-	match index:
-		0: toggle_sound()
-		1: toggle_motion()
-		2: cycle_graphics()
-		3: toggle_fps()
-		4: toggle_fullscreen()
-		5: hud.install_game()
-		_: navigate(close_settings)
+	controls.handle(event)
 
 func _on_joy_connection_changed(_device: int, connected: bool) -> void:
 	if connected: return
@@ -912,7 +604,7 @@ func pause_tour() -> void:
 		if hud != null: hud.fingers.clear()
 
 func resume_tour() -> void:
-	if web_portrait: return
+	if shell.portrait: return
 	if state == RaceState.PAUSED:
 		hud.fingers.clear()
 		state = resume_state
@@ -1262,7 +954,7 @@ func place_cars(_delta: float = 1.0) -> void:
 
 func _process(delta: float) -> void:
 	render_budget.tick(self)
-	pad_stick_navigation(delta)
+	controls.pad_stick_navigation(delta)
 
 func collision_camera_offset(forward: Vector3, right: Vector3) -> Vector3:
 	if state != RaceState.RACING or motion_reduced or impact_age > 0.42: return Vector3.ZERO
@@ -1275,49 +967,4 @@ func update_camera(delta: float) -> void:
 	world_race.update_camera(delta)
 
 func update_atmosphere(delta: float) -> void:
-	if mode == "track" and selected_course == 2:
-		# The moon stays low in the sky ahead and slightly to the left, whichever way the road turns.
-		var look: Vector3 = -camera.global_transform.basis.z
-		look.y = 0
-		if look.length_squared() > 0.01 and atmosphere.sky != null and atmosphere.sky.sky_material is ShaderMaterial:
-			var heading := look.normalized().rotated(Vector3.UP,deg_to_rad(24))
-			(atmosphere.sky.sky_material as ShaderMaterial).set_shader_parameter("moon_direction",Vector3(heading.x,0.115,heading.z))
-		return
-	if mode == "track" and selected_course == 4: return
-	if mode == "track":
-		var sheltered: bool = track.active.in_tunnel(distance)
-		var blend := 1-exp(-delta*3)
-		atmosphere.ambient_light_energy = lerpf(atmosphere.ambient_light_energy,0.12 if sheltered else 0.28,blend)
-		rim_light.light_energy = lerpf(rim_light.light_energy,0.025 if sheltered else 0.10,blend)
-		return
-	var theme_id: String = track.scenery.theme
-	var region: Dictionary = track.active.region_metadata
-	var mood_key: String = theme_id+str(region.get("weather","clear"))+str(region.get("time_of_day","day"))
-	if visual_theme != mood_key:
-		visual_theme = mood_key
-		atmosphere_transition = 3.0
-	if atmosphere_transition <= 0: return
-	var profile := {"top":Color("438cce"),"horizon":Color("cce5e9"),"fog":Color("b3d3df"),"sun":0.95,"ambient":0.35,"sun_color":Color("fff0d4")}
-	match theme_id:
-		"neon": profile.merge({"top":Color("101027"),"horizon":Color("383456"),"fog":Color("292a46"),"sun":0.12,"ambient":0.5,"sun_color":Color("b7c4ef")},true)
-		"snow": profile.merge({"top":Color("90b9d4"),"horizon":Color("e6eff6"),"fog":Color("dbe5ec"),"sun":0.8,"ambient":0.45,"sun_color":Color("e9f0ff")},true)
-		"volcano": profile.merge({"top":Color("8a655e"),"horizon":Color("bc8265"),"fog":Color("8b635a"),"sun":0.7,"ambient":0.4,"sun_color":Color("ffd2aa")},true)
-		"canyon": profile.merge({"top":Color("ad927e"),"horizon":Color("f2cc8e"),"fog":Color("bfb190"),"sun":0.9},true)
-		"harbor": profile.merge({"top":Color("587e97"),"horizon":Color("b6ccda"),"fog":Color("96b1c1"),"sun":0.8,"ambient":0.4},true)
-		"bamboo": profile.merge({"top":Color("6d9f99"),"horizon":Color("c0d3b6"),"fog":Color("90b1a4"),"sun":0.8},true)
-	var weather: String = region.get("weather","clear")
-	var period: String = region.get("time_of_day","day")
-	if period == "night": profile.merge({"top":Color("101027"),"horizon":Color("383456"),"fog":Color("292a46"),"sun":.12,"ambient":.5,"sun_color":Color("b7c4ef")},true)
-	if period == "dawn": profile.merge({"sun":.62,"ambient":.38,"sun_color":Color("edd7c7")},true)
-	if weather == "rain": profile.merge({"top":Color("52616b"),"horizon":Color("98a6ac"),"fog":Color("82959f"),"sun":.3,"ambient":.48,"sun_color":Color("beced8")},true)
-	if weather == "sand": profile.merge({"fog":Color("c4ad82"),"sun_color":Color("f0d2a3")},true)
-	atmosphere.fog_density = .001 if weather == "sand" else (.0008 if weather == "rain" else (.0005 if weather == "snow" else .00035))
-	var blend := 1.0 if delta >= atmosphere_transition else 1-exp(-delta*2)
-	sky_colors.sky_top_color = sky_colors.sky_top_color.lerp(profile.top,blend)
-	sky_colors.sky_horizon_color = sky_colors.sky_horizon_color.lerp(profile.horizon,blend)
-	atmosphere.fog_light_color = atmosphere.fog_light_color.lerp(profile.fog,blend)
-	atmosphere.ambient_light_energy = lerpf(atmosphere.ambient_light_energy,profile.ambient,blend)
-	sun_light.light_energy = lerpf(sun_light.light_energy,profile.sun,blend)
-	sun_light.light_color = sun_light.light_color.lerp(profile.sun_color,blend)
-	rim_light.light_energy = lerpf(rim_light.light_energy,0.035 if theme_id == "neon" else 0.10,blend)
-	atmosphere_transition = maxf(0,atmosphere_transition-delta)
+	lighting.update(delta)

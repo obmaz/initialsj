@@ -213,7 +213,7 @@ func handle_pointer(event: InputEvent) -> void:
 		elif SETTINGS_GRAPHICS.has_point(p): race.cycle_graphics()
 		elif SETTINGS_FPS.has_point(p): race.toggle_fps()
 		elif SETTINGS_FULLSCREEN.has_point(p):
-			if race.has_method("toggle_fullscreen"): race.toggle_fullscreen()
+			if race.has_method("toggle_fullscreen"): race.shell.toggle_fullscreen()
 		elif SETTINGS_INSTALL.has_point(p): install_game()
 		elif SETTINGS_CLOSE.has_point(p): race.navigate(race.close_settings)
 		return
@@ -807,7 +807,7 @@ func draw_settings() -> void:
 	text_at(SETTINGS_GRAPHICS.position+Vector2(430,49),["AUTO","HIGH","FAST"][race.graphics_mode],28,CYAN)
 	text_at(SETTINGS_FPS.position+Vector2(28,49),"SHOW FPS",28)
 	text_at(SETTINGS_FPS.position+Vector2(450,49),"ON" if race.show_fps else "OFF",30,CYAN)
-	var fullscreen_label: String = race.fullscreen_label() if race.has_method("fullscreen_label") else "ENTER FULLSCREEN"
+	var fullscreen_label: String = race.shell.fullscreen_label() if race.has_method("fullscreen_label") else "ENTER FULLSCREEN"
 	text_at(SETTINGS_FULLSCREEN.position+Vector2(28,49),fullscreen_label,28)
 	text_at(SETTINGS_FULLSCREEN.position+Vector2(489,49),">",32,CYAN)
 	text_at(SETTINGS_INSTALL.position+Vector2(28,49),"INSTALL GAME",30,WHITE)
@@ -818,7 +818,7 @@ func draw_settings() -> void:
 	if pad_on():
 		var rows: Array[Rect2] = [SETTINGS_SOUND,SETTINGS_MOTION,SETTINGS_GRAPHICS,SETTINGS_FPS,SETTINGS_FULLSCREEN,SETTINGS_INSTALL,SETTINGS_CLOSE]
 		draw_rect(rows[clampi(race.settings_focus,0,rows.size()-1)].grow(4),GOLD,false,4.0)
-	if race.has_method("sync_fullscreen_button"): race.sync_fullscreen_button(SETTINGS_FULLSCREEN)
+	if race.has_method("sync_fullscreen_button"): race.shell.sync_control(SETTINGS_FULLSCREEN)
 
 func draw_garage() -> void:
 	var color := Color(race.vehicle.accent)

@@ -158,12 +158,12 @@ func run(tree: SceneTree) -> int:
 	# The pad's Back (View) button pauses a running race instead of restarting it.
 	race.restart()
 	race.state = "racing"
-	race.pad_pressed(JOY_BUTTON_BACK)
+	race.controls.pad_pressed(JOY_BUTTON_BACK)
 	check(race.state == "paused","Back (View) must pause a running race")
-	race.pad_pressed(JOY_BUTTON_BACK)
+	race.controls.pad_pressed(JOY_BUTTON_BACK)
 	check(race.state == "racing","Back (View) must resume a paused race")
-	race.pad_pressed(JOY_BUTTON_START)
-	race.pad_pressed(JOY_BUTTON_Y)
+	race.controls.pad_pressed(JOY_BUTTON_START)
+	race.controls.pad_pressed(JOY_BUTTON_Y)
 	check(race.state != "paused","Y on the pause screen must restart the race")
 	# Menus: the D-pad and the left stick move a focus frame; A opens the focused card.
 	race.screen_transition = null
@@ -205,37 +205,37 @@ func run(tree: SceneTree) -> int:
 	# Left stick navigation with a hold delay and repeat.
 	race.open_menu()
 	axis(JOY_AXIS_LEFT_X,0.9)
-	race.pad_stick_navigation(0.016)
+	race.controls.pad_stick_navigation(0.016)
 	check(race.menu_focus == 1,"Pushing the stick right must move the focus")
-	race.pad_stick_navigation(0.1)
+	race.controls.pad_stick_navigation(0.1)
 	check(race.menu_focus == 1,"Holding the stick must not repeat at once")
 	axis(JOY_AXIS_LEFT_X,-0.9)
-	race.pad_stick_navigation(0.016)
+	race.controls.pad_stick_navigation(0.016)
 	check(race.menu_focus == 0,"Pushing the stick left must move the focus back")
-	race.pad_stick_navigation(0.5)
+	race.controls.pad_stick_navigation(0.5)
 	axis(JOY_AXIS_LEFT_X,0.0)
-	race.pad_stick_navigation(0.016)
+	race.controls.pad_stick_navigation(0.016)
 	check(race.nav_dir == "","Releasing the stick must reset the repeat")
 	# The garage cycles cars with the stick too.
 	race.open_garage()
 	var car: int = race.selected_vehicle
 	axis(JOY_AXIS_LEFT_X,0.9)
-	race.pad_stick_navigation(0.016)
+	race.controls.pad_stick_navigation(0.016)
 	check(race.selected_vehicle == (car+1)%Catalog.SPECS.size(),"Stick right in the garage must choose the next car")
 	axis(JOY_AXIS_LEFT_X,0.0)
-	race.pad_stick_navigation(0.016)
+	race.controls.pad_stick_navigation(0.016)
 	# Settings rows move with the stick as well.
 	race.state = "menu"
 	race.open_settings()
 	race.settings_focus = 0
 	axis(JOY_AXIS_LEFT_Y,0.9)
-	race.pad_stick_navigation(0.016)
+	race.controls.pad_stick_navigation(0.016)
 	check(race.settings_focus == 1,"Stick down in settings must move to the next row")
 	axis(JOY_AXIS_LEFT_Y,0.0)
-	race.pad_stick_navigation(0.016)
+	race.controls.pad_stick_navigation(0.016)
 	race.queue_free()
 	await tree.process_frame
 	print("Gamepad / racing layout / menus / pause / disconnect / prompts: ","PASS" if failures == 0 else "FAIL")
 	return failures
 func rows() -> int:
-	return race.SETTINGS_ROWS
+	return race.controls.SETTINGS_ROWS

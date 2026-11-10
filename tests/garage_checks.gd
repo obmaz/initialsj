@@ -65,12 +65,12 @@ func run(tree: SceneTree) -> int:
 	check(race.state == "countdown","TIME touch panel must also resume the saved countdown phase")
 	# Portrait is a rotation notice, not an active driving layout.
 	race.hud.fingers[7] = race.hud.buttons.gas.get_center()
-	race._on_web_orientation([true])
+	race.shell.on_orientation([true])
 	var frozen_countdown: float = race.countdown
 	race._physics_process(0.5)
 	race.resume_tour()
 	check(race.state == "paused" and race.countdown == frozen_countdown and race.hud.fingers.is_empty(),"Portrait must pause the tour, release touches and block resume")
-	race._on_web_orientation([false])
+	race.shell.on_orientation([false])
 	check(race.state == "paused","Returning to landscape must wait for explicit resume")
 	race.resume_tour()
 	check(race.state == "countdown","Landscape resume must preserve the countdown phase")

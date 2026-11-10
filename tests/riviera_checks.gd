@@ -73,7 +73,7 @@ func run(tree: SceneTree) -> int:
 	check(drift_frames > 90 and earned_hearts > 0 and race.score > 500,"실제 물리 주행에서 슬립과 하트·점수가 발생해야 합니다")
 	race.open_courses()
 	race.menu_focus = 3
-	race.pad_pressed(JOY_BUTTON_A)
+	race.controls.pad_pressed(JOY_BUTTON_A)
 	check(race.selected_course == 3,"패드로 네 번째 카드에 진입할 수 있어야 합니다")
 	race.choose_mode("track",0)
 	await tree.physics_frame

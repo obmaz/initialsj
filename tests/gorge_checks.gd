@@ -108,7 +108,7 @@ func run(tree: SceneTree) -> int:
 			check(flew and landed and race.wall_hits==0,"세 점프대 모두 실제 차체가 장벽 접촉 없이 이륙·착지해야 합니다")
 	race.open_courses()
 	race.menu_focus = 4
-	race.pad_pressed(JOY_BUTTON_A)
+	race.controls.pad_pressed(JOY_BUTTON_A)
 	check(race.selected_course == 4 and race.state == "ready","패드로 다섯 번째 코스를 시작해야 합니다")
 	race.queue_free()
 	await tree.process_frame
