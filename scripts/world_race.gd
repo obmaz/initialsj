@@ -427,7 +427,6 @@ func carry_rival(index: int, rival: Dictionary, target_lane: float, target_speed
 	rival.air.active = false
 	rival.air.height = 0.0
 	rival.drifting = false
-	rival.visual_yaw = 0
 	rival.surface.contact(race.track.active,old,Vector2(next_lane,next_distance),next_speed)
 	rival.boosting = rival.surface.pad_time > 0
 
@@ -522,7 +521,6 @@ func update_rivals(delta: float) -> void:
 		rival.air.height = maxf(0,body.feet_position().y-race.track.point(rival.distance,rival.lane).y)
 		rival.air.velocity = body.velocity.y
 		rival.drifting = false
-		rival.visual_yaw = 0
 		if body.grounded and not was_airborne and data.valid:
 			for event in rival.surface.contact(race.track.active,old,Vector2(rival.lane,rival.distance),rival.speed):
 				if event == "water": body.velocity *= 0.96

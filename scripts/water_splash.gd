@@ -12,6 +12,16 @@ func _ready() -> void:
 	texture.fill = GradientTexture2D.FILL_RADIAL
 	texture.fill_from = Vector2(0.5,0.5)
 	texture.fill_to = Vector2(1,0.5)
+	var mesh := preload("res://scripts/render_resources.gd").quad(Vector2(.08,.18))
+	var material := StandardMaterial3D.new()
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_texture = texture
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	material.vertex_color_use_as_albedo = true
+	var fade := Gradient.new()
+	fade.set_color(0,Color(.76,.94,1,.8))
+	fade.set_color(1,Color(.45,.75,.9,0))
 	for i in range(6):
 		var particles := CPUParticles3D.new()
 		particles.amount = 18
@@ -26,20 +36,9 @@ func _ready() -> void:
 		particles.gravity = Vector3(0,-20,0)
 		particles.scale_amount_min = 0.6
 		particles.scale_amount_max = 1.4
-		var mesh := QuadMesh.new()
-		mesh.size = Vector2(0.08,0.18)
 		particles.mesh = mesh
 		particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		var material := StandardMaterial3D.new()
-		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		material.albedo_texture = texture
-		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-		material.vertex_color_use_as_albedo = true
 		particles.material_override = material
-		var fade := Gradient.new()
-		fade.set_color(0,Color(0.76,0.94,1,0.8))
-		fade.set_color(1,Color(0.45,0.75,0.9,0))
 		particles.color_ramp = fade
 		add_child(particles)
 		pool.append(particles)

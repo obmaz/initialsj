@@ -35,7 +35,8 @@ const METRE_SCALE := {
 }
 const MATURE_TREE_HEIGHT := {"lake_pine_1":22.0,"lake_pine_2":20.0,"lake_pine_3":24.0,"lake_oak_1":16.0,"lake_oak_2":18.0,"lake_willow_1":14.0,"lake_willow_2":16.0,"lake_willow_3":18.0}
 static var mesh_cache: Dictionary = {}
-static var shared_material: ShaderMaterial
+static var shared_materials: Dictionary = {}
+static var material_keys: Dictionary = {}
 var theme := "hawaii"
 var placements: Array[Dictionary] = []
 var batches: Array[MultiMeshInstance3D] = []
@@ -46,15 +47,6 @@ func configure(region: String, points: Array[Dictionary]) -> void:
  theme = region
  placements.assign(points)
 func _ready() -> void:
- if shared_material == null:
-  shared_material = ShaderMaterial.new()
-  shared_material.shader = preload("res://shaders/prop_facade.gdshader")
-  shared_material.set_shader_parameter("container_skins",preload("res://assets/environment/container-elevations.png"))
-  shared_material.set_shader_parameter("building_fronts",preload("res://assets/environment/building-front-elevations.png"))
-  shared_material.set_shader_parameter("building_sides",preload("res://assets/environment/building-side-elevations.png"))
-  shared_material.set_shader_parameter("rural_fronts",preload("res://assets/environment/rural-fronts.png"))
-  shared_material.set_shader_parameter("rural_sides",preload("res://assets/environment/rural-sides.png"))
-  shared_material.set_shader_parameter("restaurant_facades",preload("res://assets/environment/restaurant-elevations.png"))
  var groups: Dictionary = {}
  for i in range(placements.size()):
   var p: Dictionary = placements[i]
@@ -78,8 +70,9 @@ func _ready() -> void:
   for start in range(0,poses.size(),12):
    var multi := MultiMesh.new()
    multi.transform_format = MultiMesh.TRANSFORM_3D
-   multi.use_custom_data = true
+   # Compatibility의 COLOR 경로는 흰색 인스턴스 색상이 있어야 정점색을 보존한다.
    multi.use_colors = true
+   multi.use_custom_data = true
    multi.mesh = model(kind)
    multi.instance_count = mini(12,poses.size()-start)
    for i in range(multi.instance_count):
@@ -91,7 +84,7 @@ func _ready() -> void:
    var node := MultiMeshInstance3D.new()
    node.name = "Regional3D_"+kind+"_"+str(start)
    node.multimesh = multi
-   node.material_override = Ads.prop_material(groups[group].ad_index) if kind == "billboard" else shared_material
+   node.material_override = Ads.prop_material(groups[group].ad_index) if kind == "billboard" else material_for(kind)
    if kind == "billboard":
     node.add_to_group("racing_advertisement")
     node.set_meta("ad_index",groups[group].ad_index)
@@ -101,6 +94,37 @@ func _ready() -> void:
    add_child(node)
    batches.append(node)
    if not kinds.has(kind): kinds.append(kind)
+static func material_for(kind: String) -> ShaderMaterial:
+ if not material_keys.has(kind):
+  var needed := {}
+  var data: Array = model(kind).surface_get_arrays(0)
+  var marks: PackedVector2Array = data[Mesh.ARRAY_TEX_UV2] if data[Mesh.ARRAY_TEX_UV2] != null else PackedVector2Array()
+  for mark in marks:
+   if mark.x > 59.5:
+    needed["container_skins"] = "res://assets/environment/container-elevations.png"
+   elif mark.x > 39.5:
+    needed["rural_fronts"] = "res://assets/environment/rural-fronts.png"
+    needed["rural_sides"] = "res://assets/environment/rural-sides.png"
+   elif mark.x > 21.5:
+    needed["restaurant_facades"] = "res://assets/environment/restaurant-elevations.png"
+   elif mark.x > 9.5:
+    needed["building_fronts"] = "res://assets/environment/building-front-elevations.png"
+    needed["building_sides"] = "res://assets/environment/building-side-elevations.png"
+  var keys := needed.keys()
+  keys.sort()
+  var key := ",".join(PackedStringArray(keys))
+  material_keys[kind] = key
+  if not shared_materials.has(key):
+   var mat := ShaderMaterial.new()
+   mat.shader = preload("res://shaders/prop_facade.gdshader")
+   for uniform_name in needed: mat.set_shader_parameter(uniform_name,load(needed[uniform_name]))
+   shared_materials[key] = mat
+ return shared_materials[material_keys[kind]]
+static func clear_cache() -> void:
+ mesh_cache.clear()
+ shared_materials.clear()
+ material_keys.clear()
+
 func set_shadow_quality(_enabled: bool) -> void:
  # Small prop shadows are deliberately omitted; nearby car/architecture shadows
  # retain depth without submitting hundreds of extra shadow casters on phones.

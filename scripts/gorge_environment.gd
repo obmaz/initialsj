@@ -8,7 +8,7 @@ func make_sky() -> Sky:
 	var sky := Sky.new()
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/riviera_sky.gdshader")
-	mat.set_shader_parameter("panorama",preload("res://assets/environment/gorge-sunset-panorama.png"))
+	mat.set_shader_parameter("panorama",load("res://assets/environment/gorge-sunset-panorama.png"))
 	sky.sky_material = mat
 	sky.radiance_size = Sky.RADIANCE_SIZE_128
 	return sky
@@ -38,7 +38,7 @@ func _ready() -> void:
 	ground.mesh = st.commit()
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/sandstone.gdshader")
-	mat.set_shader_parameter("rock_detail",preload("res://assets/environment/generated-rock-variants.png"))
+	mat.set_shader_parameter("rock_detail",load("res://assets/environment/generated-rock-variants.png"))
 	ground.material_override = mat
 	ground.set_meta("world_ground",true)
 	add_child(ground)

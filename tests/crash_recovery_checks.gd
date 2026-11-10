@@ -32,7 +32,7 @@ func run(tree:SceneTree)->int:
   var time_left:float=r.time_left
   var laps:int=r.laps_completed
   var checkpoint:int=r.checkpoints
-  r.air.consumed["used-ramp"]=true
+  r.air.landings=4
   r.air.launches=5
   r.rivals[0].active=true
   r.world_race.teleport(1,r.distance,0)
@@ -41,7 +41,7 @@ func run(tree:SceneTree)->int:
   check(not r.recovery_available and r.speed==0 and not r.crash.active,"Manual recovery must restore an upright stopped car and clear its button")
   check(absf(r.lane-r.rivals[0].lane)>2.6,"Recovery must select a road lane clear of the occupied car")
   check(r.elapsed==elapsed and r.time_left==time_left and r.laps_completed==laps and r.checkpoints==checkpoint,"Recovery must never award time or alter checkpoint/lap progress")
-  check(r.air.consumed.has("used-ramp") and r.air.launches==5,"Recovery must preserve used ramp and jump statistics rather than rearming rewards")
+  check(r.air.landings==4 and r.air.launches==5,"Recovery must preserve actual jump and landing statistics")
  r.queue_free()
  await tree.process_frame
  print("Crash rebound / severe versus scrape / stuck window / manual safe recovery: ","PASS" if failures==0 else "FAIL")

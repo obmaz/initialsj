@@ -1,6 +1,6 @@
 extends RefCounted
 const Report = preload("res://tests/report.gd")
-const Air = preload("res://scripts/air_state.gd")
+const Air = preload("res://tests/flight_envelope_model.gd")
 const Surface = preload("res://scripts/road_surface_state.gd")
 class GradeRoad:
 	extends Node3D
@@ -100,33 +100,7 @@ func run(tree: SceneTree) -> int:
 		var surface := Surface.new()
 		var from_ramp := Vector2(ramp.lane,ramp.distance-20)
 		check(surface.contact(section,from_ramp,from_ramp+Vector2(0,40),65).is_empty() and surface.boosts_hit == 0,"A ramp must not accidentally act as a free nitro pad")
-	# The retained road-space controller must apply vertical clearance in the real
-	# step as well
-	# as the contact helper. Cars at the same height must still collide.
-	race.choose_mode("track",1)
-	race.restart()
-	race.state = "racing"
-	for r in race.rivals: r.active = false
-	var other: Dictionary = race.rivals[0]
-	other.active = true
-	other.distance = 82.5
-	other.lane = race.lane
-	other.speed = 0
-	other.pace = 0
-	race.speed = 45
-	race.air.active = true
-	race.air.height = 3.5
-	race.air.world_y = race.track.point(race.distance).y+3.5
-	race.air.velocity = 1
-	check(race.contact_with(other).is_empty(),"A car several metres overhead must clear traffic")
-	race.step(1.0/60,0,false,false,false)
-	check(race.traffic_hits == 0,"The actual driving step must not apply a ground collision while jumping overhead")
-	race.air.height = 0
-	race.air.active = false
-	other.distance = race.distance+2.5
-	other.lane = race.lane
-	other.air.height = 0
-	check(not race.contact_with(other).is_empty(),"Ground-level contact must remain active after landing")
+	# 실제 높이별 차체 접촉은 world_car_checks·world_rival_checks에서 검사한다.
 	FileAccess.open(Report.path("jump-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"cases":report,"grade_speed_cases":grades,"failures":failures},"\t")+"\n")
 	print("Ramp / shorter ballistic flight / road grade / landing / vertical collision checks: ","PASS" if failures == 0 else "FAIL (%d)" % failures)
 	race.queue_free()

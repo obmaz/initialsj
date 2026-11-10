@@ -16,8 +16,7 @@ func _ready() -> void:
 	particles.gravity = Vector3(0,-5,0)
 	particles.scale_amount_min = 0.35
 	particles.scale_amount_max = 0.9
-	var quad := QuadMesh.new()
-	quad.size = Vector2(0.75,0.75)
+	var quad := preload("res://scripts/render_resources.gd").quad(Vector2(0.75,0.75))
 	particles.mesh = quad
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/landing_dust.gdshader")

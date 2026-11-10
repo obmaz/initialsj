@@ -1,7 +1,6 @@
 extends Node3D
 const Section = preload("res://scripts/road_section.gd")
 const Library = preload("res://scripts/route_library.gd")
-const Contact = preload("res://scripts/car_contact.gd")
 var active: Section
 var previous: Section
 var sibling: Section
@@ -115,24 +114,6 @@ func half_width(distance: float) -> float:
 		var d := distance-active.length
 		return previews[0].point(d).distance_to(previews[1].point(d))*0.5+minf(previews[0].half_width(d),previews[1].half_width(d))
 	return active.half_width(distance)
-
-func lane_centers(distance: float) -> Array[float]:
-	var w := half_width(distance)
-	return [-w*0.72,-w*0.24,w*0.24,w*0.72]
-
-func lane_limits(distance: float) -> Vector2:
-	var w := half_width(distance)
-	var limits := Vector2(-w-active.rail_setback(distance,-1)+Contact.HALF_WIDTH+0.2,w+active.rail_setback(distance,1)-Contact.HALF_WIDTH-0.2)
-	var f := (point(distance+2)-point(distance)).normalized()
-	var right := Vector3(-f.z,0,f.x).normalized()
-	if distance > active.length and previews.size() == 2:
-		var spread := previews[0].point(distance-active.length).distance_to(previews[1].point(distance-active.length)) / 2
-		return Vector2(-9.2-spread,9.2+spread)
-	if distance < 150 and is_instance_valid(sibling):
-		var offset := (sibling.point(distance)-active.point(distance)).dot(right)
-		limits.x = minf(limits.x,offset-9.2)
-		limits.y = maxf(limits.y,offset+9.2)
-	return limits
 
 func advance(side: int, distance: float, lane: float) -> Dictionary:
 	var world := point(distance,lane)

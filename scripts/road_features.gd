@@ -551,7 +551,7 @@ static func build_skyway(section: Node3D, feature: Dictionary) -> void:
 static func truck_skin(dimensions: Vector3, cabin: bool, red: bool) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/truck_skin.gdshader")
-	mat.set_shader_parameter("skins",preload("res://assets/environment/urban-truck-elevations.png"))
+	mat.set_shader_parameter("skins",load("res://assets/environment/urban-truck-elevations.png"))
 	mat.set_shader_parameter("dimensions",dimensions)
 	mat.set_shader_parameter("cabin",cabin)
 	mat.set_shader_parameter("red_trailer",red)

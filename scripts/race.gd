@@ -3,8 +3,8 @@ const Track = preload("res://scripts/track.gd")
 const Car = preload("res://scripts/car.gd")
 const HUD = preload("res://scripts/hud.gd")
 const Library = preload("res://scripts/route_library.gd")
-const Contact = preload("res://scripts/car_contact.gd")
-const Brain = preload("res://scripts/rival_brain.gd")
+const RivalState = preload("res://scripts/rival_state.gd")
+const RenderResources = preload("res://scripts/render_resources.gd")
 const SurfaceState = preload("res://scripts/road_surface_state.gd")
 const AirState = preload("res://scripts/air_state.gd")
 const Features = preload("res://scripts/road_features.gd")
@@ -40,7 +40,7 @@ var nitro_previous_input := false
 var cell_previous_input := false
 var nitro_pending := false
 var cell_pending := false
-var brain := Brain.new()
+var owns_render_resources := false
 var track: Track
 var player: Car
 var atmosphere: Environment
@@ -199,6 +199,10 @@ var stage_index: int:
 var route_node: int:
 	get: return track.active.route_node
 
+func _enter_tree() -> void:
+	RenderResources.acquire_owner()
+	owns_render_resources = true
+
 func _ready() -> void:
 	rendering_viewport = get_viewport()
 	previous_disable_3d = rendering_viewport.disable_3d
@@ -207,17 +211,13 @@ func _ready() -> void:
 	var world := WorldEnvironment.new()
 	var env := Environment.new()
 	atmosphere = env
-	var sky := Sky.new()
 	var sky_material := ProceduralSkyMaterial.new()
 	sky_colors = sky_material
 	sky_material.sky_top_color = Color("438cce")
 	sky_material.sky_horizon_color = Color("cce5e9")
 	sky_material.ground_bottom_color = Color("688370")
 	sky_material.ground_horizon_color = Color("c3d9db")
-	sky.sky_material = sky_material
-	sky.radiance_size = Sky.RADIANCE_SIZE_128
 	env.background_mode = Environment.BG_SKY
-	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("b5cce0")
 	env.ambient_light_energy = 0.35
@@ -409,6 +409,11 @@ func _on_web_orientation(args: Array) -> void:
 		pause_tour()
 
 func _exit_tree() -> void:
+	if owns_render_resources:
+		owns_render_resources = false
+		if RenderResources.release_owner():
+			preload("res://scripts/advertisement_library.gd").clear_cache()
+			preload("res://scripts/regional_props_3d.gd").clear_cache()
 	_hide_fullscreen_control()
 	if is_instance_valid(rendering_viewport): rendering_viewport.disable_3d = previous_disable_3d
 	Engine.time_scale = 1.0
@@ -423,7 +428,7 @@ func competitor_count() -> int:
 	return 16 if mode == "track" and selected_course == 1 else 8
 
 func initialize_traffic() -> void:
-	brain.initialize(rivals)
+	RivalState.initialize(rivals)
 	if mode == "track":
 		for r in rivals:
 			r.active = r.id < competitor_count()-1
@@ -499,12 +504,16 @@ func choose_mode(value: String, course: int = 0) -> void:
 	selected_course = clampi(course,0,COURSE_COUNT-1)
 	remove_child(track)
 	track.queue_free()
+	# 다른 게임 씬이 없으면 이전 코스 전용 메시·대형 외벽·광고 참조를 비운다.
+	if RenderResources.owners == 1:
+		preload("res://scripts/advertisement_library.gd").clear_cache()
+		preload("res://scripts/regional_props_3d.gd").clear_cache()
 	track = Circuit.new() if mode == "track" else Track.new()
 	if mode == "track": track.course_id = selected_course
 	add_child(track)
+	atmosphere.sky = null
 	rim_light.light_color = Color.WHITE
 	if mode == "track":
-		atmosphere.sky = track.scenery.make_sky()
 		if selected_course == 2:
 			# Night: a dim cool moon, deep blue ambient light and dark blue haze.
 			atmosphere.fog_light_color = Color("0c1a30")
@@ -544,10 +553,6 @@ func choose_mode(value: String, course: int = 0) -> void:
 			rim_light.light_color = Color("a2b6db")
 			rim_light.light_energy = .14
 	else:
-		var sky := Sky.new()
-		sky.sky_material = sky_colors
-		sky.radiance_size = Sky.RADIANCE_SIZE_128
-		atmosphere.sky = sky
 		visual_theme = ""
 	create_world_controller()
 	render_budget.apply(self)
@@ -627,7 +632,7 @@ func competitor_position(id: int) -> int:
 		if r.distance > progress+0.001 or (absf(r.distance-progress) <= 0.001 and r.id > id): place += 1
 	return place
 
-func restart() -> void:
+func restart(start_countdown: bool = true) -> void:
 	hazard_text = ""
 	if track.active.closed_loop and track.active.course_id == 3: track.scenery.rock_arches.reset_effect()
 	haptics.stop()
@@ -705,7 +710,7 @@ func restart() -> void:
 	launch_flash = 0
 	camera_offset = Vector3.ZERO
 	camera_intro = 0
-	state = "countdown"
+	state = "countdown" if start_countdown else "ready"
 	initialize_traffic()
 	if world_race != null:
 		world_race.reset()
@@ -926,8 +931,7 @@ func select_vehicle(index: int) -> void:
 	if previews != null: previews.show_vehicle(selected_vehicle)
 
 func open_garage() -> void:
-	restart()
-	state = "ready"
+	restart(false)
 	if previews != null: previews.show_vehicle(selected_vehicle)
 
 func reset_nitro() -> void:
@@ -1016,12 +1020,21 @@ func _physics_process(delta: float) -> void:
 			continue
 		r.visual_running = true
 		r.car.road_speed = r.speed if state == "racing" else 0.0
-		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),r.active and r.drifting and r.car.visible and absf(relative_gap(r.distance,distance)) < 80 and state == "racing",r.boosting and state == "racing",delta,r.visual_yaw)
+		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),r.active and r.drifting and r.car.visible and absf(relative_gap(r.distance,distance)) < 80 and state == "racing",r.boosting and state == "racing",delta,0)
 	# HUD._process owns its redraw; physics ticks need not enqueue it again.
 
 func sync_world_rendering() -> void:
 	if not is_instance_valid(rendering_viewport) or not is_instance_valid(player): return
 	var world_visible := warming_world or state not in ["menu","courses","ready","settings"]
+	# GLES3는 첫 렌더 전 교체된 Sky의 대기 중 큐브맵을 남길 수 있다.
+	# 가려진 코스 선택에서는 만들지 않고 실제 렌더·프리워밍 때 생성한다.
+	if world_visible and atmosphere.sky == null:
+		if mode == "track": atmosphere.sky = track.scenery.make_sky()
+		else:
+			var sky := Sky.new()
+			sky.sky_material = sky_colors
+			sky.radiance_size = Sky.RADIANCE_SIZE_128
+			atmosphere.sky = sky
 	rendering_viewport.disable_3d = not world_visible
 	if is_instance_valid(track):
 		track.visible = world_visible
@@ -1101,7 +1114,6 @@ func return_to_road() -> void:
 
 func recover_car() -> void:
 	if not recovery_available: return
-	var used_ramps: Dictionary = air.consumed.duplicate()
 	var launches: int = air.launches
 	var landings: int = air.landings
 	if not world_race.recover_player(): return
@@ -1116,7 +1128,6 @@ func recover_car() -> void:
 	slip_angle = 0
 	wall_assist = 0
 	air.reset()
-	air.consumed = used_ramps
 	air.launches = launches
 	air.landings = landings
 	offroad_amount = 0
@@ -1142,9 +1153,6 @@ func select_route(side: int) -> void:
 	route_choice_flash = 0.4
 	if screen_transition != null and sound_enabled: screen_transition.ui_sound.play()
 
-func route_axis(manual: float) -> float:
-	return world_race.assisted_axis(manual) if mode == "tour" else manual
-
 func award_checkpoint() -> void:
 	if checkpoint_stage == stage_index: return
 	checkpoint_stage = stage_index
@@ -1164,14 +1172,10 @@ func advance_route() -> void:
 	completed_distance += result.old_length
 	distance = result.distance
 	lane = result.lane
-	for r in rivals:
-		if r.detached != null: continue
-		r.distance -= result.old_length
-		if r.distance > 20 and r.route_side != choice: r.detached = result.sibling
 	route_preference = -1
 	route_confirm_flash = 1.4
 	route_confirm_title = route_banner()
-	brain.stage_changed(self)
+	for rival in rivals: rival.active = false
 
 func finish() -> void:
 	state = "finished"
@@ -1190,57 +1194,6 @@ func finish() -> void:
 			saved.save("user://records.cfg")
 	if mode == "track" and selected_course == 1:
 		track.active.speedway_board.add_result(elapsed,str(vehicle.name),save_records)
-
-func contact_with(r: Dictionary) -> Dictionary:
-	var own: Vector3 = track.point(distance,lane)
-	var other: Vector3 = track.traffic_point(r.distance,r.lane,r.route_side)
-	if absf(other.y+float(r.air.height)-own.y-air.height) > 1.65: return {}
-	var forward := track.point(distance+2,lane)-track.point(distance-2,lane)
-	forward.y = 0
-	forward = forward.normalized()
-	var right := Vector3(-forward.z,0,forward.x).normalized()
-	var delta := other-own
-	var direction := track.traffic_point(r.distance+2,r.lane,r.route_side)-track.traffic_point(r.distance-2,r.lane,r.route_side)
-	var yaw := wrapf(atan2(-direction.x,-direction.z)-atan2(-forward.x,-forward.z),-PI,PI)+float(r.visual_yaw)
-	return Contact.overlap(delta.dot(forward),delta.dot(right),slip_angle,yaw)
-
-func resolve_contact(r: Dictionary, contact: Dictionary) -> void:
-	var normal: Vector2 = contact.normal
-	for iteration in range(5):
-		var depth: float = contact.depth + 0.02
-		var n: Vector2 = contact.normal
-		var old_lane := lane
-		var radius := Contact.HALF_WIDTH*absf(cos(slip_angle))+Contact.HALF_LENGTH*absf(sin(slip_angle))
-		var limits := track.lane_limits(distance)+Vector2(radius-Contact.HALF_WIDTH,-radius+Contact.HALF_WIDTH)
-		lane = clampf(lane-n.x*depth*0.6,limits.x,limits.y)
-		distance += n.y*depth*0.6
-		var traffic_edge: float = track.half_width(r.distance)
-		r.lane = clampf(r.lane+n.x*depth+(lane-old_lane),-traffic_edge,traffic_edge)
-		r.distance -= n.y*depth*0.4
-		contact = contact_with(r)
-		if contact.is_empty(): break
-	if bump_cooldown > 0: return
-	var relative := speed-float(r.speed)
-	var contact_speed := maxf(absf(relative),absf(lane_velocity)*2.5)
-	if absf(normal.x) > 0.65: contact_speed = maxf(contact_speed,speed*0.18)
-	if absf(normal.x) > 0.65:
-		speed *= 0.87
-		r.speed *= 0.91
-		lane_velocity = -normal.x*clampf(absf(lane_velocity)*0.42+absf(relative)*0.12,2,10)
-	else:
-		if normal.y < 0:
-			var impulse := maxf(0,relative)*0.64
-			speed = maxf(0,speed-impulse)
-			r.speed += impulse
-		else:
-			var impulse := maxf(0,-relative)*0.64
-			speed += impulse
-			r.speed = maxf(0,r.speed-impulse)
-		lane_velocity -= normal.x*(3+absf(relative)*0.12)
-	traffic_hits += 1
-	if r.has("surface"): r.surface.cancel_boost()
-	r.boosting = false
-	register_impact(smoothstep(1.5,36,contact_speed),-normal)
 
 func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vector3.INF) -> void:
 	# Separation and speed loss happen at the contact site. Feedback is emitted

@@ -107,10 +107,6 @@ func run(tree: SceneTree) -> int:
 	other.lane = race.lane
 	other.speed = 40.0
 	check(absf(race.relative_gap(other.distance,race.distance)-3.2) < 0.001,"Physical traffic gaps must wrap independently of lap progress")
-	var contact: Dictionary = race.contact_with(other)
-	check(not contact.is_empty(),"A lapped vehicle must still have physical collision bounds")
-	if not contact.is_empty(): race.resolve_contact(other,contact)
-	check(race.contact_with(other).is_empty(),"Lapped-vehicle contacts must separate normally")
 	check(Catalog.record_key(0,"track") != Catalog.record_key(0,"tour"),"Circuit and Tour records must stay separate")
 	race.choose_mode("tour")
 	check(race.mode == "tour" and not race.track.active.closed_loop and race.track.previews.size() == 2,"Tour must retain its open branching roads after switching modes")

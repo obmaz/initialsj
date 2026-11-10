@@ -68,7 +68,7 @@ func _ready() -> void:
 func make_infield() -> void:
 	var grass := ShaderMaterial.new()
 	grass.shader = preload("res://shaders/grass_ground.gdshader")
-	grass.set_shader_parameter("terrain_variants",preload("res://assets/environment/terrain-variants.png"))
+	grass.set_shader_parameter("terrain_variants",load("res://assets/environment/terrain-variants.png"))
 	var floor_mesh := PlaneMesh.new()
 	floor_mesh.size = Vector2(2800,2100)
 	var floor_node := MeshInstance3D.new()

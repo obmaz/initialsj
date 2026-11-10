@@ -167,9 +167,6 @@ func bank_at(distance: float) -> float:
 	var index := mini(int(sample),bank_samples.size()-2)
 	return lerpf(bank_samples[index],bank_samples[index+1],sample-index)
 
-func banking_grip(distance: float) -> float:
-	return 9.81*absf(tan(bank_at(distance)))
-
 # Authored (t, half width) keys. Each pair of keys is joined with a smoothstep, so the road
 # swells into wide passing zones and pinches into narrow technical ones without kinks.
 const FUJI_WIDTH := [Vector2(0,10.8),Vector2(0.08,12.0),Vector2(0.16,9.0),Vector2(0.22,7.0),Vector2(0.31,7.0),Vector2(0.37,10.8),Vector2(0.42,8.0),Vector2(0.45,9.4),Vector2(0.51,9.4),Vector2(0.56,11.6),Vector2(0.62,7.4),Vector2(0.665,9.6),Vector2(0.79,9.6),Vector2(0.85,7.2),Vector2(0.92,11.6),Vector2(1,10.8)]

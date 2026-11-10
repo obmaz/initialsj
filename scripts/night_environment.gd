@@ -137,7 +137,7 @@ func make_yard() -> void:
 	for index in range(colours.size()):
 		var skin := ShaderMaterial.new()
 		skin.shader = preload("res://shaders/container_skin.gdshader")
-		skin.set_shader_parameter("skins",preload("res://assets/environment/container-elevations.png"))
+		skin.set_shader_parameter("skins",load("res://assets/environment/container-elevations.png"))
 		skin.set_shader_parameter("brand",index)
 		batch("Containers"+str(index),Vector3(12,2.45,2.6),skin,stacks[index])
 
@@ -170,7 +170,7 @@ func make_warehouses() -> void:
 		multi.set_instance_custom_data(i,sizes[i])
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/building_facade.gdshader")
-	material.set_shader_parameter("facade_images",preload("res://assets/environment/urban-harbor-facades.png"))
+	material.set_shader_parameter("facade_images",load("res://assets/environment/urban-harbor-facades.png"))
 	material.set_shader_parameter("night_city",true)
 	material.set_shader_parameter("industrial_facade",true)
 	material.set_shader_parameter("facade_style",0)
@@ -262,8 +262,7 @@ func make_lamps() -> void:
 	material.albedo_texture = texture
 	material.albedo_color = Color(1.0,0.78,0.5,0.55)
 	material.disable_receive_shadows = true
-	var mesh := QuadMesh.new()
-	mesh.size = Vector2(1,1)
+	var mesh := preload("res://scripts/render_resources.gd").quad(Vector2(1,1))
 	var instances := MultiMesh.new()
 	instances.transform_format = MultiMesh.TRANSFORM_3D
 	instances.mesh = mesh

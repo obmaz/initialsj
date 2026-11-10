@@ -7,6 +7,7 @@ var scenic_plans: Array[Dictionary] = []
 var planned_lap := -1
 var rock_mesh: SphereMesh
 var rock_material: ShaderMaterial
+var rock_shape: ConvexPolygonShape3D
 func configure(road: Node3D) -> void:
 	section = road
 	rock_mesh = SphereMesh.new()
@@ -14,9 +15,10 @@ func configure(road: Node3D) -> void:
 	rock_mesh.height = 2
 	rock_mesh.radial_segments = 7
 	rock_mesh.rings = 3
+	rock_shape = rock_mesh.create_convex_shape()
 	rock_material = ShaderMaterial.new()
 	rock_material.shader = preload("res://shaders/sandstone.gdshader")
-	rock_material.set_shader_parameter("rock_detail",preload("res://assets/environment/generated-rock-variants.png"))
+	rock_material.set_shader_parameter("rock_detail",load("res://assets/environment/generated-rock-variants.png"))
 func reset_effect(seed_value: int = -1) -> void:
 	for plan in plans+scenic_plans:
 		if is_instance_valid(plan.get("node")): plan.node.queue_free()
@@ -58,28 +60,40 @@ func start_fall(plan: Dictionary) -> void:
 	add_child(group)
 	plan.node = group
 	var scenic: bool = plan.get("scenic",false)
-	for i in range(14 if scenic else 9):
+	var count := 14 if scenic else 9
+	var multi := MultiMesh.new()
+	multi.transform_format = MultiMesh.TRANSFORM_3D
+	multi.mesh = rock_mesh
+	multi.instance_count = count
+	var batch := MultiMeshInstance3D.new()
+	batch.multimesh = multi
+	batch.material_override = rock_material
+	group.add_child(batch)
+	plan.batch = batch
+	plan.poses = []
+	plan.sizes = []
+	for i in range(count):
 		var d: float = float(plan.distance)+(i-(6.5 if scenic else 4))*3.7
 		var lane: float = float(plan.side)*(section.half_width(d)*.66+(i%2)*.8)
 		if scenic: lane = float(plan.side)*(section.half_width(d)+section.rail_setback(d,plan.side)+5.5+(i%3)*2.4)
 		var size := Vector3(rng.randf_range(1.4,1.9),rng.randf_range(1.1,1.7),rng.randf_range(1.7,2.2))
 		var target: Vector3 = (section.roadside_point(d,lane) if scenic else section.point(d,lane))+Vector3.UP*size.y*.85
-		var body := StaticBody3D.new()
-		body.collision_layer = 0
-		body.collision_mask = 4
-		body.scale = size
-		var mesh := MeshInstance3D.new()
-		mesh.mesh = rock_mesh
-		mesh.material_override = rock_material
-		body.add_child(mesh)
-		if not scenic:
-			var shape := CollisionShape3D.new()
-			shape.shape = rock_mesh.create_convex_shape()
-			body.add_child(shape)
-		group.add_child(body)
-		body.position = target+Vector3(float(plan.side)*22,30+i*3,0)
-		plan.bodies.append(body)
+		var pose := Transform3D(Basis.IDENTITY.scaled_local(size),target+Vector3(float(plan.side)*22,30+i*3,0))
+		multi.set_instance_transform(i,pose)
+		plan.poses.append(pose)
+		plan.sizes.append(size)
 		plan.targets.append(target)
+		# 도로 밖 연출에는 물리 노드가 없다. 도로 안 장애물만 같은 충돌 모양을 공유한다.
+		if not scenic:
+			var body := StaticBody3D.new()
+			body.collision_layer = 0
+			body.collision_mask = 4
+			body.transform = pose
+			var shape := CollisionShape3D.new()
+			shape.shape = rock_shape
+			body.add_child(shape)
+			group.add_child(body)
+			plan.bodies.append(body)
 	if scenic: return
 	var marker := MeshInstance3D.new()
 	var ring := TorusMesh.new()
@@ -105,14 +119,18 @@ func advance(delta: float, distance: float, lap: int) -> void:
 		var scenic: bool = plan.get("scenic",false)
 		var all_landed := true
 		if is_instance_valid(plan.marker): plan.marker.visible = float(plan.elapsed) < 3.5 and fposmod(float(plan.elapsed),.3)<.2
-		for i in range(plan.bodies.size()):
-			var body: StaticBody3D = plan.bodies[i]
+		for i in range(plan.targets.size()):
 			var target: Vector3 = plan.targets[i]
 			var t := clampf((float(plan.elapsed)-.75-i*.055)/1.4,0,1)
 			var bounce := sin(clampf((float(plan.elapsed)-2.15-i*.055)/.5,0,1)*PI)*.65
-			body.position = target+Vector3(float(plan.side)*22*(1-t),(30+i*1.5)*(1-t*t)+bounce,0)
-			body.rotation = Vector3(t*(.3+i*.21),t*i*.43,t*.8*float(plan.side))
-			if t >= 1 and not scenic: body.collision_layer = 2
+			var position_at := target+Vector3(float(plan.side)*22*(1-t),(30+i*1.5)*(1-t*t)+bounce,0)
+			var rotation_at := Vector3(t*(.3+i*.21),t*i*.43,t*.8*float(plan.side))
+			var pose := Transform3D(Basis.from_euler(rotation_at).scaled_local(plan.sizes[i]),position_at)
+			plan.poses[i] = pose
+			plan.batch.multimesh.set_instance_transform(i,pose)
+			if not scenic:
+				plan.bodies[i].transform = pose
+				if t >= 1: plan.bodies[i].collision_layer = 2
 			if t < 1 or float(plan.elapsed) < 2.65+i*.055: all_landed = false
 		if all_landed:
 			plan.landed = true

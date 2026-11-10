@@ -4,6 +4,7 @@ var track: Node3D
 var distances: Array[float] = [1140.0,2380.0]
 var manifest: Array[Dictionary] = []
 var falls: Array[Dictionary] = []
+var shared_rock_material: ShaderMaterial
 
 func _ready() -> void:
 	for d in distances: make_arch(d)
@@ -67,10 +68,11 @@ func make_arch(d: float) -> void:
 	falls.append({"distance":d,"pieces":pieces,"origins":origins,"targets":targets,"elapsed":-1.0,"landed":false})
 
 func rock_material() -> ShaderMaterial:
-	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://shaders/sandstone.gdshader")
-	mat.set_shader_parameter("rock_detail",preload("res://assets/environment/generated-rock-variants.png"))
-	return mat
+	if shared_rock_material == null:
+		shared_rock_material = ShaderMaterial.new()
+		shared_rock_material.shader = preload("res://shaders/sandstone.gdshader")
+		shared_rock_material.set_shader_parameter("rock_detail",load("res://assets/environment/generated-rock-variants.png"))
+	return shared_rock_material
 
 func reset_effect() -> void:
 	for fall in falls:

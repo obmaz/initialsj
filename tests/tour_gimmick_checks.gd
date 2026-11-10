@@ -3,7 +3,7 @@ extends RefCounted
 const Features = preload("res://scripts/road_features.gd")
 const State = preload("res://scripts/road_surface_state.gd")
 const Section = preload("res://scripts/road_section.gd")
-const Air = preload("res://scripts/air_state.gd")
+const Air = preload("res://tests/flight_envelope_model.gd")
 const Library = preload("res://scripts/route_library.gd")
 const Crash = preload("res://scripts/crash_state.gd")
 var failures := 0

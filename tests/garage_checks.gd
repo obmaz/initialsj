@@ -146,7 +146,6 @@ func run(tree: SceneTree) -> int:
 	# Distinct driving tuning is observable, not just descriptive UI.
 	var acceleration := []
 	var impact_speeds := []
-	var rear_contact_speeds := []
 	for i in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		drive(i)
 		race.speed = 0
@@ -156,19 +155,8 @@ func run(tree: SceneTree) -> int:
 		race.lane = 100
 		race.step(1.0/60,0,false,false,false)
 		impact_speeds.append(race.speed)
-		drive(i)
-		var other: Dictionary = race.rivals[0]
-		other.distance = race.distance+3.5
-		other.lane = race.lane
-		other.speed = 40.0
-		var contact: Dictionary = race.contact_with(other)
-		check(not contact.is_empty(),"Rear contact fixture must overlap actual car bounds")
-		if not contact.is_empty(): race.resolve_contact(other,contact)
-		rear_contact_speeds.append(race.speed)
-		check(race.speed < 60,"Hitting slower traffic must reduce speed")
 	check(acceleration[2] > acceleration[0] and acceleration[0] > acceleration[1],"Muscle, hatch, exotic must have different acceleration")
 	check(is_equal_approx(impact_speeds[0],impact_speeds[1]) and is_equal_approx(impact_speeds[1],impact_speeds[2]),"All vehicles must share the same collision speed loss; armor is not a vehicle ability")
-	check(is_equal_approx(rear_contact_speeds[0],rear_contact_speeds[1]) and is_equal_approx(rear_contact_speeds[1],rear_contact_speeds[2]),"Rear-end collision losses must also be identical across vehicles")
 	check(Catalog.record_key(0) != Catalog.record_key(1) and Catalog.record_key(1) != Catalog.record_key(2),"Best times must have separate vehicle record keys")
 	print("Garage / nitro / review regression checks: ","PASS" if failures == 0 else "FAIL (%d)" % failures)
 	race.queue_free()

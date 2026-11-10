@@ -31,12 +31,12 @@ func material(color: Color) -> StandardMaterial3D:
 	return mat
 
 func boxes(label: String, poses: Array[Transform3D], color: Color, shadows: bool = true) -> void:
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3.ONE
+	var mesh := preload("res://scripts/render_resources.gd").unit_box()
 	var mat: Material = material(color)
 	if "Concrete" in label or label == "BridgeStructuralDeck": mat = textured_surface(Vector2(1,0),Color.WHITE,.18,0.0,.9,true,true)
 	elif label.begins_with("Bridge") and "Foundations" not in label: mat = steel(color)
 	elif label.begins_with("Billboard") and "Lens" not in label: mat = textured_surface(Vector2(1,1),color.lightened(.55),.65,.35,.65,true,false)
+	if mat is ShaderMaterial: mat.set_shader_parameter("uv_projection",true)
 	instances(label,mesh,poses,mat,shadows)
 
 func instances(label: String, mesh: Mesh, poses: Array[Transform3D], mat: Material, shadows: bool = true) -> void:
@@ -92,7 +92,7 @@ func tubes(label: String, poses: Array[Transform3D], color: Color) -> void:
 func textured_surface(tile: Vector2, tint: Color, scale: float, metallic: float, roughness: float, varied: bool = false, concrete: bool = false) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/painted_steel.gdshader")
-	mat.set_shader_parameter("material_atlas",preload("res://assets/environment/generated-structure-variants.png") if varied else preload("res://assets/environment/generated-material-atlas.png"))
+	mat.set_shader_parameter("material_atlas",load("res://assets/environment/generated-structure-variants.png") if varied else load("res://assets/environment/generated-material-atlas.png"))
 	mat.set_shader_parameter("instance_variation",varied)
 	mat.set_shader_parameter("concrete_family",concrete)
 	mat.set_shader_parameter("material_tile",tile)
@@ -230,7 +230,7 @@ func make_canyon(span: Vector2) -> void:
 	node.mesh = st.commit()
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/sandstone.gdshader")
-	mat.set_shader_parameter("rock_detail",preload("res://assets/environment/generated-rock-variants.png"))
+	mat.set_shader_parameter("rock_detail",load("res://assets/environment/generated-rock-variants.png"))
 	node.material_override = mat
 	add_child(node)
 
@@ -252,8 +252,7 @@ func make_billboards(span: Vector2) -> void:
 		texture_regions.append(p)
 		var board := MeshInstance3D.new()
 		board.name = "FictionalAdvertisement"
-		var mesh := QuadMesh.new()
-		mesh.size = ad_size
+		var mesh := preload("res://scripts/render_resources.gd").quad(ad_size)
 		board.mesh = mesh
 		board.rotation.y = preload("res://scripts/billboard_facing.gd").yaw(track,d,lane)
 		var basis := board.basis

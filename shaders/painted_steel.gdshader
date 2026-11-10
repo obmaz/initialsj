@@ -7,10 +7,15 @@ uniform float metalness = .35;
 uniform float surface_roughness = .63;
 uniform bool instance_variation = false;
 uniform bool concrete_family = false;
+uniform bool uv_projection = false;
+varying vec2 surface_uv;
 varying float instance_style;
 varying vec3 world;
 varying vec3 world_normal;
-void vertex() { world=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;world_normal=normalize(MODEL_NORMAL_MATRIX*NORMAL);instance_style=INSTANCE_CUSTOM.r; }
+void vertex() { world=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;world_normal=normalize(MODEL_NORMAL_MATRIX*NORMAL);instance_style=INSTANCE_CUSTOM.r;
+ vec3 metres=vec3(length(MODEL_MATRIX[0].xyz),length(MODEL_MATRIX[1].xyz),length(MODEL_MATRIX[2].xyz));
+ surface_uv=UV*(abs(NORMAL.x)>.5 ? metres.zy : (abs(NORMAL.y)>.5 ? metres.xz : metres.xy));
+}
 vec3 surface_sample(vec2 p) {
  vec2 mirror=1.0-abs(mod(p,2.0)-1.0);
  vec2 margin=clamp(fwidth(p)*.5,vec2(.006),vec2(.15));
@@ -21,7 +26,9 @@ vec3 surface_sample(vec2 p) {
 }
 void fragment() {
  vec3 weights=pow(abs(world_normal),vec3(4.0));weights/=max(dot(weights,vec3(1.0)),.001);
- vec3 color=surface_sample((world.zy+instance_style*17.0)*texture_scale)*weights.x+surface_sample((world.xz+instance_style*17.0)*texture_scale)*weights.y+surface_sample((world.xy+instance_style*17.0)*texture_scale)*weights.z;
+ vec3 color;
+ if(uv_projection) color=surface_sample((surface_uv+instance_style*17.0)*texture_scale);
+ else color=surface_sample((world.zy+instance_style*17.0)*texture_scale)*weights.x+surface_sample((world.xz+instance_style*17.0)*texture_scale)*weights.y+surface_sample((world.xy+instance_style*17.0)*texture_scale)*weights.z;
  ALBEDO=color*paint_color.rgb;
  float height=dot(color,vec3(.2126,.7152,.0722));
  vec3 a=cross(dFdy(VERTEX),NORMAL);vec3 b=cross(NORMAL,dFdx(VERTEX));float det=dot(dFdx(VERTEX),a);

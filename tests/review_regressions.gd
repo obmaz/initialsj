@@ -5,41 +5,12 @@ var assertions := 0
 func check(ok: bool, message: String) -> void:
 	assertions += 1
 	if not ok: failures += 1; push_error(message)
-func isolated(race: Node3D) -> Dictionary:
-	race.restart()
-	race.state = "racing"
-	for r in race.rivals: r.active = false
-	var other: Dictionary = race.rivals[0]
-	other.active = true
-	other.speed = 0
-	other.pace = 0
-	other.lane = 0
-	other.target_lane = 0
-	other.decision = 100
-	race.speed = 0
-	race.lane = 0
-	return other
 func run(tree: SceneTree) -> int:
 	var race = load("res://scenes/race.tscn").instantiate()
 	tree.root.add_child(race)
 	race.set_physics_process(false)
 	race.save_records = false
-	var other := isolated(race)
-	var saved: Array = race.track.active.features.duplicate(true)
-	for airborne in [true,false]:
-		other = isolated(race)
-		race.distance = -500
-		race.track.active.features.assign([{"id":"review-water","kind":"water","distance":90.0,"lane":0.0,"length":8.0,"width":4.0}])
-		other.distance = 70
-		other.speed = 60
-		other.pace = 60
-		other.air.active = airborne
-		other.air.height = 3 if airborne else 0
-		other.air.world_y = race.track.point(70).y+other.air.height
-		other.air.velocity = 0
-		race.brain.tick(race,0.8)
-		check(other.surface.puddles_hit == (0 if airborne else 1),"CPU landing must not collect a puddle flown over before touchdown; grounded crossing must still work")
-	race.track.active.features.assign(saved)
+	race.restart()
 	# 실제 차체의 높이별 충돌은 world_car_checks 및 tour_world_checks에서 검증한다.
 	var budget = race.render_budget
 	race.state = "racing"

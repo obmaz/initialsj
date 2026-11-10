@@ -7,8 +7,7 @@ var pool: Array[CPUParticles3D] = []
 var chips: Array[CPUParticles3D] = []
 var cursor := 0
 func _ready() -> void:
-	var spark_mesh := QuadMesh.new()
-	spark_mesh.size = Vector2(0.11,0.52)
+	var spark_mesh := preload("res://scripts/render_resources.gd").quad(Vector2(0.11,0.52))
 	var spark_material := ShaderMaterial.new()
 	spark_material.shader = preload("res://shaders/impact_spark.gdshader")
 	var chip_mesh := BoxMesh.new()

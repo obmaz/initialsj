@@ -130,8 +130,7 @@ func make_sport_body() -> void:
 		nitro_flames.append(flame)
 		flame.visible = false
 		var glow := MeshInstance3D.new()
-		var glow_mesh := QuadMesh.new()
-		glow_mesh.size = Vector2(0.55, 0.55)
+		var glow_mesh := preload("res://scripts/render_resources.gd").quad(Vector2(0.55, 0.55))
 		glow.mesh = glow_mesh
 		var glow_material := ShaderMaterial.new()
 		glow_material.shader = preload("res://shaders/nitro_glow.gdshader")
@@ -161,8 +160,7 @@ func make_drift_smoke() -> void:
 		particles.gravity = Vector3(0, 0.6, 0)
 		particles.scale_amount_min = 0.5
 		particles.scale_amount_max = 2.5
-		var puff := QuadMesh.new()
-		puff.size = Vector2(1.2, 1.2)
+		var puff := preload("res://scripts/render_resources.gd").quad(Vector2(1.2, 1.2))
 		particles.mesh = puff
 		var smoke_mat := ShaderMaterial.new()
 		smoke_mat.shader = preload("res://shaders/tire_smoke.gdshader")
@@ -364,8 +362,7 @@ func add_boost_jet(pos: Vector3, radius: float) -> void:
 	flame.visible = false
 	nitro_flames.append(flame)
 	var glow := MeshInstance3D.new()
-	var quad := QuadMesh.new()
-	quad.size = Vector2.ONE*radius*4
+	var quad := preload("res://scripts/render_resources.gd").quad(Vector2.ONE*radius*4)
 	glow.mesh = quad
 	var glow_material := ShaderMaterial.new()
 	glow_material.shader = preload("res://shaders/nitro_glow.gdshader")
@@ -391,8 +388,7 @@ func add_headlight(pos: Vector3) -> void:
 	for side in [-1.0,1.0]:
 		var lens := MeshInstance3D.new()
 		lens.name = "NightHeadlamp"
-		var mesh := QuadMesh.new()
-		mesh.size = Vector2(0.26,0.13)
+		var mesh := preload("res://scripts/render_resources.gd").quad(Vector2(0.26,0.13))
 		lens.mesh = mesh
 		lens.position = pos+Vector3(side*0.65,0,-0.26)
 		if model == "hatch": lens.position = Vector3(side*0.55,1.13,-1.967)

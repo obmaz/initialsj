@@ -92,15 +92,6 @@ func run(tree: SceneTree) -> int:
 	race.surface.wet_time = State.WET_DURATION
 	race.step(0.05,0,false,true,false)
 	check(absf(race.lane_velocity) > dry_velocity+0.1,"Wet tires must actually retain more lateral momentum")
-	isolate(race)
-	race.speed = 112
-	var rival: Dictionary = race.rivals[0]
-	rival.speed = 120.0
-	rival.pace = 120.0
-	rival.distance = race.distance-3
-	rival.lane = race.lane
-	race.resolve_contact(rival,{"normal":Vector2(0,1),"depth":0.2})
-	check(race.speed >= 112,"Being hit from behind must not clamp a fast car to an obsolete cruise limit")
 	for emitter in race.water_effect.pool: check(not emitter.emitting,"Ordinary driving must not emit water particles")
 	race.choose_mode("track",1)
 	section = race.track.active
@@ -111,18 +102,6 @@ func run(tree: SceneTree) -> int:
 	point.y += section.length
 	state.contact(section,point,point,80)
 	check(state.boosts_hit == 2,"The circuit pad must re-arm once on each new lap")
-	isolate(race)
-	rival = race.rivals[0]
-	rival.active = true
-	rival.distance = pad.distance-pad.length/2-2
-	rival.lane = pad.lane
-	rival.target_lane = pad.lane
-	rival.decision = 1.0
-	rival.speed = 35.0
-	rival.pace = 70.0
-	race.distance = 80
-	race.brain.tick(race,0.1)
-	check(rival.surface.boosts_hit == 1,"CPU cars must use the same physical pads")
 	print("Road surface checks: ","PASS" if failures == 0 else "FAIL (%d)" % failures)
 	race.queue_free()
 	await tree.process_frame

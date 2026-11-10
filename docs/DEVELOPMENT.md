@@ -47,9 +47,10 @@ python3 tools/verify_repository.py
 | [circuit_track.gd](../scripts/circuit_track.gd), [fuji_course.gd](../scripts/fuji_course.gd), [speedway_course.gd](../scripts/speedway_course.gd), [night_course.gd](../scripts/night_course.gd), [riviera_course.gd](../scripts/riviera_course.gd), [gorge_course.gd](../scripts/gorge_course.gd) | 다섯 서킷의 형상·고저차·뱅킹 |
 | [world_race.gd](../scripts/world_race.gd), [world_car.gd](../scripts/world_car.gd), [fuji_collision.gd](../scripts/fuji_collision.gd) | 다섯 서킷(FUJI·SUNCOAST·MIDNIGHT·RIVIERA·GORGE)의 월드 차량 이동과 실제 노면·장벽 충돌체 |
 | [circuit_progress.gd](../scripts/circuit_progress.gd) | 서킷 위치 계측과 순차 게이트·랩 판정 |
-| [rival_brain.gd](../scripts/rival_brain.gd), [car_contact.gd](../scripts/car_contact.gd) | CPU 간격·차선·속도 판단과 차체 겹침 |
-| [road_features.gd](../scripts/road_features.gd), [road_surface_state.gd](../scripts/road_surface_state.gd), [air_state.gd](../scripts/air_state.gd) | 패드·물·진흙·트럭·점프대·급하강의 배치, 노면 효과와 점프 |
+| [rival_state.gd](../scripts/rival_state.gd), [world_race.gd](../scripts/world_race.gd) | 상대 초기 상태와 실제 차체 간격·차선·속도 판단 |
+| [road_features.gd](../scripts/road_features.gd), [road_surface_state.gd](../scripts/road_surface_state.gd), [air_state.gd](../scripts/air_state.gd) | 기믹 배치·노면 효과와 실제 비행 상태 계측. 중력·접지는 `world_car.gd`가 담당 |
 | [regional_props_3d.gd](../scripts/regional_props_3d.gd), [road_biome.gd](../scripts/road_biome.gd) | 지역별 입체 오브젝트·건축과 공간별 묶음 렌더링 |
+| [render_resources.gd](../scripts/render_resources.gd), [advertisement_library.gd](../scripts/advertisement_library.gd) | 공유 기본 메시, 지연 생성 광고 재질과 씬 수명에 맞춘 캐시 해제 |
 | [screen_transition.gd](../scripts/screen_transition.gd), [tunnel_lights.gd](../scripts/tunnel_lights.gd) | 화면 전환, 가려진 렌더 준비, 터널 조명 예산 |
 | [impact_effect.gd](../scripts/impact_effect.gd), [render_budget.gd](../scripts/render_budget.gd) | 재사용 충돌·레일 불꽃 이펙트와 자동 렌더 품질(콘솔 절약 모드 포함) |
 | [crash_state.gd](../scripts/crash_state.gd), [nitro_system.gd](../scripts/nitro_system.gd) | 가드레일 충돌 날아가기·구르기, 차량별 니트로 자원 |
@@ -89,15 +90,19 @@ node tests/audio_lifecycle_review.cjs
 
 로고를 변경할 때는 `python3 tools/bake_logo.py`로 SVG와 웹 셸의 인라인 사본을 함께 갱신합니다. 이 제작 도구만 fontTools를 요구하며, 커밋된 SVG를 사용하는 게임 실행·빌드에는 추가 Python 패키지가 필요하지 않습니다. 아트 출처는 [GENERATED_ART.md](../assets/ui/GENERATED_ART.md)를 참고하세요.
 
-[resource_lifecycle_checks.gd](../tests/resource_lifecycle_checks.gd)는 전체 검사에서 코스 전환·재시작·차량 교체·충돌 반복 후 노드와 리소스 수가 누적되지 않는지, 장면 해제 후 노드 수와 뷰포트 상태가 복구되는지 확인합니다. `audio_lifecycle_review.cjs`는 실제 Web Audio 브리지 소스로 A→B→A 비동기 선택·지연 디코딩·종료를 재현하며 루프와 연결·이벤트·버퍼 해제를 검사합니다. 첫 방문에서 늘어나는 폰트·셰이더·지역 모델 캐시와 WASM 힙의 최대 확보 크기를 지속 누수로 단정하지 않습니다.
+[resource_lifecycle_checks.gd](../tests/resource_lifecycle_checks.gd)는 다섯 트랙·투어를 반복 전환하며 아치 붕괴·세 주회분 최대 낙석·재시작·차량 교체·충돌 후 노드와 리소스 수가 누적되지 않는지, 장면 해제 후 노드 수와 뷰포트 상태가 복구되는지 확인합니다. [render_resource_checks.gd](../tests/render_resource_checks.gd)는 지연 생성·박스 면별 UV·동시에 살아 있는 두 게임 씬의 캐시 소유권과 마지막 씬 종료 후 참조 해제를 검사합니다. `audio_lifecycle_review.cjs`는 실제 Web Audio 브리지 소스로 A→B→A 비동기 선택·지연 디코딩·종료를 재현하며 루프와 연결·이벤트·버퍼 해제를 검사합니다. 첫 방문에서 늘어나는 폰트·셰이더 캐시와 WASM 힙의 최대 확보 크기를 지속 누수로 단정하지 않습니다.
+
+이전 도로 좌표 방식의 AI·차체 겹침 해결기는 실제 주행에서 호출되지 않아 제거했습니다. [flight_envelope_model.gd](../tests/flight_envelope_model.gd)는 설계 여유를 확인하는 검사 전용 명목 비행 모델이며 실행 코드에서는 참조하지 않습니다. 실제 점프·충돌·착지는 월드 차체 검사로 확인합니다.
 
 ## 에셋 압축
 
-큰 이미지 11장(`assets/ui/*.png`와 타일 질감을 뺀 `assets/environment/*.png`)은 가져오기 설정을 손실 WebP(`compress/mode=1`, `compress/lossy_quality=0.92`)로 두었습니다. 처음 14장 기준으로 가져온 크기가 약 22.1MB에서 5.7MB로 줄었고, 메뉴·차고 화면은 변경 전후 PSNR이 42dB 이상으로 눈에 띄는 차이가 없습니다. 원본 PNG는 그대로입니다. 새 큰 이미지를 넣을 때도 같은 설정을 씁니다. 이 방식은 내려받는 크기만 줄이고 그래픽 메모리 사용량은 그대로입니다(메모리는 VRAM 압축이나 해상도 축소가 필요합니다).
+메뉴 아트·파노라마는 손실 WebP(`compress/mode=1`, `compress/lossy_quality=0.92`)로 가져옵니다. 도입 당시 14장 기준으로 가져온 크기가 약 22.1MB에서 5.7MB로 줄었고, 메뉴·차고 화면은 변경 전후 PSNR이 42dB 이상이었습니다. 원본 PNG는 그대로입니다. 이 방식은 내려받는 크기만 줄이고 그래픽 메모리 사용량은 그대로입니다. 재질·외벽 이미지는 아래 GPU 압축을 사용합니다.
 
-### GPU 압축(타일 질감)
+### GPU 압축(타일 질감·외벽)
 
-도로·흙·잔디 타일 질감 3장(`asphalt`, `dirt-shoulder`, `lakeside-grass`)은 GPU 압축(`compress/mode=2`)으로 가져옵니다. 프로젝트 설정에서 PC용(S3TC)과 모바일용(ETC2) 형식을 모두 만들도록 켜 두었고(`textures/vram_compression/*`), 어떤 형식을 파일에 담을지는 내보내기 프리셋(`export_presets.cfg`의 `vram_texture_compression/for_desktop`·`for_mobile`)이 정합니다. 웹은 둘 다 담아 PC·모바일·콘솔 브라우저를 모두 지원하고, 나중에 Android 프리셋을 만들면 `for_mobile=true`, `for_desktop=false`로 두어 APK에는 모바일 형식만 담습니다. 게임 코드는 바뀌지 않습니다. 장당 그래픽 메모리는 약 5.6MB에서 0.7MB로 줄었고(세 장 합계 약 16.8MB에서 2.1MB), 내려받는 크기는 두 형식을 담기 때문에 약 2MB 늘었습니다. 메뉴 아트와 파노라마처럼 그라데이션이 많은 이미지는 밴딩 때문에 GPU 압축하지 않습니다.
+도로·흙·잔디 타일 질감 3장(`asphalt`, `dirt-shoulder`, `lakeside-grass`)은 GPU 압축(`compress/mode=2`)으로 가져옵니다. 프로젝트 설정에서 PC용(S3TC)과 모바일용(ETC2) 형식을 모두 만들도록 켜 두었고(`textures/vram_compression/*`), 어떤 형식을 파일에 담을지는 내보내기 프리셋(`export_presets.cfg`의 `vram_texture_compression/for_desktop`·`for_mobile`)이 정합니다. 웹은 둘 다 담아 PC·모바일·콘솔 브라우저를 모두 지원하고, Android 프리셋은 `for_mobile=true`, `for_desktop=false`로 두어 APK에는 모바일 형식만 담습니다. 게임 코드는 바뀌지 않습니다. 장당 그래픽 메모리는 약 5.6MB에서 0.7MB로 줄었고(세 장 합계 약 16.8MB에서 2.1MB), 내려받는 크기는 두 형식을 담기 때문에 약 2MB 늘었습니다. 메뉴 아트와 파노라마처럼 그라데이션이 많은 이미지는 밴딩 때문에 GPU 압축하지 않습니다.
+
+재질·암석·구조물 변형 아틀라스3장과 도시 외벽·트럭·컨테이너·건물 정면·측면·식당 외벽6장에도 `compress/mode=2`와 밉맵을 적용합니다. 텍스처 해상도와 원본 생성형 이미지는 유지하고, GPU 형식은 같은 Web·Android 프리셋을 따릅니다.
 
 소리는 루프가 OGG이고, 짧은 WAV(효과음·점화음)는 가져올 때 QOA로 압축합니다([VEHICLE_AUDIO.md](VEHICLE_AUDIO.md)).
 
@@ -116,6 +121,8 @@ node tests/audio_lifecycle_review.cjs
 ## 알려진 엔진 제약
 
 Godot 4.7.2 웹 런타임의 Emscripten `GL.getNewId`는 GL 객체 ID를 계속 늘리고, 삭제한 자리는 `null`로 남깁니다. 코스를 여러 번 오가면 실제 GL 객체 수는 일정해도 이 등록 배열과 GC 후 JS 힙은 커집니다. 앱의 노드·음원 누수와 구분해야 하며, 앱 쪽 수정으로는 해결되지 않습니다. 메뉴처럼 2D가 화면을 덮는 상태에서는 메인 뷰포트의 3D 렌더를 멈춰 불필요한 그리기를 줄입니다.
+
+별도로 GLES3에서 첫 렌더 전에 `Sky`를 다른 하늘로 교체하면 큐브맵2개와 프레임버퍼1개가 남는 경로를 재현했습니다. 단순 하늘 생성·렌더·해제는 누적되지 않았지만 즉시 교체는 반복마다 같은 증가를 보였습니다. 앱은 `sync_world_rendering()`에서 실제 월드 표시·프리워밍 시점에 하늘을 생성해 이 경로를 피합니다. 차고 진입은 `restart(false)`로 직접 준비 상태를 설정하며, 잠깐 카운트다운에 들어갔다 나오는 과정에서 하늘을 할당하지 않습니다. 메뉴에서 코스만 바꾸는 동안에는 하늘·파노라마를 생성하지 않습니다.
 
 Android 내보내기와 APK 빌드는 [ANDROID.md](ANDROID.md)에 정리했습니다. 아이콘은 `python3 tools/bake_android_icons.py`로 다시 만들 수 있습니다.
 
@@ -148,6 +155,25 @@ touch build/site/.nojekyll
 - **측정**: `Time.get_ticks_usec()`로 `race.step()`·`place_cars()`·`update_camera()` 앞뒤를 재고, 렌더 통계는 `Performance.get_monitor(RENDER_TOTAL_DRAW_CALLS_IN_FRAME)` 등을 xvfb에서 읽었습니다(드로 콜 약 300, 프레임당 삼각형 18~30만). 이 값은 데스크톱 기준이라 휴대폰에서는 설정의 `SHOW FPS`로 직접 확인합니다.
 
 
+### 렌더 리소스의 수명과 공유
+
+`render_resources.gd`는 크기별 쿼드와 면별 UV가 있는 단위 상자를 공유합니다. 차량·파티클·광고판은 인스턴스별 변환과 상태만 보관하며, 공유 메시의 크기·재질을 수정하지 않습니다. `race.gd`가 트리 진입·종료 시 소유자 수를 관리하고 마지막 게임 씬이 종료되면 메시·광고·지역 모델·외벽 재질 캐시의 강한 참조를 비웁니다. 코스를 바꿀 때도 이전 코스 전용 광고·모델 캐시를 비워 다음 코스에서 쓰지 않는 외벽 이미지를 붙들지 않습니다. 다른 게임 씬이 살아 있으면 공유 캐시를 유지합니다.
+
+광고 재질은 최대48칸씩 두 종류이며 요청한 칸과 아틀라스만 생성합니다. 지역 소품은 실제 UV2 표면 표식에 필요한 외벽 이미지만 바인딩하므로 나무 재질이 모든 건물 이미지를 붙들지 않습니다. 원본 자연 모델과 코스별 큰 이미지는 사용 시 로드하고, 물보라6개는 메시·재질·페이드 이미지를 공유합니다. 스키드 자국160개와 충돌 파티클4세트의 기존 고정 풀도 유지합니다.
+
+도로 밖 낙석은 지점별14개를 MultiMesh 하나로 그리며 물리 노드를 만들지 않습니다. 도로 위9개는 실제 충돌체를 유지하고 하나의 볼록 충돌 모양과 하나의 렌더 배치를 공유합니다. 착지 후에는 변환 갱신을 멈추고 재시작·코스 전환 때 해제합니다. 지역 소품의180m 공간 분할과 배치당12개 제한은 유지해 화면 밖 오브젝트를 한꺼번에 그리지 않습니다. Compatibility 렌더러에서 정점색을 보존하려면 소품 MultiMesh의 흰색 인스턴스 색상 버퍼가 필요하므로 생략하지 않습니다.
+
+2026-11-10 비교는 같은 카메라의 TRACK05 최대 낙석(도로27개·도로 밖210개)을 사용했습니다. Chromium WebGL2·SwiftShader의 `Performance` 모니터 기준이며 휴대폰 FPS 측정이 아닙니다.
+
+| 계측 | 변경 전 | 변경 후 |
+| --- | ---: | ---: |
+| 웹 장면 노드 | 1,447 | 1,018 |
+| 웹 드로 콜 | 365 | 228 |
+| 웹 텍스처 메모리 | 약225MiB | 약158MiB |
+| 네이티브 엔진 정적 메모리, 모든 코스 방문 후 게임 씬 해제 | 약227MiB | 약136MiB |
+
+네이티브 씬 생성·해제를 두 번 반복했을 때 해제 후 노드1개(검사 뷰포트), 고아 노드0개로 돌아왔습니다. 메모리는 `Performance.MEMORY_STATIC`이며 OS의 RSS나 브라우저 WASM 힙의 반환량과 다릅니다. 웹에서도 세 번 생성·종료한 뒤 매번 텍스처85개·프레임버퍼5개, 텍스처 약91.6MiB로 돌아왔습니다. 이 수치는 폰트·UI·엔진 공용 자원을 포함합니다. 실제 MultiMesh 변환과 낙석 제출 포즈의 일치, 다리·마을·항만 화면의 외벽·정점색도 확인합니다. 생성 JSON과 비교 캡처는 `build/reports/`에만 둡니다.
+
 ### TRACK04 해안 주행
 
 `riviera_course.gd`는 위치·접선·높이가 이어지는 폐곡선과 완만한 뱅킹을 만듭니다. `riviera_environment.gd`는 실제 도로 높이에 연결한 모래·절벽·초지 메시와 바다, 기존 지역 소품의 야자수·상점을 배치합니다. 차선 폭과 반복은 해당 코스에서만 `roadside_geometry.gd`의 메시 및 `lane_dash.gdshader` 매개변수를 변경합니다.
@@ -169,7 +195,7 @@ touch build/site/.nojekyll
 
 현수교의 주탑은 SurfaceTool로 테이퍼와 모서리를 만들고 케이블·행거는 원형 단면을 사용합니다. 보강재·접합판·기초·교량 바닥과 광고판의 패널·프레임·후면 지지대는 종류별 MultiMesh로 묶습니다. 광고판은 16×7m, 뒷판 두께 0.42m이며 앞면을 기둥이 가리지 않습니다. 동적 조명 수는 늘리지 않습니다. 실제 주행 노면·가드레일 충돌체는 유지합니다.
 
-재질은 `assets/environment/generated-material-atlas.png`의 생성형 색상 이미지를 사용합니다. `sandstone.gdshader`와 `painted_steel.gdshader`가 재질별 영역을 삼면 투영하며 밝기 미분으로 약한 요철을 보조합니다. 실측 노멀·거칠기 맵으로 간주하지 않습니다. 절벽의 면 분할·침식 요철은 메시에서, 미세 입자와 풍화는 텍스처·재질에서 처리합니다. 야자수는 `scenery_3d_checks.gd`의 개체별 3,200삼각형 한도를 유지합니다.
+재질은 `assets/environment/generated-material-atlas.png`의 생성형 색상 이미지를 사용합니다. `sandstone.gdshader`는 자연 암벽을 삼면 투영합니다. `painted_steel.gdshader`의 상자 구조물은 각 면의 0~1 UV를 실제 미터 크기로 보정해 한 번 샘플링하고, 곡면 케이블·테이퍼 주탑은 삼면 투영을 유지합니다. 두 셰이더는 밝기 미분으로 약한 요철을 보조하며 실측 노멀·거칠기 맵으로 간주하지 않습니다. 절벽의 면 분할·침식 요철은 메시에서, 미세 입자와 풍화는 텍스처·재질에서 처리합니다. 야자수는 `scenery_3d_checks.gd`의 개체별 3,200삼각형 한도를 유지합니다.
 
 재질 변형은 `generated-rock-variants.png`의 암석 4종과 `generated-structure-variants.png`의 구조물 표면 4종을 추가로 사용합니다. 암벽은 월드 위치·높이로 인접 지질을 연속 혼합하며, 구조물은 MultiMesh의 custom data로 변형과 UV 오프셋을 선택합니다. 간판 한 개의 부품은 가장 가까운 광고판 기준점을 공유하여 임의의 얼룩무늬 조립처럼 보이지 않게 합니다. 고정된 위치 기반 선택으로 경기 중 깜박임을 방지합니다.
 

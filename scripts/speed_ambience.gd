@@ -17,8 +17,7 @@ func _ready() -> void:
 	petals.initial_velocity_min = 1
 	petals.initial_velocity_max = 4
 	petals.gravity = Vector3(0,-5,0)
-	var mesh := QuadMesh.new()
-	mesh.size = Vector2(0.12,0.18)
+	var mesh := preload("res://scripts/render_resources.gd").quad(Vector2(0.12,0.18))
 	petals.mesh = mesh
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/sakura_petal.gdshader")

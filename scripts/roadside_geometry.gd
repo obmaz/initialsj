@@ -90,9 +90,9 @@ static func shoulders(section: Node3D) -> void:
 	node.mesh = st.commit()
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/dirt_shoulder.gdshader")
-	material.set_shader_parameter("dirt_texture",preload("res://assets/environment/dirt-shoulder.png"))
-	material.set_shader_parameter("terrain_variants",preload("res://assets/environment/terrain-variants.png"))
-	material.set_shader_parameter("grass_texture",preload("res://assets/environment/lakeside-grass.png"))
+	material.set_shader_parameter("dirt_texture",load("res://assets/environment/dirt-shoulder.png"))
+	material.set_shader_parameter("terrain_variants",load("res://assets/environment/terrain-variants.png"))
+	material.set_shader_parameter("grass_texture",load("res://assets/environment/lakeside-grass.png"))
 	node.material_override = material
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	section.add_child(node)

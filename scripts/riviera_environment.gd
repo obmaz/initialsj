@@ -14,7 +14,7 @@ func make_sky() -> Sky:
 	var sky := Sky.new()
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/riviera_sky.gdshader")
-	mat.set_shader_parameter("panorama",preload("res://assets/environment/riviera-sky-panorama.png"))
+	mat.set_shader_parameter("panorama",load("res://assets/environment/riviera-sky-panorama.png"))
 	sky.sky_material = mat
 	sky.radiance_size = Sky.RADIANCE_SIZE_128
 	return sky
@@ -47,8 +47,8 @@ func band(inner: float, outer: float, color: Color) -> void:
 	node.mesh = st.commit()
 	var terrain := ShaderMaterial.new()
 	terrain.shader = preload("res://shaders/riviera_ground.gdshader")
-	terrain.set_shader_parameter("ground_grain",preload("res://assets/environment/lakeside-grass.png"))
-	terrain.set_shader_parameter("terrain_variants",preload("res://assets/environment/terrain-variants.png"))
+	terrain.set_shader_parameter("ground_grain",load("res://assets/environment/lakeside-grass.png"))
+	terrain.set_shader_parameter("terrain_variants",load("res://assets/environment/terrain-variants.png"))
 	terrain.set_shader_parameter("base_color",color)
 	terrain.set_shader_parameter("grassy",inner >= 18)
 	node.material_override = terrain
@@ -130,8 +130,4 @@ func make_boulevard() -> void:
 	props.name = "RivieraBoulevard"
 	props.configure("hawaii",placements)
 	add_child(props)
-	for batch in props.batches:
-		var matte: Material = batch.material_override.duplicate()
-		if matte is StandardMaterial3D: matte.albedo_color = Color(0.72,0.76,0.7)
-		batch.material_override = matte
 	tree_batches.assign(props.batches)

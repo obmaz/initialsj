@@ -1,5 +1,4 @@
 extends SceneTree
-const Contact = preload("res://scripts/car_contact.gd")
 const Library = preload("res://scripts/route_library.gd")
 var failures := 0
 func _initialize() -> void: call_deferred("run")
@@ -9,7 +8,6 @@ func check(ok: bool, label: String) -> void:
 		failures += 1
 func clear_traffic(race: Node3D) -> void:
 	for r in race.rivals:
-		r.detached = null
 		r.distance = 10000.0
 func reset_drive(race: Node3D) -> void:
 	race.restart()
@@ -112,7 +110,6 @@ func run() -> void:
 	easy.free()
 	hard.free()
 	race.track.reset(4,4)
-	race.brain.stage_changed(race)
 	var active_count := 0
 	for r in race.rivals:
 		if r.active: active_count += 1
@@ -125,7 +122,6 @@ func run() -> void:
 	failures += await preload("res://tests/garage_checks.gd").new().run(self)
 	failures += await preload("res://tests/modes_checks.gd").new().run(self)
 	failures += await preload("res://tests/road_feature_checks.gd").new().run(self)
-	failures += await preload("res://tests/traffic_checks.gd").new().run(self)
 	failures += await preload("res://tests/drift_rpm_checks.gd").new().run(self)
 	failures += await preload("res://tests/speedway_checks.gd").new().run(self)
 	failures += await preload("res://tests/rolling_start_checks.gd").new().run(self)
@@ -172,4 +168,5 @@ func run() -> void:
 	failures += await preload("res://tests/world_crash_checks.gd").new().run(self)
 	failures += await preload("res://tests/fullscreen_checks.gd").new().run(self)
 	failures += await preload("res://tests/resource_lifecycle_checks.gd").new().run(self)
+	failures += await preload("res://tests/render_resource_checks.gd").new().run(self)
 	quit(1 if failures else 0)

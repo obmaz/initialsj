@@ -1,6 +1,5 @@
 extends RefCounted
 const Report = preload("res://tests/report.gd")
-const Contact = preload("res://scripts/car_contact.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
@@ -24,9 +23,6 @@ func run(tree: SceneTree) -> int:
 			if section.rail_setback(d,1) > widest: widest = section.rail_setback(d,1); at = d
 			var bend: float = absf(wrapf(section.heading(d+1)-section.heading(d-1),-PI,PI))/2
 			if bend > 0.0001: minimum_radius_margin = minf(minimum_radius_margin,1/bend-section.half_width(d)-outer)
-			var limits: Vector2 = race.track.lane_limits(d)
-			if choice[0] == "track" or d > 180:
-				check(absf(limits.y+Contact.HALF_WIDTH+0.2-section.half_width(d)-section.rail_setback(d,1)) < 0.01,"Driving bounds must match the real rail offset")
 		check(minimum_radius_margin > 0.5,"Inner guardrails must not fold across themselves on sharp corners")
 		check(widest > 6,"Tour and Fuji must have visibly wider roadside runoff areas")
 		check(section.has_node("FujiWorldCollision"),"투어와 트랙 모두 갓길과 장벽의 실제 충돌체가 있어야 한다")

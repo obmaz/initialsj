@@ -3,20 +3,20 @@ extends RefCounted
 # one-surface, vertex-colour meshes that RegionalProps3D batches with a single shared material.
 # Each model is scaled here to the track's proportions, so mesh AABBs and radii are final.
 const MODELS := {
-	"lake_pine_1":{"mesh":preload("res://assets/environment/props/PineTree_1.obj"),"scale":4.2},
-	"lake_pine_2":{"mesh":preload("res://assets/environment/props/PineTree_4.obj"),"scale":4.0},
-	"lake_pine_3":{"mesh":preload("res://assets/environment/props/PineTree_5.obj"),"scale":4.4},
-	"lake_oak_1":{"mesh":preload("res://assets/environment/props/CommonTree_3.obj"),"scale":3.4},
-	"lake_oak_2":{"mesh":preload("res://assets/environment/props/CommonTree_4.obj"),"scale":3.8},
-	"lake_willow_1":{"mesh":preload("res://assets/environment/props/Willow_3.obj"),"scale":3.6},
-	"lake_willow_2":{"mesh":preload("res://assets/environment/props/Willow_4.obj"),"scale":3.2},
-	"lake_willow_3":{"mesh":preload("res://assets/environment/props/Willow_5.obj"),"scale":3.8},
-	"lake_bush_1":{"mesh":preload("res://assets/environment/props/Bush_1.obj"),"scale":2.2},
-	"lake_bush_2":{"mesh":preload("res://assets/environment/props/Bush_2.obj"),"scale":2.4},
-	"lake_rock_1":{"mesh":preload("res://assets/environment/props/Rock_Moss_2.obj"),"scale":2.8},
-	"lake_rock_2":{"mesh":preload("res://assets/environment/props/Rock_Moss_4.obj"),"scale":2.4},
-	"lake_rock_3":{"mesh":preload("res://assets/environment/props/Rock_Moss_6.obj"),"scale":2.6},
-	"lake_rock_4":{"mesh":preload("res://assets/environment/props/Rock_3.obj"),"scale":3.0},
+	"lake_pine_1":{"mesh":"res://assets/environment/props/PineTree_1.obj","scale":4.2},
+	"lake_pine_2":{"mesh":"res://assets/environment/props/PineTree_4.obj","scale":4.0},
+	"lake_pine_3":{"mesh":"res://assets/environment/props/PineTree_5.obj","scale":4.4},
+	"lake_oak_1":{"mesh":"res://assets/environment/props/CommonTree_3.obj","scale":3.4},
+	"lake_oak_2":{"mesh":"res://assets/environment/props/CommonTree_4.obj","scale":3.8},
+	"lake_willow_1":{"mesh":"res://assets/environment/props/Willow_3.obj","scale":3.6},
+	"lake_willow_2":{"mesh":"res://assets/environment/props/Willow_4.obj","scale":3.2},
+	"lake_willow_3":{"mesh":"res://assets/environment/props/Willow_5.obj","scale":3.8},
+	"lake_bush_1":{"mesh":"res://assets/environment/props/Bush_1.obj","scale":2.2},
+	"lake_bush_2":{"mesh":"res://assets/environment/props/Bush_2.obj","scale":2.4},
+	"lake_rock_1":{"mesh":"res://assets/environment/props/Rock_Moss_2.obj","scale":2.8},
+	"lake_rock_2":{"mesh":"res://assets/environment/props/Rock_Moss_4.obj","scale":2.4},
+	"lake_rock_3":{"mesh":"res://assets/environment/props/Rock_Moss_6.obj","scale":2.6},
+	"lake_rock_4":{"mesh":"res://assets/environment/props/Rock_3.obj","scale":3.0},
 }
 const TREES := ["lake_pine_1","lake_pine_2","lake_pine_3","lake_oak_1","lake_oak_2","lake_willow_1","lake_willow_2","lake_willow_3"]
 const PINES := ["lake_pine_1","lake_pine_2","lake_pine_3"]
@@ -35,7 +35,7 @@ static func is_tree(kind: String) -> bool:
 	return kind in TREES
 
 static func build(kind: String) -> ArrayMesh:
-	var source: Mesh = MODELS[kind].mesh
+	var source: Mesh = load(MODELS[kind].mesh)
 	var scale: float = MODELS[kind].scale
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)

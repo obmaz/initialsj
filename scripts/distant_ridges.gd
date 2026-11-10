@@ -1,6 +1,6 @@
 extends Node3D
 # Mountain horizons use generated cutouts; urban horizons use solid low-detail buildings.
-const ATLAS = preload("res://assets/environment/horizon-ridges.png")
+const ATLAS_PATH = "res://assets/environment/horizon-ridges.png"
 const URBAN_THEMES := {"city":0,"seoul":1,"ruins":2,"neon":3}
 const REGIONS := [
 	Vector4(0.02029312,0.20067644,0.46392334,0.17361894),
@@ -19,7 +19,7 @@ func _ready() -> void:
 		return
 	if not THEMES.has(scenery.theme): return
 	var road: Node3D = scenery.track
-	var atlas: Texture2D = ATLAS
+	var atlas: Texture2D = load(ATLAS_PATH)
 	var region: Vector4 = REGIONS[THEMES[scenery.theme]]
 	var poses: Array[Transform3D] = []
 	var regions: Array[Color] = []
@@ -39,8 +39,7 @@ func _ready() -> void:
 		poses.append(Transform3D(Basis.IDENTITY.scaled_local(Vector3(width,height,1)),point))
 		regions.append(Color(region.x+(region.z if i%2 else 0),region.y,-region.z if i%2 else region.z,region.w))
 	if poses.is_empty(): return
-	var mesh := QuadMesh.new()
-	mesh.size = Vector2.ONE
+	var mesh := preload("res://scripts/render_resources.gd").quad(Vector2.ONE)
 	var multi := MultiMesh.new()
 	multi.transform_format = MultiMesh.TRANSFORM_3D
 	multi.use_custom_data = true
@@ -110,8 +109,8 @@ func make_urban_skyline() -> void:
 			mesh = cube
 		var material := ShaderMaterial.new()
 		material.shader = preload("res://shaders/building_facade.gdshader")
-		material.set_shader_parameter("facade_images",preload("res://assets/environment/urban-harbor-facades.png"))
-		material.set_shader_parameter("facade_extra",preload("res://assets/environment/urban-truck-elevations.png"))
+		material.set_shader_parameter("facade_images",load("res://assets/environment/urban-harbor-facades.png"))
+		material.set_shader_parameter("facade_extra",load("res://assets/environment/urban-truck-elevations.png"))
 		material.set_shader_parameter("facade_style",[0,3,6,8][style])
 		material.set_shader_parameter("night_city",scenery.theme == "neon")
 		var empty: Array[Transform3D] = []
