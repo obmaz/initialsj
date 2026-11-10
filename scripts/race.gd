@@ -506,7 +506,8 @@ func choose_mode(value: String, course: int = 0) -> void:
 	mode = "track" if value == "track" else "tour"
 	selected_course = clampi(course,0,COURSE_COUNT-1)
 	remove_child(track)
-	track.queue_free()
+	# 새 코스를 만들기 전에 바로 해제해 두 코스의 메시가 같은 프레임에 함께 남지 않게 한다.
+	track.free()
 	# 다른 게임 씬이 없으면 이전 코스 전용 메시·대형 외벽·광고 참조를 비운다.
 	if RenderResources.owners == 1:
 		preload("res://scripts/advertisement_library.gd").clear_cache()
