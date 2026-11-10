@@ -25,13 +25,7 @@ const COURSE_SPEEDWAY := Rect2(272,150,236,440)
 const COURSE_NIGHT := Rect2(520,150,236,440)
 const COURSE_RIVIERA := Rect2(768,150,236,440)
 const COURSE_GORGE := Rect2(1016,150,236,440)
-# 메뉴 화면 전용 배경. 메뉴에서만 읽고 주행이 시작되면 놓아 GPU 메모리를 비운다.
-const COURSE_PREVIEWS := ["res://assets/ui/course-fuji.png","res://assets/ui/course-speedway.png","res://assets/ui/course-night.tres","res://assets/ui/course-riviera.tres","res://assets/ui/course-gorge.tres"]
-const HOME_BG := "res://assets/ui/home-coast.png"
-const GARAGE_BG := "res://assets/ui/garage-bay.png"
-const RenderResources = preload("res://scripts/render_resources.gd")
-var menu_art: Dictionary = {}
-var menu_art_requested := false
+var menus := preload("res://scripts/hud_menus.gd").new(self)
 const GARAGE_BACK := Rect2(60,24,220,84)
 const SETTINGS_SOUND := Rect2(365,98,550,77)
 const SETTINGS_MOTION := Rect2(365,178,550,77)
@@ -326,26 +320,10 @@ func held(action: String) -> bool:
 func touch_axis() -> float:
 	return float(held("right")) - float(held("left"))
 
-func art(path: String) -> Texture2D:
-	if not menu_art.has(path): menu_art[path] = RenderResources.fetch(path)
-	return menu_art[path]
-
-# 메뉴로 돌아오면 배경을 작업 스레드에서 다시 읽기 시작하고, 주행 중에는 참조를 놓는다.
-func sync_menu_art() -> void:
-	if race.state in RaceState.DRIVING:
-		if menu_art_requested or not menu_art.is_empty():
-			menu_art_requested = false
-			menu_art.clear()
-			# 아직 받아 가지 않은 미리 읽기 결과도 함께 놓는다.
-			for path in COURSE_PREVIEWS+[HOME_BG,GARAGE_BG]: RenderResources.release(path)
-	elif not menu_art_requested:
-		menu_art_requested = true
-		for path in COURSE_PREVIEWS+[HOME_BG,GARAGE_BG]: RenderResources.warm(path)
-
 func _process(delta: float) -> void:
 	if race == null:
 		return
-	sync_menu_art()
+	menus.sync_menu_art()
 	if race.state != RaceState.RACING: recovery_touches.clear()
 	selection_blend = minf(1,selection_blend+delta*5)
 	var target: Dictionary = Catalog.abilities(race.selected_vehicle)
@@ -453,16 +431,16 @@ func _draw() -> void:
 		return
 	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
 	if race.state == RaceState.COURSES:
-		draw_courses()
+		menus.draw_courses()
 		draw_pad_hints()
 		return
 	if race.state in [RaceState.MENU,RaceState.SETTINGS]:
-		draw_home()
-		if race.state == RaceState.SETTINGS: draw_settings()
+		menus.draw_home()
+		if race.state == RaceState.SETTINGS: menus.draw_settings()
 		draw_pad_hints()
 		return
 	if race.state == RaceState.READY:
-		draw_garage()
+		menus.draw_garage()
 		draw_pad_hints()
 		return
 	draw_boost_feedback()
@@ -733,139 +711,9 @@ func garage_card(index: int) -> Rect2:
 	var width := (1120.0-gap*(count-1))/count
 	return Rect2(80+index*(width+gap),530,width,84)
 
-func draw_home() -> void:
-	draw_rect(Rect2(-ui_offset()/ui_scale(),get_viewport_rect().size/ui_scale()),Color("07111e"))
-	draw_texture_rect(art(HOME_BG),Rect2(0,0,1280,720),false)
-	draw_rect(Rect2(0,0,1280,218),Color("06152b3d"))
-	draw_texture_rect(LOGO,Rect2(310,20,660,LOGO.get_height()*660.0/LOGO.get_width()),false)
-	if race.previews != null:
-		draw_texture_rect(race.previews.textures[2],Rect2(0,243,450,221),false)
-		draw_texture_rect(race.previews.textures[1],Rect2(835,243,450,221),false)
-		draw_texture_rect(race.previews.textures[0],Rect2(340,174,600,294),false)
-	draw_rect(Rect2(0,446,1280,274),Color("07111ee5"))
-	for index in range(2):
-		var rect: Rect2 = HOME_TOUR if index == 0 else HOME_TRACK
-		var accent := CYAN if index == 0 else Color("ffae72")
-		var x := rect.position.x
-		slant(rect,Color("112334f5"),15)
-		draw_line(rect.position+Vector2(15,0),rect.position+Vector2(rect.size.x,0),accent,3,true)
-		text_at(Vector2(x+32,rect.position.y+65),"TOUR" if index == 0 else "TRACK",54,WHITE)
-		text_at(Vector2(x+34,rect.position.y+108),"BRANCHING COAST RUN" if index == 0 else "CHOOSE YOUR CIRCUIT",24,accent)
-		text_at(Vector2(x+34,rect.position.y+144),"5 STAGES / 16 ROUTES" if index == 0 else "5 COURSES / 3 LAPS",20,Color("a5becd"))
-		text_at(Vector2(x+450,rect.position.y+85),">",48,accent)
-	slant(HOME_SETTINGS,Color("102637ed"),10)
-	centered(Vector2(HOME_SETTINGS.get_center().x,77),"SETTINGS",30)
-	centered(Vector2(640,694),AppVersion.label(),22,Color("b2cbd8"))
-
-func draw_courses() -> void:
-	draw_texture_rect(art(GARAGE_BG),Rect2(0,0,1280,720),false)
-	slant(GARAGE_BACK,Color("20374a"),7)
-	centered(Vector2(170,78),"< BACK",28)
-	centered(Vector2(640,80),"SELECT CIRCUIT",38)
-	var rects := [COURSE_FUJI,COURSE_SPEEDWAY,COURSE_NIGHT,COURSE_RIVIERA,COURSE_GORGE]
-	var accents := [CYAN,Color("ffbc72"),Color("c58cff"),Color("ff93ad"),Color("ffad70")]
-	var textures := COURSE_PREVIEWS.map(art)
-	var titles := [["01 / FUJI","LAKESIDE"],["02 / SUNCOAST","SPEEDWAY"],["03 / MIDNIGHT","HARBOR"],["04 / AZURE","RIVIERA"],["05 / SCARLET","GORGE"]]
-	var subtitles := ["VIADUCT / RIDGE","HILLS / BOOST SLALOM","NIGHT / DRIFT GATES","COAST / HEART DRIFT","BRIDGE / CANYON ADS"]
-	var lengths := ["5.72 KM / 3 LAPS","4.57 KM / 3 LAPS","2.74 KM / 3 LAPS","3.64 KM / 3 LAPS","3.54 KM / 3 LAPS"]
-	for i in range(5):
-		var rect: Rect2 = rects[i]
-		var accent: Color = accents[i]
-		slant(rect,Color("142738"),10)
-		var texture: Texture2D = textures[i]
-		var image_box := Rect2(rect.position+Vector2(12,12),Vector2(rect.size.x-24,224))
-		# Cover crop only; original generated assets remain intact.
-		var source := Rect2(Vector2.ZERO,texture.get_size())
-		var ratio := image_box.size.x/image_box.size.y
-		if source.size.x/source.size.y > ratio:
-			var width := source.size.y*ratio
-			source.position.x = (source.size.x-width)*0.5
-			source.size.x = width
-		else:
-			var height := source.size.x/ratio
-			source.position.y = (source.size.y-height)*0.5
-			source.size.y = height
-		draw_texture_rect_region(texture,image_box,source)
-		var x := rect.position.x+22
-		text_at(Vector2(x,420),titles[i][0],21,accent)
-		text_at(Vector2(x,448),titles[i][1],21,accent)
-		text_at(Vector2(x,480),subtitles[i],13,WHITE)
-		text_at(Vector2(x,507),lengths[i],14,Color("adc2d0"))
-	centered(Vector2(640,675),"FIVE CIRCUITS / THREE LAPS / EIGHT RACERS",18,Color("8299a7"))
-
-func draw_settings() -> void:
-	draw_rect(Rect2(0,0,1280,720),Color("020812d9"))
-	slant(Rect2(300,40,680,640),Color("101e2bfc"),20)
-	text_at(Vector2(365,78),"SETTINGS",36)
-	centered(Vector2(800,76),AppVersion.label(),22,Color("b2cbd8"))
-	for rect in [SETTINGS_SOUND,SETTINGS_MOTION,SETTINGS_GRAPHICS,SETTINGS_FPS,SETTINGS_FULLSCREEN,SETTINGS_INSTALL]: slant(rect,Color("20374a"),9)
-	text_at(SETTINGS_SOUND.position+Vector2(28,49),"SOUND",28)
-	text_at(SETTINGS_SOUND.position+Vector2(450,49),"ON" if race.sound_enabled else "OFF",30,CYAN)
-	text_at(SETTINGS_MOTION.position+Vector2(28,49),"REDUCED MOTION",26)
-	text_at(SETTINGS_MOTION.position+Vector2(450,49),"ON" if race.motion_reduced else "OFF",30,CYAN)
-	text_at(SETTINGS_GRAPHICS.position+Vector2(28,49),"GRAPHICS",28)
-	text_at(SETTINGS_GRAPHICS.position+Vector2(430,49),["AUTO","HIGH","FAST"][race.graphics_mode],28,CYAN)
-	text_at(SETTINGS_FPS.position+Vector2(28,49),"SHOW FPS",28)
-	text_at(SETTINGS_FPS.position+Vector2(450,49),"ON" if race.show_fps else "OFF",30,CYAN)
-	var fullscreen_label: String = race.shell.fullscreen_label() if race.has_method("fullscreen_label") else "ENTER FULLSCREEN"
-	text_at(SETTINGS_FULLSCREEN.position+Vector2(28,49),fullscreen_label,28)
-	text_at(SETTINGS_FULLSCREEN.position+Vector2(489,49),">",32,CYAN)
-	text_at(SETTINGS_INSTALL.position+Vector2(28,49),"INSTALL GAME",30,WHITE)
-	text_at(SETTINGS_INSTALL.position+Vector2(489,49),"+",35,CYAN)
-	if not install_note.is_empty(): centered(Vector2(640,585),install_note,16,Color("b2cbd8"))
-	slant(SETTINGS_CLOSE,CYAN,10)
-	centered(Vector2(640,SETTINGS_CLOSE.position.y+51),"DONE",34,Color("0a1b2b"))
-	if pad_on():
-		var rows: Array[Rect2] = [SETTINGS_SOUND,SETTINGS_MOTION,SETTINGS_GRAPHICS,SETTINGS_FPS,SETTINGS_FULLSCREEN,SETTINGS_INSTALL,SETTINGS_CLOSE]
-		draw_rect(rows[clampi(race.settings_focus,0,rows.size()-1)].grow(4),GOLD,false,4.0)
-	if race.has_method("sync_fullscreen_button"): race.shell.sync_control(SETTINGS_FULLSCREEN)
-
-func draw_garage() -> void:
-	var color := Color(race.vehicle.accent)
-	draw_texture_rect(art(GARAGE_BG),Rect2(0,0,1280,720),false)
-	draw_line(Vector2(60,120),Vector2(1220,120),Color("264152"),1,true)
-	slant(GARAGE_BACK,Color("20374a"),10)
-	centered(Vector2(GARAGE_BACK.get_center().x,78),"< BACK",28,WHITE)
-	centered(Vector2(640,68),("TRACK" if race.mode == "track" else "TOUR")+" / GARAGE",22,Color("9db6c9"))
-	text_at(Vector2(1105,68),"%d / %d" % [race.selected_vehicle+1,Catalog.SPECS.size()],16,color)
-	slant(Rect2(92,129,675,76),Color("07111ebd"),10)
-	text_at(Vector2(120,168),race.vehicle.name,48)
-	text_at(Vector2(123,195),race.vehicle["class"],21,color)
-	if race.previews != null:
-		var blend := smoothstep(0,1,selection_blend)
-		if blend < 1:
-			draw_texture_rect(race.previews.textures[previous_vehicle],Rect2(80-24*blend,210,690,300),false,Color(1,1,1,1-blend))
-		draw_texture_rect(race.previews.textures[race.selected_vehicle],Rect2(80+28*(1-blend),210,690,300),false,Color(1,1,1,blend))
-	slant(Rect2(800,130,395,380),Color("07111eac"),10)
-	text_at(Vector2(826,162),"PERFORMANCE",20,Color("9db6c9"))
-	var abilities := Catalog.abilities(race.selected_vehicle)
-	for i in range(4):
-		var y := 203.0+i*58
-		var rating: float = abilities[Catalog.ABILITY_KEYS[i]]
-		text_at(Vector2(826,y),Catalog.ABILITY_LABELS[i],26,Color("c8d9e4"))
-		text_at(Vector2(1115,y),"%.1f" % rating,26,color)
-		draw_rect(Rect2(826,y+13,334,5),Color("263746"))
-		draw_rect(Rect2(826,y+13,334*(shown_abilities[i] if shown_abilities.size() == 4 else rating)/10.0,5),color)
-	text_at(Vector2(826,455),race.vehicle.nitro_title,24,color)
-	text_at(Vector2(826,483),race.vehicle.nitro_help,19,Color("a1b8c9"))
-	draw_rect(Rect2(80,486,690,34),Color("07111ebd"))
-	text_at(Vector2(80,511),race.vehicle.tagline,22,Color("9db6c9"))
-	for i in range(Catalog.SPECS.size()):
-		var rect := garage_card(i)
-		var v := Catalog.spec(i)
-		var selected: bool = i == race.selected_vehicle
-		slant(rect,Color("203345") if selected else Color("101d2b"),8)
-		if selected: draw_line(rect.position+Vector2(8,rect.size.y),rect.end,Color(v.accent),3,true)
-		text_at(rect.position+Vector2(22,35),v.name,28,Color(v.accent) if selected else Color("bdcedb"))
-		var role: String = v.role
-		text_at(rect.position+Vector2(23,66),role,20,Color("94acbe"))
-	text_at(Vector2(80,678),"BEST "+(time_label(race.best_time) if race.best_time > 0 else "--:--.---"),22,GOLD)
-	slant(GARAGE_START,color,8)
-	centered(Vector2(GARAGE_START.get_center().x,680),"DRIVE",34,Color("07111e"))
-
 func draw_menu() -> void:
 	if race.state == RaceState.READY:
-		draw_garage()
+		menus.draw_garage()
 		return
 	if race.state == RaceState.COUNTDOWN:
 		if race.mode == "track" and race.selected_course == 1: centered(Vector2(640,420),"ROLLING START / 16 CARS",27,CYAN)

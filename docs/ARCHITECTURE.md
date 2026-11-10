@@ -2,7 +2,7 @@
 
 ## 실행과 주행
 
-진입 씬은 `scenes/race.tscn`입니다. `race.gd`가 모드·경기 상태·화면 전환을 조정하고 `hud.gd`가 표시와 터치 좌표를 담당합니다. 화면 상태 값은 `race_state.gd`의 상수가 정본이며 `race.state`는 선언된 값만 받습니다. `race.gd`는 세 보조 객체에 일을 맡깁니다: `race_input.gd`(`race.controls`, 키보드·게임패드·터치 입력을 화면별 동작으로 연결), `race_lighting.gd`(`race.lighting`, 하늘·안개·조명과 지역·날씨 전환), `web_shell.gd`(`race.shell`, 브라우저 전체화면·뒤로 가기·화면 방향).
+진입 씬은 `scenes/race.tscn`입니다. `race.gd`가 모드·경기 상태·화면 전환을 조정하고 `hud.gd`가 주행 화면 표시와 터치 좌표를 담당하고 홈·코스 선택·설정·차고 화면은 `hud_menus.gd`(`hud.menus`)가 같은 캔버스에 그립니다. 화면 상태 값은 `race_state.gd`의 상수가 정본이며 `race.state`는 선언된 값만 받습니다. `race.gd`는 세 보조 객체에 일을 맡깁니다: `race_input.gd`(`race.controls`, 키보드·게임패드·터치 입력을 화면별 동작으로 연결), `race_lighting.gd`(`race.lighting`, 하늘·안개·조명과 지역·날씨 전환), `web_shell.gd`(`race.shell`, 브라우저 전체화면·뒤로 가기·화면 방향).
 
 | 영역 | 책임과 정본 |
 | --- | --- |
