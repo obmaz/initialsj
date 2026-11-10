@@ -32,6 +32,16 @@ func run(tree: SceneTree) -> int:
 		race.sound_enabled = false
 		check(race.atmosphere.sky == null,"메뉴에서는 아직 쓰지 않을 하늘의 GPU 리소스를 생성하면 안 된다")
 	check(Pool.owners == 2,"동시에 살아 있는 씬은 각자 렌더 리소스의 소유권을 가져야 한다")
+	# 메뉴 배경은 메뉴에서만 GPU에 있고 주행 중에는 참조를 놓아야 한다.
+	var home: WeakRef = weakref(a.hud.art(a.hud.HOME_BG))
+	check(home.get_ref() is Texture2D and a.hud.art(a.hud.COURSE_PREVIEWS[0]) is Texture2D,"메뉴 화면은 배경과 코스 미리보기를 읽을 수 있어야 한다")
+	b.hud.menu_art.clear()
+	a.state = "racing"
+	a.hud.sync_menu_art()
+	check(a.hud.menu_art.is_empty() and home.get_ref() == null,"주행 중에는 메뉴 배경 텍스처를 메모리에 남기면 안 된다")
+	a.state = "menu"
+	a.hud.sync_menu_art()
+	check(a.hud.art(a.hud.HOME_BG) is Texture2D and a.hud.art(a.hud.GARAGE_BG) is Texture2D,"메뉴로 돌아오면 배경을 다시 읽어야 한다")
 	var quad := Pool.quad(Vector2(20,8.75))
 	check(Pool.quad(quad.size) == quad and Pool.quad(Vector2.ONE) != quad,"같은 크기의 쿼드만 공유하고 다른 크기는 구분해야 한다")
 	var box := Pool.unit_box()

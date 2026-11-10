@@ -386,6 +386,7 @@ func paint(color: Color) -> ShaderMaterial:
 # 프레임마다 조금씩 실행해, 한 프레임에 구간 전체를 만드는 멈춤을 없앤다.
 var staged := false
 var draining := false
+var warmed: Array[String] = []
 var build_queue: Array[Callable] = []
 
 func build_pending() -> bool:
@@ -415,7 +416,8 @@ func _ready() -> void:
 	var ribbons := {}
 	build_queue.append(func():
 		if not closed_loop:
-			for path in Scenery.warm_paths(Library.theme(stage,route_node)): preload("res://scripts/render_resources.gd").warm(path)
+			warmed = Scenery.warm_paths(Library.theme(stage,route_node))
+			for path in warmed: preload("res://scripts/render_resources.gd").warm(path)
 		if not closed_loop and stage == 0: bridge_span = Vector2(850,1380)
 		if closed_loop and course_id == 4:
 			collapse = preload("res://scripts/bridge_collapse.gd").new()
@@ -484,6 +486,9 @@ func _ready() -> void:
 			rockfall.configure(self)
 			add_child(rockfall)
 			rockfall.reset_effect())
+	# 미리 읽었지만 이 구간이 쓰지 않은 리소스는 놓는다.
+	build_queue.append(func():
+		for path in warmed: preload("res://scripts/render_resources.gd").release(path))
 	if not staged: build_some()
 
 func checkpoint_distance() -> float:

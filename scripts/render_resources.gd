@@ -29,6 +29,10 @@ static func fetch(path: String) -> Resource:
 	if warming.erase(path): return ResourceLoader.load_threaded_get(path)
 	return load(path)
 
+# 미리 읽기 시작했지만 쓰이지 않은 리소스를 놓는다.
+static func release(path: String) -> void:
+	if warming.erase(path): ResourceLoader.load_threaded_get(path)
+
 static func quad(size: Vector2) -> QuadMesh:
 	if not quads.has(size):
 		var mesh := QuadMesh.new()

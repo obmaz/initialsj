@@ -24,11 +24,13 @@ const COURSE_SPEEDWAY := Rect2(272,150,236,440)
 const COURSE_NIGHT := Rect2(520,150,236,440)
 const COURSE_RIVIERA := Rect2(768,150,236,440)
 const COURSE_GORGE := Rect2(1016,150,236,440)
-const FUJI_PREVIEW = preload("res://assets/ui/course-fuji.png")
-const SPEEDWAY_PREVIEW = preload("res://assets/ui/course-speedway.png")
-const NIGHT_PREVIEW = preload("res://assets/ui/course-night.tres")
-const RIVIERA_PREVIEW = preload("res://assets/ui/course-riviera.tres")
-const GORGE_PREVIEW = preload("res://assets/ui/course-gorge.tres")
+# 메뉴 화면 전용 배경. 메뉴에서만 읽고 주행이 시작되면 놓아 GPU 메모리를 비운다.
+const COURSE_PREVIEWS := ["res://assets/ui/course-fuji.png","res://assets/ui/course-speedway.png","res://assets/ui/course-night.tres","res://assets/ui/course-riviera.tres","res://assets/ui/course-gorge.tres"]
+const HOME_BG := "res://assets/ui/home-coast.png"
+const GARAGE_BG := "res://assets/ui/garage-bay.png"
+const RenderResources = preload("res://scripts/render_resources.gd")
+var menu_art: Dictionary = {}
+var menu_art_requested := false
 const GARAGE_BACK := Rect2(60,24,220,84)
 const SETTINGS_SOUND := Rect2(365,98,550,77)
 const SETTINGS_MOTION := Rect2(365,178,550,77)
@@ -38,8 +40,6 @@ const SETTINGS_FULLSCREEN := Rect2(365,418,550,77)
 const SETTINGS_INSTALL := Rect2(365,498,550,77)
 const SETTINGS_CLOSE := Rect2(365,592,550,77)
 const RECOVERY_BUTTON := Rect2(500,176,280,64)
-const HOME_BG = preload("res://assets/ui/home-coast.png")
-const GARAGE_BG = preload("res://assets/ui/garage-bay.png")
 const GARAGE_START := Rect2(930,630,290,76)
 const MAIN_MENU_BUTTON := Rect2(390,578,500,78)
 const START_BUTTON := Rect2(390, 483, 500, 82)
@@ -325,9 +325,26 @@ func held(action: String) -> bool:
 func touch_axis() -> float:
 	return float(held("right")) - float(held("left"))
 
+func art(path: String) -> Texture2D:
+	if not menu_art.has(path): menu_art[path] = RenderResources.fetch(path)
+	return menu_art[path]
+
+# 메뉴로 돌아오면 배경을 작업 스레드에서 다시 읽기 시작하고, 주행 중에는 참조를 놓는다.
+func sync_menu_art() -> void:
+	if race.state in ["countdown","racing"]:
+		if menu_art_requested or not menu_art.is_empty():
+			menu_art_requested = false
+			menu_art.clear()
+			# 아직 받아 가지 않은 미리 읽기 결과도 함께 놓는다.
+			for path in COURSE_PREVIEWS+[HOME_BG,GARAGE_BG]: RenderResources.release(path)
+	elif not menu_art_requested:
+		menu_art_requested = true
+		for path in COURSE_PREVIEWS+[HOME_BG,GARAGE_BG]: RenderResources.warm(path)
+
 func _process(delta: float) -> void:
 	if race == null:
 		return
+	sync_menu_art()
 	if race.state != "racing": recovery_touches.clear()
 	selection_blend = minf(1,selection_blend+delta*5)
 	var target: Dictionary = Catalog.abilities(race.selected_vehicle)
@@ -717,7 +734,7 @@ func garage_card(index: int) -> Rect2:
 
 func draw_home() -> void:
 	draw_rect(Rect2(-ui_offset()/ui_scale(),get_viewport_rect().size/ui_scale()),Color("07111e"))
-	draw_texture_rect(HOME_BG,Rect2(0,0,1280,720),false)
+	draw_texture_rect(art(HOME_BG),Rect2(0,0,1280,720),false)
 	draw_rect(Rect2(0,0,1280,218),Color("06152b3d"))
 	draw_texture_rect(LOGO,Rect2(310,20,660,LOGO.get_height()*660.0/LOGO.get_width()),false)
 	if race.previews != null:
@@ -740,13 +757,13 @@ func draw_home() -> void:
 	centered(Vector2(640,694),AppVersion.label(),22,Color("b2cbd8"))
 
 func draw_courses() -> void:
-	draw_texture_rect(GARAGE_BG,Rect2(0,0,1280,720),false)
+	draw_texture_rect(art(GARAGE_BG),Rect2(0,0,1280,720),false)
 	slant(GARAGE_BACK,Color("20374a"),7)
 	centered(Vector2(170,78),"< BACK",28)
 	centered(Vector2(640,80),"SELECT CIRCUIT",38)
 	var rects := [COURSE_FUJI,COURSE_SPEEDWAY,COURSE_NIGHT,COURSE_RIVIERA,COURSE_GORGE]
 	var accents := [CYAN,Color("ffbc72"),Color("c58cff"),Color("ff93ad"),Color("ffad70")]
-	var textures := [FUJI_PREVIEW,SPEEDWAY_PREVIEW,NIGHT_PREVIEW,RIVIERA_PREVIEW,GORGE_PREVIEW]
+	var textures := COURSE_PREVIEWS.map(art)
 	var titles := [["01 / FUJI","LAKESIDE"],["02 / SUNCOAST","SPEEDWAY"],["03 / MIDNIGHT","HARBOR"],["04 / AZURE","RIVIERA"],["05 / SCARLET","GORGE"]]
 	var subtitles := ["VIADUCT / RIDGE","HILLS / BOOST SLALOM","NIGHT / DRIFT GATES","COAST / HEART DRIFT","BRIDGE / CANYON ADS"]
 	var lengths := ["5.72 KM / 3 LAPS","4.57 KM / 3 LAPS","2.74 KM / 3 LAPS","3.64 KM / 3 LAPS","3.54 KM / 3 LAPS"]
@@ -804,7 +821,7 @@ func draw_settings() -> void:
 
 func draw_garage() -> void:
 	var color := Color(race.vehicle.accent)
-	draw_texture_rect(GARAGE_BG,Rect2(0,0,1280,720),false)
+	draw_texture_rect(art(GARAGE_BG),Rect2(0,0,1280,720),false)
 	draw_line(Vector2(60,120),Vector2(1220,120),Color("264152"),1,true)
 	slant(GARAGE_BACK,Color("20374a"),10)
 	centered(Vector2(GARAGE_BACK.get_center().x,78),"< BACK",28,WHITE)

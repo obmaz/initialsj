@@ -146,7 +146,8 @@ func _ready() -> void:
 	steps.append(func():
 		roadside_art = preload("res://scripts/roadside_art.gd").new()
 		roadside_art.scenery = self
-		add_child(roadside_art))
+		add_child(roadside_art)
+		for kind in preload("res://scripts/regional_props_3d.gd").FAMILIES[theme]: preload("res://scripts/regional_props_3d.gd").release_warm(kind))
 	steps.append(func():
 		distant_art = preload("res://scripts/distant_ridges.gd").new()
 		distant_art.scenery = self

@@ -121,6 +121,14 @@ static func textures_for(kind: String) -> Dictionary:
 	texture_needs[kind] = needed
 	return needed
 
+# 배치가 끝난 뒤, 미리 읽었지만 쓰이지 않은 리소스를 놓는다.
+static func release_warm(kind: String) -> void:
+	var definition: Resource = Models.definition(kind)
+	if not definition.material_path.is_empty(): RenderResources.release(definition.material_path)
+	for path in textures_for(kind).values(): RenderResources.release(path)
+	if kind == "billboard":
+		for pack in Ads.PACKS: RenderResources.release(pack.atlas)
+
 # 모델을 만들고, 그 재질이 쓸 리소스를 미리 읽기 시작한다.
 static func warm(kind: String) -> void:
 	var definition: Resource = Models.definition(kind)
