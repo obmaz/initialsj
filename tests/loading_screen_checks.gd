@@ -15,6 +15,17 @@ class Recorder extends CanvasLayer:
 		action.call()
 
 func run(tree: SceneTree) -> int:
+	var version_name = ProjectSettings.get_setting("application/config/version")
+	var version_code = ProjectSettings.get_setting("application/config/build_number")
+	var Version = preload("res://scripts/app_version.gd")
+	ProjectSettings.set_setting("application/config/version","1.0.12")
+	ProjectSettings.set_setting("application/config/build_number",12)
+	check(Version.label() == "v1.0.12 (12)","Android 표시에는 실제 versionName과 versionCode가 함께 있어야 한다")
+	ProjectSettings.set_setting("application/config/version","0.1+abcdef0")
+	ProjectSettings.set_setting("application/config/build_number",0)
+	check(Version.label() == "v0.1+abcdef0","웹 표시는 웹 빌드 식별자를 유지하고 Android 번호를 섞지 않아야 한다")
+	ProjectSettings.set_setting("application/config/version",version_name)
+	ProjectSettings.set_setting("application/config/build_number",version_code)
 	var r = load("res://scenes/race.tscn").instantiate()
 	tree.root.add_child(r)
 	r.set_physics_process(false)

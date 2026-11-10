@@ -1,5 +1,6 @@
 extends Control
 
+const AppVersion = preload("res://scripts/app_version.gd")
 const DESIGN := Vector2(1280, 720)
 const INK := Color("11121bc9")
 const CYAN := Color("19dcff")
@@ -735,6 +736,7 @@ func draw_home() -> void:
 		text_at(Vector2(x+450,rect.position.y+85),">",48,accent)
 	slant(HOME_SETTINGS,Color("102637ed"),10)
 	centered(Vector2(HOME_SETTINGS.get_center().x,77),"SETTINGS",30)
+	centered(Vector2(640,694),AppVersion.label(),22,Color("b2cbd8"))
 
 func draw_courses() -> void:
 	draw_texture_rect(GARAGE_BG,Rect2(0,0,1280,720),false)
@@ -779,6 +781,7 @@ func draw_settings() -> void:
 	draw_rect(Rect2(0,0,1280,720),Color("020812d9"))
 	slant(Rect2(300,40,680,640),Color("101e2bfc"),20)
 	text_at(Vector2(365,78),"SETTINGS",36)
+	centered(Vector2(800,76),AppVersion.label(),22,Color("b2cbd8"))
 	for rect in [SETTINGS_SOUND,SETTINGS_MOTION,SETTINGS_GRAPHICS,SETTINGS_FPS,SETTINGS_FULLSCREEN,SETTINGS_INSTALL]: slant(rect,Color("20374a"),9)
 	text_at(SETTINGS_SOUND.position+Vector2(28,49),"SOUND",28)
 	text_at(SETTINGS_SOUND.position+Vector2(450,49),"ON" if race.sound_enabled else "OFF",30,CYAN)

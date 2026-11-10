@@ -39,6 +39,7 @@ html.installed-game, html.installed-game body { height:100dvh; }
 .loading-brand { position:absolute; top:max(24px,env(safe-area-inset-top)); left:5vw; z-index:1; color:#f7fbff;  }
 .loading-logo { display:block; width:clamp(240px,36vw,480px); max-width:82vw; height:auto; }
 #loading-card { position: absolute; z-index:1; bottom: max(20px, env(safe-area-inset-bottom)); width: min(420px, 76vw); padding: 18px 22px; border: 1px solid #76dfff40; border-radius: 4px; background: #07111ee8; box-shadow: 0 10px 36px #0008; }
+.app-version { margin-top:12px; color:#b2cbd8; font-size:13px; letter-spacing:.04em; }
 .loading-meta { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 12px; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
 #loading-percent { color: #66e5ff; font-variant-numeric: tabular-nums; white-space: nowrap; }
 #status-progress { display: block; width: 100%; height: 4px; border: 0; border-radius: 1px; overflow: hidden; background: #263c51; color: #36dfff; accent-color: #36dfff; }
@@ -80,6 +81,7 @@ noscript { position: fixed; z-index: 3; bottom: 20px; left: 20px; right: 20px; p
 			<div id="loading-card">
 				<div class="loading-meta"><span id="loading-label">LOADING YOUR NEXT DRIVE</span><span id="loading-percent" aria-hidden="true">STARTING</span></div>
 				<progress id="status-progress" aria-label="Game download progress"></progress>
+				<div id="app-version" class="app-version" aria-label="App version"><!--app-version--></div>
 			</div>
 			<div id="status-notice" role="alert"></div>
 		</div>

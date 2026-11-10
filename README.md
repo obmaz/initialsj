@@ -65,3 +65,5 @@ node tests/audio_lifecycle_review.cjs
 검사 보고서와 화면 캡처는 Git에서 제외하는 `build/reports/`에 생성합니다. `main` 푸시는 자동 검사 후 GitHub Pages의 `/initialsj/`에 배포됩니다. 자세한 내보내기 명령과 검사 범위는 [개발 문서](docs/DEVELOPMENT.md)를 참고하세요.
 
 차량마다 엔진·부스터·드리프트 소리(OGG 루프)와 부스터 점화음(WAV)이 모두 다릅니다. 직접 합성한 원본이며 새 차량도 같은 규칙을 따릅니다([차량별 사운드](docs/VEHICLE_AUDIO.md)). 충돌·안내 소리는 WAV 파일입니다. [음원 출처와 라이선스](assets/audio/LICENSE.txt)는 에셋과 함께 유지하며, 전체 에셋의 출처와 라이선스는 [ASSET_LICENSES.md](docs/ASSET_LICENSES.md)에 정리했습니다. 변경 이력과 이전 구현은 Git 이력에서 확인할 수 있습니다.
+
+로딩·메인·설정 화면에 현재 버전을 표시합니다. Android는 APK의 버전명과 빌드 번호, 웹은 프로젝트 버전과 소스 커밋을 표시합니다.

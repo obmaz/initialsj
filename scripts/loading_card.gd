@@ -1,6 +1,7 @@
 extends Control
 # Loading screen drawn over the transition cover while a course is being built. The build runs
 # on the main thread, so the card is drawn once before it starts and updated between steps.
+const AppVersion = preload("res://scripts/app_version.gd")
 const LOGO = preload("res://assets/ui/initialsj-logo.svg")
 const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
 const CYAN := Color("19dcff")
@@ -45,6 +46,7 @@ func _draw() -> void:
 	draw_rect(Rect2(bar.position+Vector2(bar.size.x*progress-26,0),Vector2(26,bar.size.y)).intersection(bar),Color(0.8,0.98,1,0.9))
 	_centered(Vector2(640,430),"%s   %d%%" % [STEPS[step],int(progress*100)],18,CYAN,FONT)
 	_centered(Vector2(640,520),TIPS[tip],16,Color(0.72,0.8,0.88),FONT)
+	_centered(Vector2(640,620),AppVersion.label(),22,Color("b2cbd8"),FONT)
 
 func _centered(pos: Vector2, value: String, size_px: int, color: Color, face: Font) -> void:
 	var width := face.get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,size_px).x

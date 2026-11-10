@@ -3,6 +3,7 @@ config_version=5
 
 [application]
 config/name="Initial SJ — Coast Rush"
+config/version="0.1"
 config/icon="res://assets/ui/coast-rush-icon.svg"
 boot_splash/bg_color=Color(0.02745, 0.06667, 0.11765, 1)
 boot_splash/image="res://assets/ui/coast-rush-splash.png"
@@ -32,3 +33,6 @@ textures/default_filters/use_nearest_mipmap_filter=false
 
 [physics]
 common/physics_interpolation=true
+
+[editor_plugins]
+enabled=PackedStringArray("res://addons/app_version/plugin.cfg")
