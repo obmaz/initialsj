@@ -74,6 +74,22 @@ func reset(stage: int = 0, node_index: int = 0) -> void:
 func add_world_collision(section: Section) -> void:
 	section.add_child(preload("res://scripts/fuji_collision.gd").build(section))
 
+# 충돌체도 형상 수집·장벽 구간·물리 등록으로 나눠 만든 뒤 구간을 보이게 한다.
+func stage_world_collision(section: Section) -> void:
+	var Collision := preload("res://scripts/fuji_collision.gd")
+	var state := {}
+	var steps: Array[Callable] = [func(): state.merge(Collision.begin(section))]
+	for part in range(ceili(section.length/400.0)): steps.append(func(): Collision.walls(section,state,400.0))
+	steps.append(func(): state.ground_body = Collision.body("RoadSurfaceBody",state.ground,1))
+	steps.append(func(): section.add_child(Collision.finish(state)))
+	steps.append(func(): section.visible = true)
+	section.queue_next(steps)
+
+# 주행 중 다음 구간 생성에 한 프레임이 쓸 수 있는 시간. 한 단계는 끝까지 실행한다.
+const BUILD_BUDGET_USEC := 1500
+# 갈림길까지 이 거리 안으로 들어오면 남은 단계를 한 번에 끝낸다(정상 주행에서는 그 전에 끝난다).
+const BUILD_DEADLINE := 1200.0
+
 func update_ground() -> void:
 	if base_material != null:
 		var theme_id := Library.theme(active.stage,active.route_node)
@@ -81,22 +97,39 @@ func update_ground() -> void:
 		if urban_colors.has(theme_id): base_material.albedo_color = Color(urban_colors[theme_id])
 		else: base_material.albedo_color = Color("125a79") if Library.coastal(theme_id) else Color(Library.PALETTES[theme_id]).darkened(0.2)
 
-func build_previews() -> void:
+# staged이면 구간의 곡선만 즉시 만들고 메시·풍경·충돌체는 maintain()이 프레임마다 나눠 만든다.
+# 완성 전에는 숨겨 두며, 그동안에도 point()·half_width()는 곡선만으로 동작한다.
+func build_previews(staged: bool = false) -> void:
 	if not previews.is_empty() or active.stage >= Library.STAGES - 1: return
 	for side in [0,1]:
 		var section := Section.new(active.point(active.length),active.heading(active.length),active.stage+1,active.route_node+side,-1 if side == 0 else 1)
 		section.region_metadata = RegionMetadata.resolve(Library.theme(section.stage,section.route_node),active.region_metadata.weather,weather_seed)
+		section.staged = staged
+		section.visible = not staged
 		add_child(section)
-		add_world_collision(section)
+		if staged: section.build_queue.append(func(): stage_world_collision(section))
+		else: add_world_collision(section)
 		previews.append(section)
 
+func finish_previews() -> void:
+	build_previews()
+	for section in previews: section.build_some()
+
 func maintain(distance: float) -> void:
-	if distance > 180: build_previews()
+	# 지나온 구간을 한 프레임에 하나씩 먼저 해제한 뒤에 다음 구간을 만들어, 동시에 살아 있는 구간 수를 줄인다.
 	if distance > 420:
-		if is_instance_valid(sibling): retire(sibling)
-		sibling = null
-		if is_instance_valid(previous): retire(previous)
-		previous = null
+		if is_instance_valid(sibling):
+			retire(sibling)
+			sibling = null
+		elif is_instance_valid(previous):
+			retire(previous)
+			previous = null
+		else: build_previews(true)
+	var budget := BUILD_BUDGET_USEC if distance < active.length-BUILD_DEADLINE else -1
+	for section in previews:
+		if section.build_pending():
+			section.build_some(budget)
+			if budget >= 0: break
 
 func point(distance: float, lane: float = 0) -> Vector3:
 	if distance < 0 and is_instance_valid(previous): return previous.point(previous.length+distance,lane)
@@ -126,6 +159,7 @@ func half_width(distance: float) -> float:
 	return active.half_width(distance)
 
 func advance(side: int, distance: float, lane: float) -> Dictionary:
+	finish_previews()
 	var world := point(distance,lane)
 	var old_length := active.length
 	if is_instance_valid(previous): retire(previous)

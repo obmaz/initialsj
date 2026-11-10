@@ -14,26 +14,31 @@ static func body(label: String, faces: PackedVector3Array, layer: int) -> Static
 	node.add_child(collision)
 	return node
 static func append_mesh(out: PackedVector3Array, mesh: Mesh, transform: Transform3D) -> void:
-	for p in mesh.get_faces(): out.append(transform*p)
-static func append_box(out: PackedVector3Array, transform: Transform3D, template: BoxMesh) -> void:
-	append_mesh(out,template,transform)
+	# 배열 전체를 엔진에서 한 번에 변환한다(정점마다 스크립트를 거치지 않는다).
+	out.append_array(transform*mesh.get_faces())
 static func frame(section: Node3D, d: float) -> Basis:
 	var forward: Vector3 = (section.point(d+1)-section.point(d-1)).normalized()
 	var right: Vector3 = (section.point(d,1)-section.point(d,-1)).normalized()
 	var up := right.cross(forward).normalized()
 	return Basis(forward.cross(up).normalized(),up,-forward).orthonormalized()
 static func build(section: Node3D) -> Node3D:
+	var state := begin(section)
+	while not walls(section,state,section.length): pass
+	return finish(state)
+
+# 주행 중에 만드는 구간은 begin → walls(여러 번) → finish를 단계로 나눠 부른다.
+static func begin(section: Node3D) -> Dictionary:
 	var root := Node3D.new()
 	root.name = "FujiWorldCollision"
 	var ground := PackedVector3Array()
-	var walls := PackedVector3Array()
+	var barriers := PackedVector3Array()
 	var relative: Transform3D = section.global_transform.affine_inverse()
 	# Read only authored drivable geometry. Water and decorative terrain do not
 	# create a phantom horizontal floor across the bridge or beneath a tunnel.
 	for child in section.get_children():
 		if child is MeshInstance3D and (child == section.road_surface or child.name == "RoadBase" or child.name == "DirtShoulders" or child.get_meta("world_ground",false)):
 			append_mesh(ground,child.mesh,relative*child.global_transform)
-	collect_scenery(section.scenery,section,ground,walls)
+	collect_scenery(section.scenery,section,ground,barriers)
 	var trucks := PackedVector3Array()
 	for child in section.get_children():
 		if child.get_meta("parked_truck",false):
@@ -45,11 +50,19 @@ static func build(section: Node3D) -> Node3D:
 		root.add_child(truck_body)
 	var template := BoxMesh.new()
 	template.size = Vector3.ONE
+	# 단위 상자의 삼각형은 한 번만 꺼내 모든 장벽 조각이 재사용한다.
+	return {"root":root,"ground":ground,"walls":barriers,"unit":template.get_faces(),"distance":0.0}
+
+# 장벽 상자를 span 미터만큼 이어 붙인다. 끝까지 만들었으면 true.
+static func walls(section: Node3D, state: Dictionary, span: float) -> bool:
+	var barriers: PackedVector3Array = state.walls
+	var unit: PackedVector3Array = state.unit
 	# Straight stretches use 8 m boxes (every car sweeps against the wall mesh each frame, so fewer
 	# triangles are cheaper). On bends a long straight box would leave the curved rail by
 	# (L/2)^2/(2R), so tight bends keep 4 m boxes and the tightest 2 m ones.
-	var d := 0.0
-	while d < section.length:
+	var d: float = state.distance
+	var stop := minf(section.length,d+span)
+	while d < stop:
 		var bend: float = absf(wrapf(section.heading(d+10)-section.heading(d-10),-PI,PI))/20.0
 		var step := 8.0 if bend < 0.004 else (4.0 if bend < 0.012 else 2.0)
 		step = minf(step,section.length-d)
@@ -58,12 +71,21 @@ static func build(section: Node3D) -> Node3D:
 		for side in [-1.0,1.0]:
 			if not section.closed_loop and middle < 150 and side == -section.entry_side: continue
 			var lane: float = side*(section.half_width(middle)+section.rail_setback(middle,side))
-			append_box(walls,Transform3D(basis.scaled_local(Vector3(0.30,1.45,step+0.35)),section.point(middle,lane)+basis.y*0.65),template)
+			barriers.append_array(Transform3D(basis.scaled_local(Vector3(0.30,1.45,step+0.35)),section.point(middle,lane)+basis.y*0.65)*unit)
 		d += step
-	root.add_child(body("RoadSurfaceBody",ground,1))
-	root.add_child(body("BarrierBody",walls,2))
+	state.walls = barriers
+	state.distance = d
+	return d >= section.length
+
+static func finish(state: Dictionary) -> Node3D:
+	var root: Node3D = state.root
+	var ground: PackedVector3Array = state.ground
+	var barriers: PackedVector3Array = state.walls
+	# 노면 충돌체는 단계로 나눠 만드는 쪽이 미리 만들어 둘 수 있다.
+	root.add_child(state.get("ground_body",null) if state.has("ground_body") else body("RoadSurfaceBody",ground,1))
+	root.add_child(body("BarrierBody",barriers,2))
 	root.set_meta("ground_triangles",ground.size()/3)
-	root.set_meta("barrier_triangles",walls.size()/3)
+	root.set_meta("barrier_triangles",barriers.size()/3)
 	return root
 static func collect_scenery(node: Node, section: Node3D, ground: PackedVector3Array, walls: PackedVector3Array) -> void:
 	if node is MeshInstance3D and node.get_meta("world_ground",false):

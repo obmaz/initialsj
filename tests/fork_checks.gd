@@ -34,6 +34,43 @@ func run(tree: SceneTree) -> int:
 				max_bend = maxf(max_bend,absf(race.track.curvature(lerpf(gate+20,race.track.length-15,sample/29.0))))
 			check(max_bend < 0.0001,"Every route must remain straight between its checkpoint and fork")
 			rows.append({"stage":stage,"node":node,"straight_m":race.track.length-gate,"maximum_curvature":max_bend})
+	# 주행 중 다음 구간은 여러 프레임에 나눠 만들어지고, 완성된 결과는 한 번에 만든 구간과 같아야 한다.
+	race.track.reset(1,0)
+	var whole: Node3D = race.track.previews[0]
+	var whole_names := whole.get_children().map(func(child: Node) -> String: return child.get_class())
+	var whole_triangles := 0
+	for child in whole.get_children():
+		if child is MeshInstance3D and child.mesh != null: whole_triangles += child.mesh.get_faces().size()/3
+	var whole_collision: Vector2i = Vector2i(whole.get_node("FujiWorldCollision").get_meta("ground_triangles"),whole.get_node("FujiWorldCollision").get_meta("barrier_triangles"))
+	race.track.advance(0,race.track.length+Library.FORK_COMMIT,0)
+	race.track.advance(1,race.track.length+Library.FORK_COMMIT,0)
+	race.track.reset(1,0)
+	for node in race.track.previews: race.track.retire(node)
+	race.track.previews.clear()
+	race.track.maintain(100)
+	check(race.track.previews.is_empty(),"Fork previews must not be built before the passed roads are released")
+	var build_frames := 0
+	var longest := 0
+	while build_frames < 4000 and (race.track.previews.size() < 2 or race.track.previews[0].build_pending() or race.track.previews[1].build_pending()):
+		var began := Time.get_ticks_usec()
+		race.track.maintain(430)
+		longest = maxi(longest,Time.get_ticks_usec()-began)
+		if race.track.previews.size() == 2 and race.track.previews[1].build_pending(): check(not race.track.previews[1].visible,"An unfinished fork road must stay hidden until its collision is registered")
+		build_frames += 1
+	check(build_frames > 60 and build_frames < 4000,"Fork roads built while driving must be spread over many frames, not one")
+	var staged: Node3D = race.track.previews[0]
+	var staged_triangles := 0
+	for child in staged.get_children():
+		if child is MeshInstance3D and child.mesh != null: staged_triangles += child.mesh.get_faces().size()/3
+	check(staged.visible and not staged.staged and staged.get_children().map(func(child: Node) -> String: return child.get_class()) == whole_names and staged_triangles == whole_triangles,"A fork road built over several frames must match one built at once")
+	check(Vector2i(staged.get_node("FujiWorldCollision").get_meta("ground_triangles"),staged.get_node("FujiWorldCollision").get_meta("barrier_triangles")) == whole_collision,"A staged fork road must register the same collision triangles")
+	race.track.reset(1,0)
+	for node in race.track.previews: race.track.retire(node)
+	race.track.previews.clear()
+	race.track.maintain(430)
+	race.track.advance(0,race.track.length+Library.FORK_COMMIT,0)
+	check(race.track.active.has_node("FujiWorldCollision") and race.track.active.visible and not race.track.sibling.build_pending(),"Entering a fork must finish any road still being built")
+	rows.append({"staged_build_frames":build_frames,"longest_build_frame_ms":longest/1000.0})
 	var fastest := 0.0
 	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
 		var v := Catalog.spec(index)

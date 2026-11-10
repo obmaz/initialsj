@@ -313,20 +313,37 @@ func strip(left: float, right: float, height: float, mat: Material, begin: float
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var segments := int(ceil((length-begin)/2)) if closed_loop else 900
-	for i in range(segments):
-		var a := begin + (length-begin)*i/segments
-		var b := begin + (length-begin)*(i+1)/segments
-		var points := [point(a,surface_lane(left,a)),point(a,surface_lane(right,a)),point(b,surface_lane(left,b)),point(b,surface_lane(right,b))]
+	var n := MeshInstance3D.new()
+	n.material_override = mat
+	add_child(n)
+	var steps: Array[Callable] = []
+	for from in range(1,segments+1,300): steps.append(func(): strip_part(st,left,right,height,begin,segments,from,mini(segments+1,from+300)))
+	steps.append(func():
+		st.generate_normals()
+		n.mesh = st.commit())
+	queue_next(steps)
+	return n
+
+func strip_edges(left: float, right: float, height: float, d: float) -> Array[Vector3]:
+	# point(d,lane)는 lane에 대해 선형이므로 양쪽 가장자리를 한 번의 표본으로 구한다.
+	var origin := point(d)
+	var lateral := point(d,1)-origin
+	var lift := Vector3.UP*(height+surface_lift)
+	return [origin+lateral*surface_lane(left,d)+lift,origin+lateral*surface_lane(right,d)+lift]
+
+func strip_part(st: SurfaceTool, left: float, right: float, height: float, begin: float, segments: int, from: int, to: int) -> void:
+	var a := begin+(length-begin)*(from-1)/segments
+	var near := strip_edges(left,right,height,a)
+	for i in range(from,to):
+		var b := begin+(length-begin)*i/segments
+		var far := strip_edges(left,right,height,b)
+		var points := [near[0],near[1],far[0],far[1]]
 		var uvs := [Vector2(left / 6, a / 6), Vector2(right / 6, a / 6), Vector2(left / 6, b / 6), Vector2(right / 6, b / 6)]
 		for index in [0, 2, 1, 1, 2, 3]:
 			st.set_uv(uvs[index])
-			st.add_vertex(points[index] + Vector3.UP * (height + surface_lift))
-	st.generate_normals()
-	var n := MeshInstance3D.new()
-	n.mesh = st.commit()
-	n.material_override = mat
-	add_child(n)
-	return n
+			st.add_vertex(points[index])
+		a = b
+		near = far
 
 func paint(color: Color) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
@@ -335,69 +352,107 @@ func paint(color: Color) -> ShaderMaterial:
 	mat.set_shader_parameter("paint_color", color)
 	return mat
 
+# 투어의 다음 구간은 주행 중에 만들어진다. staged이면 단계를 쌓아만 두고 Track이
+# 프레임마다 조금씩 실행해, 한 프레임에 구간 전체를 만드는 멈춤을 없앤다.
+var staged := false
+var draining := false
+var build_queue: Array[Callable] = []
+
+func build_pending() -> bool:
+	return not build_queue.is_empty()
+
+# budget_usec < 0이면 남은 단계를 모두 실행한다. 완료되면 true.
+func build_some(budget_usec: int = -1) -> bool:
+	var started := Time.get_ticks_usec()
+	draining = true
+	while not build_queue.is_empty():
+		var step: Callable = build_queue.pop_front()
+		step.call()
+		if budget_usec >= 0 and Time.get_ticks_usec()-started >= budget_usec: break
+	draining = false
+	if build_queue.is_empty(): staged = false
+	return build_queue.is_empty()
+
+# 실행 중인 단계가 자신을 나눈 하위 단계를 바로 다음 순서에 끼워 넣는다. 긴 메시와 풍경이 사용한다.
+# 완성된 구간에 나중에 추가하는 형상은 곧바로 실행한다.
+func queue_next(steps: Array[Callable]) -> void:
+	for i in range(steps.size()-1,-1,-1): build_queue.push_front(steps[i])
+	if not staged and not draining: build_some()
+
 func _ready() -> void:
 	if region_metadata.is_empty(): region_metadata = preload("res://scripts/tour_region_metadata.gd").resolve(Library.theme(stage,route_node))
-	if not closed_loop and stage == 0: bridge_span = Vector2(850,1380)
-	if closed_loop and course_id == 4:
-		collapse = preload("res://scripts/bridge_collapse.gd").new()
-		collapse.configure(self)
-		add_child(collapse)
-	features = Features.layout(self)
-	rng.seed = 8417
-	var asphalt := ShaderMaterial.new()
-	asphalt.shader = ASPHALT_SHADER
-	asphalt.set_shader_parameter("rain_wetness",1.0 if region_metadata.get("weather","") == "rain" and not closed_loop else 0.0)
-	asphalt.set_shader_parameter("asphalt_texture", ASPHALT)
-	asphalt.set_shader_parameter("asphalt_variants",preload("res://assets/environment/asphalt-variants.png"))
-	strip(-10.5, 10.5, -0.15, material(Color("7e8477"))).name = "RoadBase"
-	road_surface = strip(-9, 9, 0, asphalt)
-	road_surface.name = "TexturedAsphalt"
-	Features.build(self)
-	strip(-8.6,-8.4,0.025,paint(Color("e7e6d6")),150 if entry_side > 0 else 0)
-	strip(8.4,8.6,0.025,paint(Color("e7e6d6")),150 if entry_side < 0 else 0)
-	var steel := material(Color("8d9c9c"), 0.6)
-	var post_transforms: Array[Transform3D] = []
-	for i in range(int(length / 5)):
-		var d := i * 5.0
-		for side in [-1, 1]:
-			if d < 150 and side == -entry_side: continue
-			if i % 3 == 0:
+	var Roadside := preload("res://scripts/roadside_geometry.gd")
+	var ribbons := {}
+	build_queue.append(func():
+		if not closed_loop and stage == 0: bridge_span = Vector2(850,1380)
+		if closed_loop and course_id == 4:
+			collapse = preload("res://scripts/bridge_collapse.gd").new()
+			collapse.configure(self)
+			add_child(collapse)
+		features = Features.layout(self)
+		rng.seed = 8417
+		strip(-10.5, 10.5, -0.15, material(Color("7e8477"))).name = "RoadBase")
+	build_queue.append(func():
+		var asphalt := ShaderMaterial.new()
+		asphalt.shader = ASPHALT_SHADER
+		asphalt.set_shader_parameter("rain_wetness",1.0 if region_metadata.get("weather","") == "rain" and not closed_loop else 0.0)
+		asphalt.set_shader_parameter("asphalt_texture", ASPHALT)
+		asphalt.set_shader_parameter("asphalt_variants",preload("res://assets/environment/asphalt-variants.png"))
+		road_surface = strip(-9, 9, 0, asphalt)
+		road_surface.name = "TexturedAsphalt")
+	build_queue.append(func(): Features.build(self))
+	build_queue.append(func(): strip(-8.6,-8.4,0.025,paint(Color("e7e6d6")),150 if entry_side > 0 else 0))
+	build_queue.append(func(): strip(8.4,8.6,0.025,paint(Color("e7e6d6")),150 if entry_side < 0 else 0))
+	build_queue.append(func(): Roadside.frames(self,ribbons))
+	build_queue.append(func(): Roadside.rail(self,ribbons))
+	build_queue.append(func(): Roadside.curbs(self,ribbons))
+	build_queue.append(func(): Roadside.lane_marks(self,ribbons))
+	build_queue.append(func(): Roadside.road_mass(self))
+	build_queue.append(func():
+		var post_transforms: Array[Transform3D] = []
+		for i in range(0,int(length / 5),3):
+			var d := i * 5.0
+			for side in [-1, 1]:
+				if d < 150 and side == -entry_side: continue
 				post_transforms.append(Transform3D(Basis.IDENTITY, point(d, side * (half_width(d)+rail_setback(d,side))) + Vector3.UP * 0.4))
-	preload("res://scripts/roadside_geometry.gd").build(self)
-	box_batch(Vector3(0.16, 1.0, 0.16), steel, post_transforms)
-	make_curve_markers()
-	make_skid_marks()
-	if course_id == 1: scenery = preload("res://scripts/speedway_environment.gd").new()
-	elif closed_loop and course_id == 2: scenery = preload("res://scripts/night_environment.gd").new()
-	elif closed_loop and course_id == 3: scenery = preload("res://scripts/riviera_environment.gd").new()
-	elif closed_loop and course_id == 4: scenery = preload("res://scripts/gorge_environment.gd").new()
-	else: scenery = preload("res://scripts/circuit_environment.gd").new() if closed_loop else Scenery.new()
-	scenery.track = self
-	add_child(scenery)
-	preload("res://scripts/roadside_geometry.gd").shoulders(self)
-	if course_id == 0 or not closed_loop: make_course_banners()
-	var stripe_d := 80.0 if stage == 0 else length - 10
-	if stage == 0 or stage == 4:
-		make_finish_stripe(stripe_d)
-	if closed_loop:
-		if course_id == 1:
-			speedway_board = preload("res://scripts/speedway_scoreboard.gd").new()
-			speedway_board.road = self
-			add_child(speedway_board)
-		else: make_gantry(80,["FUJI LAKESIDE","SUNCOAST SPEEDWAY","MIDNIGHT HARBOR","AZURE RIVIERA","SCARLET GORGE"][clampi(course_id,0,4)]+" / START - FINISH")
-	elif stage < 4:
-		make_gantry(checkpoint_distance(),"CHECKPOINT",Color("e3ad38"))
-		make_checkpoint_stripe(checkpoint_distance())
-		var titles := Library.next_titles(stage,route_node)
-		make_gantry(length-55,"< "+titles[0]+"     "+titles[1]+" >")
-		make_fork_guides()
-	else: make_gantry(length-10,"GRAND TOUR / GOAL")
-	if collapse != null: collapse.finish_geometry()
-	if closed_loop and course_id == 4:
-		rockfall = preload("res://scripts/rockfall_hazard.gd").new()
-		rockfall.configure(self)
-		add_child(rockfall)
-		rockfall.reset_effect()
+		box_batch(Vector3(0.16, 1.0, 0.16), material(Color("8d9c9c"), 0.6), post_transforms)
+		make_curve_markers())
+	build_queue.append(make_skid_marks)
+	build_queue.append(func():
+		if course_id == 1: scenery = preload("res://scripts/speedway_environment.gd").new()
+		elif closed_loop and course_id == 2: scenery = preload("res://scripts/night_environment.gd").new()
+		elif closed_loop and course_id == 3: scenery = preload("res://scripts/riviera_environment.gd").new()
+		elif closed_loop and course_id == 4: scenery = preload("res://scripts/gorge_environment.gd").new()
+		else: scenery = preload("res://scripts/circuit_environment.gd").new() if closed_loop else Scenery.new()
+		scenery.track = self
+		add_child(scenery))
+	build_queue.append(func(): Roadside.shoulders(self))
+	build_queue.append(func():
+		if course_id == 0 or not closed_loop: make_course_banners()
+		var stripe_d := 80.0 if stage == 0 else length - 10
+		if stage == 0 or stage == 4:
+			make_finish_stripe(stripe_d))
+	build_queue.append(func():
+		if closed_loop:
+			if course_id == 1:
+				speedway_board = preload("res://scripts/speedway_scoreboard.gd").new()
+				speedway_board.road = self
+				add_child(speedway_board)
+			else: make_gantry(80,["FUJI LAKESIDE","SUNCOAST SPEEDWAY","MIDNIGHT HARBOR","AZURE RIVIERA","SCARLET GORGE"][clampi(course_id,0,4)]+" / START - FINISH")
+		elif stage < 4:
+			make_gantry(checkpoint_distance(),"CHECKPOINT",Color("e3ad38"))
+			make_checkpoint_stripe(checkpoint_distance())
+			var titles := Library.next_titles(stage,route_node)
+			make_gantry(length-55,"< "+titles[0]+"     "+titles[1]+" >")
+			make_fork_guides()
+		else: make_gantry(length-10,"GRAND TOUR / GOAL")
+		if collapse != null: collapse.finish_geometry()
+		if closed_loop and course_id == 4:
+			rockfall = preload("res://scripts/rockfall_hazard.gd").new()
+			rockfall.configure(self)
+			add_child(rockfall)
+			rockfall.reset_effect())
+	if not staged: build_some()
 
 func checkpoint_distance() -> float:
 	return maxf(80,length-Library.CHECKPOINT_RUNUP)

@@ -97,39 +97,50 @@ func _ready() -> void:
 		var image: String = "res://assets/environment/tour-sand-variants.png" if theme in ["desert","pyramid"] else ("res://assets/environment/tour-snow-variants.png" if theme == "snow" else "res://assets/environment/tour-grass-variants.png")
 		ground.set_shader_parameter("region_variants",load(image))
 		ground.set_shader_parameter("detailed_terrain",true)
+	# 도로 구간의 단계 큐에 끼운다. 주행 중에 만들어지는 구간은 프레임마다 나눠 실행된다.
+	var steps: Array[Callable] = []
 	if Library.coastal(theme):
-		var beach := ground.duplicate()
-		beach.set_shader_parameter("detailed_terrain",false)
-		beach.set_shader_parameter("ground_color",Color("747c80") if theme == "harbor" else Color("dccb9c"))
-		beach.set_shader_parameter("grassness",0.0)
-		ground_band(-80 if theme == "harbor" else -19,-10,beach)
+		steps.append(func():
+			var beach := ground.duplicate()
+			beach.set_shader_parameter("detailed_terrain",false)
+			beach.set_shader_parameter("ground_color",Color("747c80") if theme == "harbor" else Color("dccb9c"))
+			beach.set_shader_parameter("grassness",0.0)
+			ground_band(-80 if theme == "harbor" else -19,-10,beach))
 	else:
-		ground_band(-180,-10,ground)
-	ground_band(10,260 if theme in ["hawaii","jeju"] else 180,ground)
-	if theme == "amusement": ground_band(-440,-180,ground)
-	if Library.coastal(theme):
-		make_water()
-	match theme:
-		"city", "seoul", "ruins", "neon": make_city()
-		"desert", "pyramid", "canyon": make_desert()
-	if theme == "amusement": make_park()
-	if theme == "jeju": make_jeju()
-	if theme == "seoul": make_seoul()
-	if theme == "fuji": make_mountain()
-	if theme == "volcano": make_volcano()
-	roadside_art = preload("res://scripts/roadside_art.gd").new()
-	roadside_art.scenery = self
-	add_child(roadside_art)
-	distant_art = preload("res://scripts/distant_ridges.gd").new()
-	distant_art.scenery = self
-	add_child(distant_art)
+		steps.append(func(): ground_band(-180,-10,ground))
+	steps.append(func(): ground_band(10,260 if theme in ["hawaii","jeju"] else 180,ground))
+	if theme == "amusement": steps.append(func(): ground_band(-440,-180,ground))
+	steps.append(func():
+		if Library.coastal(theme):
+			make_water()
+		match theme:
+			"city", "seoul", "ruins", "neon": make_city()
+			"desert", "pyramid", "canyon": make_desert()
+		if theme == "amusement": make_park()
+		if theme == "jeju": make_jeju()
+		if theme == "seoul": make_seoul()
+		if theme == "fuji": make_mountain()
+		if theme == "volcano": make_volcano())
+	# 이 지역에서 처음 쓰는 소품 메시는 종류마다 한 단계씩 미리 만든다.
+	for kind in preload("res://scripts/regional_props_3d.gd").FAMILIES[theme]:
+		steps.append(func(): preload("res://scripts/regional_props_3d.gd").model(kind))
+	steps.append(func():
+		roadside_art = preload("res://scripts/roadside_art.gd").new()
+		roadside_art.scenery = self
+		add_child(roadside_art))
+	steps.append(func():
+		distant_art = preload("res://scripts/distant_ridges.gd").new()
+		distant_art.scenery = self
+		add_child(distant_art))
 	if not track.closed_loop:
-		var vegetation := preload("res://scripts/tour_vegetation.gd").new()
-		vegetation.name = "TourNativeVegetation"
-		vegetation.scenery = self
-		add_child(vegetation)
-	make_cover()
-	make_landmarks()
+		steps.append(func():
+			var vegetation := preload("res://scripts/tour_vegetation.gd").new()
+			vegetation.name = "TourNativeVegetation"
+			vegetation.scenery = self
+			add_child(vegetation))
+	steps.append(make_cover)
+	steps.append(make_landmarks)
+	track.queue_next(steps)
 
 func ground_lane(d: float, lane: float) -> float:
 	return lane+signf(lane)*(track.half_width(d)-9) if absf(lane) <= 19 or (theme == "harbor" and lane == -80) else lane
@@ -138,20 +149,31 @@ func ground_band(left: float, right: float, material: Material) -> void:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var segments := 200
-	for i in range(segments):
-		var a: float = track.length * i / segments
-		var b: float = track.length * (i + 1) / segments
-		for j in range(12):
-			var inner := lerpf(left,right,j/12.0)
-			var outer := lerpf(left,right,(j+1)/12.0)
-			var points := [terrain_point(a,ground_lane(a,inner)),terrain_point(a,ground_lane(a,outer)),terrain_point(b,ground_lane(b,inner)),terrain_point(b,ground_lane(b,outer))]
-			for index in [0,2,1,1,2,3]: surface.add_vertex(points[index])
-	surface.generate_normals()
 	var node := MeshInstance3D.new()
-	node.mesh = surface.commit()
 	node.material_override = material
 	add_child(node)
 	ground_nodes.append(node)
+	var steps: Array[Callable] = []
+	for from in range(1,segments+1,25): steps.append(func(): ground_band_part(surface,left,right,segments,from,mini(segments+1,from+25)))
+	steps.append(func():
+		surface.generate_normals()
+		node.mesh = surface.commit())
+	track.queue_next(steps)
+
+func ground_row(left: float, right: float, d: float) -> PackedVector3Array:
+	var row := PackedVector3Array()
+	for j in range(13): row.append(terrain_point(d,ground_lane(d,lerpf(left,right,j/12.0))))
+	return row
+
+func ground_band_part(surface: SurfaceTool, left: float, right: float, segments: int, from: int, to: int) -> void:
+	# 격자점은 이웃 사각형이 공유한다. 사각형마다 네 번이 아니라 격자점마다 한 번만 구한다.
+	var near := ground_row(left,right,track.length*(from-1)/segments)
+	for i in range(from,to):
+		var far := ground_row(left,right,track.length*i/segments)
+		for j in range(12):
+			var points := [near[j],near[j+1],far[j],far[j+1]]
+			for index in [0,2,1,1,2,3]: surface.add_vertex(points[index])
+		near = far
 
 func set_ground_enabled(enabled: bool) -> void:
 	for node in ground_nodes: node.visible = enabled
