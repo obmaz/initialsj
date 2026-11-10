@@ -320,7 +320,7 @@ func impact(hit: Dictionary) -> void:
 		var outward := normal.slide(Vector3.UP).normalized()
 		var tangent := player_body.velocity.slide(normal)
 		tangent.y = 0
-		# A glancing hit still throws the car; the push away from the rail grows with speed.
+		# 큰 진입각의 고속 충돌에만 제한된 높이의 비행을 적용한다.
 		var away := (lerpf(3.5,12.0,severity)+clampf(closing*0.12,0,4))*Tuning.LAUNCH_AWAY_SCALE
 		player_body.velocity = tangent*lerpf(0.82,0.66,severity)+outward*away+Vector3.UP*up
 		player_body.grounded = false
@@ -335,9 +335,11 @@ func impact(hit: Dictionary) -> void:
 		# A recent gentle scrape must not suppress a genuine severe impact.
 		race.bump_cooldown = 0
 	if race.bump_cooldown > 0: return
-	if hit.collider is CharacterBody3D or hit.collider.get_meta("parked_truck",false): race.traffic_hits += 1
+	if hit.collider is CharacterBody3D or hit.collider.get_meta("parked_truck",false) or hit.collider.get_meta("parked_car",false): race.traffic_hits += 1
 	else: race.wall_hits += 1
 	race.register_impact(smoothstep(2.5,65,float(hit.speed)),local,hit.point)
+	# 일반 접촉은 멈춤 연출 없이 반동이 바로 보이도록 한다.
+	if not hit.get("severe",false): race.hitstop_until = 0
 
 func rival_lane(index: int, d: float, look: float, delta: float) -> float:
 	var rival: Dictionary = race.rivals[index-1]

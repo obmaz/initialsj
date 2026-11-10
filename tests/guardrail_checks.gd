@@ -62,7 +62,7 @@ func run(tree: SceneTree) -> int:
 	check(r.return_flash == 0,"A car on the road must never be returned")
 	# Launch speed gates the throw; faster hits fly higher, longer and tumble more.
 	var Crash = preload("res://scripts/crash_state.gd")
-	check(not Crash.launches(Crash.LAUNCH_SPEED-1) and Crash.launches(Crash.LAUNCH_SPEED),"The launch speed must be a hard threshold")
+	check(not Crash.launches(Crash.LAUNCH_SPEED,Crash.LAUNCH_SPEED) and Crash.launches(Crash.LAUNCH_SPEED+1,Crash.LAUNCH_SPEED+1) and not Crash.launches(80,40),"200km/h 이하 또는30도 이하는 벽 충돌 비행 금지")
 	var tiers := []
 	for incoming in [46.0,60.0,75.0,95.0]:
 		var c = Crash.new()

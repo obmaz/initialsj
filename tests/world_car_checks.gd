@@ -111,7 +111,7 @@ func run(tree: SceneTree) -> int:
 	car.advance(1.0/60,0,0,false)
 	check(not car.grounded and car.velocity.y > 4 and car.feet_position().y > 0.05,"A separating floor recovery contact must preserve upward momentum and skip ground adhesion")
 	var glance := collision_trial(car,Vector3(-10,0,-78.2),Vector3(80,0,-8).normalized(),80)
-	check(glance.get("barrier",false) and glance.get("severe",false) and glance.get("closing_speed",100) < 12,"A fast glancing guardrail scrape must still throw the car (launch speed, not angle, decides)")
+	check(glance.get("barrier",false) and not glance.get("severe",true) and glance.get("closing_speed",100) < 12,"고속이어도30도 미만으로 스치면 비행하지 않는다")
 	var slow_wall := collision_trial(car,Vector3(0,0,-65),Vector3.FORWARD,35)
 	check(slow_wall.get("barrier",false) and not slow_wall.get("severe",true),"A lower-speed head-on wall touch must rebound without launching the crash animation")
 	check(slow_wall.get("rebound_mps",0) >= 2 and car.grounded and absf(car.velocity.y) < 0.2,"비행하지 않는 레일 접촉은 수직 점프 없이 노면 위에서 짧게 튕겨야 한다")
@@ -125,7 +125,7 @@ func run(tree: SceneTree) -> int:
 	await tree.physics_frame
 	await tree.physics_frame
 	var car_hit := collision_trial(car,Vector3(250,0,0),Vector3.FORWARD,80)
-	check(car_hit.get("layer",0) == 4 and not car_hit.get("barrier",true) and not car_hit.get("severe",true) and car_hit.get("rebound_mps",0) > 10,"Actual car contacts must rebound while remaining distinct from severe barrier impacts")
+	check(car_hit.get("layer",0) == 4 and not car_hit.get("barrier",true) and not car_hit.get("severe",true) and car_hit.get("rebound_mps",0) >= .8 and car_hit.get("rebound_mps",100) <= 5.1,"Actual car contacts must rebound while remaining distinct from severe barrier impacts")
 	opponent.queue_free()
 	await tree.process_frame
 	var low_steering := steering_trial(car,20)

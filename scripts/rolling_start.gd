@@ -1,12 +1,14 @@
 extends RefCounted
-# 트랙2만 16대를 두 줄, 약180m 길이로 분산해 실제 바퀴로 굴려 출발한다.
+# 트랙2만 16대를 두 줄, 약344m 길이로 분산해 실제 바퀴로 굴려 출발한다.
 const SPEED := 35.0
 const START_LINE := 80.0
-const RUNUP := SPEED*3.0
+const DURATION := 6.0
+const RUNUP := SPEED*DURATION
 
 static func begin(race: Node3D) -> void:
+	race.countdown = DURATION
 	for i in range(race.world_race.bodies.size()):
-		var offset: float = 0.0 if i == 0 else 18.0+floor((i-1)/2.0)*22.0
+		var offset: float = 0.0 if i == 0 else 36.0+floor((i-1)/2.0)*44.0
 		var lane := -3.2 if i == 0 else (-3.2 if i%2 == 0 else 3.2)
 		var d: float = START_LINE-RUNUP+offset
 		race.world_race.teleport(i,d,lane)

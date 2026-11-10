@@ -254,13 +254,13 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 			if closing > 0.2:
 				var incoming_speed := before.slide(surface_normal).length()
 				var barrier: bool = collider is CollisionObject3D and collider.get_collision_layer_value(2) and not collider.get_collision_layer_value(1)
-				var severe: bool = barrier and closing >= 1.2 and Crash.launches(incoming_speed) and absf(normal.y) < 0.65
+				var severe: bool = barrier and closing >= 1.2 and Crash.launches(incoming_speed,closing) and absf(normal.y) < 0.65
 				last_contacts.append({"normal":normal,"point":collision.get_position(),"collider":collider,"speed":closing,"closing_speed":closing,"incoming_speed":incoming_speed,"barrier":barrier,"severe":severe,"severity":clampf(closing/65.0,0,1)})
 				var tangent := velocity.slide(normal)
 				if barrier:
 					var hardness := clampf(closing/45.0,0,1)
 					if severe:
-						# Above the launch speed the car is thrown off the rail (see world_race.impact).
+						# 속도와 진입각이 모두 임계값을 넘는 충돌만 비행으로 넘긴다.
 						velocity = tangent*lerpf(0.92,0.62,hardness)+normal*clampf(closing*BARRIER_REBOUND,2.0,BARRIER_REBOUND_MAX)
 						if closing > BARRIER_HOP_FROM: velocity.y += clampf((closing-BARRIER_HOP_FROM)*0.09,0,3.0)
 					else:
@@ -269,7 +269,9 @@ func advance(delta: float, axis: float, target_speed: float, drifting: bool, gri
 						velocity = tangent*Tuning.glide_keep(hardness)+away*clampf(closing*GLIDE_REBOUND,0.85,GLIDE_REBOUND_MAX)
 						realign_time = REALIGN_TIME
 				else:
-					velocity = tangent*0.86+normal*minf(closing*0.32,14.0)
+					velocity = tangent*0.90+normal*clampf(closing*0.16,0.8,5.0)
+				if can_step and not severe:
+					velocity = velocity.slide(surface_normal)
 			# Recovery contacts can repeat on adjacent rail triangles after the
 			# impact. Preserve the normal impulse when already separating.
 			elif velocity.dot(normal) < 0: velocity = velocity.slide(normal)

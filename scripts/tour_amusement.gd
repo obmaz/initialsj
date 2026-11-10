@@ -115,7 +115,7 @@ func add_shops() -> void:
  var placements: Array[Dictionary] = []
  var kinds := ["coffee_shop","souvenir_shop","street_shop","noodle_house"]
  for i in range(4):
-  var point: Vector3 = to_global(Vector3(-57+i*38,.45,94))
+  var point: Vector3 = to_global(Vector3(-114+i*76,.45,135))
   placements.append({"kind":kinds[i],"position":point,"yaw":rotation.y+PI,"scale":1.0})
  var road: Node3D = scenery.track
  for i in range(10):

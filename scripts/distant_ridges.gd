@@ -68,19 +68,19 @@ func make_urban_skyline() -> void:
 		var d: float = road.length*(0.14+cluster*0.23)
 		var side := -1.0 if cluster%2 == 0 else 1.0
 		for i in range(30):
-			var at: float = d+(i-15)*19
+			var at: float = d+(i-15)*38
 			var lane: float = side*(530+random.randf_range(0,210))
 			var p: Vector3 = road.point(at,lane)
-			var radius := 30.0
+			var radius := 60.0
 			var closest: float = road.curve.get_closest_offset(p)
 			var center: Vector3 = road.point(closest)
 			if not preload("res://scripts/settlement_layout.gd").safe_site(road,closest,radius): continue
 			if Vector2(p.x-center.x,p.z-center.z).length()-radius < road.half_width(closest)+90: continue
 			var style := (i+cluster)%4
-			var height := random.randf_range(32,110)
+			var height := random.randf_range(64,220)
 			if scenery.theme == "ruins": height *= 0.6
-			var width := random.randf_range(16,31)
-			var depth := random.randf_range(16,32)
+			var width := random.randf_range(32,62)
+			var depth := random.randf_range(32,64)
 			p.y = -5
 			var tiers := 3 if style == 2 else 1
 			var base := 0.0

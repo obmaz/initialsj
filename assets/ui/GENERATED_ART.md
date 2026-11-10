@@ -9,9 +9,7 @@
 | [차고](garage-bay.png) | 생성 원본 `exec-013bcb89-1cda-4f48-ab68-254e386b4aee.png` |
 | [후지 코스 카드](course-fuji.png) | 콘셉트 생성 원본 `exec-8be49d29-fe68-4ee5-94d1-43c803ed3ae1.png` |
 | [스피드웨이 코스 카드](course-speedway.png) | 콘셉트 생성 원본 `exec-80a07cec-f581-4b02-b13d-d7cb3c6984e7.png` |
-| [야간 항만 코스 카드](course-night.png) | 자체 야간 게임 렌더 캡처 |
-| [리비에라 코스 카드](course-riviera.png) | 자체 TRACK04 웹 렌더에서 HUD를 숨긴 캡처 |
-| [협곡 코스 카드](course-gorge.png) | 자체 TRACK05 웹 렌더에서 HUD를 숨긴 캡처 |
+| [야간 항만·리비에라·협곡 코스 카드](course-scenery-atlas.png) | 생성형 이미지 `exec-0e0791b7-8d8d-43c8-bf68-5826cc23d485.png`. 후지·스피드웨이 콘셉트 아트를 화풍 참고로 사용. 세 풍경을 AtlasTexture로 분리해 공유하며 차량·문구 없는 코스 일러스트로 통일 |
 
 사용한 생성 PNG 원본은 로컬의 Git 제외 폴더 `generated_images/`에 보존합니다. 배포 사본은 이 문서 옆에 둡니다. 외부 사진·실존 제조사 로고·원본 아케이드 게임 에셋을 합성하지 않습니다. 제목·버튼·성능 막대·진행 표시는 모바일 가독성을 위해 UI 코드로 별도 렌더링하며 도로·미니맵도 게임이 생성합니다.
 

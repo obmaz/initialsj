@@ -39,8 +39,8 @@ func run(tree: SceneTree) -> int:
 	for i in range(station_arrays[Mesh.ARRAY_VERTEX].size()):
 		var vertex: Vector3 = station_arrays[Mesh.ARRAY_VERTEX][i]
 		var normal: Vector3 = station_arrays[Mesh.ARRAY_NORMAL][i]
-		if absf(vertex.z) < 8 and vertex.y > 5 and normal.y < -.9: canopy_under = minf(canopy_under,vertex.y)
-	check(canopy_under >= 5.2 and canopy_under <= 6.5,"주유소 캐노피는 실제 차량 통과 높이를 유지해야 한다")
+		if absf(vertex.z) < 16 and vertex.y > 10 and normal.y < -.9: canopy_under = minf(canopy_under,vertex.y)
+	check(canopy_under >= 10.4 and canopy_under <= 13.0,"주유소 캐노피는 실제 차량 통과 높이를 유지해야 한다")
 	var race = load("res://scenes/race.tscn").instantiate()
 	tree.root.add_child(race)
 	race.set_physics_process(false)

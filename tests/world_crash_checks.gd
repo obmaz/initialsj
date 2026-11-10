@@ -52,11 +52,11 @@ func rail_impact(tree: SceneTree, race: Node3D, speed: float, glancing: bool = f
 		roll = maxf(roll,absf(race.crash.visual_roll))
 		peak = maxf(peak,body.feet_position().y)
 		if not body.grounded: airborne_frames += 1
-		if not first.is_empty() and speed < 55.5: break
+		if not first.is_empty() and (speed <= 200.0/3.6 or glancing): break
 	check(not first.is_empty(),"The crash fixture must hit Fuji's actual outer guardrail collider")
-	if speed >= 55.5:
+	if speed > 200.0/3.6 and not glancing:
 		check(triggered and first.severe,"A severe high-speed real guardrail hit must start the tumble state")
-		check(launch_speed > 7 and away_speed > 6 and peak-base > 1.5 and airborne_frames > 25,"The chassis must physically rebound and fly above the road under gravity")
+		check(launch_speed > 3 and launch_speed < 10 and away_speed > 6 and peak-base > .2 and peak-base < 2.5 and airborne_frames > 8,"차체는 감속·반동 후 낮고 짧게 비행해야 한다")
 		check(roll > PI and not race.crash.active,"The visual tumble must complete a full roll and settle without rolling the collider")
 		var travel: Vector3 = Vector3(body.velocity.x,0,body.velocity.z)
 		var nose: Vector3 = body.forward_direction()
@@ -66,7 +66,8 @@ func rail_impact(tree: SceneTree, race: Node3D, speed: float, glancing: bool = f
 		check(race.score == score,"A crash landing must not award a successful jump bonus")
 	else:
 		check(not triggered and not first.severe,"A rail hit below the launch speed must bounce without a crash launch")
-		check(away_speed < 4.0,"A hit below the launch speed must not bounce the car back off the rail")
+		check(away_speed > 0.5 and away_speed < 4.0,"일반 장벽 충돌은 정지하지 않고 짧게 반동해야 한다")
+		check(race.hitstop_until == 0,"일반 충돌은 멈춤 연출 없이 반동이 바로 보여야 한다")
 	return {"vehicle":race.vehicle.id,"entry_mps":speed,"glancing":glancing,"contact":first,"triggered":triggered,"rebound_mps":away_speed,"launch_mps":launch_speed,"height_gain_m":peak-base,"airborne_frames":airborne_frames,"maximum_roll":roll}
 
 func traffic_and_floor(tree: SceneTree, race: Node3D) -> void:

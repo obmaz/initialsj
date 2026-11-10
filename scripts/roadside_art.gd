@@ -12,6 +12,8 @@ func _ready() -> void:
  random.seed = 2026+road.stage*137+road.route_node*47
  var placements: Array[Dictionary] = []
  var family: Array = Props.FAMILIES[theme]
+ var building_sites: Array[Vector3] = []
+ var building_radii: Array[float] = []
  var spacing := 44.0 if theme in ["city","seoul","neon","harbor"] else (72.0 if theme in ["ruins","canyon"] else (24.0 if theme == "jungle" else 36.0))
  var count := int((road.length-500)/spacing)
  for i in range(count):
@@ -34,6 +36,14 @@ func _ready() -> void:
   var closest: float = road.curve.get_closest_offset(p)
   var center: Vector3 = road.point(closest)
   if Vector2(p.x-center.x,p.z-center.z).length()-radius < road.half_width(closest)+road.rail_setback(closest,side)+1.5: continue
+  var inhabited: bool = preload("res://scripts/settlement_layout.gd").inhabited(kind)
+  if inhabited:
+   var crowded := false
+   for site in range(building_sites.size()):
+    if p.distance_to(building_sites[site]) < radius+building_radii[site]+3: crowded = true; break
+   if crowded: continue
+   building_sites.append(p)
+   building_radii.append(radius)
   positions.append(p)
   widths.append(radius*2)
   var yaw: float = road.heading(d)+side*PI*0.5+random.randf_range(-0.2,0.2) if kind == "hareubang" else road.heading(d)+random.randf_range(-0.35,0.35)

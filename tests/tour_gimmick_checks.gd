@@ -17,7 +17,7 @@ func first_of(section: Node3D, kind: String) -> Dictionary:
 
 func run(tree: SceneTree) -> int:
 	check(Library.CHECKPOINT_RUNUP <= 220.0,"The straight between the checkpoint and the fork must be short")
-	check(Crash.launch_up(100.0) >= 18.0 and Crash.launch_up(100.0) <= 20.0 and Crash.launch_up(100.0) > Crash.launch_up(60.0)*1.3,"Faster rail hits must throw the car much higher")
+	check(Crash.launch_up(100.0) >= 9.0 and Crash.launch_up(100.0) <= 10.0 and Crash.launch_up(100.0) > Crash.launch_up(60.0)*1.3,"고속 벽 비행도 상승속도10m/s 이내로 제한")
 	var tall_total := 0
 	for stage in range(5):
 		for node in range(stage+1):

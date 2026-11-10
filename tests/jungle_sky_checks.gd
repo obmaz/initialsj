@@ -10,7 +10,7 @@ func run(tree: SceneTree) -> int:
  var road=preload("res://scripts/road_section.gd").new()
  road.stage=1
  tree.root.add_child(road)
- check(road.scenery.theme=="jungle" and road.scenery.get_node("TourNativeVegetation").tree_count>70,"정글 구릉·입체 식생 배치")
+ check(road.scenery.theme=="jungle" and road.scenery.get_node("TourNativeVegetation").tree_count>450,"정글 구릉·입체 식생 배치")
  road.queue_free()
  await tree.process_frame
  var race=preload("res://scripts/race.gd").new()

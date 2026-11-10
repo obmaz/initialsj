@@ -63,7 +63,37 @@ func tour_elevation(distance: float, span: float) -> float:
 	var profile: Vector4 = TOUR_ELEVATION[Library.theme(stage,route_node)]
 	var first := sin(PI*clampf(u/profile.z,0,1))
 	var second := sin(PI*clampf((u-profile.w)/(1-profile.w),0,1))
-	return (37+stage*4+route_node*2+profile.x)*(profile.y*first*first+second*second)+steep_lift(distance)
+	var extra := 0.0
+	for hill in hill_spans():
+		var t := clampf((distance-hill.x)/(hill.y-hill.x),0,1)
+		extra += (25.0+stage*2.0)*pow(sin(PI*t),2)
+	# 기존 급경사 주변에서는 부드럽게 물러나 전용 점프의 진입·착지 경사를 보존한다.
+	for steep in steep_starts():
+		extra *= 1.0-smoothstep(steep-200,steep-40,distance)*(1-smoothstep(steep+230,steep+390,distance))
+	return (37+stage*4+route_node*2+profile.x)*(profile.y*first*first+second*second)+steep_lift(distance)+extra
+
+var _hills_ready := false
+var _hills: Array[Vector2] = []
+func hill_spans() -> Array[Vector2]:
+	if _hills_ready: return _hills
+	_hills_ready = true
+	if closed_loop: return _hills
+	var span := Library.section_length(stage,route_node)
+	for candidate in range(8):
+		if _hills.size() >= (1 if stage >= 3 else 2): break
+		var center: float = span*(.18+candidate*.09)
+		var a: float = center-250
+		var b: float = center+250
+		if not _tour_span_free(a,b): continue
+		if bridge_span.y > bridge_span.x and a < bridge_span.y+100 and b > bridge_span.x-100: continue
+		if stage == 0 and a < 1480 and b > 750: continue
+		var conflict := false
+		for steep in steep_starts():
+			if center < steep+310 and center > steep-120: conflict = true
+		for existing in _hills:
+			if a < existing.y+60 and b > existing.x-60: conflict = true
+		if not conflict: _hills.append(Vector2(a,b))
+	return _hills
 
 # Tour gimmick spans are fixed per stage and route, away from the tunnel. They are cached
 # because the road width and height are sampled constantly.

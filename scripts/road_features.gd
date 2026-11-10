@@ -46,6 +46,17 @@ static func tour_slot(section: Node3D, desired: float, extent: float, kind: Stri
 		for span in occupied:
 			if bounds.x < span.y and bounds.y > span.x: blocked = true; break
 		if blocked: continue
+		# 능선 꼭대기에서 도로가 급히 멀어지는 점프는 피하고 착지 여유를 남긴다.
+		if kind == "ramp":
+			var near_hill := false
+			for hill in section.hill_spans():
+				if d-110 < hill.y and d+200 > hill.x: near_hill = true; break
+			if near_hill:
+				var launch_y: float = section.point(d).y
+				var launch_grade: float = (section.point(d+4).y-section.point(d-4).y)/8
+				for ahead_m in [40.0,80.0,120.0,180.0]:
+					if section.point(d+ahead_m).y < launch_y+launch_grade*ahead_m-1.0: blocked = true; break
+		if blocked: continue
 		if tunnel.y > tunnel.x:
 			var gap := Vector2(d-120,d+180) if kind == "ramp" else Vector2(bounds.x-40,bounds.y+40)
 			if kind in ["ramp","water","truck","skyway"] and gap.x < tunnel.y+80 and gap.y > tunnel.x-40: continue
@@ -171,6 +182,12 @@ static func tour_layout(section: Node3D) -> Array[Dictionary]:
 	out.append_array(ramps)
 	out.append_array(lanes)
 	out.append_array(muds)
+	# 일반 승용차는 한쪽 차로만 차지하며 기존 기믹·터널에서 충분히 떨어뜨린다.
+	for i in range(3+section.stage):
+		var at := tour_slot(section,section.length*(.18+i*.095),8,"truck",occupied)
+		if at < 0: continue
+		out.append(tour_patch(section,"car",at,.48 if i%2 else -.48,4.5,2.05))
+		occupied.append(Vector2(at-42,at+42))
 	out.append_array(trucks)
 	out.append_array(crests)
 	out.append_array(skyways)
@@ -275,7 +292,7 @@ static func lane_cost(section: Node3D, distance: float, lane: float) -> float:
 		if section.closed_loop: gap = fposmod(gap,section.length)
 		if gap < 0 or gap > 110: continue
 		if absf(lane-float(feature.lane)) < float(feature.width)*0.5+1.0:
-			cost += (40.0 if feature.kind == "truck" else (14.0 if feature.kind in ["water","mud"] else -3.5))*(1-gap/120)
+			cost += (40.0 if feature.kind in ["truck","car"] else (14.0 if feature.kind in ["water","mud"] else -3.5))*(1-gap/120)
 	return cost
 
 static func swept_hit(feature: Dictionary, from: Vector2, to: Vector2, center_distance: float) -> bool:
@@ -305,6 +322,9 @@ static func build(section: Node3D) -> void:
 	for feature in section.features:
 		if feature.kind == "ramp":
 			build_ramp(section,feature)
+			continue
+		if feature.kind == "car":
+			build_car(section,feature)
 			continue
 		if feature.kind == "truck":
 			build_truck(section,feature)
@@ -480,6 +500,7 @@ static func hazard_ahead(section: Node3D, distance: float) -> String:
 		var gap: float = float(feature.distance)-distance
 		if gap < 25 or gap >= best: continue
 		if feature.kind == "truck": best = gap; label = "TRUCK AHEAD"
+		elif feature.kind == "car": best = gap; label = "TRAFFIC AHEAD"
 		elif feature.kind == "crest": best = gap; label = "STEEP DROP"
 	for span in section.pinch_spans():
 		var gap: float = span.x-distance
@@ -556,3 +577,26 @@ static func truck_skin(dimensions: Vector3, cabin: bool, red: bool) -> ShaderMat
 	mat.set_shader_parameter("cabin",cabin)
 	mat.set_shader_parameter("red_trailer",red)
 	return mat
+
+# 주행 경로 밖으로 순간 이동시키지 않는 고정 장애물. 차량 접촉 레이어를 사용해 벽 비행으로 분류하지 않는다.
+static func build_car(section: Node3D, feature: Dictionary) -> void:
+	var car := preload("res://scripts/car.gd").new()
+	car.name = "ParkedPassengerCar"
+	car.traffic = true
+	car.model = ["hatch","wedge","muscle","gt"][int(feature.distance)%4]
+	car.paint = Color.from_hsv(fposmod(feature.distance*.007,1),.55,.72)
+	section.add_child(car)
+	car.set_detail(0)
+	car.position = section.point(feature.distance,feature.lane)
+	car.basis = preload("res://scripts/fuji_collision.gd").frame(section,feature.distance)
+	var body := StaticBody3D.new()
+	body.collision_layer = 4
+	body.collision_mask = 4
+	body.set_meta("parked_car",true)
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(2.05,1.25,4.5)
+	var collision := CollisionShape3D.new()
+	collision.shape = shape
+	collision.position.y = .65
+	body.add_child(collision)
+	car.add_child(body)

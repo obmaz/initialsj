@@ -18,7 +18,8 @@ func run(tree: SceneTree) -> int:
 		if rival.active:
 			high = maxf(high,rival.distance)
 			ranks[race.competitor_position(rival.id)] = true
-	check(high-low >= 150 and ranks.size() == 16,"16대의 출발 순위가 중복되지 않고150m 이상 분산되어야 한다")
+	check(high-low >= 340 and ranks.size() == 16,"16대의 출발 순위가 중복되지 않고340m 이상 분산되어야 한다")
+	check(is_equal_approx(race.countdown,6.0),"트랙2는6초 동안 두 배 길이로 롤링해야 한다")
 	var initial: Vector3 = race.world_race.player_body.position
 	for frame in range(90):
 		await tree.physics_frame
@@ -30,7 +31,7 @@ func run(tree: SceneTree) -> int:
 	race._physics_process(.2)
 	check(race.world_race.player_body.position == frozen and race.countdown == before,"일시정지는 롤링 대열과 출발 시간을 함께 멈춰야 한다")
 	race.state = "countdown"
-	for frame in range(95):
+	for frame in range(275):
 		await tree.physics_frame
 		race._physics_process(1.0/60)
 		if race.state == "racing": break

@@ -38,7 +38,7 @@ func run(tree: SceneTree) -> int:
   race.track.reset(choice[0],choice[1])
   var section: Node3D = race.track.active
   var foreground: Node3D = section.scenery.roadside_art
-  check(foreground.positions.size() > 20,"Representative routes need a populated regional foreground")
+  check(foreground.positions.size()+section.scenery.get_node("TourNativeVegetation").tree_count > 20,"대표 지역은 길가 오브젝트와 입체 식생으로 충분히 채워져야 한다")
   for placement in foreground.models.placements:
    if preload("res://scripts/settlement_layout.gd").inhabited(placement.kind):
     check(preload("res://scripts/settlement_layout.gd").allows(section,placement.distance,Props.radius(placement.kind)*placement.scale),"투어 생활 건물은 위험 지형 밖의 마을 구획에만 놓아야 한다")

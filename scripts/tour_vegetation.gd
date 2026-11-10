@@ -38,23 +38,18 @@ func _ready() -> void:
   if theme in ["snow","bamboo"] and i%7 >= 5: v = 5+i%2
   var item: Resource = definitions[v]
   var side := 1.0 if theme in ["hawaii","jeju","fuji"] else (-1.0 if i%2 else 1.0)
-  if road.entry_side != 0 and d < 650: side = float(road.entry_side)
-  var lane: float = side*(road.half_width(d)+road.rail_setback(d,side)+12+(i%4)*6)
-  var point: Vector3 = road.roadside_point(d,lane)
-  var nearest: float = road.curve.get_closest_offset(point)
-  if point.distance_to(road.point(nearest)) < road.half_width(nearest)+12: continue
-  var key := str(v)+":"+str(floori(point.x/120))+":"+str(floori(point.z/120))
-  if not groups.has(key): groups[key] = {"variant":v,"poses":[]}
-  groups[key].poses.append(Transform3D(Basis(Vector3.UP,i*2.399),point))
-  variant_counts[item.id] = int(variant_counts.get(item.id,0))+1
-  tree_count += 1
-  # 정글은 길가 한 줄에 그치지 않도록 뒤쪽 두 겹의 숲을 같은 메시로 인스턴싱한다.
-  if theme == "jungle":
-   for row in [1,2]:
-    var back: Vector3 = road.roadside_point(d+row*6,lane+side*row*18)
-    var at: float = road.curve.get_closest_offset(back)
-    if back.distance_to(road.point(at)) < road.half_width(at)+12: continue
-    groups[key].poses.append(Transform3D(Basis(Vector3.UP,i*2.399+row),back))
+  var sides := [-1.0,1.0] if theme == "jungle" else [side]
+  if road.entry_side != 0 and d < 650: sides = [float(road.entry_side)]
+  for bank in sides:
+   for row in range(3 if theme == "jungle" else 1):
+    var at_d: float = d+row*4+(sin(i*2.39+bank)*2 if theme == "jungle" else 0)
+    var lane: float = bank*(road.half_width(at_d)+road.rail_setback(at_d,bank)+(10+row*13+(i%3)*2 if theme == "jungle" else 12+(i%4)*6))
+    var point: Vector3 = road.roadside_point(at_d,lane)
+    var nearest: float = road.curve.get_closest_offset(point)
+    if Vector2(point.x-road.point(nearest).x,point.z-road.point(nearest).z).length() < road.half_width(nearest)+9: continue
+    var key := str(v)+":"+str(floori(point.x/120))+":"+str(floori(point.z/120))
+    if not groups.has(key): groups[key] = {"variant":v,"poses":[]}
+    groups[key].poses.append(Transform3D(Basis(Vector3.UP,i*2.399+row+bank),point))
     variant_counts[item.id] = int(variant_counts.get(item.id,0))+1
     tree_count += 1
  if theme == "amusement":
