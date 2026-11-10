@@ -52,6 +52,9 @@ func run(tree: SceneTree) -> int:
 			check(not hit.is_empty() and absf(hit.position.y-p.y) < 0.15,"다리·협곡의 실제 노면이 보이는 도로와 같아야 합니다")
 			rays += 1
 	for ad in landmarks.billboard_manifest:
+		var toward: Vector3 = section.point(ad.distance-65)-ad.position
+		toward.y = 0
+		check(ad.basis.z.dot(toward.normalized()) > .85,"광고 정면이 도로와 접근 차량 쪽을 향해야 한다")
 		var projected: float = absf(ad.basis.x.dot((section.point(ad.distance,1)-section.point(ad.distance)).normalized()))*ad.width*0.5
 		check(absf(ad.lane)-projected > section.half_width(ad.distance)+2,"광고판 전체가 가드레일 밖에 있어야 합니다")
 	race.restart()

@@ -266,7 +266,7 @@ func make_billboards(span: Vector2) -> void:
 		var mesh := QuadMesh.new()
 		mesh.size = ad_size
 		board.mesh = mesh
-		board.rotation.y = track.heading(d)+side*.22
+		board.rotation.y = preload("res://scripts/billboard_facing.gd").yaw(track,d,lane)
 		var basis := board.basis
 		var center := p+Vector3.UP*10
 		board.position = p+(center+basis.z*.25-p)*AD_METRE_SCALE

@@ -204,3 +204,5 @@ touch build/site/.nojekyll
 `app_version.gd`는 `application/config/version`과 `application/config/build_number`를 읽어 로딩·메인·설정에서 같은 표시를 제공합니다. 기본 버전은 `project.godot`의0.1이며, `addons/app_version/` 내보내기 플러그인이 Android에는 해당 프리셋의 `version/name`·`version/code`, 웹에는 기본 버전과 Git 커밋 식별자를 기록합니다. Android의 버전명 옵션이 비어 있으면 Godot와 같은 방식으로 프로젝트 버전을 사용합니다.
 
 플러그인은 내보내기 동안 메모리의 프로젝트 설정만 바꾸고 완료 후 복원합니다. 설정 파일이나 Android 배포 번호를 임의로 갱신하지 않습니다. 웹 HTML의 첫 다운로드 화면에도 같은 표시를 넣으며, 에디터 전용 플러그인은 배포 PCK에서 제외합니다. `--export-pack Android`로 APK를 만들지 않고 프리셋과 PCK 버전의 일치를 검사할 수 있습니다. APK 빌드·업로드는 기존 명시 요청 정책을 따릅니다.
+
+`billboard_facing.gd`는 도로65m 앞쪽의 접근 차량 위치를 기준으로 광고 정면을 최대 약22도 안쪽으로 기울입니다. 협곡 광고와 투어 일반 광고에 같은 기준을 사용하며 지주·패널·조명은 동일한 방향을 유지합니다.
