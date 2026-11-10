@@ -57,10 +57,16 @@ func run(tree: SceneTree) -> int:
 	await tree.physics_frame
 	check(not ray(race,430,8).is_empty(),"경고 단계에서는 도로가 먼저 사라지면 안 된다")
 	for frame in range(120): collapse.advance(1.0/60,300)
+	check(not collapse.broken and not ray(race,430,8).is_empty(),"접근 경고만으로는 무너지면 안 된다")
+	collapse.advance(.01,550)
+	for frame in range(120): collapse.advance(1.0/60,550)
 	await tree.physics_frame
 	for d in [424.0,430.0,436.0]:
 		check(ray(race,d,8).is_empty(),"붕괴한 도로에 보이지 않는 충돌 바닥을 남기면 안 된다")
 		check(not ray(race,d,-3).is_empty(),"붕괴 뒤에도 왼쪽 차선은 실제로 통과할 수 있어야 한다")
+	check(collapse.span.y-collapse.span.x >= 100 and collapse.wreckage.visible,"100m 이상 붕괴와 지속되는 파단 흔적이 있어야 한다")
+	collapse.advance(.1,race.track.length+200)
+	check(collapse.broken and collapse.wreckage.visible and collapse.floors[0].collision_layer == 0,"한 바퀴 뒤에도 파손과 도로 소실이 남아야 한다")
 	race.state = "paused"
 	var before: float = collapse.elapsed
 	race._physics_process(.25)
@@ -83,7 +89,7 @@ func run(tree: SceneTree) -> int:
 	await tree.physics_frame
 	check(collapse.elapsed < 0 and not ray(race,430,8).is_empty(),"다시 시작하면 상판과 충돌체를 함께 복원해야 한다")
 	# 상대 차량도 위험 구간 전에 합류해 사라진 차선으로 달리지 않는다.
-	collapse.advance(3,380)
+	collapse.advance(3,550)
 	race.state = "racing"
 	race.world_race.teleport(0,160,-3)
 	race.rivals[0].active = true
