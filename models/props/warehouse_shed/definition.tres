@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "warehouse_shed"
+category = "props"
+source_path = "res://models/props/warehouse_shed/SOURCE.md"
+order = 21
+builder_path = "res://models/props/warehouse_shed/build.gd"
+tags = ["building"]
+visibility_range = 310.0
+base_size = Vector3(14,6.4,26)
+metre_scale = Vector3(1.25,1.1,1.2)
+placement_limits = Vector2(0.97, 1.08)
+parameters = {"mass_offset": Vector3(0, 0, 0), "floors": 1, "columns": 3}

@@ -29,7 +29,7 @@ func run(tree: SceneTree) -> int:
 	check(station.x >= 29 and station.z >= 29,"주유소는 급유 차로와 후면 서비스동이 있는 실제 부지 크기여야 한다")
 	var apartment := Props.model("apartment").get_aabb().size
 	check(apartment.x >= 18 and apartment.y >= 19 and apartment.z >= 16,"아파트는 자동차보다 충분히 큰 동 폭과 다층 높이를 가져야 한다")
-	for kind in ["palm","pine","plane_tree","ginkgo"]+Props.Models.TREES:
+	for kind in ["palm","pine","plane_tree","ginkgo"]+preload("res://models/prop_models.gd").TREES:
 		var height: float = Props.model(kind).get_aabb().size.y
 		check(height >= 14 and height <= 30,"성목은 승용차 높이의 여러 배인 실제 수고를 가져야 한다: "+kind)
 	var advert := Props.model("billboard").get_aabb().size

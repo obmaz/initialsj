@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "rural_farmhouse"
+category = "props"
+source_path = "res://models/props/rural_farmhouse/SOURCE.md"
+order = 0
+builder_path = "res://models/props/rural_farmhouse/build.gd"
+tags = ["rural", "building"]
+base_size = Vector3(14,6.4,10)
+parameters = {"variant": 0}
+visibility_range = 310.0

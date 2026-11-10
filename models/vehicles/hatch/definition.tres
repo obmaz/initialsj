@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "hatch"
+category = "vehicles"
+source_path = "res://models/vehicles/hatch/SOURCE.md"
+order = 0
+builder_path = "res://models/vehicles/hatch/build.gd"
+parameters = {"wheel_radius": 0.37, "wheel_half_track": 0.82, "wheel_half_base": 1.25, "wheel_thickness": 0.22, "rim_scale": 0.86, "ride_offset": -0.12, "spoke_count": 8, "rim_color": Color(0.45098039215686275, 0.4823529411764706, 0.4980392156862745, 1), "headlamp_positions": PackedVector3Array(-0.55, 1.13, -1.967, 0.55, 1.13, -1.967)}

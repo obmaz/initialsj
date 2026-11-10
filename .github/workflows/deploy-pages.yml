@@ -34,11 +34,12 @@ jobs:
         run: |
           godot --headless --path . --script res://tests/verify_engine.gd
           godot --headless --path . --editor --import --quit
+          godot --headless --path . --script res://tools/check_models.gd
           godot --headless --fixed-fps 60 --path . --script res://tests/race_test.gd
-          node tests/install_bridge_review.cjs
-          node tests/back_bridge_review.cjs
-          node tests/fullscreen_bridge_review.cjs
-          node tests/audio_lifecycle_review.cjs
+          node tests/install_bridge_checks.cjs
+          node tests/back_bridge_checks.cjs
+          node tests/fullscreen_bridge_checks.cjs
+          node tests/audio_lifecycle_checks.cjs
       - name: Export game for Web
         run: |
           mkdir -p build/site

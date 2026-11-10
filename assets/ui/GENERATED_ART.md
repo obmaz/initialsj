@@ -1,30 +1,22 @@
-# Menu artwork
+# UI 이미지 출처
 
-Current artwork uses saturated coastal colours, strong directional lighting and stylized 3D geometry. The loading scene is guided by renders of the actual fictional NIMORI, VELTRIX and IRONVALE models. Home and garage backgrounds contain no cars: the UI overlays cached renders from the same vehicle factory used in races. Fuji and Suncoast course images are concept illustrations; Midnight Harbor and Azure Riviera use screenshots of their actual game renders; road geometry and the minimap are generated separately by the game.
+해안의 채도·방향광·입체 형상을 기준으로 제작합니다. 로딩 이미지는 실제 가상 차량 NIMORI·VELTRIX·IRONVALE의 렌더를 참고했습니다. 메인·차고 배경 위 차량은 주행과 같은 차량 팩토리의 캐시 렌더입니다. 코스 카드의 콘셉트 이미지와 실제 게임 캡처는 아래에서 구분합니다.
 
-| Current asset | Original generation file |
+| 사용 에셋 | 원본·제작 방식 |
 | --- | --- |
-| [Loading and engine splash](coast-rush-splash.png) | `exec-e1703f50-1054-4f9e-8e75-13ee0fa00d26.png` |
-| [Home coast](home-coast.png) | `exec-83b2a747-ade7-4946-9dca-db44ebbc8894.png` |
-| [Garage](garage-bay.png) | `exec-013bcb89-1cda-4f48-ab68-254e386b4aee.png` |
-| [Fuji course card](course-fuji.png) | `exec-8be49d29-fe68-4ee5-94d1-43c803ed3ae1.png` |
-| [Suncoast course card](course-speedway.png) | `exec-80a07cec-f581-4b02-b13d-d7cb3c6984e7.png` |
-| [Midnight Harbor course card](course-night.png) | Screenshot of the game's own night render (no generated source) |
+| [로딩·엔진 스플래시](coast-rush-splash.png) | 생성 원본 `exec-e1703f50-1054-4f9e-8e75-13ee0fa00d26.png` |
+| [메인 해안](home-coast.png) | 생성 원본 `exec-83b2a747-ade7-4946-9dca-db44ebbc8894.png` |
+| [차고](garage-bay.png) | 생성 원본 `exec-013bcb89-1cda-4f48-ab68-254e386b4aee.png` |
+| [후지 코스 카드](course-fuji.png) | 콘셉트 생성 원본 `exec-8be49d29-fe68-4ee5-94d1-43c803ed3ae1.png` |
+| [스피드웨이 코스 카드](course-speedway.png) | 콘셉트 생성 원본 `exec-80a07cec-f581-4b02-b13d-d7cb3c6984e7.png` |
+| [야간 항만 코스 카드](course-night.png) | 자체 야간 게임 렌더 캡처 |
+| [리비에라 코스 카드](course-riviera.png) | 자체 TRACK04 웹 렌더에서 HUD를 숨긴 캡처 |
+| [협곡 코스 카드](course-gorge.png) | 자체 TRACK05 웹 렌더에서 HUD를 숨긴 캡처 |
 
-Original generated PNGs are preserved in the local ignored `generated_images/` workspace; approved copies live beside this document. No photographic images, real manufacturer logos or original arcade-game assets are composited into these backgrounds. Titles, buttons, performance bars and progress indicators are rendered separately for readable mobile layouts.
+사용한 생성 PNG 원본은 로컬의 Git 제외 폴더 `generated_images/`에 보존합니다. 배포 사본은 이 문서 옆에 둡니다. 외부 사진·실존 제조사 로고·원본 아케이드 게임 에셋을 합성하지 않습니다. 제목·버튼·성능 막대·진행 표시는 모바일 가독성을 위해 UI 코드로 별도 렌더링하며 도로·미니맵도 게임이 생성합니다.
 
-## Game logo
+## 게임 로고
 
-[initialsj-logo.svg](initialsj-logo.svg) is the production vector wordmark, built by [`tools/bake_logo.py`](../../tools/bake_logo.py) from bundled Roboto Bold Italic outlines (Apache-2.0, see `assets/fonts`). It uses flat ivory/teal lettering, a small warm orange slash and a restrained subtitle. There are no chrome gradients, extrusions, outer strokes or glow. Letter outlines keep the brand identical in Godot and browsers without a system-font dependency.
+[initialsj-logo.svg](initialsj-logo.svg)는 [tools/bake_logo.py](../../tools/bake_logo.py)가 번들 Roboto Bold Italic 윤곽선으로 만드는 벡터 워드마크입니다. 글꼴은 Apache-2.0이며 [라이선스](../fonts/Roboto-LICENSE.txt)를 보존합니다. 아이보리·청록 글자와 주황색 사선, 작은 부제를 사용하며 시스템 글꼴에 의존하지 않습니다.
 
-Generated design studies (`exec-a4f09936-dfae-4bb5-97f5-04d1217b9d00.png` and `exec-fca7c290-c1f7-49bd-b5f3-aa88ac83ed51.png`) informed the flat colour direction; the final asset is clean vector typography rather than those raster studies. Original studies remain in the ignored `generated_images/` workspace. No real game or manufacturer logo is used.
-
-The home screen and loading card use this SVG. The builder embeds the identical SVG between the `<!--logo:start-->` markers in `web/coast-rush-shell.html`, so it appears before any engine download without another request. Re-run `python3 tools/bake_logo.py` after changing the design (requires fontTools), and commit the SVG and shell together. The old raster logo is removed.
-
-## AZURE RIVIERA 코스 이미지
-
-[course-riviera.png](course-riviera.png)는 TRACK04의 실제 웹 주행 화면에서 HUD를 숨겨 직접 촬영했습니다. 프로젝트 자체 차량·해안·도로 리소스만 사용하며 외부 게임 화면이나 생성 이미지를 합성하지 않았습니다.
-
-## SCARLET GORGE 코스 이미지
-
-[course-gorge.png](course-gorge.png)는 TRACK05의 실제 웹 렌더에서 HUD를 숨겨 직접 촬영했습니다. 프로젝트 자체 차량·현수교·도로만 사용하며 외부 영상이나 게임 에셋을 합성하지 않았습니다.
+메인·로딩 화면이 같은 SVG를 사용합니다. 제작 도구는 `web/coast-rush-shell.html`의 `<!--logo:start-->` 구간에도 동일한 SVG를 삽입해 엔진 다운로드 전부터 표시합니다. 변경 후 `python3 tools/bake_logo.py`를 실행하고 SVG와 셸을 함께 커밋합니다. 실행에는 fontTools가 필요합니다.

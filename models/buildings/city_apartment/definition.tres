@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "city_apartment"
+category = "buildings"
+order = 4
+builder_path = "res://models/buildings/city_apartment/build.gd"
+source_path = "res://models/buildings/city_apartment/SOURCE.md"
+parameters = {"height_range": Vector2(24, 40), "width_range": Vector2(24, 42), "depth_range": Vector2(28, 48), "facade_index": 4, "mesh_kind": "box", "roof_detail": "plant"}

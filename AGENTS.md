@@ -22,6 +22,14 @@
 - APK 전달 절차의 정본은 `.agents/skills/dropbox-apk/SKILL.md`입니다. `.claude/skills/dropbox-apk/SKILL.md`는 같은 정본을 읽도록 안내하는 포인터이며 절차를 복제하지 않습니다.
 - `.agents/skills/dropbox-apk/agents/openai.yaml`은 스킬의 표시 이름·설명·기본 요청을 정의합니다. 실제 빌드·전달 절차는 `SKILL.md`를 따릅니다.
 
+## 시각 모델 분업
+
+- 모델 제작의 정본은 [MODEL_PIPELINE.md](docs/MODEL_PIPELINE.md)와 [모델 제작 스킬](.agents/skills/model-authoring/SKILL.md)입니다.
+- 모델은 `models/vehicles/<id>/`, `models/props/<id>/`, `models/buildings/<id>/`에서 정의·형상·재질·출처를 함께 소유합니다. 자동 탐색하므로 중앙 등록표를 추가하지 않습니다.
+- 모델 단독 요청은 해당 팩을 수정합니다. 공용 아틀라스·다른 모델의 빌더·주행·오디오·코스 배치 변경은 통합 작업으로 분리합니다. 사용자가 명시한 통합 작업의 범위는 따릅니다.
+- 정의에는 경로 문자열을 저장합니다. 목록 탐색만으로 모든 메시·텍스처를 미리 로드하지 않으며, 공통 캐시·해제·MultiMesh 규칙은 유지합니다.
+- 모델 검사·미리보기는 `tools/check_models.gd`·`tools/preview_model.gd`를 사용합니다. 리소스·사이드카·문서 링크·단독 검사·필요한 전체 검사를 통과한 변경만 통합합니다.
+
 ## APK 빌드와 Dropbox 전달
 
 - Android 디버그 서명은 `obmaz/commuzip`의 키와 동일한 `tools/android-test.keystore`를 사용합니다. 별칭은 `androiddebugkey`, 비밀번호는 `android`이며 키를 환경마다 재생성하지 않습니다. 자세한 지문과 전환 시 주의사항은 `docs/ANDROID.md`를 따릅니다.

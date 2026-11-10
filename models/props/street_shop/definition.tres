@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "street_shop"
+category = "props"
+source_path = "res://models/props/street_shop/SOURCE.md"
+order = 13
+builder_path = "res://models/props/street_shop/build.gd"
+tags = ["building"]
+visibility_range = 310.0
+base_size = Vector3(7,4.4,6)
+metre_scale = Vector3(2.0,1.35,1.9)
+placement_limits = Vector2(0.97, 1.08)
+parameters = {"mass_offset": Vector3(0, 0, 0), "floors": 1, "columns": 3}

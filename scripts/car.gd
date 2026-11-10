@@ -1,5 +1,6 @@
 extends Node3D
 
+var model_definition: Resource
 var paint := Color("b51223")
 var model := "sport"
 var wheel_half_track := 1.02
@@ -37,114 +38,19 @@ func mat(color: Color, metal: float = 0.0, glow: bool = false) -> StandardMateri
 	return m
 
 func block(pos: Vector3, size: Vector3, material: Material) -> MeshInstance3D:
-	var n := MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	n.mesh = mesh
-	n.material_override = material
-	body.add_child(n)
-	n.position = pos
-	return n
+	return preload("res://models/shared/vehicle_geometry.gd").block(self,pos,size,material)
 
 func _ready() -> void:
 	body = Node3D.new()
 	add_child(body)
-	if model == "hatch":
-		wheel_radius = 0.37
-		wheel_half_track = 0.82
-		wheel_half_base = 1.25
-		wheel_thickness = 0.22
-		rim_scale = 0.86
-		ride_offset = -0.12
-		preload("res://scripts/hatch_body.gd").build(self)
-	elif model in ["wedge","muscle"]:
-		wheel_radius = 0.38 if model == "wedge" else 0.40
-		wheel_half_track = 0.94 if model == "wedge" else 0.90
-		wheel_half_base = 1.32 if model == "wedge" else 1.30
-		wheel_thickness = 0.30 if model == "wedge" else 0.28
-		rim_scale = 1.0 if model == "wedge" else 0.94
-		ride_offset = -0.12
-		preload("res://scripts/custom_bodies.gd").build(self)
-	elif model == "gt":
-		wheel_radius = 0.34
-		wheel_half_track = 0.76
-		wheel_half_base = 1.22
-		wheel_thickness = 0.27
-		rim_scale = 1.06
-		ride_offset = -0.10
-		preload("res://scripts/gt_body.gd").build(self)
-	else:
-		make_sport_body()
-		add_headlight(Vector3(0,0.84,-2.02))
+	model_definition = preload("res://models/vehicle_models.gd").definition(model)
+	for field in ["wheel_radius","wheel_half_track","wheel_half_base","wheel_thickness","rim_scale","ride_offset"]:
+		set(field,model_definition.parameters[field])
+	preload("res://models/vehicle_models.gd").build(self,model_definition)
 	body.position.y = ride_offset
 	make_drift_smoke()
-	make_wheels()
+	if wheels.is_empty(): make_wheels()
 	merge_static_body()
-
-func make_sport_body() -> void:
-	var shell := mat(paint, 0.55)
-	shell.clearcoat_enabled = true
-	shell.roughness = 0.20
-	shell.clearcoat = 0.35
-	shell.clearcoat_roughness = 0.12
-	var dark := mat(Color("10212d"), 0.5)
-	var glass := mat(Color("253e50"), 0.75)
-	make_body_shell(shell)
-	block(Vector3(0, 0.86, -1.35), Vector3(1.75, 0.08, 1.35), shell)
-	wedge(Vector3(0, 0.93, 0.1), Vector2(1.7, 2.2), Vector2(1.45, 1.25), 0.38, 0.16, glass)
-	block(Vector3(0, 1.34, 0.15), Vector3(1.46, 0.09, 1.25), shell)
-	wedge(Vector3(0, 0.24, 2.15), Vector2(1.5, 0.26), Vector2(1.9, 0.25), 0.30, 0, dark)
-	block(Vector3(0, 0.42, -2.21), Vector3(2.12, 0.12, 0.25), dark)
-	for x in [-0.50, 0.50]:
-		var lamp := mat(Color("ff2620"),0,true)
-		brake_lights.append(lamp)
-		block(Vector3(x,0.87,2.19),Vector3(0.66,0.055,0.05),lamp)
-		block(Vector3(x, 0.81, -2.19), Vector3(0.65, 0.08, 0.05), mat(Color("c6f3ff"), 0, true))
-		block(Vector3(x, 1.01, 1.76), Vector3(0.08, 0.32, 0.12), dark)
-		var exhaust := MeshInstance3D.new()
-		var pipe := TorusMesh.new()
-		pipe.inner_radius = 0.08
-		pipe.outer_radius = 0.13
-		pipe.rings = 12
-		pipe.ring_segments = 6
-		exhaust.mesh = pipe
-		exhaust.material_override = mat(Color("78818c"), 0.9)
-		body.add_child(exhaust)
-		exhaust.position = Vector3(x, 0.47, 2.30)
-		exhaust.rotation.x = PI / 2
-		var flame := MeshInstance3D.new()
-		var plume := CylinderMesh.new()
-		plume.top_radius = 0.015
-		plume.bottom_radius = 0.18
-		plume.height = 1.2
-		plume.radial_segments = 12
-		plume.cap_top = false
-		plume.cap_bottom = false
-		flame.mesh = plume
-		var plume_material := ShaderMaterial.new()
-		plume_material.shader = preload("res://shaders/nitro_flame.gdshader")
-		flame.material_override = plume_material
-		body.add_child(flame)
-		flame.position = Vector3(x, 0.47, 2.78)
-		flame.rotation.x = PI / 2
-		nitro_flames.append(flame)
-		flame.visible = false
-		var glow := MeshInstance3D.new()
-		var glow_mesh := preload("res://scripts/render_resources.gd").quad(Vector2(0.55, 0.55))
-		glow.mesh = glow_mesh
-		var glow_material := ShaderMaterial.new()
-		glow_material.shader = preload("res://shaders/nitro_glow.gdshader")
-		glow.material_override = glow_material
-		body.add_child(glow)
-		glow.position = Vector3(x, 0.47, 2.38)
-		glow.visible = false
-		nitro_glows.append(glow)
-	block(Vector3(0, 0.895, 1.36), Vector3(1.6, 0.035, 1.25), dark)
-	for i in range(6):
-		block(Vector3(0, 0.925, 0.90 + i * 0.135), Vector3(1.48, 0.035, 0.065), dark)
-	for side in [-1, 1]:
-		block(Vector3(side * 1.1, 1.02, -0.45), Vector3(0.24, 0.12, 0.32), shell)
-	block(Vector3(0, 1.17, 1.8), Vector3(2.2, 0.08, 0.36), dark)
 
 func make_drift_smoke() -> void:
 	for x in [-0.8, 0.8]:
@@ -194,7 +100,7 @@ func make_wheels() -> void:
 			var rim := MeshInstance3D.new()
 			rim.mesh = rim_mesh
 			rim.scale = Vector3.ONE*rim_scale
-			rim.material_override = mat(Color("737b7f") if model == "hatch" else (Color("5f676c") if model == "gt" else Color("83939e")), 0.85)
+			rim.material_override = mat(model_definition.parameters.rim_color, 0.85)
 			wheel.add_child(rim)
 			rim.position.y = -signf(x) * (wheel_thickness*0.5+0.015)
 			if x > 0:
@@ -217,50 +123,10 @@ func animate(steer: float, drifting: bool, boosting: bool, delta: float, yaw: fl
 		flame.scale.y = randf_range(0.85, 1.35)
 
 func wedge(pos: Vector3, lower: Vector2, upper: Vector2, height: float, offset: float, material: Material) -> void:
-	var vertices := PackedVector3Array([
-		Vector3(-lower.x / 2, 0, -lower.y / 2), Vector3(lower.x / 2, 0, -lower.y / 2),
-		Vector3(lower.x / 2, 0, lower.y / 2), Vector3(-lower.x / 2, 0, lower.y / 2),
-		Vector3(-upper.x / 2, height, -upper.y / 2 + offset), Vector3(upper.x / 2, height, -upper.y / 2 + offset),
-		Vector3(upper.x / 2, height, upper.y / 2 + offset), Vector3(-upper.x / 2, height, upper.y / 2 + offset)
-	])
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for face in [[0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7], [4, 5, 6, 7], [3, 2, 1, 0]]:
-		for index in [face[0], face[1], face[2], face[0], face[2], face[3]]:
-			st.add_vertex(vertices[index])
-	st.generate_normals()
-	var node := MeshInstance3D.new()
-	node.mesh = st.commit()
-	node.material_override = material
-	body.add_child(node)
-	node.position = pos
+	preload("res://models/shared/vehicle_geometry.gd").wedge(self,pos,lower,upper,height,offset,material)
 
 func make_body_shell(material: Material) -> void:
-	var outline := [Vector2(-0.72, -2.2), Vector2(0.72, -2.2), Vector2(1.04, -1.55), Vector2(1.04, 1.55), Vector2(0.90, 2.2), Vector2(-0.90, 2.2), Vector2(-1.04, 1.55), Vector2(-1.04, -1.55)]
-	var rings: Array[PackedVector3Array] = []
-	for level in range(3):
-		var ring := PackedVector3Array()
-		for p: Vector2 in outline:
-			var width := 0.94 if level == 0 else (1.0 if level == 1 else 0.92)
-			var height := 0.36 if level == 0 else (0.65 if level == 1 else 0.87)
-			ring.append(Vector3(p.x * width, height, p.y))
-		rings.append(ring)
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for level in range(2):
-		for i in range(8):
-			var j := (i + 1) % 8
-			var points := [rings[level][i], rings[level][j], rings[level + 1][j], rings[level + 1][i]]
-			for index in [0, 1, 2, 0, 2, 3]:
-				st.add_vertex(points[index])
-	for i in range(8):
-		for p: Vector3 in [Vector3(0, 0.87, 0), rings[2][i], rings[2][(i + 1) % 8]]:
-			st.add_vertex(p)
-	st.generate_normals()
-	var node := MeshInstance3D.new()
-	node.mesh = st.commit()
-	node.material_override = material
-	body.add_child(node)
+	preload("res://models/shared/vehicle_geometry.gd").make_body_shell(self,material)
 
 func make_rim_mesh() -> ArrayMesh:
 	var st := SurfaceTool.new()
@@ -274,7 +140,7 @@ func make_rim_mesh() -> ArrayMesh:
 		for index in [0, 1, 2, 1, 3, 2]:
 			st.set_normal(Vector3.UP)
 			st.add_vertex(points[index])
-	var spoke_count := 8 if model == "hatch" else (6 if model == "wedge" else (10 if model == "gt" else 5))
+	var spoke_count := int(model_definition.parameters.spoke_count)
 	for i in range(spoke_count):
 		var angle := TAU * i / spoke_count
 		var direction := Vector3(cos(angle), 0, sin(angle))
@@ -297,6 +163,12 @@ func merge_static_body() -> void:
 	for child in body.get_children():
 		if not child is MeshInstance3D or child in wheels or child in nitro_flames or child in nitro_glows or child in headlamp_lenses: continue
 		var material: Material = child.material_override
+		# 외부 모델의 텍스처·UV·셰이더·다중 표면을 보존한다.
+		if child.mesh.get_surface_count() != 1 or not material is BaseMaterial3D: continue
+		var textured: bool = material.vertex_color_use_as_albedo
+		for slot in range(BaseMaterial3D.TEXTURE_MAX):
+			if material.get_texture(slot) != null: textured = true
+		if textured: continue
 		if not groups.has(material): groups[material] = []
 		groups[material].append(child)
 	for material in groups:
@@ -391,9 +263,8 @@ func add_headlight(pos: Vector3) -> void:
 		var mesh := preload("res://scripts/render_resources.gd").quad(Vector2(0.26,0.13))
 		lens.mesh = mesh
 		lens.position = pos+Vector3(side*0.65,0,-0.26)
-		if model == "hatch": lens.position = Vector3(side*0.55,1.13,-1.967)
-		elif model == "wedge": lens.position = Vector3(side*0.64,0.78,-2.19)
-		elif model == "muscle": lens.position = Vector3(side*0.68,0.89,-2.24)
+		var anchors: PackedVector3Array = model_definition.parameters.get("headlamp_positions",PackedVector3Array())
+		if anchors.size() == 2: lens.position = anchors[0 if side < 0 else 1]
 		lens.rotation.y = PI
 		var luminous := StandardMaterial3D.new()
 		luminous.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED

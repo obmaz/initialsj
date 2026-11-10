@@ -116,7 +116,7 @@ func make_boulevard() -> void:
 	# 육지의 안전한 마을 구획에만 집을 모으고 협곡 접근부와 마을 사이는 비운다.
 	for i in range(160):
 		var d: float = 130+(track.length-260)*(i+.5)/160
-		var kind: String = Props.RURAL_KINDS[i%10]
+		var kind: String = Props.RURAL_KINDS[i%Props.RURAL_KINDS.size()]
 		if i%11 == 0: kind = ["coffee_shop","souvenir_shop","gas_station","street_shop"][(i/11)%4]
 		var scale: float = .98+(i%4)*.02
 		var radius: float = Props.radius(kind)*scale

@@ -1,29 +1,28 @@
-# Environment assets
+# 환경 에셋
 
-The asphalt, dirt shoulder, grass, Fuji/lake panorama and distant mountain atlas are generated for this project. Original generation outputs remain in the local `generated_images/` workspace; they are not part of the deployment.
+노면·갓길·잔디·후지산과 호수 파노라마·원경 산맥은 이 프로젝트용으로 제작했습니다. 사용 중인 이미지의 생성 원본은 로컬 `generated_images/`에 보존하며 배포에는 포함하지 않습니다.
 
-Roads, shoulders, guardrails, tunnels, trees, trackside props and the urban skyline use actual 3D geometry. Mountain panoramas and distant natural ridges provide horizon backdrops. Runtime sources are in `scripts/road_section.gd`, `scripts/roadside_geometry.gd`, `scripts/regional_props_3d.gd`, `scripts/road_biome.gd`, `scripts/circuit_environment.gd` and `scripts/speedway_environment.gd`.
+도로·가드레일·터널·나무·소품·건물은 실제 3D 형상이며, 산 파노라마와 원경 능선은 수평선 배경입니다. 모델별 형상은 `models/`가 소유하고 도로·배치는 `scripts/road_section.gd`, `roadside_geometry.gd`, `regional_props_3d.gd`, `road_biome.gd`와 코스별 환경 스크립트가 처리합니다. 독립 모델 제작 규격은 [MODEL_PIPELINE.md](../../docs/MODEL_PIPELINE.md)를 따릅니다.
 
-The Fuji Lakeside sky uses three panels at the same pixel scale (about 14.8 pixels per degree), so nothing is stretched: the generated `fuji-lake-panorama.png` covers the 120 degrees around Mount Fuji, and `fuji-lake-back-a.png` / `fuji-lake-back-b.png` cover the remaining 240 degrees. The rear panels are baked from the panorama by `tools/bake_fuji_backdrop.py` (deterministic): the original water, shore and sky are reused 1:1 (mirror-joined only beside the seams, translated elsewhere so no symmetric pattern shows), the sun and Fuji are not repeated, and two new ridge lines are painted with the original forest's leaf detail. `shaders/fuji_sky.gdshader` joins the panels without mipmaps, because the sky is only ever magnified on screen.
+후지 하늘은 약14.8픽셀/도의 같은 밀도로 세 패널을 연결합니다. `fuji-lake-panorama.png`가 후지산 방향120도, `fuji-lake-back-a.png`와 `fuji-lake-back-b.png`가 나머지240도를 덮습니다. `tools/bake_fuji_backdrop.py`는 원본의 물·해안·하늘을1:1로 재사용하고 원본 숲의 잎 디테일로 두 능선을 구성합니다. 태양·후지산은 반복하지 않으며 이음매 인근만 대칭 연결합니다. `shaders/fuji_sky.gdshader`는 확대되는 하늘에 맞춰 밉맵 없이 연결합니다.
 
-No downloaded photographs or original arcade-game assets are used for the current scenery.
+현재 풍경에는 다운로드한 사진이나 원본 아케이드 게임의 에셋을 사용하지 않습니다.
 
 ## 장대교·협곡과 가상 광고
 
-`scenic_landmarks.gd`의 현수교와 층상 절벽은 이 프로젝트에서 직접 만든 절차적 3D 메시입니다. `ad-print-atlas.svg`의 가상 브랜드8종는 가상 브랜드 광고이며 `tools/bake_scenic_ads.py`로 만듭니다. 번들 Roboto Bold Italic 글꼴(Apache-2.0, `assets/fonts/Roboto-LICENSE.txt`)의 윤곽선을 사용합니다. 외부 게임의 구조물·광고·상표를 추출하거나 복사하지 않았습니다. 광고판은 주행로 밖에 고정한 실제 패널이며 카메라를 따라 회전하지 않습니다.
+`scenic_landmarks.gd`의 현수교와 층상 절벽은 이 프로젝트에서 직접 만든 절차적 3D 메시입니다. `ad-print-atlas.svg`의 가상 브랜드8종은 가상 브랜드 광고이며 `tools/bake_scenic_ads.py`로 만듭니다. 번들 Roboto Bold Italic 글꼴(Apache-2.0, `assets/fonts/Roboto-LICENSE.txt`)의 윤곽선을 사용합니다. 외부 게임의 구조물·광고·상표를 추출하거나 복사하지 않았습니다. 광고판은 주행로 밖에 고정한 실제 패널이며 카메라를 따라 회전하지 않습니다.
 
 ## 구조물·표면 디테일
 
-현수교는 테이퍼와 모서리가 있는 주탑, 콘크리트 기초, 원형 케이블, 별도 행거·접합판·가로보 보강재와 두께 있는 교량 바닥을 사용합니다. 광고판은 16×7m로 통일하며 42cm 두께의 뒷판, 금속 테두리, 후면 트러스·독립 기초·점검 발판·조명 하우징을 추가했습니다. 조명은 렌즈 재질로 표현하며 광고마다 동적 광원을 만들지 않습니다.
+현수교는 테이퍼와 모서리가 있는 주탑, 콘크리트 기초, 원형 케이블, 별도 행거·접합판·가로보 보강재와 두께 있는 교량 바닥을 사용합니다. 광고판은 16×7m로 통일하며 42cm 두께의 뒷판, 금속 테두리, 후면 트러스·독립 기초·점검 발판·조명 하우징을 사용합니다. 조명은 렌즈 재질로 표현하며 광고마다 동적 광원을 만들지 않습니다.
 
 `generated-material-atlas.png`는 생성형 이미지로 만든 사암·노출 콘크리트·적색 도장 철골·아연도금 강판의 색상 아틀라스입니다. 밉맵·이방성 필터링·삼면 투영으로 경사면의 늘어짐을 줄입니다. 야자수는 연속 줄기·수피 마디와 잎맥·가느다란 소엽을 사용하며 기존의 개체별 폴리곤 예산 안에서 생성합니다.
-
 
 ## 생성형 재질 아틀라스
 
 원본은 `exec-0121ba67-a9d9-4ae7-95ea-0d8ddd0af869.png`이며 로컬 `generated_images/`에 보존합니다. 배포본은 [generated-material-atlas.png](generated-material-atlas.png)입니다. 균일한 조명과 정면 투영, 무문자·무테두리의 네 가지 재질을 요청하여 생성했습니다. 좌상단은 사암, 우상단은 콘크리트, 좌하단은 적색 도장 철골, 우하단은 아연도금 강판입니다. 폴리곤은 추가하지 않았습니다.
 
-금속·콘크리트 영역은 독립적으로 반복하고 경계를 여유 있게 샘플링하여 인접 재질이 섞이는 것을 줄입니다. 암석은 서로 반 주기 떨어진 샘플을 경계 가중치로 혼합하고 좌표를 약하게 왜곡하여 거울 반복의 대칭 무늬를 줄입니다. 암벽은 약 8.3m, 콘크리트는 약 5.6m, 철골·금속은 약 1~1.5m 표면 단위로 투영합니다. 원본은 색상 이미지이며 실측 PBR 자료가 아닙니다. 셰이더의 밝기 미분으로 약한 요철을 보조하고 거칠기·금속성은 재질 종류별로 지정합니다. 기존 절차적 사암 이미지와 생성 스크립트는 교체 후 제거했습니다.
+금속·콘크리트 영역은 독립적으로 반복하고 경계를 여유 있게 샘플링하여 인접 재질이 섞이는 것을 줄입니다. 암석은 서로 반 주기 떨어진 샘플을 경계 가중치로 혼합하고 좌표를 약하게 왜곡하여 거울 반복의 대칭 무늬를 줄입니다. 암벽은 약 8.3m, 콘크리트는 약 5.6m, 철골·금속은 약 1~1.5m 표면 단위로 투영합니다. 원본은 색상 이미지이며 실측 PBR 자료가 아닙니다. 셰이더의 밝기 미분으로 약한 요철을 보조하고 거칠기·금속성은 재질 종류별로 지정합니다.
 
 ## 지질·구조물 재질 변형
 
@@ -33,11 +32,9 @@ No downloaded photographs or original arcade-game assets are used for the curren
 
 ## 건물 전용 외벽과 간판 디자인
 
+벡터 간판8종에는 SUMMIT TIRE, ROUTE 84, BLUEBAY, ORBIT AUTO 등이 있습니다. 디자인마다 사선·도로 차선·파도·궤도 그래픽과 별도 색상을 사용합니다. `tools/bake_scenic_ads.py`가 번들 Roboto 윤곽선으로 `ad-print-atlas.svg`의8개 인쇄 영역을 생성하며 대형 협곡 간판과 일반 지역 간판에서 재사용합니다. 모두 가상 브랜드입니다.
 
-
-간판은 SUMMIT TIRE, ROUTE 84, BLUEBAY, ORBIT AUTO를 추가해 8종입니다. 각 새 디자인은 사선·도로 차선·파도·궤도 그래픽과 별도 색상을 사용합니다. `tools/bake_scenic_ads.py`가 번들 Roboto 윤곽선으로 `ad-print-atlas.svg`의8개 인쇄 영역을 생성하며 대형 협곡 간판과 일반 지역 간판에서 재사용합니다. 모두 가상 브랜드입니다.
-
-건물 전용 정면 `building-front-elevations.png`와 측면 `building-side-elevations.png`는 각각 `exec-662a932d-5b8b-4067-b69c-1906b514bd9f.png`, `exec-848aea2a-7be2-456e-9b1a-5815401c15ca.png`에서 복사했습니다. 4×3 구성의 각 영역이 서로 다른 건물의 정면·측면에 대응합니다. 국수집·기념품점의 `restaurant-elevations.png`는 `exec-16d888b4-e4bc-4d2a-a0c7-8faaf1a6a180.png`의 2×2 전용 외벽입니다. 이미지 생성 도구로 제작한 원본이며 외부 사진·실존 브랜드를 입력하지 않았습니다. 이전 소매점·도시 공용 외벽 두 장은 이 전용 이미지로 교체했습니다.
+건물 전용 정면 `building-front-elevations.png`와 측면 `building-side-elevations.png`는 각각 `exec-662a932d-5b8b-4067-b69c-1906b514bd9f.png`, `exec-848aea2a-7be2-456e-9b1a-5815401c15ca.png`에서 복사했습니다. 4×3 구성의 각 영역이 서로 다른 건물의 정면·측면에 대응합니다. 국수집·기념품점의 `restaurant-elevations.png`는 `exec-16d888b4-e4bc-4d2a-a0c7-8faaf1a6a180.png`의 2×2 전용 외벽입니다. 이미지 생성 도구로 제작한 원본이며 외부 사진·실존 브랜드를 입력하지 않았습니다.
 
 ## 노면·잔디·갓길의 생성형 변형
 
@@ -47,8 +44,7 @@ No downloaded photographs or original arcade-game assets are used for the curren
 
 ## 실척과 차량 비례
 
-근거리 건물·나무·일반 광고판은 `regional_props_3d.gd`에서 메시를 미터 기준으로 보정한 뒤 배치합니다. 편의점 약19×18m 부지, 주유소 약30×31m 부지, 야자수 약15m, 소나무 약19m, 종별CC0 성목14~24m를 사용합니다. 도로는 승용차 길이4.3m 기준을 유지하며 차도 밖 전체 반경으로 배치 여유를 계산합니다. 텍스처의 정면·측면 영역은 보존하고 비균일 크기 보정에 맞춰 법선을 역전치 변환합니다.
-
+근거리 건물·나무·일반 광고판의 치수는 각 모델의 `definition.tres`에서 정하며 공통 모델 어댑터가 메시를 미터 기준으로 보정해 배치합니다. 편의점 약19×18m 부지, 주유소 약30×31m 부지, 야자수 약15m, 소나무 약19m, 종별CC0 성목14~24m를 사용합니다. 도로는 승용차 길이4.3m 기준을 유지하며 차도 밖 전체 반경으로 배치 여유를 계산합니다. 텍스처의 정면·측면 영역은 보존하고 비균일 크기 보정에 맞춰 법선을 역전치 변환합니다.
 
 ## 도시·항만·트럭·해안 하늘 추가 원본
 
@@ -56,5 +52,6 @@ No downloaded photographs or original arcade-game assets are used for the curren
 
 `riviera-sky-panorama.png`는 생성형 원본 `exec-13deda8f-bac7-4414-8a83-12f783041785.png`의2:1 위경도 하늘입니다. 푸른 하늘과 구름만 요청했고 시선 경도/위도로 매핑해 정면 사진을 늘리는 왜곡을 피합니다. 세 원본은 이미지 생성 도구로 제작했고 외부 사진·게임 에셋·실존 브랜드를 입력하지 않았습니다. 생성 원본은 `/workspace/generated_images/`에 보존합니다.
 
-
 `container-elevations.png`는 생성형 원본 `exec-c5fc9002-63b1-4504-8330-3a79c929197e.png`의4×2 아틀라스입니다. 위 행은 가상 해운사 NORDLINE·AURORA CARGO·PELAGIC FREIGHT·SUNPORT LOGISTICS의 긴 면, 아래 행은 같은 색상의 후면 문·잠금봉·경첩입니다. 실존 해운사 이름·로고를 사용하지 않고 원본의 골·도색·마모·문 구조를 UV로 입힙니다. `gorge-sunset-panorama.png`는 생성형 원본 `exec-d4b86b9c-5627-4587-bef1-12cb783f4e57.png`의2:1 노을 하늘입니다. 두 원본은 이미지 생성 도구로 제작했고 외부 사진·브랜드 에셋을 입력하지 않았습니다. 원본은 `/workspace/generated_images/`에 보존합니다.
+
+프로젝트 홍보6종과 상품 광고30종의 출처·프롬프트는 [프로젝트 홍보](project-promo-source.md)와 [상품 광고](product-ad-source.md)에 기록합니다. 경주 광고4종과 벡터8종을 포함한 전체48종 선택·순환은 `advertisement_library.gd`가 담당합니다.

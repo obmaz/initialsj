@@ -1,0 +1,21 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="Gradient" id="Gradient"]
+
+[sub_resource type="GradientTexture2D" id="Texture"]
+gradient = SubResource("Gradient")
+width = 8
+height = 8
+
+[sub_resource type="StandardMaterial3D" id="Material"]
+albedo_texture = SubResource("Texture")
+
+[sub_resource type="BoxMesh" id="Mesh"]
+size = Vector3(2,4,6)
+
+[node name="Model" type="Node3D"]
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+position = Vector3(0,2,0)
+mesh = SubResource("Mesh")
+material_override = SubResource("Material")

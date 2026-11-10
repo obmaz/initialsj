@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "rural_grocer"
+category = "props"
+source_path = "res://models/props/rural_grocer/SOURCE.md"
+order = 5
+builder_path = "res://models/props/rural_grocer/build.gd"
+tags = ["rural", "building"]
+base_size = Vector3(14,4.2,10)
+parameters = {"variant": 5}
+visibility_range = 310.0

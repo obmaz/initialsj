@@ -1,4 +1,5 @@
 extends Node3D
+const Architecture = preload("res://scripts/urban_architecture.gd")
 const Library = preload("res://scripts/route_library.gd")
 const GRASS = preload("res://assets/environment/lakeside-grass.png")
 var track: Node3D
@@ -159,7 +160,7 @@ func make_water() -> void:
 
 func make_city() -> void:
 	var groups: Array[Dictionary] = []
-	for i in range(12): groups.append({"poses":[],"dimensions":[]})
+	for i in range(Architecture.count()): groups.append({"poses":[],"dimensions":[]})
 	var plinths: Array[Transform3D] = []
 	var roof_details: Array[Transform3D] = []
 	var rubble: Array[Transform3D] = []
@@ -175,12 +176,13 @@ func make_city() -> void:
 		if back_row: side = -side
 		if theme == "seoul" and side > 0 and d > 450 and d < 1050: continue
 		if track.entry_side != 0 and d < 600: side = float(track.entry_side)
-		var style: int = (accepted+track.route_node)%12
-		var heights := [Vector2(14,24),Vector2(70,120),Vector2(48,85),Vector2(60,100),Vector2(24,40),Vector2(12,24),Vector2(65,110),Vector2(48,88),Vector2(36,65),Vector2(22,42),Vector2(12,22),Vector2(38,70)]
-		var height: float = rng.randf_range(heights[style].x,heights[style].y)
+		var style: int = (accepted+track.route_node)%Architecture.count()
+		var definition: Resource = Architecture.definition(style)
+		var heights: Vector2 = definition.parameters.height_range
+		var height: float = rng.randf_range(heights.x,heights.y)
 		if theme == "ruins": height *= 0.65
-		var width := rng.randf_range(24,42)
-		var depth := rng.randf_range(28,48)
+		var width := rng.randf_range(definition.parameters.width_range.x,definition.parameters.width_range.y)
+		var depth := rng.randf_range(definition.parameters.depth_range.x,definition.parameters.depth_range.y)
 		var radius := Vector2(width,depth).length()*0.55
 		if not preload("res://scripts/settlement_layout.gd").allows(track,d,radius): continue
 		var lane: float = side*(track.half_width(d)+track.rail_setback(d,side)+4+radius+rng.randf_range(0,32))
@@ -190,7 +192,7 @@ func make_city() -> void:
 		accepted += 1
 		building_manifest.append({"distance":d,"lane":lane,"radius":radius,"style":style,"height":height})
 		var variant := rng.randf()
-		for part in preload("res://scripts/urban_architecture.gd").parts(style,width,height,depth):
+		for part in Architecture.parts(style,width,height,depth):
 			var size: Vector3 = part.size
 			var pose: Transform3D = transform_at(d,lane,0,Vector3.ONE)
 			pose.origin += pose.basis*part.position
@@ -198,18 +200,19 @@ func make_city() -> void:
 			groups[style].poses.append(pose)
 			groups[style].dimensions.append(Color(size.x,size.y,size.z,variant))
 		plinths.append(transform_at(d,lane,1,Vector3(width*1.1,2,depth*1.1)))
-		if style in [0,1,4]:
+		if definition.parameters.roof_detail == "plant":
 			roof_details.append(transform_at(d,lane,height+1.2,Vector3(width*0.32,2.4,depth*0.25)))
-		if style == 5:
+		if definition.parameters.roof_detail == "fire_escape":
 			roof_details.append(transform_at(d-side*2,lane-side*depth*0.3,height*0.62,Vector3(width*1.05,0.35,depth*0.4)))
 		if theme == "ruins":
 			for piece in range(3): rubble.append(transform_at(d+piece*4,lane-side*5,2+piece*2,Vector3(width*0.6,2,3),rng.randf_range(-0.5,0.5)))
-	for style in range(12):
+	for style in range(Architecture.count()):
+		var definition: Resource = Architecture.definition(style)
 		var multi := MultiMesh.new()
 		multi.transform_format = MultiMesh.TRANSFORM_3D
 		multi.use_custom_data = true
 		var mesh: Mesh
-		if style == 3:
+		if definition.parameters.mesh_kind == "cylinder":
 			var tower := CylinderMesh.new()
 			tower.top_radius = 0.5
 			tower.bottom_radius = 0.5
@@ -225,14 +228,7 @@ func make_city() -> void:
 		for i in range(multi.instance_count):
 			multi.set_instance_transform(i,groups[style].poses[i])
 			multi.set_instance_custom_data(i,groups[style].dimensions[i])
-		var material := ShaderMaterial.new()
-		material.shader = preload("res://shaders/building_facade.gdshader")
-		material.set_shader_parameter("facade_images",load("res://assets/environment/urban-harbor-facades.png"))
-		material.set_shader_parameter("facade_extra",load("res://assets/environment/urban-truck-elevations.png"))
-		material.set_shader_parameter("ruined",theme == "ruins")
-		material.set_shader_parameter("facade_style",style)
-		material.set_shader_parameter("night_city",theme == "neon")
-		material.set_shader_parameter("regional_style",1 if theme == "seoul" else (2 if theme == "neon" else 0))
+		var material: Material = Architecture.material(style,theme)
 		var node := MultiMeshInstance3D.new()
 		node.multimesh = multi
 		node.material_override = material

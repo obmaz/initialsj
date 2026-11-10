@@ -10,6 +10,7 @@ RESOURCE = re.compile(r'''["']res://([^"'\n]+)["']''')
 LINK = re.compile(r'!?\[[^\]]*\]\(([^\s)]+)(?:\s+"[^"]*")?\)')
 # The retirement worker is served at a compatibility URL by the deploy workflow.
 ROOTS = ("project.godot", "export_presets.cfg", "web/retire-flutter-worker.js")
+MODEL_DIRECTORIES = {"models/props", "models/vehicles", "models/buildings"}
 errors = []
 
 
@@ -29,6 +30,9 @@ def live_resources():
             continue
         reached.add(name)
         path = ROOT / name
+        if name in MODEL_DIRECTORIES and path.is_dir():
+            pending.extend(p.relative_to(ROOT).as_posix() for p in path.glob("*/definition.tres"))
+            continue
         if not path.is_file():
             errors.append(f"Missing runtime resource: {name}")
             continue
@@ -37,11 +41,13 @@ def live_resources():
 
 
 def check_sources(reached):
-    for folder in ("scripts", "shaders", "scenes", "assets", "web", "tests"):
+    for folder in ("scripts", "shaders", "scenes", "assets", "web", "models", "tests"):
         for path in (ROOT / folder).rglob("*"):
             if not path.is_file():
                 continue
             name = path.relative_to(ROOT).as_posix()
+            if path.name == "AGENTS.md":
+                continue
             if path.suffix == ".mtl":
                 # An OBJ model's material file is read by the importer, not by res:// references.
                 if not path.with_suffix(".obj").is_file():
@@ -55,11 +61,13 @@ def check_sources(reached):
                 errors.append(f"Unreferenced runtime source: {name}")
             if folder == "assets" and path.suffix not in (".txt", ".md") and name not in reached:
                 errors.append(f"Unreferenced runtime asset: {name}")
+            if folder == "models" and path.suffix not in (".txt", ".md") and name not in reached:
+                errors.append(f"Unreferenced model resource: {name}")
             if path.suffix in (".gd", ".tscn", ".tres", ".gdshader"):
                 for ref in RESOURCE.findall(text(path)):
                     if ref == "build/reports" or ref.startswith("build/reports/"):
                         continue
-                    if not (ROOT / ref).is_file():
+                    if not (ROOT / ref).exists():
                         errors.append(f"Broken resource in {name}: {ref}")
 
 
@@ -67,6 +75,9 @@ def check_docs():
     documents = [ROOT / "README.md", ROOT / "AGENTS.md"]
     documents.extend((ROOT / "docs").rglob("*.md"))
     documents.extend((ROOT / "assets").rglob("*.md"))
+    documents.extend((ROOT / "models").rglob("*.md"))
+    documents.extend((ROOT / ".agents").rglob("*.md"))
+    documents.extend((ROOT / ".claude").rglob("*.md"))
     for path in documents:
         for target in LINK.findall(text(path)):
             if target.startswith(("https://", "http://", "mailto:", "#")):

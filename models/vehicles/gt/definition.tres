@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "gt"
+category = "vehicles"
+source_path = "res://models/vehicles/gt/SOURCE.md"
+order = 3
+builder_path = "res://models/vehicles/gt/build.gd"
+parameters = {"wheel_radius": 0.34, "wheel_half_track": 0.76, "wheel_half_base": 1.22, "wheel_thickness": 0.27, "rim_scale": 1.06, "ride_offset": -0.1, "spoke_count": 10, "rim_color": Color(0.37254901960784315, 0.403921568627451, 0.4235294117647059, 1)}

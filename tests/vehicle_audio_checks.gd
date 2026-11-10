@@ -92,7 +92,7 @@ func run(tree: SceneTree) -> int:
 		check(VehicleAudio.mix(race).engine < idle.engine,"The grid idle must be quieter than racing")
 		race.state = "racing"
 	# The real player: each selected vehicle swaps in all four of its own sounds, and a nitro
-	# shot starts with that vehicle's ignition hit. (Native path; the Web path is web_audio_review.cjs.)
+	# shot starts with that vehicle's ignition hit. (Native path; the Web path is web_audio_checks.cjs.)
 	var player = preload("res://scripts/racing_audio.gd").new()
 	player.race = race
 	race.add_child(player)

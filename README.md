@@ -1,79 +1,38 @@
 # Initial SJ — Coast Rush
 
-**[게임 실행](https://obmaz.github.io/initialsj/)** · [게임 규칙](docs/GAMEPLAY.md) · [개발·검사·배포](docs/DEVELOPMENT.md) · [차량별 사운드](docs/VEHICLE_AUDIO.md) · [에셋 출처·라이선스](docs/ASSET_LICENSES.md) · [Android APK](docs/ANDROID.md)
+[게임 실행](https://obmaz.github.io/initialsj/) · [게임 규칙](docs/GAMEPLAY.md) · [개발·검사·배포](docs/DEVELOPMENT.md) · [아키텍처](docs/ARCHITECTURE.md) · [모델 제작](docs/MODEL_PIPELINE.md)
 
-Godot **4.7.2 / GL Compatibility**로 만드는 가로 화면용 3D 아케이드 레이싱 게임입니다. 프로젝트는 저장소 루트의 [project.godot](project.godot)에서 엽니다.
+Godot **4.7.2 / GL Compatibility** 기반의 가로 화면 3D 아케이드 레이싱 게임입니다. 프로젝트 진입점은 [project.godot](project.godot)입니다.
 
-- **TOUR**: 15개 지역 테마와 16개 경로로 구성한 5구간 오픈 로드 타임어택입니다. 체크포인트 뒤 직선 안내 구간에서 다음 갈림길을 고릅니다.
-- **TRACK**: 약 5.72km의 **FUJI LAKESIDE**, 약 4.57km의 **SUNCOAST SPEEDWAY**, 약 2.75km의 야간 서킷 **MIDNIGHT HARBOR**, 약 3.64km의 해안 드리프트 코스 **AZURE RIVIERA**, 약 3.54km의 장대교·협곡 코스 **SCARLET GORGE**에서 3바퀴를 달립니다. 트랙2는16대의 분산 롤링 스타트, 나머지는8대입니다.
-- **투어·트랙의 3D 주행**(모든 모드 공통): 실제 차체 방향으로 조향하는 `CharacterBody3D`가 노면·장벽 충돌체 위를 달립니다. 투어도 실제 노면·분기·점프대를 주행하며 하트 드리프트 보상을 제공합니다. FUJI에는 약 60.8m 고저차, 약 12도 뱅킹과 실제 위아래로 교차하는 고가 구간이 있습니다.
-- **TRACK04 / AZURE RIVIERA**: 해안 도로와 굽이·고개를 잇고, 두 협곡에서는 폭이 서서히 좁아집니다. 해안·협곡 지형은 완만하게 연결되며 선택형 점프2곳·가속 패드5곳·부스트 차로2곳을 제공합니다. 차체와 진행 방향이 어긋나는 지속 슬라이드, 실제 접지 드리프트로 모으는 하트·최대 5배 콤보를 제공합니다. 짧은 S자 전환은 이어지고 충돌·노면 이탈 시 콤보가 끊어집니다.
-- **투어의 새 풍경 / TRACK05**: PALM COAST의 바다 위 장대교와 RED CANYON의 높은 층상 절벽·가상 브랜드 광고판을 추가했습니다. TRACK05는 짧은 고개 다리와 협곡 S자를 연결하며 트랙4의 슬라이드·하트 보상도 지원합니다. 다리 중앙에서는 오른쪽 상판 일부가 무너져 실제 도로가 사라지고 왼쪽 통과로를 남깁니다.
-- **차량**: NIMORI H, VELTRIX S, IRONVALE V8, STRAUD 6R. 최고속도·가속도·부스트·핸들링과 니트로 자원 방식이 서로 다릅니다. 선택 화면과 주행은 같은 3D 모델을 사용합니다.
-- **주행**: 브레이크, 드리프트, 슬립스트림, 부스터 패드, 물웅덩이·진흙, 점프대, 급하강, 정차 트럭과 속도에 따라 날아가는 충돌, 패드·폰 진동을 제공합니다. 길가 건물은 14종의 전용 정면·측면 이미지와 실제 기단·창틀·발코니를 사용합니다. 도로와 다리는 두꺼운 측면·하부 구조를 가집니다. 상업시설·성목·광고판은 승용차 길이 4.3m와 같은 미터 기준으로 배치하며, 확대된 전체 경계가 차도 밖에 놓이도록 이격합니다. 노면은 생성형 아스팔트 4종, 잔디·흙·자갈 8종을 월드 위치에 따라 부드럽게 혼합합니다. 길가 나무·건물·랜드마크는 실제 3D 모델이며, 하늘과 먼 능선은 생성형 이미지도 사용합니다.
-
-## 조작
-
-모바일에서는 화면의 조향·GAS·BRAKE·DRIFT·NITRO 버튼을 사용합니다. 머슬카는 별도 CELL 버튼도 있습니다. 안드로이드 뒤로가기는 주행 중 일시정지, 정지 중 재개, 선택·설정 화면에서는 이전 게임 화면으로 연결됩니다. 메인 메뉴에서는 사이트를 나갈 수 있습니다.
-
-| 키 | 동작 |
+| 모드 | 구성 |
 | --- | --- |
-| W / ↑ · S / ↓ | 가속 · 제동 |
-| A, D / ←, → | 조향 |
-| Space | 조향과 함께 드리프트 진입, 다시 눌러 해제 |
-| Shift · E | 니트로 · 머슬카 오버드라이브 셀 |
-| P / Esc | 주행·출발 대기 일시정지 또는 재개 |
-| Enter | 선택 차량으로 출발, 결과에서 차량 선택 |
-| R · G | 레이스 재시작 · 정지 화면에서 메인 메뉴 |
+| TOUR | 15개 테마·16개 경로의 5구간 단독 타임어택. 실제 분기 도로와 제한시간 |
+| TRACK01 / FUJI LAKESIDE | 호수·마을·고가 교차·뱅킹, 8대·3랩 |
+| TRACK02 / SUNCOAST SPEEDWAY | 16대 분산 롤링 스타트, 완주 상위3개와 차량별 베스트 전광판 |
+| TRACK03 / MIDNIGHT HARBOR | 야간 항만·연속 드리프트·컨테이너 야적장, 8대·3랩 |
+| TRACK04 / AZURE RIVIERA | 해안·시골 마을·협곡·아치 붕괴·하트 드리프트, 8대·3랩 |
+| TRACK05 / SCARLET GORGE | 노을·현수교·점프·상판 붕괴·주회별 낙석, 8대·3랩 |
 
-**게임패드**는 일반적인 레이싱 패드 배치입니다(Xbox 이름 기준, PlayStation 패드는 이름이 자동으로 바뀝니다). 패드를 쓰는 동안 화면의 각 버튼 옆에 해당 패드 버튼 이름이 표시되고, 메뉴마다 하단에 조작 안내가 나옵니다.
+주행은 모든 모드에서 같은 실제 3D 차체·노면·가드레일 물리를 사용합니다. 선택 차량은 NIMORI H, VELTRIX S, IRONVALE V8, STRAUD 6R이며 차량별 능력과 니트로·음원이 다릅니다. 모델의 치수는 도로와 같은 미터 단위를 사용합니다.
 
-| 패드 | 동작 |
-| --- | --- |
-| RT · LT | 가속 · 브레이크(정지 후 후진) |
-| 왼쪽 스틱 · 십자키 좌우 | 조향 |
-| A | 니트로 |
-| X | 드리프트 진입, 다시 눌러 해제 |
-| B | 머슬카 오버드라이브 셀 |
-| Y | 차량 복구(RESET CAR가 나왔을 때) |
-| LB · RB | 투어 분기에서 왼쪽·오른쪽 경로 선택 |
-| Start · Back(View) | 일시정지·재개 (정지 화면에서 Y는 재시작) |
-| 메뉴 | 십자키·왼쪽 스틱으로 금색 선택 틀 이동(좌우 카드, 위 설정·뒤로, 아래 복귀) 후 A 확인 · 차고에서는 십자키·스틱·LB·RB로 차량 선택, A 출발 · 설정에서는 위아래로 줄 이동 · X 트랙·SUNCOAST·재시도, 코스 선택에서 Y MIDNIGHT, Y 설정, B 뒤로 |
-
-브라우저는 패드의 버튼을 한 번 누른 뒤에야 패드를 인식합니다. 패드 연결이 끊기면 레이스를 멈춥니다. 브라우저 정책상 패드 입력은 전체화면 전환을 허용하지 않아, 설정의 전체화면은 마우스·터치로 누릅니다.
-
-드리프트는 약 90km/h 이상에서 사용하며 재사용 대기시간이 없습니다. 모든 트랙은 정지한 뒤 BRAKE/S를 약 0.45초 누르면 후진할 수 있습니다. 세로 화면에서는 회전 안내를 표시하고 진행 중인 레이스를 멈춥니다. 설정에서 설치, 소리, 움직임 줄이기, AUTO/HIGH/FAST 그래픽 품질을 선택합니다.
-
-## 실행과 검사
-
-처음 clone했다면 `./tools/setup_env.sh`가 고정된 Godot 4.7.2를 내려받아 설치하고 프로젝트를 가져옵니다(사람·Codex·Claude·CI 공통, 다시 실행해도 안전). 이후 버전 고정 실행기를 사용합니다. 직접 설치했거나 경로가 다르면 `INITIALSJ_GODOT_BIN`에 실행 파일을 지정합니다. Web export 템플릿과 에이전트 환경 설정 방법은 [개발 문서](docs/DEVELOPMENT.md)를 참고하세요.
+## 실행
 
 ```sh
 ./tools/setup_env.sh
 ./tools/godot --path .
-python3 tools/verify_repository.py
-./tools/godot --headless --path . --editor --import --quit
-./tools/godot --headless --fixed-fps 60 --path . --script res://tests/race_test.gd
-node tests/install_bridge_review.cjs
-node tests/back_bridge_review.cjs
-node tests/fullscreen_bridge_review.cjs
-node tests/audio_lifecycle_review.cjs
 ```
 
-**Android APK**: 사용자 요청 시 로컬에서 빌드하고 연결된 Dropbox 플러그인으로 `/앱/initialsj`에 전달합니다. 절차는 [APK 전달 스킬](.agents/skills/dropbox-apk/SKILL.md), 설정과 서명은 [ANDROID.md](docs/ANDROID.md)를 따릅니다.
+키보드는 W/S 또는 ↑/↓로 가속·제동, A/D 또는 ←/→로 조향, Space로 드리프트, Shift로 니트로, E로 오버드라이브 셀, P/Esc로 일시정지합니다. 터치와 게임패드 조작·화면 동작은 [게임 규칙](docs/GAMEPLAY.md)을 참고합니다.
 
-검사 보고서와 화면 캡처는 Git에서 제외하는 `build/reports/`에 생성합니다. `main` 푸시는 자동 검사 후 GitHub Pages의 `/initialsj/`에 배포됩니다. 자세한 내보내기 명령과 검사 범위는 [개발 문서](docs/DEVELOPMENT.md)를 참고하세요.
+## 작업별 문서
 
-차량마다 엔진·부스터·드리프트 소리(OGG 루프)와 부스터 점화음(WAV)이 모두 다릅니다. 직접 합성한 원본이며 새 차량도 같은 규칙을 따릅니다([차량별 사운드](docs/VEHICLE_AUDIO.md)). 충돌·안내 소리는 WAV 파일입니다. [음원 출처와 라이선스](assets/audio/LICENSE.txt)는 에셋과 함께 유지하며, 전체 에셋의 출처와 라이선스는 [ASSET_LICENSES.md](docs/ASSET_LICENSES.md)에 정리했습니다. 변경 이력과 이전 구현은 Git 이력에서 확인할 수 있습니다.
+| 작업 | 기준 문서 |
+| --- | --- |
+| 환경 구성·검사·웹 배포 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) |
+| 코드 책임·주행과 시각 모델 경계·메모리 수명 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| 특정 오브젝트·차량·빌딩만 제작·검사·커밋 | [MODEL_PIPELINE.md](docs/MODEL_PIPELINE.md), [모델 제작 스킬](.agents/skills/model-authoring/SKILL.md) |
+| 차량별 음원 제작·재생 | [VEHICLE_AUDIO.md](docs/VEHICLE_AUDIO.md) |
+| 출처·라이선스 | [ASSET_LICENSES.md](docs/ASSET_LICENSES.md) |
+| 요청받은 APK 빌드·Dropbox 전달 | [ANDROID.md](docs/ANDROID.md), [APK 전달 스킬](.agents/skills/dropbox-apk/SKILL.md) |
 
-로딩·메인·설정 화면에 현재 버전을 표시합니다. Android는 APK의 버전명과 빌드 번호, 웹은 프로젝트 버전과 소스 커밋을 표시합니다.
-
-트랙4 해안은 시골집·가게10종을 세 마을로 모으고 협곡 접근부를 비웁니다. 두 아치는 다음 바퀴 접근 중 무너져 중앙을 막고 양쪽 통과로를 남깁니다. 트랙5는 접근 중108m 상판이 붕괴하며 바로 앞 점프대와 왼쪽 우회로를 제공합니다. 도로 안 낙석은 바퀴당 한 번, 도로 밖 대량 낙하는 다섯 차례 발생합니다.
-
-모든 차량의 일반·니트로·패드 가속은 이전의70%입니다. 투어 빌딩12종과 트랙3 창고, 트럭은 생성형 전용 외장을 사용하고, 트랙4 하늘은 새 위경도 파노라마를 사용합니다.
-
-도로변 광고는 SJRPG·킹왕짱 홍보 각3종과 상품10종별3종, 기존 광고를 포함한48종을 무작위 순서로 배치합니다. 같은 레이스 중에는 유지하고 재시작하면 다시 섞습니다.
-
-트랙2 출발·결승선에는 상위3개 완주 기록과 현재 차량의 개인 베스트를 보여 주는 대형 전광판이 있습니다. 카운트다운 동안16대가 두 줄·약172m 대열로 굴러오며 GO 이후 경기 시간을 잽니다. 트랙3 컨테이너는 가상 해운사4종의 생성형 외장과 별도 문 이미지를 사용하고, 기존 네온 바는 좌·우 커브와 드리프트 안내를 명시합니다. 트랙5는 노을 파노라마와 낮은 따뜻한 주광·차가운 주변광을 사용합니다.
-
-렌더 기본 메시와 광고·외벽 재질은 필요할 때 생성해 공유하고 마지막 게임 씬 종료 시 캐시 참조를 해제합니다. 도로 밖 낙석은 공간별 MultiMesh로 묶고 실제 장애물 충돌체는 유지합니다. 상자형 구조물은 미터 비례 UV, 곡면·암벽은 삼면 투영을 사용합니다. 검증 범위와 메모리·GPU 비교는 [개발 문서](docs/DEVELOPMENT.md)에 있습니다.
+`main` 푸시는 검사 후 GitHub Pages에 배포됩니다. APK는 명시 요청 시 로컬 빌드하고 Dropbox 플러그인으로 전달합니다. 검사 결과·미리보기·내보내기는 Git에서 제외한 `build/`에 보관합니다.

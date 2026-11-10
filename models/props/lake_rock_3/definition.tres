@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "lake_rock_3"
+category = "props"
+source_path = "res://models/props/lake_rock_3/SOURCE.md"
+order = 12
+builder_path = "res://models/shared/palette_mesh.gd"
+source_mesh_path = "res://assets/environment/props/Rock_Moss_6.obj"
+tags = ["imported", "lake_rock"]
+target_height = 0
+parameters = {"source_scale": 2.6}
+placement_limits = Vector2(0, 0)
+visibility_range = 190.0

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "gas_station"
+category = "props"
+source_path = "res://models/props/gas_station/SOURCE.md"
+order = 15
+builder_path = "res://models/props/gas_station/build.gd"
+tags = ["building"]
+visibility_range = 310.0
+base_size = Vector3(8,3.4,4.5)
+metre_scale = Vector3(1.6,1.15,1.7)
+placement_limits = Vector2(0.97, 1.08)
+parameters = {"mass_offset": Vector3(0, 0, -8), "floors": 1, "columns": 3}

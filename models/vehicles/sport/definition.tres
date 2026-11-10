@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "sport"
+category = "vehicles"
+source_path = "res://models/vehicles/sport/SOURCE.md"
+order = 4
+builder_path = "res://models/vehicles/sport/build.gd"
+parameters = {"wheel_radius": 0.43, "wheel_half_track": 1.02, "wheel_half_base": 1.35, "wheel_thickness": 0.3, "rim_scale": 1.0, "ride_offset": 0.0, "spoke_count": 5, "rim_color": Color(0.5137254901960784, 0.5764705882352941, 0.6196078431372549, 1)}

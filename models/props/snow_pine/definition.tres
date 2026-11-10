@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "snow_pine"
+category = "props"
+source_path = "res://models/props/snow_pine/SOURCE.md"
+order = 2
+builder_path = "res://models/props/snow_pine/build.gd"
+tags = ["tree"]
+visibility_range = 400.0
+metre_scale = Vector3(1.2,1.6,1.2)
+placement_limits = Vector2(0.9, 1.18)
