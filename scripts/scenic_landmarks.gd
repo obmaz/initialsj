@@ -14,6 +14,7 @@ var texture_regions: Array[Vector3] = []
 var advertisement_spans: Array[Vector2] = []
 var ad_spacing := 135.0
 var generated_ads := false
+const PROJECT_ADS = preload("res://assets/environment/project-promo-ads.png")
 const GENERATED_ADS = preload("res://assets/environment/generated-racing-ads.png")
 
 func _ready() -> void:
@@ -28,8 +29,12 @@ func advertisement_material(index: int) -> Material:
 		# 3D 재질은 AtlasTexture의 영역을 자동 적용하지 않으므로 UV를 셰이더에서 분리한다.
 		var printed := ShaderMaterial.new()
 		printed.shader = preload("res://shaders/billboard_ad.gdshader")
-		printed.set_shader_parameter("ad_atlas",GENERATED_ADS)
-		printed.set_shader_parameter("ad_tile",Vector2(index%2,(index%4)/2))
+		var slot := posmod(index,10)
+		var grid := Vector2(3,2) if slot < 6 else Vector2(2,2)
+		var cell := slot if slot < 6 else slot-6
+		printed.set_shader_parameter("ad_atlas",PROJECT_ADS if slot < 6 else GENERATED_ADS)
+		printed.set_shader_parameter("ad_grid",grid)
+		printed.set_shader_parameter("ad_tile",Vector2(cell%int(grid.x),cell/int(grid.x)))
 		return printed
 	var mat := material(Color.WHITE)
 	mat.albedo_texture = AD_TEXTURES[index%AD_TEXTURES.size()]
