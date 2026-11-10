@@ -346,6 +346,7 @@ func _ready() -> void:
 	var asphalt := ShaderMaterial.new()
 	asphalt.shader = ASPHALT_SHADER
 	asphalt.set_shader_parameter("asphalt_texture", ASPHALT)
+	asphalt.set_shader_parameter("asphalt_variants",preload("res://assets/environment/asphalt-variants.png"))
 	strip(-10.5, 10.5, -0.15, material(Color("7e8477"))).name = "RoadBase"
 	road_surface = strip(-9, 9, 0, asphalt)
 	road_surface.name = "TexturedAsphalt"

@@ -1,6 +1,8 @@
 shader_type spatial;
 render_mode diffuse_burley;
 uniform sampler2D ground_grain : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D terrain_variants : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+#include "res://shaders/ground_variety.gdshaderinc"
 varying vec3 world_position;
 varying float steepness;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -14,7 +16,7 @@ void vertex() {
 }
 void fragment() {
 	float patches = noise(world_position.xz * 0.055);
-	vec3 grass = texture(ground_grain, world_position.xz / 6.0).rgb * mix(0.80, 1.06, patches);
+	vec3 grass = gv_surface(terrain_variants,world_position.xz,2.56,vec2(4,2),vec2(0))*mix(.9,1.03,patches);
 	float shore = 1.0 - smoothstep(0.15, 1.3, world_position.y);
 	vec3 rock = mix(vec3(0.17,0.20,0.22),vec3(0.36,0.38,0.36),noise(world_position.xy*0.18));
 	vec3 terrain = mix(grass,rock,smoothstep(0.25,0.75,steepness));

@@ -43,6 +43,7 @@ func _ready() -> void:
 	var terrain := ShaderMaterial.new()
 	terrain.shader = TERRAIN_SHADER
 	terrain.set_shader_parameter("ground_grain", GRASS)
+	terrain.set_shader_parameter("terrain_variants",preload("res://assets/environment/terrain-variants.png"))
 	terrain_band(SHORE_LANE, -10, terrain)
 	terrain_band(10, 110, terrain)
 	make_water()

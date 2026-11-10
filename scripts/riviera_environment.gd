@@ -41,6 +41,7 @@ func band(inner: float, outer: float, color: Color) -> void:
 	var terrain := ShaderMaterial.new()
 	terrain.shader = preload("res://shaders/riviera_ground.gdshader")
 	terrain.set_shader_parameter("ground_grain",preload("res://assets/environment/lakeside-grass.png"))
+	terrain.set_shader_parameter("terrain_variants",preload("res://assets/environment/terrain-variants.png"))
 	terrain.set_shader_parameter("base_color",color)
 	terrain.set_shader_parameter("grassy",inner >= 18)
 	node.material_override = terrain

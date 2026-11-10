@@ -59,3 +59,7 @@ Godot Engine 4.7.2, MIT. Its licence text ships with the web export as well.
 ## 건물 전용 정면·측면 이미지
 
 `building-front-elevations.png`, `building-side-elevations.png`, `restaurant-elevations.png`는 이미지 생성 도구로 제작한 건물별 외벽 원본입니다. 각 건물의 출입문·창틀·석재 기단·측면 창문·배관을 구분해 사용합니다. 원본 식별자와 배열은 `assets/environment/README.md`에 기록했습니다. 외부 사진이나 실존 브랜드 로고를 입력하지 않았습니다.
+
+## 생성형 노면·지면 이미지
+
+`assets/environment/asphalt-variants.png`와 `terrain-variants.png`는 2026-11-10 이미지 생성 도구로 제작한 아스팔트 4종과 잔디·흙·자갈 8종의 원본 아틀라스입니다. 외부 사진·게임 에셋·실존 브랜드를 입력하지 않았습니다. 배열·생성 원본 식별자·적용 방식은 `assets/environment/README.md`에 기록했습니다.

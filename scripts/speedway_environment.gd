@@ -66,9 +66,9 @@ func _ready() -> void:
 	make_lights()
 	make_palms()
 func make_infield() -> void:
-	var grass: StandardMaterial3D = track.material(Color("548e5d"))
-	grass.roughness = 1
-	grass.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+	var grass := ShaderMaterial.new()
+	grass.shader = preload("res://shaders/grass_ground.gdshader")
+	grass.set_shader_parameter("terrain_variants",preload("res://assets/environment/terrain-variants.png"))
 	var floor_mesh := PlaneMesh.new()
 	floor_mesh.size = Vector2(2800,2100)
 	var floor_node := MeshInstance3D.new()

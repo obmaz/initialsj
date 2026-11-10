@@ -76,6 +76,7 @@ func _ready() -> void:
 	var ground := ShaderMaterial.new()
 	ground.shader = preload("res://shaders/biome_ground.gdshader")
 	ground.set_shader_parameter("grain",GRASS)
+	ground.set_shader_parameter("terrain_variants",preload("res://assets/environment/terrain-variants.png"))
 	var ground_tint: String = {"hawaii":"527a48","jeju":"5d7c4c","city":"515861","seoul":"66645e","ruins":"5d6254","neon":"242932"}.get(theme,Library.PALETTES[theme])
 	ground.set_shader_parameter("ground_color",Color(ground_tint))
 	ground.set_shader_parameter("grassness",0.0 if theme in ["desert","pyramid","ruins","canyon","harbor","snow","volcano","neon","city","seoul"] else 1.0)
