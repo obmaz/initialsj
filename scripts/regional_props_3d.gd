@@ -21,12 +21,12 @@ const BUILDING_DIMS := {"coffee_shop":Vector3(8,3.8,6),"convenience_store":Vecto
 # 건물 템플릿의 로컬 치수를 도로와 같은 미터 단위로 보정한다.
 # 가로·깊이는 매장과 전정을 확보하고 높이는 층고와 급유기 비례를 유지한다.
 const METRE_SCALE := {
- "coffee_shop":Vector3(1.5,1.15,1.5), "convenience_store":Vector3(1.6,1.2,1.65),
- "street_shop":Vector3(1.6,1.1,1.5), "ticket_booth":Vector3(1.3,1.05,1.3),
- "gas_station":Vector3(1.6,1.15,1.7), "apartment":Vector3(1.65,1.15,1.6),
- "warehouse_shed":Vector3(1.25,1.1,1.2), "ryokan":Vector3(1.3,1.1,1.4),
- "teahouse":Vector3(1.3,1.1,1.3), "noodle_house":Vector3(1.5,1.3,1.4),
- "souvenir_shop":Vector3(1.5,1.2,1.5), "billboard":Vector3(1.35,1.2,1.3),
+ "coffee_shop":Vector3(1.85,1.35,1.85), "convenience_store":Vector3(2.0,1.4,2.0),
+ "street_shop":Vector3(2.0,1.35,1.9), "ticket_booth":Vector3(1.3,1.05,1.3),
+ "gas_station":Vector3(1.6,1.15,1.7), "apartment":Vector3(2.2,1.55,2.2),
+ "warehouse_shed":Vector3(1.25,1.1,1.2), "ryokan":Vector3(1.6,1.4,1.7),
+ "teahouse":Vector3(1.3,1.1,1.3), "noodle_house":Vector3(1.8,1.5,1.8),
+ "souvenir_shop":Vector3(1.8,1.45,1.8), "billboard":Vector3(1.35,1.2,1.3),
  "palm":Vector3(1.1,1.65,1.1), "pine":Vector3(1.2,1.6,1.2),
  "snow_pine":Vector3(1.2,1.6,1.2), "japanese_pine":Vector3(1.3,1.5,1.3),
  "broadleaf":Vector3(1.3,1.5,1.3), "sakura":Vector3(1.25,1.35,1.25),
@@ -457,7 +457,7 @@ static func rural_model(index: int) -> ArrayMesh:
  st.begin(Mesh.PRIMITIVE_TRIANGLES)
  st.set_uv(Vector2.ZERO)
  st.set_uv2(Vector2.ZERO)
- var size: Vector3 = RURAL_DIMS[index]
+ var size: Vector3 = RURAL_DIMS[index]*Vector3(1.4,1.25,1.4)
  var roof_height: float = [2.1,1.8,1.5,2.8,3.2,.45,1.4,.6,2.2,1.0][index]
  var roof_color := Color(["944d36","516b59","70544b","69554a","3f657c","52725d","a95036","7c7c55","536f82","7c8280"][index])
  box(st,Vector3(0,.1,0),Vector3(size.x+.8,.55,size.z+.8),Color("858375"))

@@ -144,9 +144,10 @@ func make_warehouses() -> void:
 	for i in range(count):
 		var d: float = 120+i*(track.length-240)/count
 		var side := -1.0 if i%2 == 1 else 1.0
-		var width := rng.randf_range(26,44)
-		var depth := rng.randf_range(18,28)
-		var height := rng.randf_range(9,17)
+		var width := rng.randf_range(36,58)
+		var depth := rng.randf_range(26,38)
+		var height := rng.randf_range(12,21)
+		if not preload("res://scripts/settlement_layout.gd").allows(track,d,Vector2(width,depth).length()*.5): continue
 		var lane: float = side*(track.half_width(d)+track.rail_setback(d,side)+34+depth*0.5)
 		if not clear_of_road(d,lane,depth*0.8+10): continue
 		var base := pose(d,lane,height*0.5)
@@ -165,8 +166,9 @@ func make_warehouses() -> void:
 		multi.set_instance_custom_data(i,sizes[i])
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/building_facade.gdshader")
-	material.set_shader_parameter("facade_images",preload("res://assets/environment/building-front-elevations.png"))
+	material.set_shader_parameter("facade_images",preload("res://assets/environment/urban-harbor-facades.png"))
 	material.set_shader_parameter("night_city",true)
+	material.set_shader_parameter("industrial_facade",true)
 	material.set_shader_parameter("facade_style",0)
 	var node := MultiMeshInstance3D.new()
 	node.name = "Warehouses"

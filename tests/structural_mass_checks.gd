@@ -63,12 +63,12 @@ func run(tree: SceneTree) -> int:
 	collapse.advance(.6,300)
 	await tree.physics_frame
 	check(not ray(race,430,8).is_empty(),"경고 단계에서는 도로가 먼저 사라지면 안 된다")
-	for frame in range(120): collapse.advance(1.0/60,300)
-	check(not collapse.broken and not ray(race,430,8).is_empty(),"접근 경고만으로는 무너지면 안 된다")
-	collapse.advance(5,430)
-	check(not collapse.broken and not ray(race,430,8).is_empty(),"차체가 상판 위에 있는 동안 뒤쪽부터 무너뜨리면 안 된다")
-	collapse.advance(.01,550)
-	for frame in range(120): collapse.advance(1.0/60,550)
+	for frame in range(180): collapse.advance(1.0/60,300)
+	check(collapse.broken and collapse.chunks[0].position.y < collapse.origins[0].y-10,"접근 중에 상판이 눈앞에서 붕괴해야 한다")
+	var jump_found := false
+	for feature in race.track.active.features:
+		if feature.kind == "ramp" and feature.distance < collapse.span.x and feature.distance+feature.length*.5 > collapse.span.x-15: jump_found = true
+	check(jump_found,"붕괴 구간 바로 앞에 점프대가 있어야 한다")
 	await tree.physics_frame
 	for d in [424.0,430.0,436.0]:
 		check(ray(race,d,8).is_empty(),"붕괴한 도로에 보이지 않는 충돌 바닥을 남기면 안 된다")
@@ -115,6 +115,24 @@ func run(tree: SceneTree) -> int:
 		if d > 420 and d < 440: check(race.rivals[0].lane < 2.5,"상대 차량은 붕괴 구간에서 왼쪽 통과로를 선택해야 한다")
 		if d > 445: crossed = true; break
 	check(crossed,"상대 차량이 붕괴 다리의 남은 차선으로 계속 진행해야 한다")
+	# 실제 차체가 새 점프대를 타고 108m 붕괴 구간을 넘어 착지해야 한다.
+	for choice in range(4):
+		race.state = "ready"
+		race.select_vehicle(choice)
+		race.restart()
+		race.state = "racing"
+		for rival in race.rivals: rival.active = false
+		race.world_race.teleport(0,330,7.5)
+		body = race.world_race.player_body
+		body.velocity = body.forward_direction()*65
+		race.speed = 65
+		var airborne_over_gap := false
+		var landed_beyond := false
+		for frame in range(420):
+			race.step(1.0/60,0,false,true,false)
+			if race.distance > 450 and race.distance < 520 and not body.grounded: airborne_over_gap = true
+			if race.distance > 540 and body.grounded: landed_beyond = true; break
+		check(airborne_over_gap and landed_beyond and race.wall_hits == 0,"모든 차량은 점프대로 붕괴 구간을 건너 실제 노면에 착지해야 한다: %s / d %.1f / grounded %s / walls %d" % [race.vehicle.id,race.distance,body.grounded,race.wall_hits])
 	race.queue_free()
 	await tree.process_frame
 	print("건물 전용 외벽·기단 / 다리 붕괴·실제 도로 소실·통과·복구: ","PASS" if failures == 0 else "FAIL")

@@ -23,9 +23,16 @@ var previous_trackable := false
 var last_valid_world := Vector3.ZERO
 var fast_updates := 0
 var full_searches := 0
+var jump_air_spans: Array[Vector3] = []
 
 func configure(road: Node3D) -> void:
 	section = road
+	jump_air_spans.clear()
+	var authored: Variant = road.get("features")
+	if authored is Array:
+		for feature in authored:
+			if feature.kind == "ramp" and float(feature.get("height",0)) > 4:
+				jump_air_spans.append(Vector3(feature.distance-feature.length*.5-5,feature.distance+400,float(feature.height)+70))
 	centers.clear()
 	forwards.clear()
 	rights.clear()
@@ -93,7 +100,11 @@ func _at(world: Vector3, d: float, hint: float) -> Dictionary:
 		# an outside-barrier shortcut to earn gates or move the physical chassis.
 		gate_margin = setback+0.25
 		tracking_margin = maxf(4,setback+1.3)
-	var right_height := vertical >= -2.0 and vertical <= 6.0
+	# 높은 점프대의 연속 비행은 계측을 유지한다. 차체 이동·차선·속도 검사는 그대로 적용한다.
+	var ceiling := 6.0
+	for span in jump_air_spans:
+		if d >= span.x and d <= span.y: ceiling = maxf(ceiling,span.z)
+	var right_height := vertical >= -2.0 and vertical <= ceiling
 	return {"distance":d,"lane":lateral,"ground_height":ground.y,"vertical_error":vertical,"valid":absf(lateral) <= width+gate_margin and right_height,"trackable":absf(lateral) <= width+tracking_margin and right_height,"score":_score(offset,forward,right,width,tan(float(section.bank_at(d))),d,hint)}
 
 func sample(world: Vector3, hint_distance: float) -> Dictionary:

@@ -39,6 +39,9 @@ func run(tree: SceneTree) -> int:
   var section: Node3D = race.track.active
   var foreground: Node3D = section.scenery.roadside_art
   check(foreground.positions.size() > 20,"Representative routes need a populated regional foreground")
+  for placement in foreground.models.placements:
+   if preload("res://scripts/settlement_layout.gd").inhabited(placement.kind):
+    check(preload("res://scripts/settlement_layout.gd").allows(section,placement.distance,Props.radius(placement.kind)*placement.scale),"투어 생활 건물은 위험 지형 밖의 마을 구획에만 놓아야 한다")
   for i in range(foreground.positions.size()):
    var p: Vector3 = foreground.positions[i]
    var nearest: float = section.curve.get_closest_offset(p)
@@ -48,7 +51,7 @@ func run(tree: SceneTree) -> int:
   if section.scenery.theme in ["city","seoul"]:
    var styles := {}
    for building in section.scenery.building_manifest: styles[building.style] = true
-   check(styles.size() >= 5,"City regions need several actual architecture silhouettes")
+   check(styles.size() >= 10,"도시에는 실척과 외형이 다른 빌딩10종 이상이 실제로 배치되어야 한다")
    check(section.scenery.distant_art.has_node("DistantBuildings3D_0") and section.scenery.distant_art.sprite_batch == null,"City skyline must use solid 3D buildings rather than a skyline billboard")
   await tree.process_frame
  race.choose_mode("track",0)
@@ -71,16 +74,20 @@ func run(tree: SceneTree) -> int:
  var boulevard: Node3D = race.track.scenery.get_node("RivieraBoulevard")
  var rural_types := {}
  var rural_count := 0
+ var settlements := {}
  for placement in boulevard.placements:
   if placement.kind in Props.RURAL_KINDS:
    rural_types[placement.kind] = true
    rural_count += 1
+   settlements[0 if placement.distance < 950 else (1 if placement.distance < 2200 else 2)] = true
+   check(preload("res://scripts/settlement_layout.gd").allows(race.track.active,placement.distance,Props.radius(placement.kind)*placement.scale),"해안 집의 전체 크기가 안전한 마을 구획 안에 있어야 한다")
   var radius: float = Props.radius(placement.kind)*float(placement.scale)
   var p: Vector3 = placement.position
   var nearest: float = race.track.active.curve.get_closest_offset(p)
   var center: Vector3 = race.track.point(nearest)
   check(Vector2(p.x-center.x,p.z-center.z).length()-radius >= race.track.half_width(nearest)+1.5,"확대한 해안 매장·야자수의 전체 경계가 차도 밖에 있어야 한다")
- check(rural_types.size() == 10 and rural_count >= 100,"해안에는100채 이상과10종의 서로 다른 시골 건물이 있어야 한다")
+ check(settlements.size() == 3,"해안은 빈 구간으로 나뉜 세 마을을 가져야 한다")
+ check(rural_types.size() == 10 and rural_count >= 30 and rural_count < 100,"해안에는 연속 주택가 대신10종의 시골 건물이 여러 마을로 모여야 한다")
  FileAccess.open(Report.path("scenery-3d-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"regions":rows,"unique_model_kinds":all_kinds.size(),"fuji_tree_count":fuji_count,"failures":failures},"\t")+"\n")
  race.queue_free()
  await tree.process_frame

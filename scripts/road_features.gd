@@ -229,6 +229,8 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 		for start in [170.0,1720.0]:
 			for index in range(3): specifications.append(["boost",start+index*70,-.42 if index%2 == 0 else .42,12.0,3.4])
 		specifications.append_array([
+			["boost",347.0,.62,22.0,5.4],
+			["ramp",399.0,.62,28.0,6.0,8.0],
 			["boost_lane",600.0,.40,120.0,3.8],
 			["boost",590.0,-.38,18.0,3.8],
 			["ramp",660.0,-.38,18.0,4.4,.70],
@@ -348,13 +350,15 @@ static func build_ramp(section: Node3D, feature: Dictionary) -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var start: float = feature.distance-feature.length*0.5
-	var bands := 8
+	var bands := 16 if feature.height > 4 else 8
 	for segment in range(bands):
 		var a: float = start+feature.length*segment/float(bands)
 		var b: float = start+feature.length*(segment+1)/float(bands)
 		var left: float = feature.lane-feature.width*0.5
 		var right: float = feature.lane+feature.width*0.5
-		var points := [section.point(a,left)+Vector3.UP*feature.height*segment/bands,section.point(a,right)+Vector3.UP*feature.height*segment/bands,section.point(b,left)+Vector3.UP*feature.height*(segment+1)/bands,section.point(b,right)+Vector3.UP*feature.height*(segment+1)/bands]
+		var rise_a: float = feature.height*pow(float(segment)/bands,1.6 if feature.height > 4 else 1.0)
+		var rise_b: float = feature.height*pow(float(segment+1)/bands,1.6 if feature.height > 4 else 1.0)
+		var points := [section.point(a,left)+Vector3.UP*rise_a,section.point(a,right)+Vector3.UP*rise_a,section.point(b,left)+Vector3.UP*rise_b,section.point(b,right)+Vector3.UP*rise_b]
 		st.set_color(RAMP_CREAM if segment == bands-1 or segment%2 == 1 else RAMP_ORANGE)
 		for n in [0,2,1,1,2,3]: st.add_vertex(points[n]+Vector3.UP*0.025)
 	st.set_color(RAMP_CREAM)
@@ -442,14 +446,12 @@ static func build_truck(section: Node3D, feature: Dictionary) -> void:
 	truck.basis = Basis.looking_at((ahead-behind).normalized(),Vector3.UP)
 	section.add_child(truck)
 	truck.position = middle
-	var palette := [Color("e8e6df"),Color("d8d05a"),Color("c9563c"),Color("3d6f9e")]
-	var body: Color = palette[(section.stage+section.route_node+int(d/100))%palette.size()]
 	var width := float(feature.width)
 	var half := float(feature.length)*0.5
 	section.box(truck,Vector3(0,0.55,0),Vector3(width-0.3,0.5,float(feature.length)),section.material(Color("2b2f33")))
-	section.box(truck,Vector3(0,2.45,half-4.3),Vector3(width,3.2,8.6),section.material(body))
-	section.box(truck,Vector3(0,1.9,-half+1.5),Vector3(width-0.1,2.3,2.8),section.material(body.darkened(0.25)))
-	section.box(truck,Vector3(0,2.35,-half+0.2),Vector3(width-0.5,1.0,0.12),section.material(Color("1b2b3a"),0.2))
+	section.box(truck,Vector3(0,2.45,half-4.3),Vector3(width,3.2,8.6),truck_skin(Vector3(width,3.2,8.6),false,int(feature.distance)%2 == 0))
+	section.box(truck,Vector3(0,1.9,-half+1.5),Vector3(width-0.1,2.3,2.8),truck_skin(Vector3(width-.1,2.3,2.8),true,false))
+
 	section.box(truck,Vector3(0,0.9,half+0.05),Vector3(width-0.4,0.3,0.12),section.material(Color("d63b3b")))
 	for z in [-half+1.8,half-2.4,half-3.9]:
 		for x in [-width*0.5+0.1,width*0.5-0.1]:
@@ -531,3 +533,12 @@ static func build_skyway(section: Node3D, feature: Dictionary) -> void:
 		d += 30.0
 	section.box_batch(Vector3.ONE,section.material(Color("9aa1a3")),transforms)
 
+
+static func truck_skin(dimensions: Vector3, cabin: bool, red: bool) -> ShaderMaterial:
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/truck_skin.gdshader")
+	mat.set_shader_parameter("skins",preload("res://assets/environment/urban-truck-elevations.png"))
+	mat.set_shader_parameter("dimensions",dimensions)
+	mat.set_shader_parameter("cabin",cabin)
+	mat.set_shader_parameter("red_trailer",red)
+	return mat

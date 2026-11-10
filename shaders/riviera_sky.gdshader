@@ -1,14 +1,12 @@
 shader_type sky;
-float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
-float noise(vec2 p) {
-	vec2 i=floor(p); vec2 f=fract(p); f=f*f*(3.0-2.0*f);
-	return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
-}
+uniform sampler2D panorama : source_color, filter_linear_mipmap, repeat_enable;
 void sky() {
-	float height=max(EYEDIR.y,0.0);
-	vec3 blue=mix(vec3(0.63,0.84,0.87),vec3(0.055,0.32,0.66),pow(height,0.43));
-	vec2 uv=EYEDIR.xz/(height+0.19)*2.1;
-	float cloud=noise(uv)*0.65+noise(uv*2.1)*0.25+noise(uv*4.2)*0.10;
-	float mask=smoothstep(0.59,0.76,cloud)*smoothstep(0.035,0.12,height)*(1.0-smoothstep(0.50,0.82,height));
-	COLOR=mix(blue,vec3(0.94,0.96,0.95),mask*0.88);
+	vec3 direction=normalize(EYEDIR);
+	// 실제 위경도로 읽어 정면 사진을 수평으로 늘리는 왜곡을 없앤다.
+	vec2 uv=vec2(atan(direction.x,direction.z)/(2.0*PI)+.5,acos(clamp(direction.y,-1.0,1.0))/PI);
+	vec3 front=texture(panorama,uv).rgb;
+	// 파노라마 양 끝의 작은 색차만 좁은 경계에서 혼합한다.
+	float edge=abs(uv.x-.5)*2.0;
+	vec3 opposite=texture(panorama,vec2(1.0-uv.x,uv.y)).rgb;
+	COLOR=mix(front,opposite,smoothstep(.975,1.0,edge)*.5);
 }

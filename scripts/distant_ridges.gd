@@ -64,6 +64,7 @@ func make_urban_skyline() -> void:
 	var random := RandomNumberGenerator.new()
 	random.seed = 930+road.stage*7+road.route_node
 	var groups := [[],[],[],[]]
+	var dimensions := [[],[],[],[]]
 	for cluster in range(4):
 		var d: float = road.length*(0.14+cluster*0.23)
 		var side := -1.0 if cluster%2 == 0 else 1.0
@@ -71,9 +72,10 @@ func make_urban_skyline() -> void:
 			var at: float = d+(i-15)*19
 			var lane: float = side*(530+random.randf_range(0,210))
 			var p: Vector3 = road.point(at,lane)
-			var radius := 24.0
+			var radius := 30.0
 			var closest: float = road.curve.get_closest_offset(p)
 			var center: Vector3 = road.point(closest)
+			if not preload("res://scripts/settlement_layout.gd").safe_site(road,closest,radius): continue
 			if Vector2(p.x-center.x,p.z-center.z).length()-radius < road.half_width(closest)+90: continue
 			var style := (i+cluster)%4
 			var height := random.randf_range(32,110)
@@ -87,6 +89,7 @@ func make_urban_skyline() -> void:
 				var h := height*(0.5 if tier == 0 else 0.25) if tiers > 1 else height
 				var size := Vector3(width*(1-tier*0.22),h,depth*(1-tier*0.22))
 				groups[style].append(Transform3D(Basis(Vector3.UP,road.heading(at)).scaled_local(size),p+Vector3.UP*(base+h*0.5)))
+				dimensions[style].append(Color(size.x,size.y,size.z,random.randf()))
 				base += h
 			positions.append(p)
 			widths.append(width)
@@ -105,11 +108,18 @@ func make_urban_skyline() -> void:
 			var cube := BoxMesh.new()
 			cube.size = Vector3.ONE
 			mesh = cube
-		var color := Color("69828e") if scenery.theme == "city" else (Color("8b9185") if scenery.theme == "seoul" else (Color("605b4b") if scenery.theme == "ruins" else Color("303d54")))
-		var material := StandardMaterial3D.new()
-		material.albedo_color = color.lightened(style*0.035)
-		material.roughness = 1
-		material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
-		var node: MultiMeshInstance3D = scenery.batch(mesh,material,poses,false)
+		var material := ShaderMaterial.new()
+		material.shader = preload("res://shaders/building_facade.gdshader")
+		material.set_shader_parameter("facade_images",preload("res://assets/environment/urban-harbor-facades.png"))
+		material.set_shader_parameter("facade_extra",preload("res://assets/environment/urban-truck-elevations.png"))
+		material.set_shader_parameter("facade_style",[0,3,6,8][style])
+		material.set_shader_parameter("night_city",scenery.theme == "neon")
+		var empty: Array[Transform3D] = []
+		var node: MultiMeshInstance3D = scenery.batch(mesh,material,empty,false)
+		node.multimesh.use_custom_data = true
+		node.multimesh.instance_count = poses.size()
+		for i in range(poses.size()):
+			node.multimesh.set_instance_transform(i,poses[i])
+			node.multimesh.set_instance_custom_data(i,dimensions[style][i])
 		node.reparent(self)
 		node.name = "DistantBuildings3D_"+str(style)

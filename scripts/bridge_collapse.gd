@@ -1,5 +1,5 @@
 extends Node3D
-# 차량이 통과한 뒤 오른쪽 상판이 뒤따라 무너진다. 파손은 레이스가 끝날 때까지 남는다.
+# 접근하는 차량 앞에서 오른쪽 상판이 순차 붕괴한다. 점프와 왼쪽 우회로를 남긴다.
 const PIECES := 9
 const PIECE_LENGTH := 12.0
 var fall_times: Array[float] = []
@@ -235,10 +235,10 @@ func advance(delta: float, distance: float, reduced_motion: bool = false) -> voi
 	elapsed += delta
 	cracks.visible = not broken
 	for i in range(cracks.get_child_count()): cracks.get_child(i).visible = elapsed > (i%9)*.12
-	# 차체 뒷부분이 각 상판을 넘은 뒤 낙하한다. 다음 바퀴에도 낙하 상태를 유지한다.
+	# 균열 경고 뒤 앞쪽부터 순차 낙하해 접근 중에도 붕괴를 볼 수 있다.
 	for i in range(PIECES):
 		if fall_times[i] < 0:
-			if distance < span.x+(i+1)*PIECE_LENGTH+7: continue
+			if d < span.x-140 or elapsed < .65+i*.09: continue
 			fall_times[i] = 0
 		fall_times[i] += delta
 		var t := maxf(0,fall_times[i]-.22)
@@ -260,4 +260,4 @@ func advance(delta: float, distance: float, reduced_motion: bool = false) -> voi
 func warning(distance: float) -> String:
 	var d := fposmod(distance,section.length)
 	if d < span.x-260 or d > span.y+35: return ""
-	return "BRIDGE DESTROYED / KEEP LEFT" if broken else "BRIDGE CRACKING / KEEP LEFT"
+	return "BRIDGE DESTROYED / JUMP OR KEEP LEFT" if broken else "BRIDGE CRACKING / JUMP OR KEEP LEFT"

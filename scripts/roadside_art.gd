@@ -25,6 +25,7 @@ func _ready() -> void:
   var kind: String = family[variant]
   var scale: float = Props.placement_scale(kind,random.randf_range(0.8,1.25))
   var radius: float = Props.radius(kind)*scale
+  if preload("res://scripts/settlement_layout.gd").inhabited(kind) and not preload("res://scripts/settlement_layout.gd").allows(road,d,radius): continue
   # Stone guardians stand right at the roadside so they are seen; other props spread out.
   var lane: float = side*(road.half_width(d)+road.rail_setback(d,side)+2.6+radius+random.randf_range(0,3 if kind == "hareubang" else 11))
   if theme == "canyon": lane += side*12
@@ -37,7 +38,7 @@ func _ready() -> void:
   var yaw: float = road.heading(d)+side*PI*0.5+random.randf_range(-0.2,0.2) if kind == "hareubang" else road.heading(d)+random.randf_range(-0.35,0.35)
   if kind in ["coffee_shop","souvenir_shop","street_shop","convenience_store","apartment","gas_station","warehouse_shed"]: yaw = road.heading(d)-side*PI*.5
   if kind == "billboard": yaw = preload("res://scripts/billboard_facing.gd").yaw(road,d,lane)
-  placements.append({"position":p,"yaw":yaw,"scale":scale,"variant":variant})
+  placements.append({"position":p,"yaw":yaw,"scale":scale,"variant":variant,"distance":d,"kind":kind})
   if kind in ["palm","broadleaf","pine","snow_pine","sakura","bamboo","plane_tree","ginkgo","japanese_pine"]: scenery.tree_positions.append(p)
  models = Props.new()
  models.name = "RegionalForeground3D"

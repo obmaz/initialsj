@@ -41,7 +41,7 @@ func run(tree: SceneTree) -> int:
 	check(section.bridge_span.y-section.bridge_span.x < 600,"긴 다리 구간을 600m 미만으로 줄여야 합니다")
 	check(section.point(430).y-section.point(40).y > 20,"다리 정상으로 실제 20m 이상 올라가야 합니다")
 	check(section.features.filter(func(f): return f.kind == "boost").size() >= 6,"교차 주행선을 선택하는 부스터 패드가 있어야 합니다")
-	check(section.features.filter(func(f): return f.kind == "ramp").size() == 2,"착지 공간이 있는 점프 두 곳이 있어야 합니다")
+	check(section.features.filter(func(f): return f.kind == "ramp").size() == 3,"다리 붕괴 직전 점프와 착지 공간이 있는 기존 점프 두 곳이 있어야 합니다")
 	var rays := 0
 	for i in range(120):
 		var d: float = section.length*i/120
@@ -89,12 +89,12 @@ func run(tree: SceneTree) -> int:
 			race.restart()
 			race.state = "racing"
 			for rival in race.rivals: rival.active = false
-			race.world_race.teleport(0,ramp.distance-35,ramp.lane)
+			race.world_race.teleport(0,330 if ramp.height > 4 else ramp.distance-35,ramp.lane)
 			body.velocity = body.forward_direction()*launch_speed
 			race.speed = launch_speed
 			var flew := false
 			var landed := false
-			for frame in range(210):
+			for frame in range(420 if ramp.height > 4 else 210):
 				var f: Vector3 = body.forward_direction()
 				var r := Vector3(-f.z,0,f.x).normalized()
 				var aim: Vector3 = race.track.point(race.distance+25,ramp.lane)-body.feet_position()
@@ -102,10 +102,10 @@ func run(tree: SceneTree) -> int:
 				var wheel: float = (0.46+race.vehicle.handling*.007)/(1+race.speed*.035)*race.world_race.WorldCar.steering_scale(race.speed)
 				var axis := clampf(atan(5.4*sin(angle)/25)/wheel,-1,1)
 				await tree.physics_frame
-				race.step(1.0/60,axis,false,false,false)
+				race.step(1.0/60,axis,false,ramp.height > 4,false)
 				if frame>8 and not body.grounded and body.feet_position().y-race.track.point(race.distance).y>.5: flew = true
-				if flew and body.grounded and race.distance>ramp.distance+25: landed = true; break
-			check(flew and landed and race.wall_hits==0,"두 점프대 모두 실제 차체가 장벽 접촉 없이 이륙·착지해야 합니다")
+				if flew and body.grounded and race.distance>ramp.distance+(150 if ramp.height > 4 else 25): landed = true; break
+			check(flew and landed and race.wall_hits==0,"세 점프대 모두 실제 차체가 장벽 접촉 없이 이륙·착지해야 합니다")
 	race.open_courses()
 	race.menu_focus = 4
 	race.pad_pressed(JOY_BUTTON_A)

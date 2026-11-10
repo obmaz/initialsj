@@ -28,7 +28,7 @@ func run(tree: SceneTree) -> int:
 	check(race.world_race != null and race.track.active.has_node("FujiWorldCollision"),"투어도 실제 3D 차체와 노면 충돌체를 사용해야 한다")
 	for preview in race.track.previews: check(preview.has_node("FujiWorldCollision"),"분기 양쪽 도로를 진입 전에 충돌 월드에 등록해야 한다")
 	for frame in range(158): race.step(1.0/60,0,false,true,false)
-	check(race.speed > 55 and race.world_race.player_body.feet_position().distance_to(race.track.point(80,-3.2)) > 65,"가속은 실제 차체를 전진시켜야 한다")
+	check(race.speed > 38 and race.speed < 46 and race.world_race.player_body.feet_position().distance_to(race.track.point(80,-3.2)) > 45,"30% 낮춘 가속은 실제 차체를 전진시키고 이전 가속 속도에 도달하지 않아야 한다")
 	# 계측값만 변경해도 실제 차체가 도로 좌표로 순간 이동하지 않는다.
 	var actual: Vector3 = race.world_race.player_body.position
 	race.distance = 500

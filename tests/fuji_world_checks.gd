@@ -228,7 +228,7 @@ func run(tree: SceneTree) -> int:
 	for frame in range(90):
 		await tree.physics_frame
 		race.step(1.0/60,0,false,true,false)
-	check(race.speed > 30 and race.speed < 36 and body.grounded,"The real car must use reduced launch acceleration on the actual road collider")
+	check(race.speed > 22 and race.speed < 26 and body.grounded,"The real car must use reduced launch acceleration on the actual road collider")
 	var position: Vector3 = body.feet_position()
 	race.distance += 300
 	race.lane = 6

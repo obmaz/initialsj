@@ -185,7 +185,7 @@ func run(tree: SceneTree) -> int:
 		var tight := corner_trial(car,spec,0.14)
 		var drift := corner_trial(car,spec,0.14,true)
 		check(absf(straight.speed_mps-float(spec.max_speed)) < 0.05 and straight.peak_scrub_mps2 == 0,"Straight driving must retain its configured top speed without tyre scrub")
-		check(mild.speed_mps < straight.speed_mps-0.5 and mild.speed_mps > straight.speed_mps*0.88,"A sustained mild real turn must scrub speed while retaining at least 88% of cruise")
+		check(mild.speed_mps < straight.speed_mps-0.5 and mild.speed_mps > straight.speed_mps*0.85,"A sustained mild real turn must scrub speed while retaining at least 85% of cruise")
 		check(tight.speed_mps < mild.speed_mps-3 and tight.speed_mps > straight.speed_mps*0.65,"A tight real turn must shed materially more speed without a hard corner speed clamp")
 		check(drift.speed_mps > tight.speed_mps and drift.speed_mps < straight.speed_mps-0.2,"Drifting must preserve more momentum while retaining measurable corner scrub")
 		corners.append({"vehicle":spec.id,"straight":straight,"mild":mild,"tight":tight,"drift":drift})
@@ -215,8 +215,8 @@ func run(tree: SceneTree) -> int:
 		var speed: float = car.velocity.slide(car.surface_normal).length()
 		car.advance(1.0/60,0,maxf(0,speed-48.0/60),false)
 	check(car.velocity.length() < before_brake-20,"Brake input must remain immediately effective after a loaded corner")
-	# With lower launch force, allow three seconds to recover from heavy braking.
-	for frame in range(180):
+	# 30% 낮춘 가속에 맞춰 강한 제동 뒤 회복 시간도 약1/0.7배로 늘린다.
+	for frame in range(270):
 		var speed: float = car.velocity.slide(car.surface_normal).length()
 		var engine: float = CornerResistance.engine_factor(speed,72,car.corner_demand,car.corner_grip)
 		car.advance(1.0/60,0,minf(72,speed+float(Catalog.spec(0).accel)*engine/60),false)

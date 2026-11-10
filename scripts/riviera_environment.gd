@@ -13,6 +13,7 @@ func make_sky() -> Sky:
 	var sky := Sky.new()
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/riviera_sky.gdshader")
+	mat.set_shader_parameter("panorama",preload("res://assets/environment/riviera-sky-panorama.png"))
 	sky.sky_material = mat
 	sky.radiance_size = Sky.RADIANCE_SIZE_128
 	return sky
@@ -69,7 +70,7 @@ func _ready() -> void:
 	make_boulevard()
 	landmarks = preload("res://scripts/scenic_landmarks.gd").new()
 	landmarks.track = track
-	landmarks.canyon_spans.assign([Vector2(950,1320),Vector2(2220,2530)])
+	landmarks.canyon_spans.assign(preload("res://scripts/settlement_layout.gd").canyon_spans(track))
 	add_child(landmarks)
 	rock_arches = preload("res://scripts/rock_arches.gd").new()
 	rock_arches.track = track
@@ -105,13 +106,14 @@ func make_boulevard() -> void:
 			if Vector2(p.x-track.point(nearest).x,p.z-track.point(nearest).z).length()-radius < track.half_width(nearest)+track.rail_setback(nearest,side)+1.5: continue
 			placements.append({"kind":"palm","position":p,"yaw":i*1.7,"scale":scale})
 			tree_positions.append(p)
-	# 바다 쪽은 유지하고 육지 쪽에160채 후보를 배치한다. 전체 경계로 차도 침범을 제외한다.
+	# 육지의 안전한 마을 구획에만 집을 모으고 협곡 접근부와 마을 사이는 비운다.
 	for i in range(160):
 		var d: float = 130+(track.length-260)*(i+.5)/160
-		var kind: String = Props.RURAL_KINDS[(i*7+i/10)%10]
+		var kind: String = Props.RURAL_KINDS[i%10]
 		if i%11 == 0: kind = ["coffee_shop","souvenir_shop","gas_station","street_shop"][(i/11)%4]
 		var scale: float = .98+(i%4)*.02
 		var radius: float = Props.radius(kind)*scale
+		if not preload("res://scripts/settlement_layout.gd").allows(track,d,radius): continue
 		var lane: float = track.half_width(d)+track.rail_setback(d,1.0)+radius+3.5+(i%3)*2
 		var p := terrain_point(d,lane)
 		var nearest: float = track.curve.get_closest_offset(p)

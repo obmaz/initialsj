@@ -33,7 +33,10 @@ func run(tree: SceneTree) -> int:
 		var right: Vector3 = (road.point(arch.distance,1)-center).normalized()
 		var opening: float = road.half_width(arch.distance)+road.rail_setback(arch.distance,1)
 		var overhead := 0
-		for vertex in arch.mesh.mesh.get_faces():
+		var vertices: PackedVector3Array = arch.mesh.mesh.get_faces()
+		for piece in arch.crown:
+			for vertex in piece.get_child(0).mesh.get_faces(): vertices.append(piece.transform*vertex)
+		for vertex in vertices:
 			if absf((vertex-center).dot(right)) <= opening:
 				overhead += 1
 				check(vertex.y-center.y > 12,"아치 안쪽은 모든 차선과 점프 여유 높이를 비워야 한다")

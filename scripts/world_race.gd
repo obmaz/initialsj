@@ -92,7 +92,7 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		rival.world_reverse_axis = 0.0
 
 func speed_of(body: CharacterBody3D) -> float:
-	return Vector2(body.velocity.x,body.velocity.z).length()
+	return body.velocity.slide(body.surface_normal).length() if body.grounded else Vector2(body.velocity.x,body.velocity.z).length()
 
 func frame(body: CharacterBody3D, visual: Node3D) -> Transform3D:
 	# Authored body offsets differ between selected cars and traffic models.
@@ -148,7 +148,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		accel = race.vehicle.boost_accel
 	if race.pad_active:
 		cap = maxf(cap,race.pad_speed_cap())
-		accel = maxf(accel,race.vehicle.boost_accel+12)
+		accel = maxf(accel,race.vehicle.boost_accel+8.4)
 	cap *= lerpf(1,0.58,race.offroad_amount)
 	if player_body.grounded: accel *= Corner.engine_factor(race.speed,cap,player_body.corner_demand,player_body.corner_grip)
 	var target: float = move_toward(race.speed,cap,accel*delta) if gas else maxf(0,race.speed-5*delta)
@@ -460,6 +460,7 @@ func update_rivals(delta: float) -> void:
 			var section_d: float = fposmod(d,race.track.length)
 			if section_d > collapse.span.x-300 and section_d < collapse.span.y+30: target_lane = minf(target_lane,1.0)
 		if race.track.active.rockfall != null: target_lane = race.track.active.rockfall.safe_lane(d,target_lane)
+		if race.track.active.closed_loop and race.track.active.course_id == 3: target_lane = race.track.scenery.rock_arches.safe_lane(d,target_lane)
 		var target: Vector3 = race.track.point(d+look,target_lane)
 		var direction: Vector3 = target-body.feet_position()
 		var forward: Vector3 = body.forward_direction()

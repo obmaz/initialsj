@@ -612,6 +612,8 @@ func competitor_position(id: int) -> int:
 	return place
 
 func restart() -> void:
+	hazard_text = ""
+	if track.active.closed_loop and track.active.course_id == 3: track.scenery.rock_arches.reset_effect()
 	haptics.stop()
 	edge_rumble = 0
 	crash.reset()
@@ -1025,6 +1027,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		brake = false
 		nitro_input = false
 		cell_input = false
+	hazard_text = ""
 	world_race.step(delta,axis,drift_input,gas,brake,nitro_input,cell_input)
 	if track.active.collapse != null:
 		track.active.collapse.advance(delta,distance,motion_reduced)
@@ -1033,6 +1036,11 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		track.active.rockfall.advance(delta,distance,laps_completed)
 		var rock_warning: String = track.active.rockfall.warning(distance)
 		if not rock_warning.is_empty(): hazard_text = rock_warning
+
+	if track.active.closed_loop and track.active.course_id == 3:
+		track.scenery.rock_arches.advance(delta,distance,laps_completed)
+		var arch_warning: String = track.scenery.rock_arches.warning(distance)
+		if not arch_warning.is_empty(): hazard_text = arch_warning
 
 func pad_speed_cap() -> float:
 	return maxf(vehicle.overdrive_speed+2,vehicle.max_speed+21)

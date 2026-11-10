@@ -82,7 +82,7 @@ func compare(rows: Dictionary, label: String) -> void:
 	check(float(rows.boost.exit_mps) < float(rows.boost_straight.exit_mps)-1,label+": nitro must not erase actual corner resistance")
 	check(float(rows.brake.exit_mps) < float(tight.exit_mps)-12,label+": braking must override full throttle during a turn")
 	check(absf(float(rows.air.exit_mps)-float(straight.exit_mps)) < 0.12 and rows.air.airborne,label+": steering while airborne must not apply grounded tyre scrub")
-	check(float(rows.launch.exit_mps) > float(rows.launch.entry_mps)+6,label+": reduced acceleration must still allow responsive low-speed throttle")
+	check(float(rows.launch.exit_mps) > float(rows.launch.entry_mps)+4.2,label+": 30% lower acceleration must still move the real car under low-speed throttle")
 	for key in rows:
 		check(rows[key].wall_hits == 0 and float(rows[key].offroad) < 0.01,label+": compare tyre resistance without impacts or dirt slowdown ("+key+")")
 
