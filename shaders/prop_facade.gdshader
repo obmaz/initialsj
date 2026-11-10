@@ -1,4 +1,5 @@
 shader_type spatial;
+uniform sampler2D container_skins : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D building_fronts : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D building_sides : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D restaurant_facades : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
@@ -10,7 +11,13 @@ varying float front;
 void vertex() { style=UV2.x;front=UV2.y;variant=INSTANCE_CUSTOM.r; }
 void fragment() {
  ALBEDO=COLOR.rgb;ROUGHNESS=.94;SPECULAR=.05;
- if(style>39.5 && style<49.5) {
+ if(style>59.5 && style<63.5) {
+  float index=floor(style+.5)-60.0;
+  vec2 cell=vec2(.25,.5);
+  vec2 uv=vec2(index*.25,front>1.5 ? .5 : 0.0)+vec2(.0015,.003)+UV*vec2(.247,.494);
+  ALBEDO=textureGrad(container_skins,uv,dFdx(UV)*cell,dFdy(UV)*cell).rgb;
+  METALLIC=.2;ROUGHNESS=.84;
+ } else if(style>39.5 && style<49.5) {
   float index=floor(style+.5)-40.0;
   vec2 q=UV;
   if(front>.5) q.x=1.0-q.x;

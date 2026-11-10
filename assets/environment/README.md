@@ -55,3 +55,6 @@ No downloaded photographs or original arcade-game assets are used for the curren
 `urban-harbor-facades.png`는 생성형 원본 `exec-cad2683c-4dc2-481d-a211-24b295d58741.png`의4×3 아틀라스입니다. 앞6칸은 벽돌·유리·아파트·보라색 타워·민트 오피스·사암 고전 외벽이고 뒤6칸은 서로 다른 야간 항만 창고입니다. `urban-truck-elevations.png`는 원본 `exec-fbfc42af-8f4d-4743-9b5f-c6fd166d364d.png`의4×3 아틀라스로, 앞6칸은 청록·테라코타·아이보리·차콜·분홍·황토의 추가 건물 외벽, 뒤6칸은 흰 트레일러 옆/뒤·파란 캐빈 앞/옆·적색 트레일러 옆/뒤입니다. 텍스처 영역만 셰이더에서 선택하며 원본을 잘라내거나 재편집하지 않았습니다.
 
 `riviera-sky-panorama.png`는 생성형 원본 `exec-13deda8f-bac7-4414-8a83-12f783041785.png`의2:1 위경도 하늘입니다. 푸른 하늘과 구름만 요청했고 시선 경도/위도로 매핑해 정면 사진을 늘리는 왜곡을 피합니다. 세 원본은 이미지 생성 도구로 제작했고 외부 사진·게임 에셋·실존 브랜드를 입력하지 않았습니다. 생성 원본은 `/workspace/generated_images/`에 보존합니다.
+
+
+`container-elevations.png`는 생성형 원본 `exec-c5fc9002-63b1-4504-8330-3a79c929197e.png`의4×2 아틀라스입니다. 위 행은 가상 해운사 NORDLINE·AURORA CARGO·PELAGIC FREIGHT·SUNPORT LOGISTICS의 긴 면, 아래 행은 같은 색상의 후면 문·잠금봉·경첩입니다. 실존 해운사 이름·로고를 사용하지 않고 원본의 골·도색·마모·문 구조를 UV로 입힙니다. `gorge-sunset-panorama.png`는 생성형 원본 `exec-d4b86b9c-5627-4587-bef1-12cb783f4e57.png`의2:1 노을 하늘입니다. 두 원본은 이미지 생성 도구로 제작했고 외부 사진·브랜드 에셋을 입력하지 않았습니다. 원본은 `/workspace/generated_images/`에 보존합니다.

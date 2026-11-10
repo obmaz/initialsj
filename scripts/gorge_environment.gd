@@ -8,6 +8,7 @@ func make_sky() -> Sky:
 	var sky := Sky.new()
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/riviera_sky.gdshader")
+	mat.set_shader_parameter("panorama",preload("res://assets/environment/gorge-sunset-panorama.png"))
 	sky.sky_material = mat
 	sky.radiance_size = Sky.RADIANCE_SIZE_128
 	return sky

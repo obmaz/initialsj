@@ -135,7 +135,11 @@ func make_yard() -> void:
 		for tier in range(tiers):
 			stacks[(colour_index+tier)%colours.size()].append(pose(d,lane,1.25+tier*2.5,rng.randf_range(-0.05,0.05)))
 	for index in range(colours.size()):
-		batch("Containers"+str(index),Vector3(12,2.45,2.6),lit(colours[index],0.16),stacks[index])
+		var skin := ShaderMaterial.new()
+		skin.shader = preload("res://shaders/container_skin.gdshader")
+		skin.set_shader_parameter("skins",preload("res://assets/environment/container-elevations.png"))
+		skin.set_shader_parameter("brand",index)
+		batch("Containers"+str(index),Vector3(12,2.45,2.6),skin,stacks[index])
 
 func make_warehouses() -> void:
 	var poses: Array[Transform3D] = []
@@ -283,8 +287,18 @@ func make_gates() -> void:
 		var base := pose(d,0.0,0.0)
 		for side in [-1.0,1.0]:
 			posts.append(base.translated_local(Vector3(side*half,3.2,0)))
-		bars.append(base.translated_local(Vector3(0,6.7,0)).scaled_local(Vector3(half*2+1.0,0.9,0.5)))
+		bars.append(base.translated_local(Vector3(0,6.7,0)).scaled_local(Vector3(half*2+1.0,1.8,0.5)))
+		var sign := Label3D.new()
+		var bend: float = track.curvature(d+50)
+		sign.text = "< LEFT CURVE / DRIFT" if bend > 0 else "DRIFT / RIGHT CURVE >"
+		sign.font = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
+		sign.font_size = 96
+		sign.pixel_size = .016
+		sign.modulate = Color("ffd185")
+		sign.transform = base*Transform3D(Basis.IDENTITY,Vector3(0,6.7,.35))
+		sign.name = "DriftDirection"+str(get_child_count())
+		add_child(sign)
 		strips.append(base.translated_local(Vector3(0,5.6,0)).scaled_local(Vector3(half*2-1.0,0.12,0.2)))
 	batch("DriftGatePosts",Vector3(0.5,6.4,0.5),lit(Color("1b2630"),0.2),posts)
-	batch("DriftGateBars",Vector3(1,1,1),lit(Color("ff2d95"),2.6),bars)
+	batch("DriftGateBars",Vector3(1,1,1),lit(Color("152433"),0.12),bars)
 	batch("DriftGateStrips",Vector3(1,1,1),lit(Color("32e6ff"),3.0),strips)

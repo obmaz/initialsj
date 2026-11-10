@@ -67,7 +67,7 @@ func run(tree: SceneTree) -> int:
 	var active := 0
 	for r in race.rivals:
 		if r.active: active += 1
-	check(active == 7,"Speedway must keep a fixed eight-car grid")
+	check(active == 15,"Speedway must use sixteen competitors while other circuits retain eight")
 	# Lap counting and the three-lap finish are checked by a real drive in suncoast_world_checks.gd.
 	FileAccess.open(Report.path("speedway-course-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"length_m":race.track.length,"elevation_span_m":highest-lowest,"maximum_grade":maximum_grade,"max_bank_degrees":rad_to_deg(max_bank),"min_bank_degrees":rad_to_deg(min_bank),"max_bank_change_rad_per_m":max_step,"tightest_radius_m":radius,"failures":failures},"\t")+"\n")
 	race.queue_free()

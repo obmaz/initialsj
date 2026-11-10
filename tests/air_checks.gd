@@ -124,6 +124,8 @@ func run(tree: SceneTree) -> int:
 	race.air.height = 0
 	race.air.active = false
 	other.distance = race.distance+2.5
+	other.lane = race.lane
+	other.air.height = 0
 	check(not race.contact_with(other).is_empty(),"Ground-level contact must remain active after landing")
 	FileAccess.open(Report.path("jump-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"cases":report,"grade_speed_cases":grades,"failures":failures},"\t")+"\n")
 	print("Ramp / shorter ballistic flight / road grade / landing / vertical collision checks: ","PASS" if failures == 0 else "FAIL (%d)" % failures)

@@ -224,6 +224,20 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 			["boost",2355.0,-0.30,20.0,3.4],
 			["boost",2670.0,0.0,24.0,3.6]
 		])
+	if section.closed_loop and section.course_id == 3:
+		# 점프·가속 차로는 아치 붕괴와 좁아지는 협곡 진입을 피해 넓은 구간에 둔다.
+		for desired in [500.0,1780.0]:
+			var at := gentle_distance(section,desired)
+			var lane := .52 if desired < 1000 else -.52
+			specifications.append(["boost",at-75,lane,22.0,3.6])
+			specifications.append(["ramp",at,lane,18.0,4.2,1.0])
+		specifications.append_array([
+			["boost",180.0,.38,22.0,3.6],
+			["boost_lane",680.0,.42,120.0,3.6],
+			["boost",1530.0,.34,22.0,3.6],
+			["boost",2780.0,-.34,22.0,3.6],
+			["boost_lane",section.length-360,-.42,180.0,3.8]
+		])
 	if section.closed_loop and section.course_id == 4:
 		# 착지 구간과 코너 진입을 비워 두고, 패드 선택에 따라 주행선을 바꿉니다.
 		for start in [170.0,1720.0]:

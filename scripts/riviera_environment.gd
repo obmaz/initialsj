@@ -1,6 +1,7 @@
 extends Node3D
 # 바다·절벽·마을이 실제 도로 높이에 이어지는 해안 지형입니다.
 # 먼 산은 낮은 다각형 수의 입체 섬이며 가로수·상점은 기존 원본 메시를 배치합니다.
+const Profile = preload("res://scripts/riviera_profile.gd")
 var track: Node3D
 var theme := "riviera"
 var tree_batches: Array[MultiMeshInstance3D] = []
@@ -23,7 +24,12 @@ func terrain_point(d: float, lane: float) -> Vector3:
 	# 차선 안의 지형도 뱅킹을 따라 낮춰야 안쪽 차선을 흙과 충돌면이 덮지 않습니다.
 	var road_y: float = track.point(d,clampf(lane,-17,17)).y
 	if lane < 0:
-		p.y = lerpf(road_y-0.28,-2.8,smoothstep(17,110,absf(lane)))
+		var reach := absf(lane)
+		var coast := lerpf(road_y-0.28,-2.8,smoothstep(17,110,reach))
+		coast = lerpf(coast,-5.0,smoothstep(170,230,reach))
+		# 협곡으로 들어갈 때만 반도가 천천히 솟고, 먼 해안은 수면 아래로 돌아간다.
+		var peninsula := lerpf(road_y-.28,-4.0,smoothstep(180,410,reach))
+		p.y = lerpf(coast,peninsula,Profile.canyon_amount(d)*smoothstep(22,68,reach))
 	else:
 		p.y = road_y-0.28+26*smoothstep(20,115,lane)*(0.7+0.3*sin(d*0.004))
 	return p
@@ -50,6 +56,7 @@ func band(inner: float, outer: float, color: Color) -> void:
 	add_child(node)
 
 func _ready() -> void:
+	band(-420,-180,Color("d2c5a1"))
 	band(-180,-75,Color("e5d5a7"))
 	band(-75,-18,Color("bda47b"))
 	band(-18,18,Color("d8c699"))

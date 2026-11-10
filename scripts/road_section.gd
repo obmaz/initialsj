@@ -29,6 +29,7 @@ var bridge_upper_distance := 0.0
 var scenery: Node3D
 var road_surface: MeshInstance3D
 var rockfall: Node3D
+var speedway_board: Node3D
 var collapse: Node3D
 var skid_meshes: Array[MeshInstance3D] = []
 var prop_batches: Array[MultiMeshInstance3D] = []
@@ -206,7 +207,7 @@ func authored_half_width(distance: float) -> float:
 	if closed_loop and course_id == 1: return width_profile(SUNCOAST_WIDTH,fposmod(distance,length)/length)
 	if closed_loop and course_id == 2: return width_profile(NIGHT_WIDTH,fposmod(distance,length)/length)
 	if closed_loop and course_id == 4: return 11.6+1.0*pow(sin(TAU*fposmod(distance,length)/length),2)
-	if closed_loop and course_id == 3: return 12.4+1.4*pow(sin(TAU*fposmod(distance,length)/length),2)
+	if closed_loop and course_id == 3: return preload("res://scripts/riviera_profile.gd").half_width(distance,length)
 	if closed_loop: return width_profile(FUJI_WIDTH,fposmod(distance,length)/length)
 	var t := clampf(distance/length,0,1)
 	var blend := smoothstep(180,360,distance)*(1-smoothstep(length-360,length-180,distance))
@@ -379,7 +380,11 @@ func _ready() -> void:
 	if stage == 0 or stage == 4:
 		make_finish_stripe(stripe_d)
 	if closed_loop:
-		make_gantry(80,["FUJI LAKESIDE","SUNCOAST SPEEDWAY","MIDNIGHT HARBOR","AZURE RIVIERA","SCARLET GORGE"][clampi(course_id,0,4)]+" / START - FINISH")
+		if course_id == 1:
+			speedway_board = preload("res://scripts/speedway_scoreboard.gd").new()
+			speedway_board.road = self
+			add_child(speedway_board)
+		else: make_gantry(80,["FUJI LAKESIDE","SUNCOAST SPEEDWAY","MIDNIGHT HARBOR","AZURE RIVIERA","SCARLET GORGE"][clampi(course_id,0,4)]+" / START - FINISH")
 	elif stage < 4:
 		make_gantry(checkpoint_distance(),"CHECKPOINT",Color("e3ad38"))
 		make_checkpoint_stripe(checkpoint_distance())

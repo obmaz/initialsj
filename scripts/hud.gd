@@ -466,14 +466,15 @@ func _draw() -> void:
 	draw_pad_badges()
 
 func draw_position(_rows: Array[Dictionary]) -> void:
-	draw_colored_polygon(PackedVector2Array([Vector2(25,14),Vector2(226,14),Vector2(200,78),Vector2(8,78)]),Color("17171cdd"))
+	var wide: bool = race.mode == "track" and race.competitor_count() > 9
+	draw_colored_polygon(PackedVector2Array([Vector2(25,14),Vector2(278 if wide else 226,14),Vector2(252 if wide else 200,78),Vector2(8,78)]),Color("17171cdd"))
 	slant(Rect2(23,18,72,29),Color("090a10b3"),7)
 	text_at(Vector2(32,40),"POS" if race.mode == "track" else "STG",24)
 	var transform := Transform2D(Vector2(ui_scale(),0),Vector2(0,ui_scale()),ui_offset())
 	draw_set_transform_matrix(transform*Transform2D(Vector2(1,0),Vector2(-0.18,1),Vector2(94,70)))
 	text_at(Vector2.ZERO,str(race.race_position() if race.mode == "track" else race.stage_index+1),72,GOLD,true,POSITION_FONT)
 	draw_set_transform(ui_offset(),0,Vector2.ONE*ui_scale())
-	text_at(Vector2(151,67),"/8" if race.mode == "track" else "/5",40,WHITE,true,NUMBER_FONT)
+	text_at(Vector2(198 if wide else 151,67),"/%d" % race.competitor_count() if race.mode == "track" else "/5",36 if wide else 40,WHITE,true,NUMBER_FONT)
 	var title: String = race.course_title if race.mode == "track" else Library.title(race.stage_index,race.route_node)
 	slant(Rect2(13,89,190,25),Color("073d59c9"),6,true)
 	text_at(Vector2(24,107),title,14,CYAN)
@@ -852,6 +853,7 @@ func draw_menu() -> void:
 		draw_garage()
 		return
 	if race.state == "countdown":
+		if race.mode == "track" and race.selected_course == 1: centered(Vector2(640,420),"ROLLING START / 16 CARS",27,CYAN)
 		slant(Rect2(568, 248, 144, 136), Color("11121bba"), 24)
 		var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
 		centered(Vector2(640, 353), str(maxi(1, ceili(race.countdown))), int(90 + 18 * pulse), GOLD)
@@ -864,7 +866,7 @@ func draw_menu() -> void:
 		var title := ("RACE PAUSED" if race.mode == "track" else "TOUR PAUSED") if race.state == "paused" else (("RACE FINISHED" if race.mode == "track" else "GOAL CLEAR!") if race.state == "finished" else "TIME OVER")
 		text_at(Vector2(307, 224), title, 62)
 		if race.state == "finished":
-			var detail := ("POS %d / 8" % race.race_position()) if race.mode == "track" else ("SCORE %d" % int(race.score))
+			var detail := ("POS %d / %d" % [race.race_position(),race.competitor_count()]) if race.mode == "track" else ("SCORE %d" % int(race.score))
 			text_at(Vector2(307,288),detail,32,GOLD)
 		elif race.state == "failed":
 			text_at(Vector2(307,292),"SCORE %d" % int(race.score),32,GOLD)

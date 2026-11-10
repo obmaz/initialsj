@@ -22,7 +22,7 @@ var crash_flight := false
 var outside_time := 0.0
 
 func setup() -> void:
-	for i in range(8):
+	for i in range(race.competitor_count()):
 		var body: CharacterBody3D = WorldCar.new()
 		body.name = "PlayerWorldBody" if i == 0 else "RivalWorldBody"+str(i)
 		body.cheap_adhesion = i > 0
@@ -107,7 +107,7 @@ func place_cars() -> void:
 		rival.car.body.rotation.y = 0
 		rival.car.visible = rival.active and bodies[i].position.distance_to(player_body.position) < 460
 		rival.car.set_detail(bodies[i].position.distance_to(player_body.position))
-	for i in range(7,race.rivals.size()): race.rivals[i].car.visible = false
+	for i in range(bodies.size()-1,race.rivals.size()): race.rivals[i].car.visible = false
 
 func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool, cell_input: bool) -> void:
 	for i in range(1,bodies.size()):
@@ -117,7 +117,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 			bodies[i].collision_mask = 7 if layer else 0
 	var old_position := Vector2(race.lane,race.distance)
 	var old_gaps: Array[float] = []
-	for i in range(7): old_gaps.append(race.relative_gap(race.rivals[i].distance,race.distance))
+	for i in range(bodies.size()-1): old_gaps.append(race.relative_gap(race.rivals[i].distance,race.distance))
 	var was_airborne: bool = race.air.active
 	race.elapsed += delta
 	for field in ["near_miss_flash","overtake_flash","checkpoint_flash","launch_flash"]:
@@ -287,7 +287,7 @@ func update_air(delta: float, was_airborne: bool) -> void:
 
 func update_passes(old_gaps: Array[float], previous_distance: float) -> void:
 	if race.distance <= previous_distance or player_body.velocity.dot(player_body.forward_direction()) < 10: return
-	for i in range(7):
+	for i in range(bodies.size()-1):
 		var rival: Dictionary = race.rivals[i]
 		if not rival.active: continue
 		var gap: float = race.relative_gap(rival.distance,race.distance)

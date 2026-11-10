@@ -186,11 +186,14 @@ func make_bridge() -> void:
 	boxes("BridgeStructuralDeck",deck_slabs,Color("747b77"))
 
 func cliff_point(d: float, side: float, tier: float) -> Vector3:
-	var offsets := [32.0,40.0,56.0,68.0,102.0,180.0]
-	var heights := [-2.0,36.0,44.0,78.0,96.0,110.0]
-	var envelope := smoothstep(0,110,d-current_span.x)*(1-smoothstep(current_span.y-110,current_span.y,d))
+	var riviera: bool = track.closed_loop and track.course_id == 3
+	var seaside: bool = riviera and side < 0
+	var offsets: Array = preload("res://scripts/riviera_profile.gd").SEA_CLIFF_OFFSETS if seaside else [32.0,40.0,56.0,68.0,102.0,180.0]
+	var heights: Array = preload("res://scripts/riviera_profile.gd").SEA_CLIFF_HEIGHTS if seaside else [-2.0,36.0,44.0,78.0,96.0,110.0]
+	var fade := 240.0 if riviera else 110.0
+	var envelope := smoothstep(0,fade,d-current_span.x)*(1-smoothstep(current_span.y-fade,current_span.y,d))
 	var ripple := sin(d*0.033+side*1.7)*3+sin(d*0.011)*5
-	var k := mini(int(tier),4)
+	var k := mini(int(tier),offsets.size()-2)
 	var blend := tier-k
 	var offset: float = lerpf(offsets[k],offsets[k+1],blend)
 	var elevation: float = lerpf(heights[k],heights[k+1],blend)
@@ -200,11 +203,14 @@ func cliff_point(d: float, side: float, tier: float) -> Vector3:
 	if side*bend < 0:
 		lane = side*minf(absf(lane),maxf(track.half_width(d)+40,0.64/maxf(absf(bend),0.0001)))
 	var p: Vector3 = track.point(d,lane)
+	if riviera: p.y = track.scenery.terrain_point(d,lane).y-.4
 	p.y += elevation*envelope+(0 if tier == 0 else ripple*envelope)
 	return p
 
 var current_span := Vector2.ZERO
 func make_canyon(span: Vector2) -> void:
+	var riviera: bool = track.closed_loop and track.course_id == 3
+	if riviera: span += Vector2(-200,200)
 	current_span = span
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -213,7 +219,7 @@ func make_canyon(span: Vector2) -> void:
 		for i in range(count):
 			var a := lerpf(span.x,span.y,float(i)/count)
 			var b := lerpf(span.x,span.y,float(i+1)/count)
-			for row in range(20):
+			for row in range(28 if riviera and side < 0 else 20):
 				var tier := row/4.0
 				var points := [cliff_point(a,side,tier),cliff_point(a,side,tier+.25),cliff_point(b,side,tier),cliff_point(b,side,tier+.25)]
 				for index in ([0,1,2,1,3,2] if side > 0 else [0,2,1,1,2,3]): st.add_vertex(points[index])

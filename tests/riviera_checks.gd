@@ -35,7 +35,7 @@ func run(tree: SceneTree) -> int:
 		low = minf(low,section.point(d).y)
 		high = maxf(high,section.point(d).y)
 		if absf(section.curvature(d)) > 0.004: bends += 1
-		check(section.half_width(d) >= 12,"드리프트 여유가 있는 넓은 4차선 도로여야 합니다")
+		check(section.half_width(d) >= 9.8 and section.half_width(d) <= 13.8,"협곡에서는 완만하게 좁아지고 나머지는 넓은 드리프트 도로여야 합니다")
 		for lane in [-11.0,0.0,11.0]:
 			check(section.scenery.terrain_point(d,lane).y < section.point(d,lane).y-0.2,"뱅킹 안쪽 차선을 지형이 덮으면 안 됩니다")
 	check(high-low >= 40 and bends > 20,"완만한 고저차와 긴 곡선이 실제 도로에 있어야 합니다")

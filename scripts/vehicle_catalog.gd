@@ -16,9 +16,9 @@ static func audio(index: int) -> Dictionary:
 
 static func record_key(index: int, mode: String = "tour", course: int = 0) -> String:
 	if mode == "track" and course == 4: return "track_gorge_v5_best_time_"+str(spec(index).id)
-	if mode == "track" and course == 3: return "track_riviera_v2_best_time_"+str(spec(index).id)
+	if mode == "track" and course == 3: return "track_riviera_v3_best_time_"+str(spec(index).id)
 	if mode == "track" and course == 2: return "track_midnight_scrub_v2_best_time_"+str(spec(index).id)
-	if mode == "track" and course == 1: return "track_suncoast_scrub_v5_best_time_"+str(spec(index).id)
+	if mode == "track" and course == 1: return "track_suncoast_rolling_v6_best_time_"+str(spec(index).id)
 	return ("track_fuji_scrub_v4_best_time_" if mode == "track" else "tour_world_v2_best_time_")+str(spec(index).id)
 
 # Shared ten-point ranges: 60–92 m/s cruise, 0–36 m/s² launch, 0–60 m/s² boost.

@@ -8,7 +8,7 @@ static func inhabited(kind: String) -> bool:
 
 static func canyon_spans(road: Node3D) -> Array[Vector2]:
 	if road.closed_loop:
-		if road.course_id == 3: return [Vector2(950,1320),Vector2(2220,2530)]
+		if road.course_id == 3: return preload("res://scripts/riviera_profile.gd").CANYONS
 		if road.course_id == 4: return [Vector2(1000,road.length-200)]
 	elif Library.theme(road.stage,road.route_node) == "canyon":
 		return [Vector2(300,1700),Vector2(2390,road.length-280)]

@@ -49,6 +49,7 @@ func _ready() -> void:
  if shared_material == null:
   shared_material = ShaderMaterial.new()
   shared_material.shader = preload("res://shaders/prop_facade.gdshader")
+  shared_material.set_shader_parameter("container_skins",preload("res://assets/environment/container-elevations.png"))
   shared_material.set_shader_parameter("building_fronts",preload("res://assets/environment/building-front-elevations.png"))
   shared_material.set_shader_parameter("building_sides",preload("res://assets/environment/building-side-elevations.png"))
   shared_material.set_shader_parameter("rural_fronts",preload("res://assets/environment/rural-fronts.png"))
@@ -139,7 +140,7 @@ static func append(st: SurfaceTool, mesh: Mesh, transform: Transform3D, color: C
   var v := vertices[index]
   var n := normals[index]
   st.set_uv(Vector2(v.z+.5,.5-v.y) if absf(n.x)>.5 else Vector2((.5-v.x) if n.z>0 else (v.x+.5),.5-v.y))
-  st.set_uv2(Vector2(10+facade,1 if n.z>.5 else 0) if facade>=0 and absf(n.y)<.5 else Vector2.ZERO)
+  st.set_uv2(Vector2(10+facade,(2 if absf(n.z)>.5 else 0) if facade>=50 else (1 if n.z>.5 else 0)) if facade>=0 and absf(n.y)<.5 else Vector2.ZERO)
   st.set_normal((normal_basis*normals[index]).normalized())
   st.add_vertex(transform*vertices[index])
 static func model(kind: String) -> ArrayMesh:
@@ -346,7 +347,7 @@ static func model(kind: String) -> ArrayMesh:
    for row in range(3):
     for tier in range(4 if row != 1 else 3):
      var paint: Color = paints[(row*2+tier*3)%paints.size()]
-     box(st,Vector3(row*2.7-2.7,1.3+tier*2.65,0),Vector3(2.5,2.55,12),paint)
+     box(st,Vector3(row*2.7-2.7,1.3+tier*2.65,0),Vector3(2.5,2.55,12),paint,0,50+(row+tier)%4)
      for rib in range(6): box(st,Vector3(row*2.7-2.7,1.3+tier*2.65,-5.4+rib*2.15),Vector3(2.55,2.4,0.1),paint.darkened(0.25))
   "warehouse_shed":
    box(st,Vector3(0,3.2,0),Vector3(14,6.4,26),Color("8c97a0"),0,5)
@@ -371,7 +372,7 @@ static func model(kind: String) -> ArrayMesh:
    for row in range(3):
     for bay in range(7):
      for tier in range(1+(row+bay)%3):
-      box(st,Vector3(row*5.4-5.4,8.2+tier*2.65,-34+bay*8.4),Vector3(5.1,2.55,8.1),paints2[(row*3+bay+tier)%paints2.size()])
+      box(st,Vector3(row*5.4-5.4,8.2+tier*2.65,-34+bay*8.4),Vector3(5.1,2.55,8.1),paints2[(row*3+bay+tier)%paints2.size()],0,50+(row+bay+tier)%4)
   "coffee_shop":
    box(st,Vector3(0,1.9,0),Vector3(8,3.8,6),Color("b08a5e"),0,0)
    box(st,Vector3(0,3.95,0),Vector3(9,0.4,7),Color("4f3d30"))
@@ -414,7 +415,7 @@ static func model(kind: String) -> ArrayMesh:
    box(st,Vector3(0,0.06,0.4),Vector3(7.6,0.12,2.6),Color("858c87"))
   "containers":
    for i in range(3):
-    box(st,Vector3((i%2)*3.3,1.5+(i/2)*3.1,0),Vector3(3.1,3,8),Color(["a45540","466f7f","c49c4f"][i]))
+    box(st,Vector3((i%2)*3.3,1.5+(i/2)*3.1,0),Vector3(3.1,3,8),Color(["a45540","466f7f","c49c4f"][i]),0,50+i)
     for rib in range(8): box(st,Vector3((i%2)*3.3+1.58,1.5+(i/2)*3.1,-3.5+rib),Vector3(0.08,2.8,0.1),Color("73867e"))
   "torii":
    for side in [-1,1]:

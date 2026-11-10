@@ -419,11 +419,14 @@ func _exit_tree() -> void:
 		web_back_callback = null
 		web_fullscreen_callback = null
 
+func competitor_count() -> int:
+	return 16 if mode == "track" and selected_course == 1 else 8
+
 func initialize_traffic() -> void:
 	brain.initialize(rivals)
 	if mode == "track":
 		for r in rivals:
-			r.active = r.id < 7
+			r.active = r.id < competitor_count()-1
 			r.distance = 95.0+int(r.id/2)*10
 			r.lane = -2.0 if r.id%2 == 0 else 2.0
 			r.target_lane = r.lane
@@ -499,6 +502,7 @@ func choose_mode(value: String, course: int = 0) -> void:
 	track = Circuit.new() if mode == "track" else Track.new()
 	if mode == "track": track.course_id = selected_course
 	add_child(track)
+	rim_light.light_color = Color.WHITE
 	if mode == "track":
 		atmosphere.sky = track.scenery.make_sky()
 		if selected_course == 2:
@@ -527,6 +531,18 @@ func choose_mode(value: String, course: int = 0) -> void:
 			atmosphere.fog_density = 0.00022
 			atmosphere.tonemap_exposure = 0.76
 			sun_light.light_energy = 0.85
+		if selected_course == 4:
+			# 파노라마 태양 U=.65,V=.49와 같은 방위·낮은 고도의 주광을 고정한다.
+			sun_light.rotation_degrees = Vector3(-5,54,0)
+			sun_light.light_color = Color("ffbf82")
+			sun_light.light_energy = .78
+			atmosphere.ambient_light_color = Color("899ec5")
+			atmosphere.ambient_light_energy = .38
+			atmosphere.fog_light_color = Color("bd9fa8")
+			atmosphere.fog_density = .00038
+			atmosphere.tonemap_exposure = .9
+			rim_light.light_color = Color("a2b6db")
+			rim_light.light_energy = .14
 	else:
 		var sky := Sky.new()
 		sky.sky_material = sky_colors
@@ -691,7 +707,9 @@ func restart() -> void:
 	camera_intro = 0
 	state = "countdown"
 	initialize_traffic()
-	if world_race != null: world_race.reset()
+	if world_race != null:
+		world_race.reset()
+		if mode == "track" and selected_course == 1: preload("res://scripts/rolling_start.gd").begin(self)
 	tire_trails.reset()
 	place_cars()
 	update_camera(1)
@@ -887,6 +905,7 @@ func load_record() -> void:
 	new_record = false
 	var saved := ConfigFile.new()
 	if saved.load("user://records.cfg") == OK: best_time = float(saved.get_value(RECORD_GROUP,Catalog.record_key(selected_vehicle,mode,selected_course),0))
+	if mode == "track" and selected_course == 1: track.active.speedway_board.bind(self)
 
 func select_vehicle(index: int) -> void:
 	if state != "ready": return
@@ -951,8 +970,10 @@ func _physics_process(delta: float) -> void:
 	return_flash = maxf(0,return_flash-delta)
 	update_atmosphere(delta)
 	if state == "countdown":
+		if mode == "track" and selected_course == 1: preload("res://scripts/rolling_start.gd").advance(self,minf(delta,countdown))
 		countdown -= delta
 		if countdown <= 0:
+			if mode == "track" and selected_course == 1: preload("res://scripts/rolling_start.gd").release(self)
 			state = "racing"
 			launch_flash = 0.7
 	if state == "racing":
@@ -1038,6 +1059,7 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		if not rock_warning.is_empty(): hazard_text = rock_warning
 
 	if track.active.closed_loop and track.active.course_id == 3:
+		hazard_text = preload("res://scripts/riviera_profile.gd").warning(fposmod(distance,track.length))
 		track.scenery.rock_arches.advance(delta,distance,laps_completed)
 		var arch_warning: String = track.scenery.rock_arches.warning(distance)
 		if not arch_warning.is_empty(): hazard_text = arch_warning
@@ -1166,6 +1188,8 @@ func finish() -> void:
 			saved.load("user://records.cfg")
 			saved.set_value(RECORD_GROUP,Catalog.record_key(selected_vehicle,mode,selected_course),best_time)
 			saved.save("user://records.cfg")
+	if mode == "track" and selected_course == 1:
+		track.active.speedway_board.add_result(elapsed,str(vehicle.name),save_records)
 
 func contact_with(r: Dictionary) -> Dictionary:
 	var own: Vector3 = track.point(distance,lane)
@@ -1283,6 +1307,7 @@ func update_atmosphere(delta: float) -> void:
 			var heading := look.normalized().rotated(Vector3.UP,deg_to_rad(24))
 			(atmosphere.sky.sky_material as ShaderMaterial).set_shader_parameter("moon_direction",Vector3(heading.x,0.115,heading.z))
 		return
+	if mode == "track" and selected_course == 4: return
 	if mode == "track":
 		var sheltered: bool = track.active.in_tunnel(distance)
 		var blend := 1-exp(-delta*3)
