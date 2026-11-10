@@ -6,6 +6,8 @@ var previous: Section
 var sibling: Section
 var previews: Array[Section] = []
 var history: Array[int] = []
+var weather_seed := int(Time.get_ticks_usec()%100000)
+const RegionMetadata = preload("res://scripts/tour_region_metadata.gd")
 var base_material: StandardMaterial3D
 var ground_plane: MeshInstance3D
 var length: float:
@@ -56,7 +58,14 @@ func reset(stage: int = 0, node_index: int = 0) -> void:
 	previous = null
 	sibling = null
 	for i in range(stage): history.append(1 if i < node_index else 0)
+	weather_seed += 37
+	var previous_weather := "clear"
+	var previous_node := 0
+	for i in range(stage):
+		previous_weather = RegionMetadata.resolve(Library.theme(i,previous_node),previous_weather,weather_seed).weather
+		previous_node += history[i]
 	active = Section.new(Vector3(0,6,0),-PI/2,stage,node_index)
+	active.region_metadata = RegionMetadata.resolve(Library.theme(stage,node_index),previous_weather,weather_seed)
 	add_child(active)
 	add_world_collision(active)
 	build_previews()
@@ -76,6 +85,7 @@ func build_previews() -> void:
 	if not previews.is_empty() or active.stage >= Library.STAGES - 1: return
 	for side in [0,1]:
 		var section := Section.new(active.point(active.length),active.heading(active.length),active.stage+1,active.route_node+side,-1 if side == 0 else 1)
+		section.region_metadata = RegionMetadata.resolve(Library.theme(section.stage,section.route_node),active.region_metadata.weather,weather_seed)
 		add_child(section)
 		add_world_collision(section)
 		previews.append(section)

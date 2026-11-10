@@ -10,7 +10,7 @@ RESOURCE = re.compile(r'''["']res://([^"'\n]+)["']''')
 LINK = re.compile(r'!?\[[^\]]*\]\(([^\s)]+)(?:\s+"[^"]*")?\)')
 # The retirement worker is served at a compatibility URL by the deploy workflow.
 ROOTS = ("project.godot", "export_presets.cfg", "web/retire-flutter-worker.js")
-MODEL_DIRECTORIES = {"models/props", "models/vehicles", "models/buildings"}
+MODEL_DIRECTORIES = {"models/props", "models/vehicles", "models/buildings", "models/vegetation"}
 errors = []
 
 

@@ -26,6 +26,7 @@ var bank_samples := PackedFloat32Array()
 var bridge_span := Vector2.ZERO
 var bridge_lower_distance := 0.0
 var bridge_upper_distance := 0.0
+@export var region_metadata: Dictionary = {}
 var scenery: Node3D
 var road_surface: MeshInstance3D
 var rockfall: Node3D
@@ -335,6 +336,7 @@ func paint(color: Color) -> ShaderMaterial:
 	return mat
 
 func _ready() -> void:
+	if region_metadata.is_empty(): region_metadata = preload("res://scripts/tour_region_metadata.gd").resolve(Library.theme(stage,route_node))
 	if not closed_loop and stage == 0: bridge_span = Vector2(850,1380)
 	if closed_loop and course_id == 4:
 		collapse = preload("res://scripts/bridge_collapse.gd").new()
@@ -344,6 +346,7 @@ func _ready() -> void:
 	rng.seed = 8417
 	var asphalt := ShaderMaterial.new()
 	asphalt.shader = ASPHALT_SHADER
+	asphalt.set_shader_parameter("rain_wetness",1.0 if region_metadata.get("weather","") == "rain" and not closed_loop else 0.0)
 	asphalt.set_shader_parameter("asphalt_texture", ASPHALT)
 	asphalt.set_shader_parameter("asphalt_variants",preload("res://assets/environment/asphalt-variants.png"))
 	strip(-10.5, 10.5, -0.15, material(Color("7e8477"))).name = "RoadBase"

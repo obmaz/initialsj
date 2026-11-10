@@ -55,3 +55,27 @@
 `container-elevations.png`는 생성형 원본 `exec-c5fc9002-63b1-4504-8330-3a79c929197e.png`의4×2 아틀라스입니다. 위 행은 가상 해운사 NORDLINE·AURORA CARGO·PELAGIC FREIGHT·SUNPORT LOGISTICS의 긴 면, 아래 행은 같은 색상의 후면 문·잠금봉·경첩입니다. 실존 해운사 이름·로고를 사용하지 않고 원본의 골·도색·마모·문 구조를 UV로 입힙니다. `gorge-sunset-panorama.png`는 생성형 원본 `exec-d4b86b9c-5627-4587-bef1-12cb783f4e57.png`의2:1 노을 하늘입니다. 두 원본은 이미지 생성 도구로 제작했고 외부 사진·브랜드 에셋을 입력하지 않았습니다. 원본은 `/workspace/generated_images/`에 보존합니다.
 
 프로젝트 홍보6종과 상품 광고30종의 출처·프롬프트는 [프로젝트 홍보](project-promo-source.md)와 [상품 광고](product-ad-source.md)에 기록합니다. 경주 광고4종과 벡터8종을 포함한 전체48종 선택·순환은 `advertisement_library.gd`가 담당합니다.
+
+## 투어 도착지 5종 파노라마
+
+image_gen.imagegen으로 생성한 2:1 위경도 이미지입니다. 외부 입력 이미지를 사용하지 않았습니다. 골 직전 도로 접선에 중심 경도를 맞추고 카메라의 실제 시선으로 다른 경도를 읽습니다. 카메라를 따라 도는 평면 카드가 아닙니다. 양 끝 경계는 좁은 영역에서 혼합합니다.
+
+- `goal-canyon.png`: 생성 원본 `exec-38e4ef42-0170-4705-b6a5-3293f9d75bc5.png`. 360도 수평 시야·수평선·다른 방향의 실루엣·무문자·무차량·무도로를 요청했습니다.
+
+- `goal-harbor.png`: 생성 원본 `exec-6f1e6596-eefc-439d-ab49-e388d6cd591d.png`. 360도 수평 시야·수평선·다른 방향의 실루엣·무문자·무차량·무도로를 요청했습니다.
+
+- `goal-bamboo.png`: 생성 원본 `exec-be37aa7d-bdce-4efb-9349-b7de19695f4a.png`. 360도 수평 시야·수평선·다른 방향의 실루엣·무문자·무차량·무도로를 요청했습니다.
+
+- `goal-snow.png`: 생성 원본 `exec-c08cfa25-6f24-4686-9e30-6cdaf2149975.png`. 360도 수평 시야·수평선·다른 방향의 실루엣·무문자·무차량·무도로를 요청했습니다.
+
+- `goal-volcano.png`: 생성 원본 `exec-cb3cef87-2bf1-4748-a2bd-ab8d2e151de6.png`. 360도 수평 시야·수평선·다른 방향의 실루엣·무문자·무차량·무도로를 요청했습니다.
+
+## 바다 표면
+
+`ocean-ripples.png`는 image_gen.imagegen 원본 `exec-2a49ef68-4cf2-4483-8139-6dcf1da59c90.png`를 복사했습니다. 수직 정면·반복 가능한 청록 바다·작은 교차 물결·가느다란 포말·무문자·무해안·무선박을 요청했습니다. 실제 조명 아래 서로 다른 축척과 방향으로 두 번 이동 샘플링하고 파도 법선·프레넬·포말과 혼합합니다. 고정된 태양 반사를 이미지에 넣지 않도록 요청했습니다.
+
+`tour-sand-variants.png`: image_gen.imagegen 원본 `exec-5798ecac-e2e0-46ac-8a0e-4fc3181ae218.png`. 같은 재료의 서로 다른 결4종을 2×2 정면·균일 조명·무문자·무소품·무발자국으로 요청했습니다. 원본을 재편집하지 않고 셰이더에서 셀을 혼합합니다.
+
+`tour-snow-variants.png`: image_gen.imagegen 원본 `exec-d7305e91-c360-4e1f-9b13-49ff28c42772.png`. 같은 재료의 서로 다른 결4종을 2×2 정면·균일 조명·무문자·무소품·무발자국으로 요청했습니다. 원본을 재편집하지 않고 셰이더에서 셀을 혼합합니다.
+
+`tour-grass-variants.png`: image_gen.imagegen 원본 `exec-b0b7479f-1cfb-483a-9b65-dbffa861315a.png`. 같은 재료의 서로 다른 결4종을 2×2 정면·균일 조명·무문자·무소품·무발자국으로 요청했습니다. 원본을 재편집하지 않고 셰이더에서 셀을 혼합합니다.

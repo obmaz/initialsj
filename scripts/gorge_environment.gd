@@ -49,6 +49,7 @@ func _ready() -> void:
 	water.position = Vector3(0,2,-500)
 	var sea := ShaderMaterial.new()
 	sea.shader = preload("res://shaders/coastal_water.gdshader")
+	sea.set_shader_parameter("surface_detail",load("res://assets/environment/ocean-ripples.png"))
 	sea.set_shader_parameter("deep_color",Color("143d55"))
 	sea.set_shader_parameter("shallow_color",Color("2b8190"))
 	water.material_override = sea

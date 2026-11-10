@@ -66,6 +66,17 @@ func terrain_point(d: float, lane: float) -> Vector3:
 	else:
 		var rise := pow(clampf((absf(lane) - 18) / 140,0,1),1.5)
 		p.y = road_y - 0.3 + rise * (10 if theme in ["desert","pyramid","canyon","volcano"] else 5) * sin(d * 0.012 + lane * 0.035)
+	var edge_blend := smoothstep(20,75,absf(lane))
+	if theme in ["desert","pyramid"]:
+		var dune := .5+.5*sin(p.x*.021+p.z*.009+sin(p.z*.007))
+		p.y += edge_blend*(dune*dune*18+pow(.5+.5*sin(p.z*.027-p.x*.013),2)*7)
+	elif theme == "snow":
+		p.y += edge_blend*(3+3*sin(p.x*.016)*cos(p.z*.011))
+	elif theme in ["hawaii","jeju","fuji","bamboo","amusement"]:
+		p.y += edge_blend*3*sin(p.x*.012+p.z*.006)*cos(p.z*.009)
+	if theme == "amusement" and lane < -40:
+		var flat := smoothstep(600,750,d)*(1-smoothstep(1700,1850,d))*(1-smoothstep(-110,-40,lane))
+		p.y = lerpf(p.y,track.point(1120).y-.3,flat)
 	if track.bridge_span.y > track.bridge_span.x:
 		var bay := smoothstep(track.bridge_span.x-65,track.bridge_span.x+25,d)*(1-smoothstep(track.bridge_span.y-25,track.bridge_span.y+65,d))
 		p.y = lerpf(p.y,-1.0,bay)
@@ -82,14 +93,20 @@ func _ready() -> void:
 	ground.set_shader_parameter("ground_color",Color(ground_tint))
 	ground.set_shader_parameter("grassness",0.0 if theme in ["desert","pyramid","ruins","canyon","harbor","snow","volcano","neon","city","seoul"] else 1.0)
 	ground.set_shader_parameter("urban_paving",theme in ["city","seoul","neon"])
+	if theme in ["desert","pyramid","snow","hawaii","jeju","fuji","bamboo","amusement"]:
+		var image: String = "res://assets/environment/tour-sand-variants.png" if theme in ["desert","pyramid"] else ("res://assets/environment/tour-snow-variants.png" if theme == "snow" else "res://assets/environment/tour-grass-variants.png")
+		ground.set_shader_parameter("region_variants",load(image))
+		ground.set_shader_parameter("detailed_terrain",true)
 	if Library.coastal(theme):
 		var beach := ground.duplicate()
+		beach.set_shader_parameter("detailed_terrain",false)
 		beach.set_shader_parameter("ground_color",Color("747c80") if theme == "harbor" else Color("dccb9c"))
 		beach.set_shader_parameter("grassness",0.0)
 		ground_band(-80 if theme == "harbor" else -19,-10,beach)
 	else:
 		ground_band(-180,-10,ground)
 	ground_band(10,260 if theme in ["hawaii","jeju"] else 180,ground)
+	if theme == "amusement": ground_band(-440,-180,ground)
 	if Library.coastal(theme):
 		make_water()
 	match theme:
@@ -106,6 +123,11 @@ func _ready() -> void:
 	distant_art = preload("res://scripts/distant_ridges.gd").new()
 	distant_art.scenery = self
 	add_child(distant_art)
+	if not track.closed_loop:
+		var vegetation := preload("res://scripts/tour_vegetation.gd").new()
+		vegetation.name = "TourNativeVegetation"
+		vegetation.scenery = self
+		add_child(vegetation)
 	make_cover()
 	make_landmarks()
 
@@ -152,6 +174,7 @@ func make_water() -> void:
 	water.mesh = surface.commit()
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/coastal_water.gdshader")
+	material.set_shader_parameter("surface_detail",load("res://assets/environment/ocean-ripples.png"))
 	material.set_shader_parameter("deep_color",Color("193e56") if theme == "harbor" else Color("084270"))
 	material.set_shader_parameter("shallow_color",Color("497a8a") if theme == "harbor" else Color("1582a6"))
 	water.material_override = material
@@ -261,18 +284,19 @@ func make_street_lights() -> void:
 	boxes(mat(Color("5a6063")),feet,false)
 
 func make_desert() -> void:
-	var dunes: Array[Transform3D] = []
-	for i in range(40):
-		var d: float = 220 + i*(track.length-240)/40
-		var side := -1.0 if i % 2 == 0 else 1.0
-		if track.entry_side != 0 and d < 600: side = float(track.entry_side)
-		dunes.append(transform_at(d,side * rng.randf_range(45,160),-6,Vector3(rng.randf_range(35,65),rng.randf_range(15,35),rng.randf_range(40,80))))
-	var sphere := SphereMesh.new()
-	sphere.radius = 0.5
-	sphere.height = 1
-	sphere.radial_segments = 8 if theme == "canyon" else 14
-	sphere.rings = 4 if theme == "canyon" else 7
-	batch(sphere,mat(Color("a55a35") if theme == "canyon" else Color("d6aa68")),dunes)
+	if theme == "canyon":
+		var dunes: Array[Transform3D] = []
+		for i in range(40):
+			var d: float = 220 + i*(track.length-240)/40
+			var side := -1.0 if i % 2 == 0 else 1.0
+			if track.entry_side != 0 and d < 600: side = float(track.entry_side)
+			dunes.append(transform_at(d,side * rng.randf_range(45,160),-6,Vector3(rng.randf_range(35,65),rng.randf_range(15,35),rng.randf_range(40,80))))
+		var sphere := SphereMesh.new()
+		sphere.radius = 0.5
+		sphere.height = 1
+		sphere.radial_segments = 8 if theme == "canyon" else 14
+		sphere.rings = 4 if theme == "canyon" else 7
+		batch(sphere,mat(Color("a55a35") if theme == "canyon" else Color("d6aa68")),dunes)
 	if theme == "pyramid":
 		var pyramids: Array[Transform3D] = []
 		for i in range(4):
@@ -332,6 +356,9 @@ func make_seoul() -> void:
 	track.box(self,p + Vector3.UP * 119,Vector3(1,30,1),mat(Color("e9e3dd")))
 
 func make_park() -> void:
+	var park := preload("res://scripts/tour_amusement.gd").new()
+	park.scenery = self
+	add_child(park)
 	var wheel := Node3D.new()
 	add_child(wheel)
 	wheel.position = terrain_point(650,70) + Vector3.UP * 25

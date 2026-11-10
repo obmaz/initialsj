@@ -45,7 +45,7 @@ func metadata(item: Resource) -> bool:
 func run(tree: SceneTree, category: String = "", id: String = "") -> int:
 	Pool.acquire_owner()
 	var checked := 0
-	for group in ["props","vehicles","buildings"]:
+	for group in ["props","vehicles","buildings","vegetation"]:
 		if not category.is_empty() and category != group: continue
 		for item in Catalog.all(group):
 			if not id.is_empty() and item.id != id: continue
@@ -67,6 +67,16 @@ func run(tree: SceneTree, category: String = "", id: String = "") -> int:
 				check(car.headlight != null and car.headlamp_lenses.size() == 2,"차량은 공통 전조등 연결점을 유지해야 한다: "+item.id)
 				car.queue_free()
 				await tree.process_frame
+			elif group == "vegetation":
+				var source: Resource = load(item.source_mesh_path)
+				var mesh: Mesh
+				if source is PackedScene:
+					var scene: Node = source.instantiate()
+					mesh = SceneSource.collect_meshes(scene)[0].mesh
+					scene.free()
+				else: mesh = source
+				check(mesh.get_surface_count() == 2 and triangles(mesh) <= 4358,"식생의 줄기·잎 표면과 예산: "+item.id)
+				check(item.parameters.height > 0 and mesh.get_aabb().size.y > 0,"식생 실척: "+item.id)
 			else:
 				for dimensions in [Vector3(24,20,28),Vector3(42,120,48)]:
 					var parts: Array = load(item.builder_path).build(item,dimensions.x,dimensions.y,dimensions.z)

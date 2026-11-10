@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "juniper"
+category = "vegetation"
+order = 5
+source_mesh_path = "res://models/vegetation/juniper/juniper.res"
+source_path = "res://models/vegetation/juniper/SOURCE.md"
+parameters = {"height": 2.4, "needles": true }

@@ -2,6 +2,7 @@ extends RefCounted
 # 팩 추가는 해당 폴더의 definition.tres만으로 끝난다. 중앙 등록표를 수정하지 않는다.
 const ROOTS := {
 	"props":"res://models/props",
+	"vegetation":"res://models/vegetation",
 	"vehicles":"res://models/vehicles",
 	"buildings":"res://models/buildings"
 }

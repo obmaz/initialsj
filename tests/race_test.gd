@@ -33,7 +33,7 @@ func run() -> void:
 		for node in range(stage+1):
 			check(Library.theme(stage+1,node) != Library.theme(stage+1,node+1),"Every fork must lead to different left and right themes")
 	var art = race.track.scenery.roadside_art
-	check(art.models.placements.size() > 30,"The actual starting road must instantiate a 3D regional foreground")
+	check(art.models.placements.size()+race.track.active.scenery.get_node("TourNativeVegetation").tree_count > 30,"The actual starting road must instantiate a 3D regional foreground")
 	for i in range(art.positions.size()):
 		var p: Vector3 = art.positions[i]
 		var d: float = race.track.active.curve.get_closest_offset(p)
@@ -170,4 +170,6 @@ func run() -> void:
 	failures += await preload("res://tests/resource_lifecycle_checks.gd").new().run(self)
 	failures += await preload("res://tests/render_resource_checks.gd").new().run(self)
 	failures += await preload("res://tests/model_contract_checks.gd").new().run(self)
+	failures += await preload("res://tests/tour_scenery_checks.gd").new().run(self)
+	failures += await preload("res://tests/tour_weather_checks.gd").new().run(self)
 	quit(1 if failures else 0)

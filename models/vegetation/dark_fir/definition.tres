@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "dark_fir"
+category = "vegetation"
+order = 2
+source_mesh_path = "res://models/vegetation/dark_fir/dark-fir.res"
+source_path = "res://models/vegetation/dark_fir/SOURCE.md"
+parameters = {"height": 20, "needles": true }

@@ -44,3 +44,5 @@
 | Godot Engine4.7.2 | MIT |
 
 라이선스 원문은 내보내기 프리셋에 포함합니다. 모델 추가 시 출처·원문을 해당 팩에 기록하고 [모델 검사](MODEL_PIPELINE.md)를 실행합니다.
+
+SJRPG 식생7종과 생성형 수피·잎은 사용자 소유 프로젝트에서 복사했습니다. 원본 해시·제작 기록은 [식생 출처](../models/shared/foliage/SOURCE.md) 및 각 팩의 SOURCE.md를 따릅니다. 투어 도착지 파노라마5장과 바다 표면1장의 새 생성형 이미지는 [환경 출처](../assets/environment/README.md)에 기록합니다.

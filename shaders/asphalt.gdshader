@@ -3,6 +3,7 @@ render_mode diffuse_burley, specular_schlick_ggx;
 uniform sampler2D asphalt_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D asphalt_variants : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 #include "res://shaders/ground_variety.gdshaderinc"
+uniform float rain_wetness = 0.0;
 varying vec3 world_position;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -17,6 +18,9 @@ void fragment() {
 	ALBEDO = aggregate * vec3(0.87, 0.91, 1.10) * mix(0.88, 1.12, patches);
 	ROUGHNESS = 0.82 + patches * 0.12;
 	SPECULAR = 0.28;
+	ALBEDO *= mix(1.0,.62,rain_wetness);
+	ROUGHNESS = mix(ROUGHNESS,.24,rain_wetness);
+	SPECULAR = mix(SPECULAR,.65,rain_wetness);
 	METALLIC = 0.0;
 	float h = dot(texture(asphalt_texture,UV).rgb, vec3(0.333));
 	float hx = dot(texture(asphalt_texture, UV + vec2(0.001, 0)).rgb, vec3(0.333));

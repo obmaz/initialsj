@@ -44,6 +44,8 @@ var owns_render_resources := false
 var track: Track
 var player: Car
 var atmosphere: Environment
+var tour_weather: Node
+var goal_background: Node
 var sky_colors: ProceduralSkyMaterial
 var rim_light: DirectionalLight3D
 var sun_light: DirectionalLight3D
@@ -1035,6 +1037,15 @@ func sync_world_rendering() -> void:
 			sky.sky_material = sky_colors
 			sky.radiance_size = Sky.RADIANCE_SIZE_128
 			atmosphere.sky = sky
+			if not is_instance_valid(goal_background):
+				goal_background = preload("res://scripts/tour_goal_background.gd").new()
+				goal_background.race = self
+				add_child(goal_background)
+			goal_background.route_id = -1
+			if not is_instance_valid(tour_weather):
+				tour_weather = preload("res://scripts/tour_weather.gd").new()
+				tour_weather.race = self
+				player.get_parent().add_child(tour_weather)
 	rendering_viewport.disable_3d = not world_visible
 	if is_instance_valid(track):
 		track.visible = world_visible
@@ -1268,8 +1279,10 @@ func update_atmosphere(delta: float) -> void:
 		rim_light.light_energy = lerpf(rim_light.light_energy,0.025 if sheltered else 0.10,blend)
 		return
 	var theme_id: String = track.scenery.theme
-	if visual_theme != theme_id:
-		visual_theme = theme_id
+	var region: Dictionary = track.active.region_metadata
+	var mood_key: String = theme_id+str(region.get("weather","clear"))+str(region.get("time_of_day","day"))
+	if visual_theme != mood_key:
+		visual_theme = mood_key
 		atmosphere_transition = 3.0
 	if atmosphere_transition <= 0: return
 	var profile := {"top":Color("438cce"),"horizon":Color("cce5e9"),"fog":Color("b3d3df"),"sun":0.95,"ambient":0.35,"sun_color":Color("fff0d4")}
@@ -1280,6 +1293,13 @@ func update_atmosphere(delta: float) -> void:
 		"canyon": profile.merge({"top":Color("ad927e"),"horizon":Color("f2cc8e"),"fog":Color("bfb190"),"sun":0.9},true)
 		"harbor": profile.merge({"top":Color("587e97"),"horizon":Color("b6ccda"),"fog":Color("96b1c1"),"sun":0.8,"ambient":0.4},true)
 		"bamboo": profile.merge({"top":Color("6d9f99"),"horizon":Color("c0d3b6"),"fog":Color("90b1a4"),"sun":0.8},true)
+	var weather: String = region.get("weather","clear")
+	var period: String = region.get("time_of_day","day")
+	if period == "night": profile.merge({"top":Color("101027"),"horizon":Color("383456"),"fog":Color("292a46"),"sun":.12,"ambient":.5,"sun_color":Color("b7c4ef")},true)
+	if period == "dawn": profile.merge({"sun":.62,"ambient":.38,"sun_color":Color("edd7c7")},true)
+	if weather == "rain": profile.merge({"top":Color("52616b"),"horizon":Color("98a6ac"),"fog":Color("82959f"),"sun":.3,"ambient":.48,"sun_color":Color("beced8")},true)
+	if weather == "sand": profile.merge({"fog":Color("c4ad82"),"sun_color":Color("f0d2a3")},true)
+	atmosphere.fog_density = .001 if weather == "sand" else (.0008 if weather == "rain" else (.0005 if weather == "snow" else .00035))
 	var blend := 1.0 if delta >= atmosphere_transition else 1-exp(-delta*2)
 	sky_colors.sky_top_color = sky_colors.sky_top_color.lerp(profile.top,blend)
 	sky_colors.sky_horizon_color = sky_colors.sky_horizon_color.lerp(profile.horizon,blend)

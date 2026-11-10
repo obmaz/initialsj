@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "black_pine"
+category = "vegetation"
+order = 3
+source_mesh_path = "res://models/vegetation/black_pine/black-pine.res"
+source_path = "res://models/vegetation/black_pine/SOURCE.md"
+parameters = {"height": 18, "needles": true }
