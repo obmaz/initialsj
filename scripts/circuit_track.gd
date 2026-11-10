@@ -29,7 +29,7 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 	world_collision = preload("res://scripts/fuji_collision.gd").build(active)
 	active.add_child(world_collision)
 	update_ground()
-func build_previews() -> void: pass
+func build_previews(_staged: bool = false) -> void: pass
 func maintain(_distance: float) -> void: pass
 func update_ground() -> void:
 	# The night circuit sits on a raised harbour floor under its embankments.
