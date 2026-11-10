@@ -105,15 +105,18 @@ func make_boulevard() -> void:
 			if Vector2(p.x-track.point(nearest).x,p.z-track.point(nearest).z).length()-radius < track.half_width(nearest)+track.rail_setback(nearest,side)+1.5: continue
 			placements.append({"kind":"palm","position":p,"yaw":i*1.7,"scale":scale})
 			tree_positions.append(p)
-		if i%4 == 0:
-			var kind: String = ["coffee_shop","souvenir_shop","gas_station","street_shop"][(i/4)%4]
-			var scale: float = Props.placement_scale(kind,1.2)
-			var radius: float = Props.radius(kind)*scale
-			var lane: float = track.half_width(d)+track.rail_setback(d,1.0)+radius+3.5+(i%3)*6
-			var p := terrain_point(d,lane)
-			var nearest: float = track.curve.get_closest_offset(p)
-			if Vector2(p.x-track.point(nearest).x,p.z-track.point(nearest).z).length()-radius < track.half_width(nearest)+track.rail_setback(nearest,1.0)+1.5: continue
-			placements.append({"kind":kind,"position":p,"yaw":track.heading(d)-PI*0.5,"scale":scale})
+	# 바다 쪽은 유지하고 육지 쪽에160채 후보를 배치한다. 전체 경계로 차도 침범을 제외한다.
+	for i in range(160):
+		var d: float = 130+(track.length-260)*(i+.5)/160
+		var kind: String = Props.RURAL_KINDS[(i*7+i/10)%10]
+		if i%11 == 0: kind = ["coffee_shop","souvenir_shop","gas_station","street_shop"][(i/11)%4]
+		var scale: float = .98+(i%4)*.02
+		var radius: float = Props.radius(kind)*scale
+		var lane: float = track.half_width(d)+track.rail_setback(d,1.0)+radius+3.5+(i%3)*2
+		var p := terrain_point(d,lane)
+		var nearest: float = track.curve.get_closest_offset(p)
+		if Vector2(p.x-track.point(nearest).x,p.z-track.point(nearest).z).length()-radius < track.half_width(nearest)+track.rail_setback(nearest,1.0)+1.5: continue
+		placements.append({"kind":kind,"position":p,"yaw":track.heading(d)-PI*0.5,"scale":scale,"distance":d})
 	var props := Props.new()
 	props.name = "RivieraBoulevard"
 	props.configure("hawaii",placements)

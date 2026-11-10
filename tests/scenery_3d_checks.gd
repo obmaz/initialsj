@@ -63,15 +63,24 @@ func run(tree: SceneTree) -> int:
  var densest := 0
  for batch in forest.batches: densest = maxi(densest,batch.multimesh.instance_count)
  check(densest <= 12 and forest.placements.size() < 520,"The Fuji prop count must stay bounded for phones")
+ for kind in Props.RURAL_KINDS:
+  var arrays: Array = Props.model(kind).surface_get_arrays(0)
+  check(arrays[Mesh.ARRAY_INDEX].size()/3 < 3200,"시골 건물도 개체별 메시 예산을 유지해야 한다")
  var fuji_count: int = forest.placements.size()
  race.choose_mode("track",3)
  var boulevard: Node3D = race.track.scenery.get_node("RivieraBoulevard")
+ var rural_types := {}
+ var rural_count := 0
  for placement in boulevard.placements:
+  if placement.kind in Props.RURAL_KINDS:
+   rural_types[placement.kind] = true
+   rural_count += 1
   var radius: float = Props.radius(placement.kind)*float(placement.scale)
   var p: Vector3 = placement.position
   var nearest: float = race.track.active.curve.get_closest_offset(p)
   var center: Vector3 = race.track.point(nearest)
   check(Vector2(p.x-center.x,p.z-center.z).length()-radius >= race.track.half_width(nearest)+1.5,"확대한 해안 매장·야자수의 전체 경계가 차도 밖에 있어야 한다")
+ check(rural_types.size() == 10 and rural_count >= 100,"해안에는100채 이상과10종의 서로 다른 시골 건물이 있어야 한다")
  FileAccess.open(Report.path("scenery-3d-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"regions":rows,"unique_model_kinds":all_kinds.size(),"fuji_tree_count":fuji_count,"failures":failures},"\t")+"\n")
  race.queue_free()
  await tree.process_frame

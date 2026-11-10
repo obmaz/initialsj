@@ -63,3 +63,5 @@ Godot Engine 4.7.2, MIT. Its licence text ships with the web export as well.
 ## 생성형 노면·지면 이미지
 
 `assets/environment/asphalt-variants.png`와 `terrain-variants.png`는 2026-11-10 이미지 생성 도구로 제작한 아스팔트 4종과 잔디·흙·자갈 8종의 원본 아틀라스입니다. 외부 사진·게임 에셋·실존 브랜드를 입력하지 않았습니다. 배열·생성 원본 식별자·적용 방식은 `assets/environment/README.md`에 기록했습니다.
+
+`rural-fronts.png`, `rural-sides.png`는 생성형 이미지로 만든 시골집·작은 가게10종의 전용 정면·측면 원본입니다. 실제 프롬프트·참조·원본 식별자·해시는 `assets/environment/rural-village-source.md`에 보존했습니다.
