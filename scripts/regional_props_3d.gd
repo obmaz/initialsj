@@ -14,6 +14,7 @@ const FAMILIES := {
  "amusement":["ticket_booth","broadleaf","sakura"]
 }
 const Models = preload("res://scripts/quaternius_props.gd")
+const BUILDING_DIMS := {"coffee_shop":Vector3(8,3.8,6),"convenience_store":Vector3(10,3.6,6.4),"street_shop":Vector3(7,4.4,6),"ticket_booth":Vector3(7,4.4,6),"gas_station":Vector3(8,3.4,4.5),"apartment":Vector3(11,17,9),"warehouse_shed":Vector3(14,6.4,26),"ryokan":Vector3(17,8.6,9),"teahouse":Vector3(8,3.8,6),"noodle_house":Vector3(9,3,7),"souvenir_shop":Vector3(9,3.6,6)}
 static var mesh_cache: Dictionary = {}
 static var shared_material: ShaderMaterial
 var theme := "hawaii"
@@ -30,8 +31,9 @@ func _ready() -> void:
   shared_material = ShaderMaterial.new()
   shared_material.shader = preload("res://shaders/prop_facade.gdshader")
   shared_material.set_shader_parameter("ad_prints",preload("res://assets/environment/ad-print-atlas.svg"))
-  shared_material.set_shader_parameter("retail_facades",preload("res://assets/environment/generated-retail-facades.png"))
-  shared_material.set_shader_parameter("urban_facades",preload("res://assets/environment/generated-urban-facades.png"))
+  shared_material.set_shader_parameter("building_fronts",preload("res://assets/environment/building-front-elevations.png"))
+  shared_material.set_shader_parameter("building_sides",preload("res://assets/environment/building-side-elevations.png"))
+  shared_material.set_shader_parameter("restaurant_facades",preload("res://assets/environment/restaurant-elevations.png"))
  var groups: Dictionary = {}
  for i in range(placements.size()):
   var p: Dictionary = placements[i]
@@ -253,7 +255,7 @@ static func model(kind: String) -> ArrayMesh:
     column(st,p+Vector3.UP*(2+i*0.8),3.7+i*1.6,0.8,0.8,Color("9d9989"),8)
    box(st,Vector3(1.5,6.5,0),Vector3(6.5,0.8,1.9),Color("8b8679"),0.05)
   "street_shop", "ticket_booth":
-   box(st,Vector3(0,2.2,0),Vector3(7,4.4,6),Color("b4b2a0"),0,2)
+   box(st,Vector3(0,2.2,0),Vector3(7,4.4,6),Color("b4b2a0"),0,8 if kind == "ticket_booth" else 2)
    box(st,Vector3(0,4.5,1),Vector3(8,0.5,8),Color("cb654a") if kind == "street_shop" else Color("d595b6"))
    box(st,Vector3(0,5.1,3.7),Vector3(5,0.8,0.18),Color("e1cc90"))
    box(st,Vector3(0,0.15,0),Vector3(8,0.3,7),Color("858c87"))
@@ -283,16 +285,16 @@ static func model(kind: String) -> ArrayMesh:
    box(st,Vector3(0,0.06,-1),Vector3(17,0.12,17),Color("5e6468"))
   "apartment":
    var wall := Color("c9bfae")
-   box(st,Vector3(0,8.5,0),Vector3(11,17,9),wall,0,5)
+   box(st,Vector3(0,8.5,0),Vector3(11,17,9),wall,0,4)
    box(st,Vector3(0,17.2,0),Vector3(11.6,0.5,9.6),Color("8d8a82"))
   "billboard":
    for x in [-3.0,3.0]: column(st,Vector3(x,5,0),10,0.28,0.24,Color("6f777c"),6)
    box(st,Vector3(0,10.4,0),Vector3(10.5,5.2,0.5),Color("33383d"))
-   box(st,Vector3(0,10.4,0.28),Vector3(10,4.7,0.1),Color("f3f0e4"),0,8)
+   box(st,Vector3(0,10.4,0.28),Vector3(10,4.7,0.1),Color("f3f0e4"),0,20)
   "bus_shelter":
-   box(st,Vector3(0,2.5,0),Vector3(5.2,0.18,2.2),Color("2a8aa3"))
+   box(st,Vector3(0,2.5,0),Vector3(5.2,0.42,2.2),Color("2a8aa3"))
    for x in [-2.4,2.4]: box(st,Vector3(x,1.25,0.9),Vector3(0.12,2.5,0.12),Color("3b4247"))
-   box(st,Vector3(0,1.3,-0.95),Vector3(4.8,2.2,0.08),Color("a7c9d4"))
+   box(st,Vector3(0,1.3,-0.95),Vector3(4.8,2.2,0.22),Color("a7c9d4"),0,9)
    box(st,Vector3(0,0.55,-0.5),Vector3(3.6,0.14,0.7),Color("7a5638"))
    box(st,Vector3(2.8,1.6,0.9),Vector3(0.1,3.2,0.1),Color("3b4247"))
    box(st,Vector3(2.8,3.0,0.9),Vector3(0.9,0.9,0.1),Color("2a8aa3"))
@@ -317,7 +319,7 @@ static func model(kind: String) -> ArrayMesh:
      box(st,Vector3(row*2.7-2.7,1.3+tier*2.65,0),Vector3(2.5,2.55,12),paint)
      for rib in range(6): box(st,Vector3(row*2.7-2.7,1.3+tier*2.65,-5.4+rib*2.15),Vector3(2.55,2.4,0.1),paint.darkened(0.25))
   "warehouse_shed":
-   box(st,Vector3(0,3.2,0),Vector3(14,6.4,26),Color("8c97a0"),0,7)
+   box(st,Vector3(0,3.2,0),Vector3(14,6.4,26),Color("8c97a0"),0,5)
    box(st,Vector3(0,6.8,0),Vector3(14.6,0.5,26.6),Color("5f6a73"))
    box(st,Vector3(0,7.3,0),Vector3(7,0.9,26.2),Color("6f7b84"))
    for z in [-9.0,-3.0,3.0,9.0]: box(st,Vector3(7.05,3,z),Vector3(0.1,5.2,0.35),Color("6e7983"))
@@ -353,7 +355,7 @@ static func model(kind: String) -> ArrayMesh:
     column(st,Vector3(x,2.2,5.8),2.6,0.04,0.04,Color("5b5148"),5)
     column(st,Vector3(x,3.3,5.8),0.5,1.6,0.0,Color("d6452f") if x < 0 else Color("2f8a5a"),8)
   "souvenir_shop":
-   box(st,Vector3(0,1.8,0),Vector3(9,3.6,6),Color("efe7d6"),0,2)
+   box(st,Vector3(0,1.8,0),Vector3(9,3.6,6),Color("efe7d6"),0,13)
    box(st,Vector3(0,3.9,0.2),Vector3(10,0.45,7.4),Color("b8432f"))
    box(st,Vector3(0,4.45,-0.2),Vector3(7,0.5,5),Color("a63a29"))
    for i in range(4):
@@ -361,26 +363,18 @@ static func model(kind: String) -> ArrayMesh:
     box(st,Vector3(x,3.0,5.2),Vector3(0.1,6.0,0.1),Color("4f4a45"))
     box(st,Vector3(x+0.45,3.9,5.2),Vector3(0.8,3.4,0.05),Color("d6342b") if i%2 == 0 else Color("2c5fa6"))
   "noodle_house":
-   box(st,Vector3(0,1.5,0),Vector3(9,3,7),Color("e4d9bf"))
-   box(st,Vector3(0,0.9,3.52),Vector3(9,1.8,0.08),Color("6b4a33"))
+   box(st,Vector3(0,1.5,0),Vector3(9,3,7),Color("e4d9bf"),0,12)
    box(st,Vector3(0,3.3,0),Vector3(11,0.4,9),Color("3d4348"))
    box(st,Vector3(0,3.85,0),Vector3(8,0.7,6.4),Color("4a5158"))
    box(st,Vector3(0,4.4,0),Vector3(4,0.5,5),Color("3d4348"))
-   box(st,Vector3(0,2.0,3.56),Vector3(3.6,1.1,0.08),Color("1f3a5f"))
-   box(st,Vector3(0,2.0,3.62),Vector3(1.2,0.6,0.06),Color("f1ead8"))
    for x in [-3.5,3.5]:
     round_part(st,Vector3(x,2.1,4.4),Vector3(0.7,1.0,0.7),Color("d6342b"))
     box(st,Vector3(x,2.9,4.4),Vector3(0.06,0.9,0.06),Color("3a3a3a"))
   "ryokan":
-   box(st,Vector3(0,2.5,0),Vector3(17,5,9),Color("e9e1cf"))
-   box(st,Vector3(0,7.0,0),Vector3(15,3.2,8),Color("9a7550"))
+   box(st,Vector3(0,4.3,0),Vector3(17,8.6,9),Color("e9e1cf"),0,6)
    box(st,Vector3(0,5.2,0),Vector3(19,0.5,11),Color("4a5760"))
    box(st,Vector3(0,9.0,0),Vector3(17,0.6,10),Color("4a5760"))
    box(st,Vector3(0,9.7,0),Vector3(9,0.8,8),Color("3f4a52"))
-   for i in range(6):
-    box(st,Vector3(-6.25+i*2.5,2.2,4.55),Vector3(1.8,2.2,0.1),Color("f0d99a") if i%2 else Color("3b5a73"))
-    box(st,Vector3(-6.25+i*2.5,7.0,4.1),Vector3(1.8,1.6,0.1),Color("f0d99a") if i%3 else Color("3b5a73"))
-   box(st,Vector3(0,2.0,4.6),Vector3(3.5,3.0,0.15),Color("5a3b27"))
   "vending_row":
    var cols := [Color("d6342b"),Color("2c5fa6"),Color("2f8a5a"),Color("e0a030")]
    for i in range(4):
@@ -404,16 +398,15 @@ static func model(kind: String) -> ArrayMesh:
    for tier in range(3):
     var w := 6.0-tier*1.2
     var y := 1.8+tier*2.5
-    box(st,Vector3(0,y,0),Vector3(w*0.7,2,w*0.7),Color("c0a17a"))
+    box(st,Vector3(0,y,0),Vector3(w*0.7,2,w*0.7),Color("c0a17a"),0,10)
     box(st,Vector3(0,y,0),Vector3(w*0.78,0.5,w*0.78),Color("944637"))
     column(st,Vector3(0,y+1.5,0),1.4,w*0.8,w*0.22,Color("405754"),4)
    column(st,Vector3(0,9.7,0),2.0,0.15,0.05,Color("cfb76c"))
   "teahouse":
    box(st,Vector3(0,0.3,0),Vector3(10,0.6,8),Color("777e70"))
-   box(st,Vector3(0,2.2,0),Vector3(8,3.8,6),Color("d5c4a5"))
+   box(st,Vector3(0,2.2,0),Vector3(8,3.8,6),Color("d5c4a5"),0,7)
    for side in [-1,1]:
     box(st,Vector3(side*3.8,2,3.1),Vector3(0.28,3.6,0.25),Color("77523e"))
-   box(st,Vector3(0,2.2,3.1),Vector3(6.8,2.7,0.1),Color("4c6462"))
    column(st,Vector3(0,4.5,0),2.0,6.7,2.1,Color("3f5755"),4)
   "bridge":
    box(st,Vector3(0,2,0),Vector3(13,0.6,4),Color("9d4d3e"))
@@ -423,7 +416,35 @@ static func model(kind: String) -> ArrayMesh:
    for side in [-1,1]: box(st,Vector3(0,3.4,side*1.8),Vector3(13,0.25,0.3),Color("c95e43"))
   _:
    round_part(st,Vector3(0,1,0),Vector3(3,2,3),Color("596d59"))
+ if BUILDING_DIMS.has(kind): architectural_mass(st,kind)
  st.index()
  var result := st.commit()
  mesh_cache[kind] = result
  return result
+
+static func architectural_mass(st: SurfaceTool, kind: String) -> void:
+ # 외벽 이미지를 평면 카드로 두지 않고 기단·모서리 기둥·깊은 창턱을 실제 메시로 만든다.
+ var size: Vector3 = BUILDING_DIMS[kind]
+ var offset := Vector3(0,0,-8) if kind == "gas_station" else Vector3.ZERO
+ var stone := Color("797971")
+ var trim := Color("b2aaa0")
+ box(st,offset+Vector3.UP*.22,Vector3(size.x+.65,.44,size.z+.65),stone)
+ box(st,offset+Vector3.UP*.52,Vector3(size.x+.2,.2,size.z+.2),stone.lightened(.12))
+ for x in [-1.0,1.0]:
+  for z in [-1.0,1.0]:
+   box(st,offset+Vector3(x*(size.x*.5-.05),size.y*.5,z*(size.z*.5-.05)),Vector3(.34,size.y,.34),trim)
+ box(st,offset+Vector3(0,size.y-.12,0),Vector3(size.x+.35,.28,size.z+.35),trim.darkened(.15))
+ var floors := 5 if kind == "apartment" else (2 if kind == "ryokan" else 1)
+ var columns := 4 if kind == "apartment" else (6 if kind == "ryokan" else 3)
+ for floor_index in range(floors):
+  var y: float = (floor_index+.22)*size.y/floors+.45
+  for column_index in range(columns):
+   var x: float = -size.x*.5+(column_index+.5)*size.x/columns
+   var w: float = size.x/columns*.76
+   box(st,offset+Vector3(x,y,size.z*.5+.12),Vector3(w,.16,.48),stone)
+   if floors > 1:
+    box(st,offset+Vector3(x,y+2.1,size.z*.5+.09),Vector3(w,.18,.34),trim)
+    for side in [-1.0,1.0]: box(st,offset+Vector3(x+side*w*.5,y+1,size.z*.5+.08),Vector3(.13,2.1,.24),trim)
+    box(st,offset+Vector3(x,y,size.z*.5+.6),Vector3(w+.2,.22,1.25),stone)
+    box(st,offset+Vector3(x,y+.95,size.z*.5+1.1),Vector3(w+.2,.09,.09),Color("444c4e"))
+    for bar in range(3): box(st,offset+Vector3(x+(bar-1)*w*.4,y+.48,size.z*.5+1.1),Vector3(.055,.9,.055),Color("444c4e"))

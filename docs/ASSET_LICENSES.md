@@ -55,3 +55,7 @@ Godot Engine 4.7.2, MIT. Its licence text ships with the web export as well.
 ## 생성형 광고 이미지 추가
 
 `assets/environment/generated-racing-ads.png`는 2026-11-09 이미지 생성 도구로 제작한 원본 광고 아틀라스입니다. AEROVA·CANYON FIZZ·SUMMIT TIRE·ORBIT AUTO의 가상 광고 네 장을 2×2로 배치했습니다. 외부 사진이나 실존 브랜드 로고를 입력하지 않았으며 `scenic_landmarks.gd`의 `billboard_ad.gdshader`의 UV 영역으로 각 광고를 분리해 트랙5 간판에 사용합니다. 기존 벡터 광고와 별도 에셋입니다.
+
+## 건물 전용 정면·측면 이미지
+
+`building-front-elevations.png`, `building-side-elevations.png`, `restaurant-elevations.png`는 이미지 생성 도구로 제작한 건물별 외벽 원본입니다. 각 건물의 출입문·창틀·석재 기단·측면 창문·배관을 구분해 사용합니다. 원본 식별자와 배열은 `assets/environment/README.md`에 기록했습니다. 외부 사진이나 실존 브랜드 로고를 입력하지 않았습니다.

@@ -139,7 +139,7 @@ func make_bridge() -> void:
 			var foot: Vector3 = track.point(d,side*w)
 			# 기초와 하부 기둥은 실제 수면까지 내려갑니다.
 			var base_y := minf(foot.y-8,-5)
-			foundations.append(Transform3D(basis.scaled_local(Vector3(8,12,10)),Vector3(foot.x,base_y+3,foot.z)))
+			foundations.append(Transform3D(basis.scaled_local(Vector3(10,14,12)),Vector3(foot.x,base_y+3,foot.z)))
 			var levels := [base_y-foot.y+8,0.0,32.0,64.0,96.0]
 			for level in range(4):
 				var corners: Array[Vector3] = []
@@ -176,13 +176,17 @@ func make_bridge() -> void:
 		var b := lerpf(bridge_span.x,bridge_span.y,float(i+1)/count)
 		var midpoint := (a+b)*.5
 		var forward: Vector3 = (track.point(b)-track.point(a)).normalized()
-		deck_slabs.append(Transform3D(Basis.looking_at(forward,Vector3.UP).scaled_local(Vector3(track.half_width(midpoint)*2+3.5,.85,track.point(a).distance_to(track.point(b))+.05)),track.point(midpoint)-Vector3.UP*.7))
+		var intervals: Array[Vector2] = [Vector2(-track.half_width(midpoint)-1.75,track.half_width(midpoint)+1.75)]
+		if track.collapse != null and b > track.collapse.span.x and a < track.collapse.span.y:
+			intervals = [Vector2(intervals[0].x,track.surface_lane(track.collapse.lanes.x,midpoint)),Vector2(track.surface_lane(track.collapse.lanes.y,midpoint),intervals[0].y)]
+		for band in intervals:
+			deck_slabs.append(Transform3D(Basis.looking_at(forward,Vector3.UP).scaled_local(Vector3(band.y-band.x,1.5,track.point(a).distance_to(track.point(b))+.05)),track.point(midpoint,(band.x+band.y)*0.5)-Vector3.UP*1.0))
 		for side in [-1.0,1.0]:
 			var lane: float = side*(track.half_width(a)+6.8)
 			cables.append(beam(track.point(a,lane)+Vector3.UP*cable_height(a),track.point(b,side*(track.half_width(b)+6.8))+Vector3.UP*cable_height(b),0.48))
 			var lower_a: Vector3 = track.point(a,side*(track.half_width(a)+1.4))-Vector3.UP*1.6
 			var lower_b: Vector3 = track.point(b,side*(track.half_width(b)+1.4))-Vector3.UP*1.6
-			ribs.append(beam(lower_a,lower_b,.65))
+			ribs.append(beam(lower_a,lower_b,1.0))
 			if i%3 == 0:
 				hangers.append(beam(track.point(a,lane)-Vector3.UP*.7,track.point(a,lane)+Vector3.UP*cable_height(a),.18))
 				fittings.append(Transform3D(Basis.IDENTITY.scaled_local(Vector3(.65,.3,.65)),track.point(a,lane)+Vector3.UP*cable_height(a)))

@@ -622,6 +622,7 @@ func restart() -> void:
 	recovery_distance = 80
 	recovery_lane = -3.2
 	if mode == "tour" and (track.active.stage != 0 or not track.history.is_empty()): track.reset()
+	if track.active.collapse != null: track.active.collapse.reset_effect()
 	distance = 80
 	completed_distance = 0
 	lane = -3.2
@@ -1023,6 +1024,9 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		nitro_input = false
 		cell_input = false
 	world_race.step(delta,axis,drift_input,gas,brake,nitro_input,cell_input)
+	if track.active.collapse != null:
+		track.active.collapse.advance(delta,distance,motion_reduced)
+		hazard_text = track.active.collapse.warning(distance)
 
 func pad_speed_cap() -> float:
 	return maxf(vehicle.overdrive_speed+2,vehicle.max_speed+21)

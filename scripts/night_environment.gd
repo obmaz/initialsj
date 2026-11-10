@@ -165,7 +165,7 @@ func make_warehouses() -> void:
 		multi.set_instance_custom_data(i,sizes[i])
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/building_facade.gdshader")
-	material.set_shader_parameter("facade_images",preload("res://assets/environment/generated-urban-facades.png"))
+	material.set_shader_parameter("facade_images",preload("res://assets/environment/building-front-elevations.png"))
 	material.set_shader_parameter("night_city",true)
 	material.set_shader_parameter("facade_style",0)
 	var node := MultiMeshInstance3D.new()

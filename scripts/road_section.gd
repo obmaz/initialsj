@@ -28,6 +28,7 @@ var bridge_lower_distance := 0.0
 var bridge_upper_distance := 0.0
 var scenery: Node3D
 var road_surface: MeshInstance3D
+var collapse: Node3D
 var skid_meshes: Array[MeshInstance3D] = []
 var prop_batches: Array[MultiMeshInstance3D] = []
 var curve_marker_distances: Array[float] = []
@@ -308,6 +309,7 @@ func box(parent: Node3D, pos: Vector3, size: Vector3, mat: Material) -> MeshInst
 	return node
 
 func strip(left: float, right: float, height: float, mat: Material, begin: float = 0.0) -> MeshInstance3D:
+	if collapse != null: return collapse.make_strip(left,right,height,mat,begin)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var segments := int(ceil((length-begin)/2)) if closed_loop else 900
@@ -335,6 +337,10 @@ func paint(color: Color) -> ShaderMaterial:
 
 func _ready() -> void:
 	if not closed_loop and stage == 0: bridge_span = Vector2(850,1380)
+	if closed_loop and course_id == 4:
+		collapse = preload("res://scripts/bridge_collapse.gd").new()
+		collapse.configure(self)
+		add_child(collapse)
 	features = Features.layout(self)
 	rng.seed = 8417
 	var asphalt := ShaderMaterial.new()
@@ -379,6 +385,7 @@ func _ready() -> void:
 		make_gantry(length-55,"< "+titles[0]+"     "+titles[1]+" >")
 		make_fork_guides()
 	else: make_gantry(length-10,"GRAND TOUR / GOAL")
+	if collapse != null: collapse.finish_geometry()
 
 func checkpoint_distance() -> float:
 	return maxf(80,length-Library.CHECKPOINT_RUNUP)

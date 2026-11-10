@@ -47,12 +47,11 @@ void fragment() {
 	}
 	if (regional_style == 2) { concrete *= vec3(0.65,0.71,0.84); }
 	vec3 glass = mix(vec3(0.12,0.24,0.32),vec3(0.41,0.60,0.69),fract(floor(u/3.2)*0.37+floor(v/4.0)*0.21+dimensions.a));
-	float module = 0.0;
-	if (facade_style == 1 || facade_style == 3) module=2.0;
-	else if (facade_style == 2 || facade_style == 4) module=1.0;
-	else if (facade_style == 5) module=3.0;
-	vec2 tile=vec2(mod(module,2.0),floor(module/2.0));
-	vec2 uv=tile*.5+vec2(.006)+vec2(cell.x,1.0-cell.y)*.488;
+	float module = (facade_style == 2 || facade_style == 4) ? 4.0 : (facade_style == 5 ? 6.0 : 11.0);
+	vec2 tile=vec2(mod(module,4.0),floor(module/4.0));
+	float width=side ? dimensions.z : dimensions.x;
+	vec2 q=vec2(fract((u+width*.5)/max(16.0,min(width,28.0))),fract((.5-local_point.y)*max(1.0,dimensions.y/18.0)));
+	vec2 uv=tile*vec2(.25,1.0/3.0)+vec2(.002,.004)+q*vec2(.246,1.0/3.0-.008);
 	vec3 photographed=texture(facade_images,uv).rgb;
 	vec3 variant_tint=mix(vec3(1.03,.98,.91),vec3(.91,.98,1.04),dimensions.a);
 	ALBEDO = photographed*variant_tint;

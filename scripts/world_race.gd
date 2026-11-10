@@ -455,6 +455,10 @@ func update_rivals(delta: float) -> void:
 		var d: float = trackers[i].distance
 		var look := clampf(speed_of(body)*0.65,15,48)
 		var target_lane := rival_lane(i,d,look,dt)
+		if race.track.active.collapse != null:
+			var collapse: Node3D = race.track.active.collapse
+			var section_d: float = fposmod(d,race.track.length)
+			if section_d > collapse.span.x-300 and section_d < collapse.span.y+30: target_lane = minf(target_lane,1.0)
 		var target: Vector3 = race.track.point(d+look,target_lane)
 		var direction: Vector3 = target-body.feet_position()
 		var forward: Vector3 = body.forward_direction()

@@ -31,6 +31,35 @@ static func build(section: Node3D) -> void:
 	node.material_override = steel
 	section.add_child(node)
 	markings(section,samples)
+	road_mass(section)
+
+static func road_mass(section: Node3D) -> void:
+	# 아스팔트 아래에 두꺼운 측면을 붙여 얇은 띠처럼 보이는 가장자리를 보강한다.
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var count := int(ceil(section.length/6))
+	for i in range(count):
+		var a: float = section.length*i/count
+		var b: float = section.length*(i+1)/count
+		var depth := 1.8 if section.on_bridge((a+b)*0.5) else 0.85
+		for side in [-1.0,1.0]:
+			var p: Vector3 = section.point(a,side*(section.half_width(a)+1.3))-Vector3.UP*0.1
+			var q: Vector3 = section.point(b,side*(section.half_width(b)+1.3))-Vector3.UP*0.1
+			var points := [p,q,p-Vector3.UP*depth,q-Vector3.UP*depth]
+			for index in [0,2,1,1,2,3]: st.add_vertex(points[index])
+		var width: float = section.half_width((a+b)*.5)+1.3
+		var bands: Array[Vector2] = [Vector2(-width,width)]
+		if section.collapse != null and section.collapse.inside_span((a+b)*.5):
+			bands = [Vector2(-width,section.surface_lane(section.collapse.lanes.x,(a+b)*.5)),Vector2(section.surface_lane(section.collapse.lanes.y,(a+b)*.5),width)]
+		for band in bands:
+			var points := [section.point(a,band.x),section.point(a,band.y),section.point(b,band.x),section.point(b,band.y)]
+			for index in [0,1,2,1,3,2]: st.add_vertex(points[index]-Vector3.UP*(depth+.1))
+	st.generate_normals()
+	var node := MeshInstance3D.new()
+	node.name = "SolidRoadEdges"
+	node.mesh = st.commit()
+	node.material_override = section.material(Color("55564f"))
+	section.add_child(node)
 
 static func shoulders(section: Node3D) -> void:
 	if section.closed_loop and section.course_id == 1: return # Speedway has a paved apron and safety walls.
@@ -100,6 +129,7 @@ static func markings(section: Node3D, samples: Array[float]) -> void:
 		for i in range(samples.size()-1):
 			var a := samples[i]
 			var b := samples[i+1]
+			if section.collapse != null and section.collapse.contains((a+b)*0.5,center*9): continue
 			var la: float = section.half_width(a)*center
 			var lb: float = section.half_width(b)*center
 			var half_paint := 0.14 if section.closed_loop and section.course_id in [3,4] else 0.055

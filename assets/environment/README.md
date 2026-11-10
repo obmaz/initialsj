@@ -33,8 +33,8 @@ No downloaded photographs or original arcade-game assets are used for the curren
 
 ## 건물 전용 외벽과 간판 디자인
 
-`generated-retail-facades.png`의 생성형 원본은 `exec-3aeee0ee-af59-42dc-9f45-93f69a574d89.png`입니다. 카페·편의점·기념품점·주유소 서비스 건물의 전면을 각 사분면으로 만들었으며 해당 건물 몸체의 전면 UV에 맞춥니다. 옆·뒷면은 외벽 부분만 사용하여 출입문을 반복하지 않습니다. 기존 단색 창문판은 사진형 전면을 가리지 않도록 정리했습니다.
 
-`generated-urban-facades.png`의 생성형 원본은 `exec-bb9f576f-78e1-4291-8c2c-65cc9972e4c8.png`입니다. 벽돌 주택·콘크리트 주택·유리 오피스·금속 창고의 창문 포함 층별 모듈입니다. 도시 건물 및 지역별 아파트·창고 모델에 연결합니다. 원본 두 장은 로컬 `generated_images/`에 보존하며 실측 PBR 자료는 아닙니다.
 
 간판은 SUMMIT TIRE, ROUTE 84, BLUEBAY, ORBIT AUTO를 추가해 8종입니다. 각 새 디자인은 사선·도로 차선·파도·궤도 그래픽과 별도 색상을 사용합니다. `tools/bake_scenic_ads.py`가 번들 Roboto 윤곽선으로 개별 SVG와 `ad-print-atlas.svg`를 생성하며 대형 협곡 간판과 일반 지역 간판에서 재사용합니다. 모두 가상 브랜드입니다.
+
+건물 전용 정면 `building-front-elevations.png`와 측면 `building-side-elevations.png`는 각각 `exec-662a932d-5b8b-4067-b69c-1906b514bd9f.png`, `exec-848aea2a-7be2-456e-9b1a-5815401c15ca.png`에서 복사했습니다. 4×3 구성의 각 영역이 서로 다른 건물의 정면·측면에 대응합니다. 국수집·기념품점의 `restaurant-elevations.png`는 `exec-16d888b4-e4bc-4d2a-a0c7-8faaf1a6a180.png`의 2×2 전용 외벽입니다. 이미지 생성 도구로 제작한 원본이며 외부 사진·실존 브랜드를 입력하지 않았습니다. 이전 소매점·도시 공용 외벽 두 장은 이 전용 이미지로 교체했습니다.
