@@ -70,6 +70,6 @@ Web 프리셋은 단일 스레드·가로 PWA이며 PC용 S3TC와 모바일용 E
 
 커밋 작성자·커미터는 `obmaz <zambobmaz@gmail.com>`을 사용합니다. 통합 전 원격 `main`을 받고 리베이스하며, 충돌은 파일 전체 덮어쓰기 대신 해당 모델·게임 규칙의 최종 의도에 맞춰 해결합니다.
 
-`main` 푸시의 `godot-checks`는 기본 검사를, `deploy-pages`는 검사·Web export·Pages 게시를 수행합니다. 빌드와 게시 단계의 성공을 각각 확인하고 배포된 커밋·아티팩트를 대조합니다. 공개 URL 접근이 가능하면 앱 버전 또는 `index.pck`의 새 리소스 경로까지 확인합니다. 네트워크 제한 등으로 직접 접속하지 못한 경우 확인 범위를 보고합니다.
+`main` 푸시의 `godot-checks`는 기본 검사만 수행합니다. 대상 없는 “배포”는 Dropbox APK 전달이며, 웹은 명시 요청 시에만 `deploy-pages`를 workflow_dispatch로 실행합니다. main 푸시는 웹을 자동 게시하지 않습니다. 빌드와 게시 단계의 성공을 각각 확인하고 배포된 커밋·아티팩트를 대조합니다. 공개 URL 접근이 가능하면 앱 버전 또는 `index.pck`의 새 리소스 경로까지 확인합니다. 네트워크 제한 등으로 직접 접속하지 못한 경우 확인 범위를 보고합니다.
 
 Android와 Dropbox 전달은 [ANDROID.md](ANDROID.md)와 [APK 스킬](../.agents/skills/dropbox-apk/SKILL.md)을 따릅니다. 일반 개발·검사·웹 배포에 APK 빌드를 추가하지 않습니다.

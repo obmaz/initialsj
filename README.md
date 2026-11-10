@@ -35,4 +35,4 @@ Godot **4.7.2 / GL Compatibility** 기반의 가로 화면 3D 아케이드 레�
 | 출처·라이선스 | [ASSET_LICENSES.md](docs/ASSET_LICENSES.md) |
 | 요청받은 APK 빌드·Dropbox 전달 | [ANDROID.md](docs/ANDROID.md), [APK 전달 스킬](.agents/skills/dropbox-apk/SKILL.md) |
 
-`main` 푸시는 검사 후 GitHub Pages에 배포됩니다. APK는 명시 요청 시 로컬 빌드하고 Dropbox 플러그인으로 전달합니다. 검사 결과·미리보기·내보내기는 Git에서 제외한 `build/`에 보관합니다.
+`main` 푸시는 검사만 실행합니다. “배포” 요청은 APK를 로컬 빌드해 Dropbox 플러그인으로 전달하는 뜻이며, 웹·GitHub Pages는 명시 요청 시에만 게시합니다. 검사 결과·미리보기·내보내기는 Git에서 제외한 `build/`에 보관합니다.
