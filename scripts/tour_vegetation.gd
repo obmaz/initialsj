@@ -7,7 +7,7 @@ var scenery: Node3D
 var tree_count := 0
 var variant_counts := {}
 const RenderResources = preload("res://scripts/render_resources.gd")
-const BARE_THEMES := ["desert","pyramid","canyon","volcano","harbor"]
+const BARE_THEMES := ["pyramid","canyon","volcano","harbor"]
 # 변형별 메시·재질은 모든 구간이 공유한다. 마지막 게임 씬이 나갈 때 비운다.
 static var piece_cache := {}
 static func clear_cache() -> void:
@@ -26,16 +26,19 @@ func _ready() -> void:
  var definitions: Array[Resource] = Catalog.all("vegetation")
  var groups := {}
  var road: Node3D = scenery.track
- var spacing := 24 if theme in ["amusement","fuji","bamboo","snow"] else 42
- for i in range(int((road.length-360)/spacing)):
-  var d := 180.0+i*spacing
+ var spacing := 24 if theme in ["amusement","fuji","bamboo","snow","jungle"] else 42
+ if theme == "jungle": spacing = 12
+ var planting_start := 75.0 if theme == "jungle" else 180.0
+ for i in range(int((road.length-planting_start-160)/spacing)):
+  var d := planting_start+i*spacing
   if road.in_tunnel(d): continue
   if road.bridge_span.y > road.bridge_span.x and d > road.bridge_span.x-80 and d < road.bridge_span.y+80: continue
   var v := (i%3)+2 if theme in ["snow","bamboo"] else i%7
-  if theme in ["hawaii","jeju"]: v = (5+i%2) if i%7 >= 5 else i%2
+  if theme in ["hawaii","jeju","jungle"]: v = (5+i%2) if i%7 >= 5 else i%2
   if theme in ["snow","bamboo"] and i%7 >= 5: v = 5+i%2
   var item: Resource = definitions[v]
   var side := 1.0 if theme in ["hawaii","jeju","fuji"] else (-1.0 if i%2 else 1.0)
+  if road.entry_side != 0 and d < 650: side = float(road.entry_side)
   var lane: float = side*(road.half_width(d)+road.rail_setback(d,side)+12+(i%4)*6)
   var point: Vector3 = road.roadside_point(d,lane)
   var nearest: float = road.curve.get_closest_offset(point)

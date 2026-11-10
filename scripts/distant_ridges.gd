@@ -8,7 +8,7 @@ const REGIONS := [
 	Vector4(0.01127396,0.71476888,0.47688839,0.13077790),
 	Vector4(0.50901917,0.67756483,0.48196167,0.16572717)
 ]
-const THEMES := {"hawaii":0,"jeju":1,"desert":2,"pyramid":2,"canyon":2,"snow":3}
+const THEMES := {"hawaii":0,"jeju":1,"jungle":1,"pyramid":2,"canyon":2,"snow":3}
 var scenery: Node3D
 var positions: Array[Vector3] = []
 var widths: Array[float] = []

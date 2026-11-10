@@ -12,7 +12,7 @@ func _ready() -> void:
  random.seed = 2026+road.stage*137+road.route_node*47
  var placements: Array[Dictionary] = []
  var family: Array = Props.FAMILIES[theme]
- var spacing := 44.0 if theme in ["city","seoul","neon","harbor"] else (72.0 if theme in ["ruins","canyon"] else 36.0)
+ var spacing := 44.0 if theme in ["city","seoul","neon","harbor"] else (72.0 if theme in ["ruins","canyon"] else (24.0 if theme == "jungle" else 36.0))
  var count := int((road.length-500)/spacing)
  for i in range(count):
   var d: float = 240+i*spacing+random.randf_range(-5,5)

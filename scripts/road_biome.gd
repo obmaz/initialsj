@@ -19,15 +19,17 @@ const RenderResources = preload("res://scripts/render_resources.gd")
 const OCEAN_RIPPLES = "res://assets/environment/ocean-ripples.png"
 
 const TERRAIN_VARIANTS = "res://assets/environment/terrain-variants.png"
-const DETAILED_THEMES := ["desert","pyramid","snow","hawaii","jeju","fuji","bamboo","amusement"]
+const DETAILED_THEMES := ["jungle","pyramid","snow","hawaii","jeju","fuji","bamboo","amusement"]
 
 static func region_variants_path(region: String) -> String:
-	if region in ["desert","pyramid"]: return "res://assets/environment/tour-sand-variants.png"
+	if region == "pyramid": return "res://assets/environment/tour-sand-variants.png"
 	return "res://assets/environment/tour-snow-variants.png" if region == "snow" else "res://assets/environment/tour-grass-variants.png"
 
 # 이 지역이 처음 쓰는 텍스처·모델. 주행 중에 만드는 구간은 생성 첫 단계에서 미리 읽기 시작한다.
 static func warm_paths(region: String) -> Array[String]:
-	var paths: Array[String] = [TERRAIN_VARIANTS]
+	var paths: Array[String] = [TERRAIN_VARIANTS,preload("res://scripts/tour_goal_background.gd").CLOUDS]
+	var goal_index: int = preload("res://scripts/tour_goal_background.gd").THEMES.find(region)
+	if goal_index >= 0: paths.append(preload("res://scripts/tour_goal_background.gd").IMAGES[goal_index])
 	if region in DETAILED_THEMES: paths.append(region_variants_path(region))
 	if Library.coastal(region): paths.append(OCEAN_RIPPLES)
 	if preload("res://scripts/distant_ridges.gd").THEMES.has(region): paths.append(preload("res://scripts/distant_ridges.gd").ATLAS_PATH)
@@ -83,14 +85,14 @@ func terrain_point(d: float, lane: float) -> Vector3:
 		p.y = road_y-0.3+rise*folds
 	else:
 		var rise := pow(clampf((absf(lane) - 18) / 140,0,1),1.5)
-		p.y = road_y - 0.3 + rise * (10 if theme in ["desert","pyramid","canyon","volcano"] else 5) * sin(d * 0.012 + lane * 0.035)
+		p.y = road_y - 0.3 + rise * (10 if theme in ["pyramid","canyon","volcano"] else 5) * sin(d * 0.012 + lane * 0.035)
 	var edge_blend := smoothstep(20,75,absf(lane))
-	if theme in ["desert","pyramid"]:
+	if theme == "pyramid":
 		var dune := .5+.5*sin(p.x*.021+p.z*.009+sin(p.z*.007))
 		p.y += edge_blend*(dune*dune*18+pow(.5+.5*sin(p.z*.027-p.x*.013),2)*7)
 	elif theme == "snow":
 		p.y += edge_blend*(3+3*sin(p.x*.016)*cos(p.z*.011))
-	elif theme in ["hawaii","jeju","fuji","bamboo","amusement"]:
+	elif theme in ["hawaii","jeju","fuji","bamboo","amusement","jungle"]:
 		p.y += edge_blend*3*sin(p.x*.012+p.z*.006)*cos(p.z*.009)
 	if theme == "amusement" and lane < -40:
 		var flat := smoothstep(600,750,d)*(1-smoothstep(1700,1850,d))*(1-smoothstep(-110,-40,lane))
@@ -109,7 +111,7 @@ func _ready() -> void:
 	ground.set_shader_parameter("terrain_variants",RenderResources.fetch(TERRAIN_VARIANTS))
 	var ground_tint: String = {"hawaii":"527a48","jeju":"5d7c4c","city":"515861","seoul":"66645e","ruins":"5d6254","neon":"242932"}.get(theme,Library.PALETTES[theme])
 	ground.set_shader_parameter("ground_color",Color(ground_tint))
-	ground.set_shader_parameter("grassness",0.0 if theme in ["desert","pyramid","ruins","canyon","harbor","snow","volcano","neon","city","seoul"] else 1.0)
+	ground.set_shader_parameter("grassness",0.0 if theme in ["pyramid","ruins","canyon","harbor","snow","volcano","neon","city","seoul"] else 1.0)
 	ground.set_shader_parameter("urban_paving",theme in ["city","seoul","neon"])
 	if theme in DETAILED_THEMES:
 		ground.set_shader_parameter("region_variants",RenderResources.fetch(region_variants_path(theme)))
@@ -132,7 +134,7 @@ func _ready() -> void:
 			make_water()
 		match theme:
 			"city", "seoul", "ruins", "neon": make_city()
-			"desert", "pyramid", "canyon": make_desert()
+			"pyramid", "canyon": make_desert()
 		if theme == "amusement": make_park()
 		if theme == "jeju": make_jeju()
 		if theme == "seoul": make_seoul()

@@ -2,9 +2,9 @@ extends RefCounted
 # 각 지역의 기획·날씨·시간대·난이도 정본. 난이도는 설명용이며 차량 물리를 바꾸지 않는다.
 const REGIONS := {
  "hawaii":{"concept":"열대 해안과 휴양지","weather":"clear","time_of_day":"day","difficulty":1},
- "desert":{"concept":"사구와 바람에 깎인 모래 평원","weather":"sand","time_of_day":"day","difficulty":2},
+ "jungle":{"concept":"울창한 수관과 열대 구릉 정글","weather":"clear","time_of_day":"day","difficulty":2},
  "city":{"concept":"현대 도시 고가도로","weather":"clear","time_of_day":"day","difficulty":2},
- "pyramid":{"concept":"모래 언덕과 고대 유적","weather":"sand","time_of_day":"dawn","difficulty":3},
+ "pyramid":{"concept":"모래 언덕과 고대 유적","weather":"clear","time_of_day":"dawn","difficulty":3},
  "amusement":{"concept":"놀이기구·상점·광고가 있는 공원","weather":"clear","time_of_day":"day","difficulty":3},
  "jeju":{"concept":"섬 해안과 돌담 마을","weather":"clear","time_of_day":"day","difficulty":3},
  "ruins":{"concept":"드문 유적과 비에 젖은 외곽 숲","weather":"rain","time_of_day":"dawn","difficulty":4},

@@ -1048,6 +1048,7 @@ func sync_world_rendering() -> void:
 				tour_weather = preload("res://scripts/tour_weather.gd").new()
 				tour_weather.race = self
 				player.get_parent().add_child(tour_weather)
+	if world_visible and mode == "tour" and is_instance_valid(goal_background): goal_background._process(0)
 	rendering_viewport.disable_3d = not world_visible
 	if is_instance_valid(track):
 		track.visible = world_visible

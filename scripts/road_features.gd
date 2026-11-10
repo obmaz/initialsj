@@ -10,7 +10,7 @@ const Library = preload("res://scripts/route_library.gd")
 #   elevated deck over parked trucks that drops you back onto the road if you steer off it.
 const THEME_FEEL := {
 	"hawaii":{"label":"COAST CRUISE"},
-	"desert":{"label":"DUNE JUMPS","jumps":2},
+	"jungle":{"label":"CANOPY JUMPS","jumps":2},
 	"city":{"label":"SKYWAY CITY","skyway":1,"gates":1,"lane":1},
 	"pyramid":{"label":"DESERT JUMPS","jumps":2,"gates":1},
 	"amusement":{"label":"BOOST PARK","chains":2,"lane":1},

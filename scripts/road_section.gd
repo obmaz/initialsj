@@ -10,7 +10,7 @@ const SKID_SHADER = preload("res://shaders/skid_marks.gdshader")
 # Height bias, first-ridge strength, first-ridge end and second-ridge start.
 # Both overlapping raised-cosine ridges finish before the checkpoint approach.
 const TOUR_ELEVATION := {
-	"hawaii":Vector4(0,0.82,0.54,0.32),"desert":Vector4(1,0.86,0.58,0.39),
+	"hawaii":Vector4(0,0.82,0.54,0.32),"jungle":Vector4(1,0.86,0.58,0.39),
 	"city":Vector4(-2,0.68,0.48,0.32),"pyramid":Vector4(2,0.75,0.55,0.36),
 	"amusement":Vector4(-1,0.92,0.50,0.35),"jeju":Vector4(1,0.78,0.57,0.38),
 	"ruins":Vector4(3,0.72,0.51,0.35),"seoul":Vector4(-2,0.68,0.48,0.32),

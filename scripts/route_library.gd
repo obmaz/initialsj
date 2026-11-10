@@ -7,13 +7,13 @@ const CHECKPOINT_BONUS := 52.0
 const START_TIME := 62.0
 const THEMES := [
 	["hawaii"],
-	["desert", "city"],
+	["jungle", "city"],
 	["pyramid", "amusement", "jeju"],
 	["ruins", "seoul", "fuji", "neon"],
 	["canyon", "harbor", "bamboo", "snow", "volcano"]
 ]
-const TITLES := {"hawaii":"PALM COAST", "desert":"DUNE HIGHWAY", "city":"SKYLINE DRIVE", "amusement":"NEON CARNIVAL", "ruins":"LOST CITY", "pyramid":"GOLDEN PYRAMIDS", "jeju":"JEJU COAST", "seoul":"SEOUL EXPRESS", "fuji":"FUJI LAKESIDE", "neon":"NEON DISTRICT", "canyon":"RED CANYON", "harbor":"CONTAINER PORT", "bamboo":"BAMBOO PASS", "snow":"SNOW PASS", "volcano":"VOLCANIC COAST"}
-const PALETTES := {"hawaii":"74a865", "desert":"d7ae71", "city":"74857f", "amusement":"79a364", "ruins":"a19a7b", "pyramid":"d9ba76", "jeju":"75a269", "seoul":"71877d", "fuji":"6b9270", "neon":"34424c", "canyon":"b96f43", "harbor":"79868b", "bamboo":"4c7949", "snow":"d5e0e6", "volcano":"524942"}
+const TITLES := {"hawaii":"PALM COAST", "jungle":"JUNGLE CANOPY", "city":"SKYLINE DRIVE", "amusement":"NEON CARNIVAL", "ruins":"LOST CITY", "pyramid":"GOLDEN PYRAMIDS", "jeju":"JEJU COAST", "seoul":"SEOUL EXPRESS", "fuji":"FUJI LAKESIDE", "neon":"NEON DISTRICT", "canyon":"RED CANYON", "harbor":"CONTAINER PORT", "bamboo":"BAMBOO PASS", "snow":"SNOW PASS", "volcano":"VOLCANIC COAST"}
+const PALETTES := {"hawaii":"74a865", "jungle":"416c43", "city":"74857f", "amusement":"79a364", "ruins":"a19a7b", "pyramid":"d9ba76", "jeju":"75a269", "seoul":"71877d", "fuji":"6b9270", "neon":"34424c", "canyon":"b96f43", "harbor":"79868b", "bamboo":"4c7949", "snow":"d5e0e6", "volcano":"524942"}
 static func theme(stage: int, node: int) -> String:
 	return THEMES[clampi(stage,0,4)][clampi(node,0,stage)]
 static func title(stage: int, node: int) -> String:

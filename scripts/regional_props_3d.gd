@@ -4,7 +4,7 @@ const FAMILIES := {
 	"hawaii":["palm","palm","broadleaf"], "jeju":["hareubang","tangerine","dol_wall","palm","hareubang","dol_wall"],
 	"fuji":["pine","sakura","japanese_pine"], "bamboo":["bamboo","bamboo","basalt"],
 	"snow":["snow_pine","snow_pine","basalt"], "volcano":["basalt","charred","basalt"],
-	"desert":["cactus","sandstone","cactus"], "pyramid":["obelisk","palm","sandstone"],
+	"jungle":["palm","broadleaf","bamboo"], "pyramid":["obelisk","palm","sandstone"],
 	"canyon":["sandstone","cactus","sandstone"],
 	"city":["convenience_store","apartment","broadleaf","gas_station","billboard","plane_tree","bus_shelter","street_shop","apartment"],
 	"seoul":["apartment","ginkgo","convenience_store","billboard","bus_shelter","street_shop","gas_station","pine"],
