@@ -48,6 +48,12 @@ func run(tree: SceneTree) -> int:
 	race.choose_mode("track",4)
 	race.restart()
 	var collapse: Node3D = race.track.active.collapse
+	for feature in race.track.active.features:
+		var overlaps: bool = feature.distance+feature.length*.5 > collapse.span.x and feature.distance-feature.length*.5 < collapse.span.y
+		var inner: float = race.track.active.surface_lane(collapse.lanes.x,feature.distance)
+		var outer: float = race.track.active.surface_lane(collapse.lanes.y,feature.distance)
+		var crosses: bool = feature.lane+feature.width*.5 > inner and feature.lane-feature.width*.5 < outer
+		check(not (overlaps and crosses),"붕괴한 도로 위에 부스터·기믹 표시가 떠 있으면 안 된다")
 	await tree.physics_frame
 	check(race.track.active.has_node("SolidRoadEdges"),"도로 옆면은 실제 두께를 가진 입체 메시여야 한다")
 	for d in [424.0,430.0,436.0]:

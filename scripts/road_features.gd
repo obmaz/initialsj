@@ -229,7 +229,7 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 		for start in [170.0,1720.0]:
 			for index in range(3): specifications.append(["boost",start+index*70,-.42 if index%2 == 0 else .42,12.0,3.4])
 		specifications.append_array([
-			["boost_lane",510.0,.40,120.0,3.8],
+			["boost_lane",600.0,.40,120.0,3.8],
 			["boost",590.0,-.38,18.0,3.8],
 			["ramp",660.0,-.38,18.0,4.4,.70],
 			["boost",1930.0,.38,20.0,3.8],
