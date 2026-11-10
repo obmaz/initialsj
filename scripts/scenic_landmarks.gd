@@ -8,7 +8,8 @@ var batches: Array[MultiMeshInstance3D] = []
 var billboard_manifest: Array[Dictionary] = []
 var tower_distances: Array[float] = []
 var bridge_clearance := 68.0
-var ad_size := Vector2(16,7)
+var ad_size := Vector2(20,8.75)
+const AD_METRE_SCALE := 1.25
 var texture_regions: Array[Vector3] = []
 var advertisement_spans: Array[Vector2] = []
 var ad_spacing := 135.0
@@ -252,6 +253,9 @@ func make_billboards(span: Vector2) -> void:
 	var lamps: Array[Transform3D] = []
 	var lamps_metal: Array[Transform3D] = []
 	for i in range(int((span.y-span.x-160)/ad_spacing)):
+		var geometry: Array = [posts,frames,backs,footings,lamps,lamps_metal]
+		var starts: Array[int] = []
+		for poses in geometry: starts.append(poses.size())
 		var d := span.x+100+i*ad_spacing
 		var side := -1.0 if i%2 == 0 else 1.0
 		var lane: float = side*(track.half_width(d)+18)
@@ -265,7 +269,7 @@ func make_billboards(span: Vector2) -> void:
 		board.rotation.y = track.heading(d)+side*.22
 		var basis := board.basis
 		var center := p+Vector3.UP*10
-		board.position = center+basis.z*.25
+		board.position = p+(center+basis.z*.25-p)*AD_METRE_SCALE
 		board.material_override = advertisement_material(i)
 		add_child(board)
 		backs.append(Transform3D(basis.scaled_local(Vector3(16.4,7.4,.42)),center))
@@ -285,6 +289,11 @@ func make_billboards(span: Vector2) -> void:
 			frames.append(beam(p+basis.x*sign_x*5+Vector3.UP*6.5-basis.z*.7,p+Vector3.UP*12.8-basis.z*.7,.13))
 		# 하부 점검 발판은 광고 면을 가리지 않습니다.
 		frames.append(Transform3D(basis.scaled_local(Vector3(16.6,.12,1.15)),p+Vector3.UP*6.15+basis.z*.65))
+		# 패널·기초·지지대·조명을 같은 지면 피벗에서 확대해 접합부를 유지한다.
+		for part in range(geometry.size()):
+			for n in range(starts[part],geometry[part].size()):
+				var pose: Transform3D = geometry[part][n]
+				geometry[part][n] = Transform3D(pose.basis.scaled(Vector3.ONE*AD_METRE_SCALE),p+(pose.origin-p)*AD_METRE_SCALE)
 		billboard_manifest.append({"distance":d,"lane":lane,"width":ad_size.x,"height":ad_size.y,"position":board.position,"basis":basis})
 	boxes("BillboardSteelSupports",posts,Color("555b5c"),false)
 	boxes("BillboardRimAndTruss",frames,Color("42494a"),false)

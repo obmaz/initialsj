@@ -63,7 +63,16 @@ func run(tree: SceneTree) -> int:
  var densest := 0
  for batch in forest.batches: densest = maxi(densest,batch.multimesh.instance_count)
  check(densest <= 12 and forest.placements.size() < 520,"The Fuji prop count must stay bounded for phones")
- FileAccess.open(Report.path("scenery-3d-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"regions":rows,"unique_model_kinds":all_kinds.size(),"fuji_tree_count":forest.placements.size(),"failures":failures},"\t")+"\n")
+ var fuji_count: int = forest.placements.size()
+ race.choose_mode("track",3)
+ var boulevard: Node3D = race.track.scenery.get_node("RivieraBoulevard")
+ for placement in boulevard.placements:
+  var radius: float = Props.radius(placement.kind)*float(placement.scale)
+  var p: Vector3 = placement.position
+  var nearest: float = race.track.active.curve.get_closest_offset(p)
+  var center: Vector3 = race.track.point(nearest)
+  check(Vector2(p.x-center.x,p.z-center.z).length()-radius >= race.track.half_width(nearest)+1.5,"확대한 해안 매장·야자수의 전체 경계가 차도 밖에 있어야 한다")
+ FileAccess.open(Report.path("scenery-3d-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"regions":rows,"unique_model_kinds":all_kinds.size(),"fuji_tree_count":fuji_count,"failures":failures},"\t")+"\n")
  race.queue_free()
  await tree.process_frame
  print("Regional 3D geometry / silhouettes / clearance / mobile budgets: ","PASS" if failures == 0 else "FAIL")

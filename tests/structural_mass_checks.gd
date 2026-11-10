@@ -18,6 +18,29 @@ func run(tree: SceneTree) -> int:
 			if uv.y > .5: fronts += 1
 			else: sides += 1
 		check(fronts > 0 and sides > 0,"각 건물은 전용 정면과 별도 측면 이미지 영역을 사용해야 한다: "+kind)
+	# 승용차 길이 4.3m에 대한 실제 영업 공간·성목·광고판의 미터 치수를 검사한다.
+	var store := Props.model("convenience_store").get_aabb().size
+	check(store.x >= 16 and store.z >= 17 and store.y >= 6,"편의점은 승용차 여러 대가 늘어서는 매장·전정 크기를 가져야 한다")
+	var station_bounds := Props.model("gas_station").get_aabb()
+	for x in [station_bounds.position.x,station_bounds.end.x]:
+		for z in [station_bounds.position.z,station_bounds.end.z]:
+			check(Vector2(x,z).length() <= Props.radius("gas_station")+.001,"주유소 이격 반경은 비대칭 부지의 네 모서리를 모두 포함해야 한다")
+	var station := station_bounds.size
+	check(station.x >= 29 and station.z >= 29,"주유소는 급유 차로와 후면 서비스동이 있는 실제 부지 크기여야 한다")
+	var apartment := Props.model("apartment").get_aabb().size
+	check(apartment.x >= 18 and apartment.y >= 19 and apartment.z >= 16,"아파트는 자동차보다 충분히 큰 동 폭과 다층 높이를 가져야 한다")
+	for kind in ["palm","pine","plane_tree","ginkgo"]+Props.Models.TREES:
+		var height: float = Props.model(kind).get_aabb().size.y
+		check(height >= 14 and height <= 30,"성목은 승용차 높이의 여러 배인 실제 수고를 가져야 한다: "+kind)
+	var advert := Props.model("billboard").get_aabb().size
+	check(advert.x >= 14 and advert.y >= 15,"도로변 광고판은 자동차 여러 대 길이의 패널과 지주를 가져야 한다")
+	var station_arrays: Array = Props.model("gas_station").surface_get_arrays(0)
+	var canopy_under := INF
+	for i in range(station_arrays[Mesh.ARRAY_VERTEX].size()):
+		var vertex: Vector3 = station_arrays[Mesh.ARRAY_VERTEX][i]
+		var normal: Vector3 = station_arrays[Mesh.ARRAY_NORMAL][i]
+		if absf(vertex.z) < 8 and vertex.y > 5 and normal.y < -.9: canopy_under = minf(canopy_under,vertex.y)
+	check(canopy_under >= 5.2 and canopy_under <= 6.5,"주유소 캐노피는 실제 차량 통과 높이를 유지해야 한다")
 	var race = load("res://scenes/race.tscn").instantiate()
 	tree.root.add_child(race)
 	race.set_physics_process(false)

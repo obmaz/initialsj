@@ -15,6 +15,22 @@ const FAMILIES := {
 }
 const Models = preload("res://scripts/quaternius_props.gd")
 const BUILDING_DIMS := {"coffee_shop":Vector3(8,3.8,6),"convenience_store":Vector3(10,3.6,6.4),"street_shop":Vector3(7,4.4,6),"ticket_booth":Vector3(7,4.4,6),"gas_station":Vector3(8,3.4,4.5),"apartment":Vector3(11,17,9),"warehouse_shed":Vector3(14,6.4,26),"ryokan":Vector3(17,8.6,9),"teahouse":Vector3(8,3.8,6),"noodle_house":Vector3(9,3,7),"souvenir_shop":Vector3(9,3.6,6)}
+# 건물 템플릿의 로컬 치수를 도로와 같은 미터 단위로 보정한다.
+# 가로·깊이는 매장과 전정을 확보하고 높이는 층고와 급유기 비례를 유지한다.
+const METRE_SCALE := {
+ "coffee_shop":Vector3(1.5,1.15,1.5), "convenience_store":Vector3(1.6,1.2,1.65),
+ "street_shop":Vector3(1.6,1.1,1.5), "ticket_booth":Vector3(1.3,1.05,1.3),
+ "gas_station":Vector3(1.6,1.15,1.7), "apartment":Vector3(1.65,1.15,1.6),
+ "warehouse_shed":Vector3(1.25,1.1,1.2), "ryokan":Vector3(1.3,1.1,1.4),
+ "teahouse":Vector3(1.3,1.1,1.3), "noodle_house":Vector3(1.5,1.3,1.4),
+ "souvenir_shop":Vector3(1.5,1.2,1.5), "billboard":Vector3(1.35,1.2,1.3),
+ "palm":Vector3(1.1,1.65,1.1), "pine":Vector3(1.2,1.6,1.2),
+ "snow_pine":Vector3(1.2,1.6,1.2), "japanese_pine":Vector3(1.3,1.5,1.3),
+ "broadleaf":Vector3(1.3,1.5,1.3), "sakura":Vector3(1.25,1.35,1.25),
+ "plane_tree":Vector3(1.3,1.6,1.3), "ginkgo":Vector3(1.25,1.6,1.25),
+ "bamboo":Vector3(1.15,1.4,1.15), "charred":Vector3(1.2,1.5,1.2)
+}
+const MATURE_TREE_HEIGHT := {"lake_pine_1":22.0,"lake_pine_2":20.0,"lake_pine_3":24.0,"lake_oak_1":16.0,"lake_oak_2":18.0,"lake_willow_1":14.0,"lake_willow_2":16.0,"lake_willow_3":18.0}
 static var mesh_cache: Dictionary = {}
 static var shared_material: ShaderMaterial
 var theme := "hawaii"
@@ -81,7 +97,8 @@ func set_shadow_quality(_enabled: bool) -> void:
  pass
 static func radius(kind: String) -> float:
  var bounds := model(kind).get_aabb()
- return maxf(Vector2(bounds.position.x,bounds.position.z).length(),Vector2(bounds.end.x,bounds.end.z).length())
+ # 비대칭 주유소의 가격표 지주처럼 서로 반대쪽 축에 돌출한 모서리도 포함한다.
+ return Vector2(maxf(absf(bounds.position.x),absf(bounds.end.x)),maxf(absf(bounds.position.z),absf(bounds.end.z))).length()
 static func box(st: SurfaceTool, center: Vector3, size: Vector3, color: Color, yaw: float = 0, facade: int = -1) -> void:
  var mesh := BoxMesh.new()
  mesh.size = Vector3.ONE
@@ -119,7 +136,7 @@ static func append(st: SurfaceTool, mesh: Mesh, transform: Transform3D, color: C
 static func model(kind: String) -> ArrayMesh:
  if mesh_cache.has(kind): return mesh_cache[kind]
  if Models.has(kind):
-  mesh_cache[kind] = Models.build(kind)
+  mesh_cache[kind] = metre_mesh(Models.build(kind),kind)
   return mesh_cache[kind]
  var st := SurfaceTool.new()
  st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -267,19 +284,20 @@ static func model(kind: String) -> ArrayMesh:
    box(st,Vector3(2,5.2,-1.6),Vector3(2.4,1.8,1.6),Color("8b9296"))
    box(st,Vector3(-3.4,4.8,3.0),Vector3(2.8,1.5,0.2),Color("ffd34a"))
    box(st,Vector3(0,0.1,1.5),Vector3(12,0.2,11),Color("6c7176"))
-   for x in [-3.0,0.0,3.0]: box(st,Vector3(x,0.4,6.4),Vector3(2.2,0.8,0.5),Color("d9d9d4"))
+   # 최종 실척: 주차 간격 2.72m, 스토퍼 1.7×0.14×0.22m. 전정 상면에 놓는다.
+   for x in [-3.4,-1.7,0.0,1.7,3.4]: box(st,Vector3(x,.2583,4.4),Vector3(1.0625,.1167,.1333),Color("d9d9d4"))
   "gas_station":
    box(st,Vector3(0,5.4,0),Vector3(14,0.7,9),Color("f2f2ee"))
    box(st,Vector3(0,5.0,0),Vector3(14.2,0.35,9.2),Color("d6342b"))
    for x in [-5.5,5.5]:
-    for z in [-3.2,3.2]: column(st,Vector3(x,2.6,z),5.2,0.3,0.3,Color("c9ccce"),6)
+    for z in [-3.2,3.2]: column(st,Vector3(x,2.6,z),5.2,0.16,0.16,Color("c9ccce"),6)
    for x in [-2.6,2.6]:
-    box(st,Vector3(x,0.9,0),Vector3(0.8,1.8,1.4),Color("d6342b"))
-    box(st,Vector3(x,1.55,0),Vector3(0.82,0.5,1.42),Color("1c2b36"))
-    box(st,Vector3(x,0.12,0),Vector3(1.6,0.24,3.6),Color("8e948f"))
+    box(st,Vector3(x,.8774,0),Vector3(.625,1.4348,.4118),Color("d6342b"))
+    box(st,Vector3(x,1.3478,0),Vector3(.6438,.3043,.4235),Color("1c2b36"))
+    box(st,Vector3(x,.08,0),Vector3(.78125,.16,2.3529),Color("8e948f"))
    box(st,Vector3(0,1.7,-8),Vector3(8,3.4,4.5),Color("d8d5c8"),0,3)
    box(st,Vector3(0,3.6,-8),Vector3(8.4,0.4,4.9),Color("d6342b"))
-   column(st,Vector3(8.5,4.5,3.5),9.0,0.22,0.22,Color("737a7e"),6)
+   column(st,Vector3(8.5,4.5,3.5),9.0,0.14,0.14,Color("737a7e"),6)
    box(st,Vector3(8.5,8.6,3.5),Vector3(3.2,2.8,0.4),Color("ffd34a"))
    box(st,Vector3(8.5,8.6,3.72),Vector3(2.7,0.6,0.1),Color("d6342b"))
    box(st,Vector3(0,0.06,-1),Vector3(17,0.12,17),Color("5e6468"))
@@ -418,9 +436,31 @@ static func model(kind: String) -> ArrayMesh:
    round_part(st,Vector3(0,1,0),Vector3(3,2,3),Color("596d59"))
  if BUILDING_DIMS.has(kind): architectural_mass(st,kind)
  st.index()
- var result := st.commit()
+ var result := metre_mesh(st.commit(),kind)
  mesh_cache[kind] = result
  return result
+
+static func metre_mesh(source: ArrayMesh, kind: String) -> ArrayMesh:
+ var factor: Vector3 = METRE_SCALE.get(kind,Vector3.ONE)
+ if MATURE_TREE_HEIGHT.has(kind): factor = Vector3.ONE*float(MATURE_TREE_HEIGHT[kind])/source.get_aabb().size.y
+ if factor == Vector3.ONE: return source
+ var arrays: Array = source.surface_get_arrays(0)
+ var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+ var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+ for i in range(vertices.size()):
+  vertices[i] *= factor
+  normals[i] = (normals[i]/factor).normalized()
+ arrays[Mesh.ARRAY_VERTEX] = vertices
+ arrays[Mesh.ARRAY_NORMAL] = normals
+ var result := ArrayMesh.new()
+ result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+ return result
+
+static func placement_scale(kind: String, requested: float) -> float:
+ # 매장·간판은 실제 치수를 유지하고 나무만 제한된 생장 변형을 허용한다.
+ if BUILDING_DIMS.has(kind) or kind == "billboard": return clampf(requested,.97,1.08)
+ if METRE_SCALE.has(kind) or Models.is_tree(kind): return clampf(requested,.9,1.18)
+ return requested
 
 static func architectural_mass(st: SurfaceTool, kind: String) -> void:
  # 외벽 이미지를 평면 카드로 두지 않고 기단·모서리 기둥·깊은 창턱을 실제 메시로 만든다.

@@ -97,14 +97,23 @@ func make_boulevard() -> void:
 	for i in range(180):
 		var d: float = track.length*i/180
 		for side in [-1.0,1.0]:
-			var lane: float = side*(track.half_width(d)+6.5+(i%3)*2.4)
+			var scale: float = Props.placement_scale("palm",1.1+(i%4)*.13)
+			var radius: float = Props.radius("palm")*scale
+			var lane: float = side*(track.half_width(d)+track.rail_setback(d,side)+radius+2.5+(i%3)*2.4)
 			var p := terrain_point(d,lane)
-			placements.append({"kind":"palm","position":p,"yaw":i*1.7,"scale":1.1+(i%4)*0.13})
+			var nearest: float = track.curve.get_closest_offset(p)
+			if Vector2(p.x-track.point(nearest).x,p.z-track.point(nearest).z).length()-radius < track.half_width(nearest)+track.rail_setback(nearest,side)+1.5: continue
+			placements.append({"kind":"palm","position":p,"yaw":i*1.7,"scale":scale})
 			tree_positions.append(p)
 		if i%4 == 0:
-			var lane: float = track.half_width(d)+23+(i%3)*6
 			var kind: String = ["coffee_shop","souvenir_shop","gas_station","street_shop"][(i/4)%4]
-			placements.append({"kind":kind,"position":terrain_point(d,lane),"yaw":track.heading(d)-PI*0.5,"scale":1.2})
+			var scale: float = Props.placement_scale(kind,1.2)
+			var radius: float = Props.radius(kind)*scale
+			var lane: float = track.half_width(d)+track.rail_setback(d,1.0)+radius+3.5+(i%3)*6
+			var p := terrain_point(d,lane)
+			var nearest: float = track.curve.get_closest_offset(p)
+			if Vector2(p.x-track.point(nearest).x,p.z-track.point(nearest).z).length()-radius < track.half_width(nearest)+track.rail_setback(nearest,1.0)+1.5: continue
+			placements.append({"kind":kind,"position":p,"yaw":track.heading(d)-PI*0.5,"scale":scale})
 	var props := Props.new()
 	props.name = "RivieraBoulevard"
 	props.configure("hawaii",placements)

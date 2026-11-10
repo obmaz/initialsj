@@ -23,7 +23,7 @@ func _ready() -> void:
   if theme in ["hawaii","jeju","fuji"]: side = 1.0
   var variant := i%family.size()
   var kind: String = family[variant]
-  var scale := random.randf_range(0.8,1.25)
+  var scale: float = Props.placement_scale(kind,random.randf_range(0.8,1.25))
   var radius: float = Props.radius(kind)*scale
   # Stone guardians stand right at the roadside so they are seen; other props spread out.
   var lane: float = side*(road.half_width(d)+road.rail_setback(d,side)+2.6+radius+random.randf_range(0,3 if kind == "hareubang" else 11))

@@ -152,7 +152,7 @@ func make_village() -> void:
 		while d < village[1]:
 			var kind: String = kinds[index%kinds.size()]
 			index += 1
-			var scale := rng.randf_range(0.95,1.1)
+			var scale: float = Props.placement_scale(kind,rng.randf_range(0.95,1.1))
 			var radius: float = Props.radius(kind)*scale
 			var step := radius*1.5+rng.randf_range(2,5)
 			var ok: bool = not (track.in_tunnel(d) or track.excavation_depth(d) > 0.2 or track.on_bridge(d)) and absf(track.curvature(d)) < 0.006

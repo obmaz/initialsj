@@ -180,8 +180,8 @@ func make_city() -> void:
 		var height: float = rng.randf_range(10,23) if style in [0,5] else rng.randf_range(35,95)
 		if style == 4: height = rng.randf_range(20,38)
 		if theme == "ruins": height *= 0.65
-		var width := rng.randf_range(12,24)
-		var depth := rng.randf_range(14,32)
+		var width := rng.randf_range(16,30)
+		var depth := rng.randf_range(20,38)
 		var radius := Vector2(width,depth).length()*0.55
 		var lane: float = side*(track.half_width(d)+track.rail_setback(d,side)+4+radius+rng.randf_range(0,32))
 		if back_row:
