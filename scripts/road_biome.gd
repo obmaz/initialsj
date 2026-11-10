@@ -15,6 +15,24 @@ var local_lights: Array[OmniLight3D] = []
 var building_manifest: Array[Dictionary] = []
 var landmarks: Node3D
 var water: MeshInstance3D
+const RenderResources = preload("res://scripts/render_resources.gd")
+const OCEAN_RIPPLES = "res://assets/environment/ocean-ripples.png"
+
+const TERRAIN_VARIANTS = "res://assets/environment/terrain-variants.png"
+const DETAILED_THEMES := ["desert","pyramid","snow","hawaii","jeju","fuji","bamboo","amusement"]
+
+static func region_variants_path(region: String) -> String:
+	if region in ["desert","pyramid"]: return "res://assets/environment/tour-sand-variants.png"
+	return "res://assets/environment/tour-snow-variants.png" if region == "snow" else "res://assets/environment/tour-grass-variants.png"
+
+# 이 지역이 처음 쓰는 텍스처·모델. 주행 중에 만드는 구간은 생성 첫 단계에서 미리 읽기 시작한다.
+static func warm_paths(region: String) -> Array[String]:
+	var paths: Array[String] = [TERRAIN_VARIANTS]
+	if region in DETAILED_THEMES: paths.append(region_variants_path(region))
+	if Library.coastal(region): paths.append(OCEAN_RIPPLES)
+	if preload("res://scripts/distant_ridges.gd").THEMES.has(region): paths.append(preload("res://scripts/distant_ridges.gd").ATLAS_PATH)
+	paths.append_array(preload("res://scripts/tour_vegetation.gd").warm_paths(region))
+	return paths
 
 func mat(color: Color, metal: float = 0, glow: float = 0) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
@@ -88,14 +106,13 @@ func _ready() -> void:
 	var ground := ShaderMaterial.new()
 	ground.shader = preload("res://shaders/biome_ground.gdshader")
 	ground.set_shader_parameter("grain",GRASS)
-	ground.set_shader_parameter("terrain_variants",load("res://assets/environment/terrain-variants.png"))
+	ground.set_shader_parameter("terrain_variants",RenderResources.fetch(TERRAIN_VARIANTS))
 	var ground_tint: String = {"hawaii":"527a48","jeju":"5d7c4c","city":"515861","seoul":"66645e","ruins":"5d6254","neon":"242932"}.get(theme,Library.PALETTES[theme])
 	ground.set_shader_parameter("ground_color",Color(ground_tint))
 	ground.set_shader_parameter("grassness",0.0 if theme in ["desert","pyramid","ruins","canyon","harbor","snow","volcano","neon","city","seoul"] else 1.0)
 	ground.set_shader_parameter("urban_paving",theme in ["city","seoul","neon"])
-	if theme in ["desert","pyramid","snow","hawaii","jeju","fuji","bamboo","amusement"]:
-		var image: String = "res://assets/environment/tour-sand-variants.png" if theme in ["desert","pyramid"] else ("res://assets/environment/tour-snow-variants.png" if theme == "snow" else "res://assets/environment/tour-grass-variants.png")
-		ground.set_shader_parameter("region_variants",load(image))
+	if theme in DETAILED_THEMES:
+		ground.set_shader_parameter("region_variants",RenderResources.fetch(region_variants_path(theme)))
 		ground.set_shader_parameter("detailed_terrain",true)
 	# 도로 구간의 단계 큐에 끼운다. 주행 중에 만들어지는 구간은 프레임마다 나눠 실행된다.
 	var steps: Array[Callable] = []
@@ -123,7 +140,7 @@ func _ready() -> void:
 		if theme == "volcano": make_volcano())
 	# 이 지역에서 처음 쓰는 소품 메시는 종류마다 한 단계씩 미리 만든다.
 	for kind in preload("res://scripts/regional_props_3d.gd").FAMILIES[theme]:
-		steps.append(func(): preload("res://scripts/regional_props_3d.gd").model(kind))
+		steps.append(func(): preload("res://scripts/regional_props_3d.gd").warm(kind))
 	steps.append(func():
 		roadside_art = preload("res://scripts/roadside_art.gd").new()
 		roadside_art.scenery = self
@@ -196,7 +213,7 @@ func make_water() -> void:
 	water.mesh = surface.commit()
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/coastal_water.gdshader")
-	material.set_shader_parameter("surface_detail",load("res://assets/environment/ocean-ripples.png"))
+	material.set_shader_parameter("surface_detail",RenderResources.fetch(OCEAN_RIPPLES))
 	material.set_shader_parameter("deep_color",Color("193e56") if theme == "harbor" else Color("084270"))
 	material.set_shader_parameter("shallow_color",Color("497a8a") if theme == "harbor" else Color("1582a6"))
 	water.material_override = material

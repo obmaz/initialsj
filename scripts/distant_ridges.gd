@@ -19,7 +19,7 @@ func _ready() -> void:
 		return
 	if not THEMES.has(scenery.theme): return
 	var road: Node3D = scenery.track
-	var atlas: Texture2D = load(ATLAS_PATH)
+	var atlas: Texture2D = preload("res://scripts/render_resources.gd").fetch(ATLAS_PATH)
 	var region: Vector4 = REGIONS[THEMES[scenery.theme]]
 	var poses: Array[Transform3D] = []
 	var regions: Array[Color] = []

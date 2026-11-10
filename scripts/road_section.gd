@@ -384,6 +384,8 @@ func _ready() -> void:
 	var Roadside := preload("res://scripts/roadside_geometry.gd")
 	var ribbons := {}
 	build_queue.append(func():
+		if not closed_loop:
+			for path in Scenery.warm_paths(Library.theme(stage,route_node)): preload("res://scripts/render_resources.gd").warm(path)
 		if not closed_loop and stage == 0: bridge_span = Vector2(850,1380)
 		if closed_loop and course_id == 4:
 			collapse = preload("res://scripts/bridge_collapse.gd").new()

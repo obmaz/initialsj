@@ -20,6 +20,8 @@ static var BUILDING_DIMS: Dictionary = Models.building_dimensions()
 static var mesh_cache: Dictionary = {}
 static var shared_materials: Dictionary = {}
 static var material_keys: Dictionary = {}
+static var texture_needs: Dictionary = {}
+const RenderResources = preload("res://scripts/render_resources.gd")
 var theme := "hawaii"
 var placements: Array[Dictionary] = []
 var batches: Array[MultiMeshInstance3D] = []
@@ -81,12 +83,28 @@ static func material_for(kind: String) -> Material:
 	var definition: Resource = Models.definition(kind)
 	if not definition.material_path.is_empty():
 		var key: String = "material:"+definition.material_path
-		if not shared_materials.has(key): shared_materials[key] = load(definition.material_path)
+		if not shared_materials.has(key): shared_materials[key] = RenderResources.fetch(definition.material_path)
 		return shared_materials[key]
 	var embedded: Material = model(kind).surface_get_material(0)
 	if embedded != null: return embedded
 	if not material_keys.has(kind):
-		var needed := {}
+		var needed := textures_for(kind)
+		var keys := needed.keys()
+		keys.sort()
+		var key := ",".join(PackedStringArray(keys))
+		material_keys[kind] = key
+		if not shared_materials.has(key):
+			var mat := ShaderMaterial.new()
+			mat.shader = preload("res://shaders/prop_facade.gdshader")
+			for uniform_name in needed: mat.set_shader_parameter(uniform_name,RenderResources.fetch(needed[uniform_name]))
+			shared_materials[key] = mat
+	return shared_materials[material_keys[kind]]
+
+# 공용 외벽 재질이 이 모델을 위해 읽어야 하는 아틀라스(유니폼 이름 → 경로). 전용·내장 재질이면 비어 있다.
+static func textures_for(kind: String) -> Dictionary:
+	if texture_needs.has(kind): return texture_needs[kind]
+	var needed := {}
+	if Models.definition(kind).material_path.is_empty() and model(kind).surface_get_material(0) == null:
 		var data: Array = model(kind).surface_get_arrays(0)
 		var marks: PackedVector2Array = data[Mesh.ARRAY_TEX_UV2] if data[Mesh.ARRAY_TEX_UV2] != null else PackedVector2Array()
 		for mark in marks:
@@ -100,20 +118,21 @@ static func material_for(kind: String) -> Material:
 			elif mark.x > 9.5:
 				needed["building_fronts"] = "res://assets/environment/building-front-elevations.png"
 				needed["building_sides"] = "res://assets/environment/building-side-elevations.png"
-		var keys := needed.keys()
-		keys.sort()
-		var key := ",".join(PackedStringArray(keys))
-		material_keys[kind] = key
-		if not shared_materials.has(key):
-			var mat := ShaderMaterial.new()
-			mat.shader = preload("res://shaders/prop_facade.gdshader")
-			for uniform_name in needed: mat.set_shader_parameter(uniform_name,load(needed[uniform_name]))
-			shared_materials[key] = mat
-	return shared_materials[material_keys[kind]]
+	texture_needs[kind] = needed
+	return needed
+
+# 모델을 만들고, 그 재질이 쓸 리소스를 미리 읽기 시작한다.
+static func warm(kind: String) -> void:
+	var definition: Resource = Models.definition(kind)
+	if not definition.material_path.is_empty(): RenderResources.warm(definition.material_path)
+	else:
+		for path in textures_for(kind).values(): RenderResources.warm(path)
+	if kind == "billboard": Ads.warm()
 static func clear_cache() -> void:
 	mesh_cache.clear()
 	shared_materials.clear()
 	material_keys.clear()
+	texture_needs.clear()
 
 func set_shadow_quality(_enabled: bool) -> void:
 	# Small prop shadows are deliberately omitted; nearby car/architecture shadows

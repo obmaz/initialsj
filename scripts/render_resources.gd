@@ -3,6 +3,8 @@ extends RefCounted
 static var owners := 0
 static var quads: Dictionary = {}
 static var box_mesh: ArrayMesh
+# 작업 스레드에서 읽는 중인 리소스 경로. fetch()가 결과를 받아 가면 지운다.
+static var warming: Dictionary = {}
 
 static func acquire_owner() -> void:
 	owners += 1
@@ -13,7 +15,19 @@ static func release_owner() -> bool:
 	if owners != 0: return false
 	quads.clear()
 	box_mesh = null
+	for path in warming: ResourceLoader.load_threaded_get(path)
+	warming.clear()
 	return true
+
+# 주행 중에 만드는 구간이 처음 쓰는 텍스처·모델을 작업 스레드에서 미리 읽기 시작한다.
+static func warm(path: String) -> void:
+	if warming.has(path) or ResourceLoader.has_cached(path): return
+	if ResourceLoader.load_threaded_request(path) == OK: warming[path] = true
+
+# warm()으로 읽기 시작한 리소스는 그 결과를 받고, 아니면 바로 읽는다.
+static func fetch(path: String) -> Resource:
+	if warming.erase(path): return ResourceLoader.load_threaded_get(path)
+	return load(path)
 
 static func quad(size: Vector2) -> QuadMesh:
 	if not quads.has(size):

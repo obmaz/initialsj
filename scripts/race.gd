@@ -416,6 +416,7 @@ func _exit_tree() -> void:
 		if RenderResources.release_owner():
 			preload("res://scripts/advertisement_library.gd").clear_cache()
 			preload("res://scripts/regional_props_3d.gd").clear_cache()
+			preload("res://scripts/tour_vegetation.gd").clear_cache()
 	_hide_fullscreen_control()
 	if is_instance_valid(rendering_viewport): rendering_viewport.disable_3d = previous_disable_3d
 	Engine.time_scale = 1.0
@@ -510,6 +511,7 @@ func choose_mode(value: String, course: int = 0) -> void:
 	if RenderResources.owners == 1:
 		preload("res://scripts/advertisement_library.gd").clear_cache()
 		preload("res://scripts/regional_props_3d.gd").clear_cache()
+		preload("res://scripts/tour_vegetation.gd").clear_cache()
 	track = Circuit.new() if mode == "track" else Track.new()
 	if mode == "track": track.course_id = selected_course
 	add_child(track)

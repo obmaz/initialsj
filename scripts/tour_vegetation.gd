@@ -6,12 +6,25 @@ const NEEDLES = "res://models/shared/foliage/needle-sprays.webp"
 var scenery: Node3D
 var tree_count := 0
 var variant_counts := {}
+const RenderResources = preload("res://scripts/render_resources.gd")
+const BARE_THEMES := ["desert","pyramid","canyon","volcano","harbor"]
+# 변형별 메시·재질은 모든 구간이 공유한다. 마지막 게임 씬이 나갈 때 비운다.
+static var piece_cache := {}
+static func clear_cache() -> void:
+ piece_cache.clear()
+# 이 지역의 식생이 읽을 모델과 텍스처. 주행 중에 만드는 구간이 미리 읽기 시작한다.
+static func warm_paths(region: String) -> Array[String]:
+ var paths: Array[String] = []
+ if region in BARE_THEMES: return paths
+ for item in Catalog.all("vegetation"):
+  if not piece_cache.has(item.id): paths.append(item.source_mesh_path)
+ paths.append_array([LEAVES,BARK,NEEDLES])
+ return paths
 func _ready() -> void:
  var theme: String = scenery.theme
- if theme in ["desert","pyramid","canyon","volcano","harbor"]: return
+ if theme in BARE_THEMES: return
  var definitions: Array[Resource] = Catalog.all("vegetation")
  var groups := {}
- var pieces := {}
  var road: Node3D = scenery.track
  var spacing := 24 if theme in ["amusement","fuji","bamboo","snow"] else 42
  for i in range(int((road.length-360)/spacing)):
@@ -46,8 +59,8 @@ func _ready() -> void:
  for key in groups:
   var group: Dictionary = groups[key]
   var item: Resource = definitions[group.variant]
-  if not pieces.has(group.variant):
-   var resource: Resource = load(item.source_mesh_path)
+  if not piece_cache.has(item.id):
+   var resource: Resource = RenderResources.fetch(item.source_mesh_path)
    var mesh: Mesh
    if resource is PackedScene:
     var scene: Node = resource.instantiate()
@@ -55,21 +68,21 @@ func _ready() -> void:
     scene.free()
    else: mesh = resource
    var scale: float = item.parameters.height/mesh.get_aabb().size.y
-   pieces[group.variant] = []
+   piece_cache[item.id] = []
    for surface in range(mesh.get_surface_count()):
     var leaf: bool = mesh.surface_get_material(surface).resource_name.begins_with("LeafSprays")
     var part := ArrayMesh.new()
     part.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,mesh.surface_get_arrays(surface))
     var material := StandardMaterial3D.new()
-    material.albedo_texture = load(BARK if not leaf else (NEEDLES if item.parameters.needles else LEAVES))
+    material.albedo_texture = RenderResources.fetch(BARK if not leaf else (NEEDLES if item.parameters.needles else LEAVES))
     material.vertex_color_use_as_albedo = true
     material.roughness = .96
     if leaf:
      material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
      material.alpha_scissor_threshold = .28 if item.parameters.needles else .42
      material.cull_mode = BaseMaterial3D.CULL_DISABLED
-    pieces[group.variant].append({"mesh":part,"material":material,"scale":scale})
-  for piece in pieces[group.variant]:
+    piece_cache[item.id].append({"mesh":part,"material":material,"scale":scale})
+  for piece in piece_cache[item.id]:
    var part: ArrayMesh = piece.mesh
    var material: Material = piece.material
    var scale: float = piece.scale

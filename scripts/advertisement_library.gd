@@ -34,10 +34,14 @@ static func selection(index: int) -> Dictionary:
   var pack: Dictionary = PACKS[pack_index]
   if cell < int(pack.count):
    var columns := int(pack.grid.x)
-   if not atlases.has(pack_index): atlases[pack_index] = load(pack.atlas)
+   if not atlases.has(pack_index): atlases[pack_index] = preload("res://scripts/render_resources.gd").fetch(pack.atlas)
    return {"atlas":atlases[pack_index],"grid":pack.grid,"tile":Vector2(cell%columns,cell/columns),"pack":pack_index,"cell":cell,"category":pack.categories[cell/3] if pack.categories.size()>1 else pack.categories[0]}
   cell -= int(pack.count)
  return {}
+# 주행 중 처음 나오는 광고 아틀라스를 미리 읽기 시작한다.
+static func warm() -> void:
+ for pack_index in range(PACKS.size()):
+  if not atlases.has(pack_index): preload("res://scripts/render_resources.gd").warm(PACKS[pack_index].atlas)
 static func make_print(index: int, shader: Shader) -> ShaderMaterial:
  var info := selection(index)
  var printed := ShaderMaterial.new()
