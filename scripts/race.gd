@@ -623,6 +623,7 @@ func restart() -> void:
 	recovery_lane = -3.2
 	if mode == "tour" and (track.active.stage != 0 or not track.history.is_empty()): track.reset()
 	if track.active.collapse != null: track.active.collapse.reset_effect()
+	if track.active.rockfall != null: track.active.rockfall.reset_effect()
 	distance = 80
 	completed_distance = 0
 	lane = -3.2
@@ -1027,6 +1028,10 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 	if track.active.collapse != null:
 		track.active.collapse.advance(delta,distance,motion_reduced)
 		hazard_text = track.active.collapse.warning(distance)
+	if track.active.rockfall != null:
+		track.active.rockfall.advance(delta,distance,laps_completed)
+		var rock_warning: String = track.active.rockfall.warning(distance)
+		if not rock_warning.is_empty(): hazard_text = rock_warning
 
 func pad_speed_cap() -> float:
 	return maxf(vehicle.overdrive_speed+2,vehicle.max_speed+21)

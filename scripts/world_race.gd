@@ -459,6 +459,7 @@ func update_rivals(delta: float) -> void:
 			var collapse: Node3D = race.track.active.collapse
 			var section_d: float = fposmod(d,race.track.length)
 			if section_d > collapse.span.x-300 and section_d < collapse.span.y+30: target_lane = minf(target_lane,1.0)
+		if race.track.active.rockfall != null: target_lane = race.track.active.rockfall.safe_lane(d,target_lane)
 		var target: Vector3 = race.track.point(d+look,target_lane)
 		var direction: Vector3 = target-body.feet_position()
 		var forward: Vector3 = body.forward_direction()

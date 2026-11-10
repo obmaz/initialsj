@@ -28,6 +28,7 @@ var bridge_lower_distance := 0.0
 var bridge_upper_distance := 0.0
 var scenery: Node3D
 var road_surface: MeshInstance3D
+var rockfall: Node3D
 var collapse: Node3D
 var skid_meshes: Array[MeshInstance3D] = []
 var prop_batches: Array[MultiMeshInstance3D] = []
@@ -387,6 +388,11 @@ func _ready() -> void:
 		make_fork_guides()
 	else: make_gantry(length-10,"GRAND TOUR / GOAL")
 	if collapse != null: collapse.finish_geometry()
+	if closed_loop and course_id == 4:
+		rockfall = preload("res://scripts/rockfall_hazard.gd").new()
+		rockfall.configure(self)
+		add_child(rockfall)
+		rockfall.reset_effect()
 
 func checkpoint_distance() -> float:
 	return maxf(80,length-Library.CHECKPOINT_RUNUP)
