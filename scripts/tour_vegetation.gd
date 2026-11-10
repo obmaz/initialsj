@@ -48,6 +48,15 @@ func _ready() -> void:
   groups[key].poses.append(Transform3D(Basis(Vector3.UP,i*2.399),point))
   variant_counts[item.id] = int(variant_counts.get(item.id,0))+1
   tree_count += 1
+  # 정글은 길가 한 줄에 그치지 않도록 뒤쪽 두 겹의 숲을 같은 메시로 인스턴싱한다.
+  if theme == "jungle":
+   for row in [1,2]:
+    var back: Vector3 = road.roadside_point(d+row*6,lane+side*row*18)
+    var at: float = road.curve.get_closest_offset(back)
+    if back.distance_to(road.point(at)) < road.half_width(at)+12: continue
+    groups[key].poses.append(Transform3D(Basis(Vector3.UP,i*2.399+row),back))
+    variant_counts[item.id] = int(variant_counts.get(item.id,0))+1
+    tree_count += 1
  if theme == "amusement":
   for park in scenery.get_children():
    if park.get_script() != preload("res://scripts/tour_amusement.gd"): continue
