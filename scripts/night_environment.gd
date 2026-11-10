@@ -2,7 +2,7 @@ extends Node3D
 # MIDNIGHT HARBOR scenery: a dark container yard with lit warehouses, cranes, street lamps with
 # light pools on the road, neon drift gates and a star sky. All real 3D boxes in a handful of
 # MultiMesh batches (no per-lamp lights), so it stays cheap on phones.
-const FujiCollision = preload("res://scripts/fuji_collision.gd")
+const WorldCollision = preload("res://scripts/world_collision.gd")
 const GROUND_Y := 3.3
 const EDGE_EXTRA := 1.3
 var theme := "night"

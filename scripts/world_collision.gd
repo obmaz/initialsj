@@ -1,4 +1,5 @@
 extends RefCounted
+# 모든 코스와 투어 구간이 공유하는 실제 충돌체 빌더.
 # The physics surface uses the same triangles as the visible road and apron.
 # Road and barriers use separate static bodies and collision layers.
 static func body(label: String, faces: PackedVector3Array, layer: int) -> StaticBody3D:

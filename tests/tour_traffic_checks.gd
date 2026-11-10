@@ -13,7 +13,7 @@ func run(tree: SceneTree) -> int:
 	var road=preload("res://scripts/road_section.gd").new()
 	road.stage=1
 	tree.root.add_child(road)
-	road.add_child(preload("res://scripts/fuji_collision.gd").build(road))
+	road.add_child(preload("res://scripts/world_collision.gd").build(road))
 	var cars: Array=road.features.filter(func(f):return f.kind=="car")
 	check(cars.size()>=2,"투어 승용차 장애물 배치")
 	for feature in cars:check(absf(feature.lane)>2.5 and feature.width<=2.1,"승용차는 한 차로만 차지하고 중앙 통과 공간을 남긴다")

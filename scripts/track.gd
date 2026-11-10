@@ -72,11 +72,11 @@ func reset(stage: int = 0, node_index: int = 0) -> void:
 	update_ground()
 
 func add_world_collision(section: Section) -> void:
-	section.add_child(preload("res://scripts/fuji_collision.gd").build(section))
+	section.add_child(preload("res://scripts/world_collision.gd").build(section))
 
 # 충돌체도 형상 수집·장벽 구간·물리 등록으로 나눠 만든 뒤 구간을 보이게 한다.
 func stage_world_collision(section: Section) -> void:
-	var Collision := preload("res://scripts/fuji_collision.gd")
+	var Collision := preload("res://scripts/world_collision.gd")
 	var state := {}
 	var steps: Array[Callable] = [func(): state.merge(Collision.begin(section))]
 	for part in range(ceili(section.length/400.0)): steps.append(func(): Collision.walls(section,state,400.0))

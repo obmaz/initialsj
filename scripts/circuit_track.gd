@@ -26,7 +26,7 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 		map_bounds = map_bounds.expand(Vector2(p.x,p.z))
 	add_child(active)
 	# All circuits are driven by real 3D physics on their actual road and rail triangles.
-	world_collision = preload("res://scripts/fuji_collision.gd").build(active)
+	world_collision = preload("res://scripts/world_collision.gd").build(active)
 	active.add_child(world_collision)
 	update_ground()
 func build_previews(_staged: bool = false) -> void: pass

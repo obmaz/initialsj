@@ -588,7 +588,7 @@ static func build_car(section: Node3D, feature: Dictionary) -> void:
 	section.add_child(car)
 	car.set_detail(0)
 	car.position = section.point(feature.distance,feature.lane)
-	car.basis = preload("res://scripts/fuji_collision.gd").frame(section,feature.distance)
+	car.basis = preload("res://scripts/world_collision.gd").frame(section,feature.distance)
 	var body := StaticBody3D.new()
 	body.collision_layer = 4
 	body.collision_mask = 4

@@ -260,7 +260,7 @@ func make_bridge() -> void:
 	var steps := int(ceil((span.y-span.x)/6))
 	for i in range(steps):
 		var d: float = lerpf(span.x,span.y,(i+0.5)/steps)
-		var basis: Basis = preload("res://scripts/fuji_collision.gd").frame(track,d)
+		var basis: Basis = preload("res://scripts/world_collision.gd").frame(track,d)
 		var width: float = track.half_width(d)+1.5
 		decks.append(Transform3D(basis.scaled_local(Vector3(width*2+0.7,1.4,(span.y-span.x)/steps+0.3)),track.point(d)-basis.y*0.92))
 		for side in [-1.0,1.0]:

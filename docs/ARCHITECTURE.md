@@ -10,7 +10,7 @@
 | 경기·CPU 차량 | `world_race.gd`: 차체 생성, 조향·속도 판단, 순위·복구·카메라 |
 | 투어 | `tour_world_race.gd`, `tour_progress.gd`, `track.gd`: 열린 도로 계측·분기·체크포인트·제한시간 |
 | 서킷 | `circuit_track.gd`, 코스별 `*_course.gd`, `circuit_progress.gd`: 코스 형상과 순서 있는 게이트·랩 |
-| 도로 | `road_section.gd`, `roadside_geometry.gd`, `fuji_collision.gd`: 공통 좌표·폭·뱅킹과 실제 충돌체 |
+| 도로 | `road_section.gd`, `roadside_geometry.gd`, `world_collision.gd`: 공통 좌표·폭·뱅킹과 실제 충돌체 |
 | 기믹 | `road_features.gd`, `bridge_collapse.gd`, `rockfall_hazard.gd`, `rock_arches.gd` |
 | 시각 모델 | `models/`의 개별 팩과 `car.gd`·`regional_props_3d.gd`·`urban_architecture.gd` 어댑터 |
 | 배치·풍경 | `roadside_art.gd`, `settlement_layout.gd`, 코스별 `*_environment.gd`, `scenic_landmarks.gd` |
