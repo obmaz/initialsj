@@ -554,13 +554,26 @@ func make_gantry(at: float, title: String, tint: Color = Color("173d46")) -> voi
 	box(gantry,Vector3(0,7.2,0),Vector3(panel_width,2.0,0.4),glow)
 	box(gantry,Vector3(0,7.2,-0.01),Vector3(panel_width+0.25,2.25,0.3),material(Color("e8ecee")))
 	# Edge strip under the panel: chequered for start/finish, hazard orange/dark for checkpoints.
+	# 24칸을 칸마다 따로 그리지 않고 밝은 칸·어두운 칸 두 묶음으로 그린다.
 	var cells := 24
-	for i in range(cells):
-		var light := i%2 == 0
+	var unit := BoxMesh.new()
+	unit.size = Vector3.ONE
+	for shade in range(2):
 		var strip: Color
-		if checkpoint: strip = Color("1b1f24") if light else Color("f2b632")
-		else: strip = Color("f7f7f2") if light else Color("14181c")
-		box(gantry,Vector3(-panel_width*0.5+panel_width*(i+0.5)/cells,5.95,0.05),Vector3(panel_width/cells,0.4,0.25),material(strip))
+		if checkpoint: strip = Color("1b1f24") if shade == 0 else Color("f2b632")
+		else: strip = Color("f7f7f2") if shade == 0 else Color("14181c")
+		var batch := MultiMesh.new()
+		batch.transform_format = MultiMesh.TRANSFORM_3D
+		batch.mesh = unit
+		batch.instance_count = cells/2
+		for n in range(cells/2):
+			var i := n*2+shade
+			batch.set_instance_transform(n,Transform3D(Basis.IDENTITY.scaled(Vector3(panel_width/cells,0.4,0.25)),Vector3(-panel_width*0.5+panel_width*(i+0.5)/cells,5.95,0.05)))
+		var cells_node := MultiMeshInstance3D.new()
+		cells_node.name = "EdgeStripLight" if shade == 0 else "EdgeStripDark"
+		cells_node.multimesh = batch
+		cells_node.material_override = material(strip)
+		gantry.add_child(cells_node)
 	var label := Label3D.new()
 	label.text = title
 	label.font_size = 110
