@@ -73,6 +73,8 @@ func handle(event: InputEvent) -> void:
 			race.select_vehicle(posmod(race.selected_vehicle - 1, Catalog.SPECS.size()))
 		elif race.state == RaceState.READY and event.keycode in [KEY_D, KEY_RIGHT]:
 			race.select_vehicle((race.selected_vehicle + 1) % Catalog.SPECS.size())
+		elif race.state == RaceState.READY and event.keycode == KEY_G:
+			race.toggle_ghost()
 		elif event.keycode == KEY_V:
 			race.toggle_sound()
 		elif event.keycode == KEY_M:
@@ -142,6 +144,8 @@ func pad_pressed(button: int) -> void:
 					race.navigate(race.close_settings)
 		RaceState.READY:
 			match button:
+				JOY_BUTTON_Y:
+					race.toggle_ghost()
 				JOY_BUTTON_A, JOY_BUTTON_START:
 					race.start_race()
 				JOY_BUTTON_B:

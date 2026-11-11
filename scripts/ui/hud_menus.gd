@@ -189,7 +189,14 @@ func draw_garage() -> void:
 	hud.slant(hud.GARAGE_BACK, Color("20374a"), 10)
 	hud.centered(Vector2(hud.GARAGE_BACK.get_center().x, 78), "< BACK", 28, hud.WHITE)
 	hud.centered(Vector2(640, 68), ("TRACK" if race.mode == "track" else "TOUR") + " / GARAGE", 22, Color("9db6c9"))
-	hud.text_at(Vector2(1105, 68), "%d / %d" % [race.selected_vehicle + 1, Catalog.SPECS.size()], 16, color)
+	hud.slant(hud.GARAGE_GHOST, Color("20374a"), 8)
+	hud.centered(Vector2(1080, 60), "PERSONAL GHOST: " + ("ON" if race.show_ghost else "OFF"), 19, hud.CYAN)
+	var reference_note: String = (
+		"BEAT YOUR BEST TO SAVE"
+		if race.personal_run.reference.is_empty()
+		else ("ROUTE " + race.personal_run.reference_route if race.mode == "tour" else "PERSONAL BEST")
+	)
+	hud.centered(Vector2(1080, 89), reference_note + " / G", 13, Color("9db6c9"))
 	hud.slant(Rect2(92, 129, 675, 76), Color("07111ebd"), 10)
 	hud.text_at(Vector2(120, 168), race.vehicle.name, 48)
 	hud.text_at(Vector2(123, 195), race.vehicle["class"], 21, color)

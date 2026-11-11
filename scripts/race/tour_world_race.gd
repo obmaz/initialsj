@@ -79,7 +79,10 @@ func step(
 
 
 func fail_run() -> void:
+	if race.state == RaceState.FAILED:
+		return
 	race.state = RaceState.FAILED
+	race.personal_run.finish(race, false)
 	race.cancel_nitro()
 	race.drifting = false
 	race.boosting = false

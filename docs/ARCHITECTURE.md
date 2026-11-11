@@ -97,3 +97,9 @@ Compatibility 렌더러에서는 소품의 정점색을 보존하도록 MultiMes
 [material_warmup.gd](../scripts/rendering/material_warmup.gd)는 파일 미리 읽기 다음에 실제 메시·재질·MultiMesh 변형을 작은 독립 뷰포트에서 렌더합니다. 투어 첫 로딩에서 공간 셰이더를 준비해 마지막 게임 씬까지 보유하며 일반 트랙은 해당 코스의 실제 재질만 준비합니다. 폐회로는 실제 카메라 시점도 순회해 첫 업로드·글꼴·조명 준비를 로딩 화면 뒤에서 끝냅니다. 카메라와 물리 처리 상태를 복원하며 랩·차량 위치는 바꾸지 않습니다. 투어의 다음 구간은 물리 등록 뒤 프레임마다 재질 두 묶음씩 준비한 후 공개합니다. 임시 뷰포트·메시 참조는 준비 완료나 구간 해제 때 함께 사라지고 마지막 렌더 소유자가 나가면 공통 준비 상태도 비웁니다.
 
 투어 생성은 갈림길 접근 시에도 프레임 예산을 유지합니다. 재질 준비 뷰포트는 점광원·스포트라이트를 포함해 첫 터널 진입의 지역 조명 변형도 미리 렌더합니다.
+
+## 주행 보상과 개인 기록
+
+[driving_rewards.gd](../scripts/race/driving_rewards.gd)는 실제 코너 탈출과 투어 교통 추월의 보상·중복 방지를 소유합니다. [tour_challenge.gd](../scripts/race/tour_challenge.gd)는 분기 순서별 기록 ID·위험 배율·메달 기준을 제공합니다. [rival_driving.gd](../scripts/race/rival_driving.gd)는 플레이어와 독립된 차종·성격·자원으로 상대 차량의 니트로 사용을 판단합니다.
+
+[personal_run.gd](../scripts/race/personal_run.gd)는 구간 기록 캐시와 고정 상한의10Hz 자세 기록을 소유하고 메뉴 준비와 경기 종료에만 파일에 접근합니다. [personal_ghost.gd](../scripts/effects/personal_ghost.gd)는 기존 GLB 차량을 충돌·광원·오디오 없이 보간 재생합니다. 표시 재질은 고스트가 소유하고 원본 공유 재질은 변경하지 않습니다. 투어 경로가 달라지거나 재생 위치가 멀리 점프하면 표시를 생략합니다. [driving_challenges_ui.gd](../scripts/ui/driving_challenges_ui.gd)는 구간 비교·결과 평가를 HUD에 그립니다.

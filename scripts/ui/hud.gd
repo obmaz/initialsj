@@ -26,6 +26,7 @@ const COURSE_NIGHT := Rect2(520, 150, 236, 440)
 const COURSE_RIVIERA := Rect2(768, 150, 236, 440)
 const COURSE_GORGE := Rect2(1016, 150, 236, 440)
 var menus := preload("res://scripts/ui/hud_menus.gd").new(self)
+const GARAGE_GHOST := Rect2(940, 24, 280, 84)
 const GARAGE_BACK := Rect2(60, 24, 220, 84)
 const SETTINGS_SOUND := Rect2(365, 98, 550, 77)
 const SETTINGS_MOTION := Rect2(365, 178, 550, 77)
@@ -237,6 +238,8 @@ func handle_pointer(event: InputEvent) -> void:
 				race.navigate(race.open_courses)
 			else:
 				race.navigate(race.open_menu)
+		elif GARAGE_GHOST.has_point(p):
+			race.toggle_ghost()
 		elif GARAGE_START.has_point(p):
 			race.start_race()
 		else:
@@ -576,6 +579,7 @@ func _draw() -> void:
 	draw_speedometer()
 	draw_nitro()
 	draw_route_choice()
+	preload("res://scripts/ui/driving_challenges_ui.gd").draw_split(self)
 	draw_recovery()
 	if race.protection_left > 0 and race.state == RaceState.RACING:
 		slant(Rect2(15, 184, 224, 40), INK, 7)
@@ -1018,6 +1022,7 @@ func draw_menu() -> void:
 			centered(Vector2(SOUND_BUTTON.get_center().x, 454), sound_label, 21, CYAN)
 		else:
 			draw_record_panel()
+			preload("res://scripts/ui/driving_challenges_ui.gd").draw_result(self)
 		slant(START_BUTTON, CYAN, 13)
 		var cta := "RESUME" if race.state == RaceState.PAUSED else ("CHOOSE CAR")
 		centered(Vector2(640, 536), cta, 32, Color("0a1b2b"))

@@ -31,8 +31,12 @@ static func route_length(history: Array) -> float:
 static func medal(seconds: float, history: Array, max_speed: float) -> int:
 	if seconds <= 0:
 		return 0
-	var target := route_length(history) / maxf(30, max_speed * 0.86) + 12
+	var target := target_seconds(history, max_speed)
 	return 3 if seconds <= target else (2 if seconds <= target * 1.16 else 1)
+
+
+static func target_seconds(history: Array, max_speed: float) -> float:
+	return route_length(history) / maxf(30, max_speed * 0.86) + 12
 
 
 static func medal_label(value: int) -> String:

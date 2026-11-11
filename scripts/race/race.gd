@@ -22,6 +22,10 @@ const Crash = preload("res://scripts/physics/crash_state.gd")
 const Recovery = preload("res://scripts/race/recovery_state.gd")
 var crash := Crash.new()
 var recovery := Recovery.new()
+var personal_run := preload("res://scripts/race/personal_run.gd").new()
+var ghost: Node3D
+var show_ghost := true
+var max_drift_multiplier := 1
 var rewards := preload("res://scripts/race/driving_rewards.gd").new()
 var protection_left := 0.0
 var auto_accelerate := true
@@ -263,6 +267,8 @@ func _ready() -> void:
 	camera.fov = 68
 	add_child(camera)
 	camera.current = true
+	ghost = preload("res://scripts/effects/personal_ghost.gd").new()
+	add_child(ghost)
 	var canvas := CanvasLayer.new()
 	add_child(canvas)
 	speed_effect = ColorRect.new()
@@ -310,6 +316,8 @@ func _ready() -> void:
 	world_race.reset()
 	place_cars()
 	update_camera(1)
+	personal_run.prepare(self)
+	ghost.prepare(self)
 	shell.attach()
 	if OS.has_feature("android"):
 		get_tree().quit_on_go_back = false
@@ -513,12 +521,14 @@ func load_preferences() -> void:
 		graphics_mode = clampi(int(config.get_value("preferences", "graphics", 0)), 0, 2)
 		show_fps = bool(config.get_value("preferences", "show_fps", false))
 		auto_accelerate = bool(config.get_value("preferences", "auto_accelerate", true))
+		show_ghost = bool(config.get_value("preferences", "show_ghost", true))
 
 
 func save_preferences() -> void:
 	if not save_records:
 		return
 	var config := ConfigFile.new()
+	config.set_value("preferences", "show_ghost", show_ghost)
 	config.set_value("preferences", "auto_accelerate", auto_accelerate)
 	config.set_value("preferences", "sound", sound_enabled)
 	config.set_value("preferences", "show_fps", show_fps)
@@ -538,6 +548,12 @@ func toggle_sound() -> void:
 func toggle_auto_accelerate() -> void:
 	auto_accelerate = not auto_accelerate
 	hud.fingers.clear()
+	save_preferences()
+
+
+func toggle_ghost() -> void:
+	show_ghost = not show_ghost
+	ghost.prepare(self)
 	save_preferences()
 
 
@@ -615,6 +631,7 @@ func restart(start_countdown: bool = true) -> void:
 	if record_key() != loaded_record_key:
 		load_record()
 	rewards.reset()
+	max_drift_multiplier = 1
 	surface.reset()
 	offroad_amount = 0
 	shoulder_dust_clock = 0
@@ -676,6 +693,8 @@ func restart(start_countdown: bool = true) -> void:
 	camera.reset_physics_interpolation()
 	for r in rivals:
 		r.car.reset_physics_interpolation()
+	personal_run.prepare(self)
+	ghost.prepare(self)
 	# A screen transition can finish after the device rotated to portrait. The
 	# rotate guide hides the road, so wait paused rather than run unseen.
 	if shell.portrait:
@@ -763,6 +782,8 @@ func select_vehicle(index: int) -> void:
 		world_race.reset()
 	place_cars()
 	update_camera(1)
+	personal_run.prepare(self)
+	ghost.prepare(self)
 	if previews != null:
 		previews.show_vehicle(selected_vehicle)
 
@@ -869,6 +890,7 @@ func _physics_process(delta: float) -> void:
 			cell_input
 		)
 	place_cars(delta)
+	ghost.update(self)
 	sync_world_rendering()
 	var world_visible := not rendering_viewport.disable_3d
 	shoulder_dust_clock = maxf(0, shoulder_dust_clock - delta)
@@ -1036,6 +1058,7 @@ func return_to_road() -> void:
 		return
 	if not world_race.recover_player():
 		return
+	personal_run.invalidate()
 	crash.reset()
 	recovery.reset()
 	rewards.cancel_drift()
@@ -1156,6 +1179,8 @@ func finish() -> void:
 	if mode == "tour":
 		score = (score + int(time_left) * 100) * TourChallenge.score_multiplier(track.history)
 		run_medal = TourChallenge.medal(elapsed, track.history, vehicle.max_speed)
+	if mode == "track":
+		run_medal = 3 if race_position() == 1 else (2 if race_position() <= 3 else 1)
 	previous_best = best_time
 	new_record = best_time == 0 or elapsed < best_time
 	if new_record:
@@ -1168,6 +1193,7 @@ func finish() -> void:
 			var medal_key := record_key() + "_medal"
 			saved.set_value(RECORD_GROUP, medal_key, maxi(run_medal, int(saved.get_value(RECORD_GROUP, medal_key, 0))))
 		saved.save("user://records.cfg")
+	personal_run.finish(self, true)
 
 
 func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vector3.INF) -> void:

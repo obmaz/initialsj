@@ -330,6 +330,8 @@ func step(
 		clean_exit,
 		corner_key
 	)
+	race.max_drift_multiplier = maxi(race.max_drift_multiplier, race.coast_drift.multiplier)
+	race.personal_run.observe(race, bool(data.valid), delta)
 	var laps: int = int(data.finished_laps)
 	if laps > race.laps_completed:
 		race.laps_completed = laps
