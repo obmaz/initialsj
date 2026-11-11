@@ -221,6 +221,7 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
+	add_to_group("tour_traffic_clock")
 	rendering_viewport = get_viewport()
 	previous_disable_3d = rendering_viewport.disable_3d
 	track = Track.new()

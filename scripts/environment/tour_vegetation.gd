@@ -4,6 +4,7 @@ const LEAVES = "res://models/shared/foliage/tree-leaves.webp"
 const BARK = "res://models/shared/foliage/bark.webp"
 const NEEDLES = "res://models/shared/foliage/needle-sprays.webp"
 var scenery: Node3D
+var plantings: Array[Dictionary] = []
 var tree_count := 0
 var variant_counts := {}
 const RenderResources = preload("res://scripts/rendering/render_resources.gd")
@@ -29,69 +30,80 @@ static func warm_paths(region: String) -> Array[String]:
 
 
 func _ready() -> void:
-	var theme: String = scenery.theme
-	if theme in BARE_THEMES:
-		return
 	var definitions: Array[Resource] = Catalog.all("vegetation")
 	var groups := {}
-	var road: Node3D = scenery.track
-	var spacing := 24 if theme in ["amusement", "fuji", "bamboo", "snow", "jungle"] else 42
-	if theme == "jungle":
-		spacing = 12
-	var planting_start := 75.0 if theme == "jungle" else 180.0
-	for i in range(int((road.length - planting_start - 160) / spacing)):
-		var d := planting_start + i * spacing
-		if road.in_tunnel(d):
-			continue
-		if road.bridge_span.y > road.bridge_span.x and d > road.bridge_span.x - 80 and d < road.bridge_span.y + 80:
-			continue
-		var v := (i % 3) + 2 if theme in ["snow", "bamboo"] else i % 7
-		if theme in ["hawaii", "jeju", "jungle"]:
-			v = (5 + i % 2) if i % 7 >= 5 else i % 2
-		if theme in ["snow", "bamboo"] and i % 7 >= 5:
-			v = 5 + i % 2
-		var item: Resource = definitions[v]
-		var side := 1.0 if theme in ["hawaii", "jeju", "fuji"] else (-1.0 if i % 2 else 1.0)
-		var sides := [-1.0, 1.0] if theme == "jungle" else [side]
-		if road.entry_side != 0 and d < 650:
-			sides = [float(road.entry_side)]
-		for bank in sides:
-			for row in range(3 if theme == "jungle" else 1):
-				var at_d: float = d + row * 4 + (sin(i * 2.39 + bank) * 2 if theme == "jungle" else 0)
-				var lane: float = (
-					bank
-					* (
-						road.half_width(at_d)
-						+ road.rail_setback(at_d, bank)
-						+ (10 + row * 13 + (i % 3) * 2 if theme == "jungle" else 12 + (i % 4) * 6)
-					)
-				)
-				var point: Vector3 = road.roadside_point(at_d, lane)
-				var nearest: float = road.curve.get_closest_offset(point)
-				if (
-					Vector2(point.x - road.point(nearest).x, point.z - road.point(nearest).z).length()
-					< road.half_width(nearest) + 9
-				):
-					continue
-				var key := str(v) + ":" + str(floori(point.x / 120)) + ":" + str(floori(point.z / 120))
-				if not groups.has(key):
-					groups[key] = {"variant": v, "poses": []}
-				groups[key].poses.append(Transform3D(Basis(Vector3.UP, i * 2.399 + row + bank), point))
-				variant_counts[item.id] = int(variant_counts.get(item.id, 0)) + 1
-				tree_count += 1
-	if theme == "amusement":
-		for park in scenery.get_children():
-			if park.get_script() != preload("res://scripts/environment/tour_amusement.gd"):
+	if not plantings.is_empty():
+		for p in plantings:
+			var v: int = p.variant
+			var key := str(v) + ":" + str(floori(p.position.x / 120)) + ":" + str(floori(p.position.z / 120))
+			if not groups.has(key):
+				groups[key] = {"variant": v, "poses": []}
+			groups[key].poses.append(
+				Transform3D(Basis(Vector3.UP, p.yaw).scaled_local(Vector3.ONE * p.scale), p.position)
+			)
+			tree_count += 1
+	else:
+		var theme: String = scenery.theme
+		if theme in BARE_THEMES:
+			return
+		var road: Node3D = scenery.track
+		var spacing := 24 if theme in ["amusement", "fuji", "bamboo", "snow", "jungle"] else 42
+		if theme == "jungle":
+			spacing = 12
+		var planting_start := 75.0 if theme == "jungle" else 180.0
+		for i in range(int((road.length - planting_start - 160) / spacing)):
+			var d := planting_start + i * spacing
+			if road.in_tunnel(d):
 				continue
-			for i in range(12):
-				var v := i % 5
-				var point: Vector3 = park.to_global(Vector3(-70 + (i % 6) * 28, 0, 52 if i < 6 else -106))
-				var key := str(v) + ":" + str(floori(point.x / 120)) + ":" + str(floori(point.z / 120))
-				if not groups.has(key):
-					groups[key] = {"variant": v, "poses": []}
-				groups[key].poses.append(Transform3D(Basis(Vector3.UP, i * 2.399), point))
-				variant_counts[definitions[v].id] = int(variant_counts.get(definitions[v].id, 0)) + 1
-				tree_count += 1
+			if road.bridge_span.y > road.bridge_span.x and d > road.bridge_span.x - 80 and d < road.bridge_span.y + 80:
+				continue
+			var v := (i % 3) + 2 if theme in ["snow", "bamboo"] else i % 7
+			if theme in ["hawaii", "jeju", "jungle"]:
+				v = (5 + i % 2) if i % 7 >= 5 else i % 2
+			if theme in ["snow", "bamboo"] and i % 7 >= 5:
+				v = 5 + i % 2
+			var item: Resource = definitions[v]
+			var side := 1.0 if theme in ["hawaii", "jeju", "fuji"] else (-1.0 if i % 2 else 1.0)
+			var sides := [-1.0, 1.0] if theme == "jungle" else [side]
+			if road.entry_side != 0 and d < 650:
+				sides = [float(road.entry_side)]
+			for bank in sides:
+				for row in range(3 if theme == "jungle" else 1):
+					var at_d: float = d + row * 4 + (sin(i * 2.39 + bank) * 2 if theme == "jungle" else 0)
+					var lane: float = (
+						bank
+						* (
+							road.half_width(at_d)
+							+ road.rail_setback(at_d, bank)
+							+ (10 + row * 13 + (i % 3) * 2 if theme == "jungle" else 12 + (i % 4) * 6)
+						)
+					)
+					var point: Vector3 = road.roadside_point(at_d, lane)
+					var nearest: float = road.curve.get_closest_offset(point)
+					if (
+						Vector2(point.x - road.point(nearest).x, point.z - road.point(nearest).z).length()
+						< road.half_width(nearest) + 9
+					):
+						continue
+					var key := str(v) + ":" + str(floori(point.x / 120)) + ":" + str(floori(point.z / 120))
+					if not groups.has(key):
+						groups[key] = {"variant": v, "poses": []}
+					groups[key].poses.append(Transform3D(Basis(Vector3.UP, i * 2.399 + row + bank), point))
+					variant_counts[item.id] = int(variant_counts.get(item.id, 0)) + 1
+					tree_count += 1
+		if theme == "amusement":
+			for park in scenery.get_children():
+				if park.get_script() != preload("res://scripts/environment/tour_amusement.gd"):
+					continue
+				for i in range(12):
+					var v := i % 5
+					var point: Vector3 = park.to_global(Vector3(-70 + (i % 6) * 28, 0, 52 if i < 6 else -106))
+					var key := str(v) + ":" + str(floori(point.x / 120)) + ":" + str(floori(point.z / 120))
+					if not groups.has(key):
+						groups[key] = {"variant": v, "poses": []}
+					groups[key].poses.append(Transform3D(Basis(Vector3.UP, i * 2.399), point))
+					variant_counts[definitions[v].id] = int(variant_counts.get(definitions[v].id, 0)) + 1
+					tree_count += 1
 	for key in groups:
 		var group: Dictionary = groups[key]
 		var item: Resource = definitions[group.variant]

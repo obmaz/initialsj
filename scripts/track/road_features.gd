@@ -762,10 +762,10 @@ static func truck_skin(dimensions: Vector3, cabin: bool, red: bool) -> ShaderMat
 	return mat
 
 
-# 주행 경로 밖으로 순간 이동시키지 않는 고정 장애물. 차량 접촉 레이어를 사용해 벽 비행으로 분류하지 않는다.
+# 일반 교통 차량은 실제 차체로 움직이며 순위·랩 경쟁에는 참여하지 않는다.
 static func build_car(section: Node3D, feature: Dictionary) -> void:
 	var car := preload("res://scripts/vehicles/car.gd").new()
-	car.name = "ParkedPassengerCar"
+	car.name = "TourPassengerCar"
 	car.traffic = true
 	car.model = ["hatch", "wedge", "muscle", "gt"][int(feature.distance) % 4]
 	car.paint = Color.from_hsv(fposmod(feature.distance * .007, 1), .55, .72)
@@ -773,14 +773,14 @@ static func build_car(section: Node3D, feature: Dictionary) -> void:
 	car.set_detail(0)
 	car.position = section.point(feature.distance, feature.lane)
 	car.basis = preload("res://scripts/physics/world_collision.gd").frame(section, feature.distance)
-	var body := StaticBody3D.new()
-	body.collision_layer = 4
-	body.collision_mask = 4
+	var body := preload("res://scripts/race/tour_traffic.gd").new()
+	body.road = section
+	body.distance = feature.distance
+	body.lane = feature.lane
+	body.visual = car
+	body.feature_record = feature
+	body.cruise_speed = 15.0 + fposmod(feature.distance, 10.0)
+	body.configure(preload("res://scripts/vehicles/vehicle_catalog.gd").spec(0))
 	body.set_meta("parked_car", true)
-	var shape := BoxShape3D.new()
-	shape.size = Vector3(2.05, 1.25, 4.5)
-	var collision := CollisionShape3D.new()
-	collision.shape = shape
-	collision.position.y = .65
-	body.add_child(collision)
-	car.add_child(body)
+	section.add_child(body)
+	body.reset_pose(car.position, -car.basis.z, car.basis.y)

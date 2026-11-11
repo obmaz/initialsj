@@ -24,6 +24,7 @@ const REALIGN_RATE := 7.0
 const REALIGN_MAX_ERROR := 1.3
 const GLIDE_REBOUND := Tuning.GLIDE_REBOUND
 const GLIDE_REBOUND_MAX := Tuning.GLIDE_REBOUND_MAX
+var flight_time := 0.0
 var specification: Dictionary = {}
 var grounded := false
 var surface_normal := Vector3.UP
@@ -77,6 +78,7 @@ func reset_pose(feet: Vector3, forward: Vector3, up: Vector3 = Vector3.UP) -> vo
 		tangent = Vector3.FORWARD
 	global_transform = Transform3D(Basis.looking_at(tangent, surface_normal), feet + surface_normal * SUPPORT_HEIGHT)
 	velocity = Vector3.ZERO
+	flight_time = 0
 	steering = 0
 	yaw_rate = 0
 	slip_angle = 0
@@ -205,6 +207,13 @@ func advance(
 	)
 	var support := _support()
 	grounded = not support.is_empty() and velocity.dot(support.normal) <= 2.0
+	if not grounded:
+		flight_time += delta
+		turn_toward(velocity, 8.0, delta)
+	else:
+		if flight_time > .1:
+			turn_toward(velocity, 1.0 / delta, delta)
+		flight_time = 0
 	if grounded:
 		surface_normal = surface_normal.lerp(support.normal, 1 - exp(-delta * 18)).normalized()
 		ground_height = support.position.y
@@ -280,6 +289,7 @@ func advance(
 		velocity.y -= GRAVITY * delta
 	var remaining := velocity * delta
 	var can_step := grounded
+	var vehicles_hit := {}
 	for pass_index in range(MAX_CONTACTS):
 		if remaining.length_squared() < 0.0000001:
 			break
@@ -300,7 +310,13 @@ func advance(
 			if velocity.dot(normal) < 0:
 				velocity = velocity.slide(normal)
 		else:
+			if collider.has_method("receive_traffic_push"):
+				if vehicles_hit.has(collider.get_instance_id()):
+					break
+				vehicles_hit[collider.get_instance_id()] = true
 			var closing := maxf(0, -before.dot(normal))
+			if collider.has_method("receive_traffic_push"):
+				closing = maxf(0, -(before - collider.velocity).dot(normal))
 			if closing > 0.2:
 				var incoming_speed := before.slide(surface_normal).length()
 				var barrier: bool = (
@@ -343,13 +359,22 @@ func advance(
 							+ away * clampf(closing * GLIDE_REBOUND, 0.85, GLIDE_REBOUND_MAX)
 						)
 						realign_time = REALIGN_TIME
+				elif collider.has_method("receive_traffic_push"):
+					var incoming := before.slide(surface_normal)
+					var side := global_basis.x.slide(surface_normal).normalized()
+					var side_sign := signf(normal.dot(side))
+					if absf(side_sign) < .1:
+						side_sign = -1.0 if get_instance_id() % 2 else 1.0
+					var strength := clampf(closing / maxf(incoming.length(), 1), 0, 1)
+					velocity = incoming * lerpf(.92, .58, strength) + side * side_sign * clampf(closing * .13, .5, 8)
+					collider.receive_traffic_push(-normal.slide(surface_normal).normalized() * minf(closing * .48, 24))
 				else:
 					velocity = tangent * 0.90 + normal * clampf(closing * 0.16, 0.8, 5.0)
 				if can_step and not severe:
 					velocity = velocity.slide(surface_normal)
 			# Recovery contacts can repeat on adjacent rail triangles after the
 			# impact. Preserve the normal impulse when already separating.
-			elif velocity.dot(normal) < 0:
+			elif velocity.dot(normal) < 0 and not collider.has_method("receive_traffic_push"):
 				velocity = velocity.slide(normal)
 		remaining = collision.get_remainder().slide(normal)
 		if not is_floor:
@@ -365,3 +390,8 @@ func advance(
 	else:
 		slip_angle = 0
 	return last_contacts
+
+
+# 교통 차량과 CPU 차량 모두 실제 속도로 충격을 전달받는다.
+func receive_traffic_push(impulse: Vector3) -> void:
+	velocity += impulse.slide(surface_normal)

@@ -34,6 +34,21 @@ func run(tree: SceneTree) -> int:
 			hills += section.hill_spans().size()
 			section.free()
 	check(hills >= 5, "여러 투어 지역에 큰 추가 능선이 있어야 한다")
+	var traffic: Node3D = road.get_children().filter(func(node): return node.get_meta("parked_car", false))[0]
+	var camera := Camera3D.new()
+	tree.root.add_child(camera)
+	camera.current = true
+	var direction: Vector3 = traffic.forward_direction()
+	camera.position = traffic.position - direction * 60 + Vector3.UP * 8
+	camera.look_at(traffic.position - direction * 200)
+	var unseen: Vector3 = traffic.position
+	for frame in range(4):
+		await tree.physics_frame
+	check(not traffic.activated and traffic.position.distance_to(unseen) < .01, "보이지 않는 교통 차량은 출발하지 않는다")
+	camera.look_at(traffic.position)
+	for frame in range(25):
+		await tree.physics_frame
+	check(traffic.activated and traffic.position.distance_to(unseen) > .2, "시야에 들어온 교통 차량이 실제 차체로 움직인다")
 	var motor = preload("res://scripts/physics/world_car.gd").new()
 	motor.configure(preload("res://scripts/vehicles/vehicle_catalog.gd").spec(0))
 	tree.root.add_child(motor)
@@ -49,12 +64,18 @@ func run(tree: SceneTree) -> int:
 			if hit.collider.get_meta("parked_car", false):
 				hit_car = true
 				check(
-					not hit.severe and motor.velocity.dot(hit.normal) > .5 and motor.velocity.length() < 35,
+					(
+						not hit.severe
+						and motor.velocity.dot(forward) > 10
+						and motor.velocity.length() < 35
+						and hit.collider.velocity.length() > 1
+					),
 					"실제 승용차 접촉은 감속·반동하고 벽 비행으로 분류하지 않는다"
 				)
 		if hit_car:
 			break
 	check(hit_car, "실제 투어 승용차 충돌체와 접촉해야 한다")
+	camera.queue_free()
 	motor.queue_free()
 	road.queue_free()
 	await tree.process_frame

@@ -63,10 +63,26 @@ func configure(region: String, points: Array[Dictionary]) -> void:
 
 func _ready() -> void:
 	var groups: Dictionary = {}
+	var native_trees: Array[Dictionary] = []
 	for i in range(placements.size()):
 		var p: Dictionary = placements[i]
 		var family: Array = FAMILIES.get(theme, FAMILIES.hawaii)
 		var kind: String = p.get("kind", family[int(p.get("variant", i)) % family.size()])
+		if Models.definition(kind).tags.has("tree"):
+			var v := (2 + int(p.get("variant", i)) % 3) if "pine" in kind else int(p.get("variant", i)) % 2
+			native_trees.append(
+				{"variant": v, "position": p.position, "yaw": float(p.get("yaw", 0)), "scale": float(p.get("scale", 1))}
+			)
+			if not kinds.has(kind):
+				kinds.append(kind)
+			world_bounds.append(
+				(
+					Transform3D(Basis.IDENTITY.scaled_local(Vector3.ONE * float(p.get("scale", 1))), p.position)
+					* model(kind).get_aabb()
+				)
+			)
+			tree_count += 1
+			continue
 		var group := kind + ":" + str(floori(p.position.x / 180)) + ":" + str(floori(p.position.z / 180))
 		var ad_index: int = Ads.choose() if kind == "billboard" else -1
 		if kind == "billboard":
@@ -117,6 +133,12 @@ func _ready() -> void:
 			batches.append(node)
 			if not kinds.has(kind):
 				kinds.append(kind)
+
+	if not native_trees.is_empty():
+		var forest := preload("res://scripts/environment/tour_vegetation.gd").new()
+		forest.name = "NativeTreeModels"
+		forest.plantings.assign(native_trees)
+		add_child(forest)
 
 
 static func material_for(kind: String) -> Material:

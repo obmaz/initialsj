@@ -166,9 +166,20 @@ func traffic_regression(tree: SceneTree, race: Node3D) -> Dictionary:
 		"A player approach must collide with the rival's actual moving body and register traffic impact"
 	)
 	var separation := body.position.distance_to(rival.position)
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = body.contact_shape.shape
+	query.transform = body.contact_shape.global_transform
+	query.collision_mask = 4
+	query.exclude = [body.get_rid()]
+	var overlaps := body.get_world_3d().direct_space_state.intersect_shape(query)
 	check(
-		separation > 4.1 and session.speed_of(body) < 20,
-		"The real rival body must block the swept car without persistent body overlap"
+		(
+			overlaps.filter(func(hit): return hit.collider == rival).is_empty()
+			and session.speed_of(body) > 20
+			and session.speed_of(body) < 65
+			and session.speed_of(rival) > 5
+		),
+		"실제 차량끼리 겹치지 않으면서 앞차를 밀고 감속·옆 반동 후 주행을 유지해야 한다"
 	)
 	return {
 		"physical_car_contact": physical_contact,

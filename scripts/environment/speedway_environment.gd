@@ -83,6 +83,7 @@ func _ready() -> void:
 	make_pits()
 	make_lights()
 	make_palms()
+	make_infield_ads()
 
 
 func make_infield() -> void:
@@ -372,3 +373,23 @@ func set_shadow_quality(enabled: bool) -> void:
 		node.cast_shadow = (
 			GeometryInstance3D.SHADOW_CASTING_SETTING_ON if enabled else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		)
+
+
+# 관중석 반대편 안쪽 평지를 향한 광고열. 각 패널은 도로 접근 방향을 향한다.
+func make_infield_ads() -> void:
+	var props := preload("res://scripts/environment/regional_props_3d.gd").new()
+	var placements: Array[Dictionary] = []
+	for i in range(14):
+		var d: float = 300 + i * 115
+		var lane := -65.0
+		placements.append(
+			{
+				"kind": "billboard",
+				"position": terrain_point(d, lane),
+				"yaw": preload("res://scripts/environment/billboard_facing.gd").yaw(track, d, lane),
+				"scale": 1.0
+			}
+		)
+	props.name = "InfieldAdvertisements"
+	props.configure("hawaii", placements)
+	add_child(props)

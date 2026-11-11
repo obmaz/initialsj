@@ -249,8 +249,9 @@ func run(tree: SceneTree) -> int:
 			car_hit.get("layer", 0) == 4
 			and not car_hit.get("barrier", true)
 			and not car_hit.get("severe", true)
-			and car_hit.get("rebound_mps", 0) >= .8
-			and car_hit.get("rebound_mps", 100) <= 5.1
+			and car.velocity.dot(Vector3.FORWARD) > 25
+			and opponent.velocity.dot(Vector3.FORWARD) > 10
+			and absf(car.velocity.x) > .5
 		),
 		"Actual car contacts must rebound while remaining distinct from severe barrier impacts"
 	)

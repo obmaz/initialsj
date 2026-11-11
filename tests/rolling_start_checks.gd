@@ -17,6 +17,8 @@ func run(tree: SceneTree) -> int:
 	race.choose_mode("track", 1)
 	race.restart()
 	check(race.competitor_count() == 16 and race.world_race.bodies.size() == 16, "트랙2는15대의 상대와 실제16대 차체를 생성해야 한다")
+	check(race.track.scenery.get_node("SpeedwayPalms/NativeTreeModels").tree_count > 0, "트랙2도 투어의 최신 입체 나무를 사용한다")
+	check(race.track.scenery.get_node("InfieldAdvertisements").placements.size() >= 12, "빈 안쪽 평지에 여러 실제 광고판을 배치한다")
 	var low: float = race.distance
 	var high: float = race.distance
 	var ranks := {race.race_position(): true}

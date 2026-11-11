@@ -359,7 +359,7 @@ func update_drift(delta: float, pressed: bool, brake: bool, gas: bool) -> void:
 
 func update_air(delta: float, was_airborne: bool) -> void:
 	# A thrown car turns its nose back to where it is travelling, so it lands driving forward.
-	if crash_flight and not player_body.grounded:
+	if not player_body.grounded:
 		player_body.turn_toward(player_body.velocity, Tuning.FLIGHT_TURN_RATE, delta)
 	race.air.landing_flash = maxf(0, race.air.landing_flash - delta)
 	race.air.active = not player_body.grounded
@@ -374,6 +374,8 @@ func update_air(delta: float, was_airborne: bool) -> void:
 		if race.air.trick:
 			race.air.launches += 1
 	if was_airborne and not race.air.active:
+		player_body.turn_toward(player_body.velocity, 1.0 / delta, delta)
+		race.crash.reset()
 		race.air.landings += 1
 		if airborne_time > 0.12 and landing_velocity < -1.5:
 			race.air.landing_flash = 0.65
