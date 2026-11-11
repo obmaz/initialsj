@@ -93,7 +93,7 @@ func run(tree: SceneTree) -> int:
 		race.state = "racing"
 		for rival in race.rivals:
 			rival.active = false
-		var chain: Array = pads.filter(func(f): return f.distance >= 2490)
+		var chain: Array = pads.slice(pads.size() / 2)
 		world.teleport(0, chain[0].distance - 35, chain[0].lane, false)
 		# Real tyres limit how fast the slalom can be steered: take it at a moderate pace.
 		race.speed = race.vehicle.max_speed * 0.55

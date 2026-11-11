@@ -4,7 +4,7 @@ var road: Node3D
 var records: Array[Dictionary] = []
 var labels: Array[Label3D] = []
 var owner_race: Node3D
-const SAVE_GROUP := "speedway_rolling_records"
+const SAVE_GROUP := "speedway_infield_v7_records"
 const SAVE_KEY := "top_three_v1"
 
 

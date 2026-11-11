@@ -92,3 +92,9 @@ image_gen.imagegen으로 제작한1774×887(2:1) 위경도 원본을 편집·확
 | `gorge-sunset-panorama.png` | `exec-935341f2-e969-44b5-a8f4-90a4d96574ce.png` | 적색 메사·깊은 협곡·강 계곡·노을 |
 
 [track_background.gd](../../scripts/environment/track_background.gd)와 [track_panorama.gdshader](../../shaders/track_panorama.gdshader)는 시선의 실제 경도·위도로 이미지를 읽습니다. 수평 양 끝의 좁은 영역만 혼합하며, 랩·카메라 방향에 따른 평면 회전이나 수평 늘이기를 하지 않습니다. 원경 하나만 현재 코스의 하늘이 소유하고 코스 해제 시 놓습니다. 원본은 손실 품질0.9·밉맵으로 임포트합니다. 태양·달의 이미지 내 위치에 맞춰 주광 방위·고도도 고정합니다. 기존 `riviera-sky-panorama.png`는 투어의 구름 전용 이미지로 계속 사용합니다.
+
+## 경기장 벽 전용 가로 광고
+
+`speedway-wall-ads.png`는 image_gen.imagegen 원본 `exec-5b61f14e-cc14-4118-bfa0-c4bf886adb98.png`를 그대로 복사한1774×887 이미지입니다. BRISK COLA·VELOX TIRES·SKYLINK MOBILE·CLOUDREST·PIXELBOX·SUNCOAST의 가상 광고6개를 낮고 긴 벽 부착 규격으로 요청했습니다. 각 행의 실제 높이 비율은 `speedway_environment.gd`의 `WALL_AD_EDGES`가 지정하며, 물리 높이1.18m와 원본 종횡비에 맞춰 폭을 정합니다. 이미지 자체를 잘라내거나 늘리지 않고 전용 UV로 인쇄면을 선택합니다. 실존 기업·회로·로고는 사용하지 않았으며 원본은 `/workspace/generated_images/`에 보존합니다. VRAM 압축·밉맵·이방성 필터링을 적용합니다.
+
+대형 관중석의 형상·전용 관중 이미지 출처는 [모델 팩](../../models/props/stadium_grandstand/SOURCE.md)이 소유합니다. 경기장 잔디는 기존 생성형 지면 변형을 사용하고, 호수는 기존 `ocean-ripples.png`의 질감과 현재 하늘의 환경 반사를 사용합니다.

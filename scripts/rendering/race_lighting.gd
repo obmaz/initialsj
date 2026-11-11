@@ -78,6 +78,7 @@ func apply_course() -> void:
 		if race.selected_course == 1:
 			# 생성형 해안 하늘의 태양 U=.118,V=.355.
 			race.sun_light.rotation_degrees = Vector3(-26, -137, 0)
+			race.atmosphere.fog_density = .00026
 		if race.selected_course == 3:
 			# 지중해 하늘의 높은 태양 U=.695,V=.182.
 			race.sun_light.rotation_degrees = Vector3(-57, 70, 0)

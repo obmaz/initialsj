@@ -34,7 +34,7 @@ func run(tree: SceneTree) -> int:
 	var recoveries := 0
 	var target_lane := -2.5
 	var peak := 0.0
-	for frame in range(60 * 130):
+	for frame in range(60 * 230):
 		var forward: Vector3 = body.forward_direction()
 		var right := Vector3(-forward.z, 0, forward.x).normalized()
 		var look := clampf(race.speed * 0.65, 14, 46)

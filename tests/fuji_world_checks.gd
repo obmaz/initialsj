@@ -139,6 +139,15 @@ func shoulder_regressions(tree: SceneTree, race: Node3D) -> Array:
 	return rows
 
 
+func traffic_regressions(tree: SceneTree, race: Node3D) -> Array:
+	var rows := []
+	for choice in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
+		race.open_garage()
+		race.select_vehicle(choice)
+		rows.append(await traffic_regression(tree, race))
+	return rows
+
+
 func traffic_regression(tree: SceneTree, race: Node3D) -> Dictionary:
 	race.restart()
 	await quiet_race(tree, race)
@@ -152,7 +161,8 @@ func traffic_regression(tree: SceneTree, race: Node3D) -> Dictionary:
 	# Activate the opposing collider before starting the swept approach.
 	await tick(tree, race, 0, false)
 	await tree.physics_frame
-	seed_speed(race, 65)
+	var approach_speed := 65.0
+	seed_speed(race, approach_speed)
 	var physical_contact := false
 	var closing_speed := 0.0
 	for frame in range(24):
@@ -172,16 +182,22 @@ func traffic_regression(tree: SceneTree, race: Node3D) -> Dictionary:
 	query.collision_mask = 4
 	query.exclude = [body.get_rid()]
 	var overlaps := body.get_world_3d().direct_space_state.intersect_shape(query)
+	# 차체별 질량·마찰이 달라도 충돌 후 접근 속도의 1/4 이상으로 주행을 유지한다.
+	var retained_speed: float = session.speed_of(body)
+	var pushed_speed: float = session.speed_of(rival)
 	check(
 		(
 			overlaps.filter(func(hit): return hit.collider == rival).is_empty()
-			and session.speed_of(body) > 20
-			and session.speed_of(body) < 65
-			and session.speed_of(rival) > 5
+			and retained_speed > approach_speed * 0.25
+			and retained_speed < approach_speed
+			and pushed_speed > 5
 		),
 		"실제 차량끼리 겹치지 않으면서 앞차를 밀고 감속·옆 반동 후 주행을 유지해야 한다"
 	)
 	return {
+		"vehicle": race.vehicle.id,
+		"retained_speed_mps": retained_speed,
+		"pushed_speed_mps": pushed_speed,
 		"physical_car_contact": physical_contact,
 		"closing_speed_mps": closing_speed,
 		"separation_m": separation,
@@ -430,7 +446,7 @@ func run(tree: SceneTree) -> int:
 		"Driving backwards along the circuit must show wrong-way feedback even when the chassis faces forward"
 	)
 	var shoulders := await shoulder_regressions(tree, race)
-	var traffic := await traffic_regression(tree, race)
+	var traffic := await traffic_regressions(tree, race)
 	var passes := await pass_regression(tree, race)
 	var recovery := await recovery_regression(tree, race)
 	var ramps := await ramp_regressions(tree, race)

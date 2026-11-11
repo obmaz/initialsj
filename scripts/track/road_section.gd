@@ -387,6 +387,8 @@ func authored_half_width(distance: float) -> float:
 
 
 func rail_setback(distance: float, side: float) -> float:
+	if closed_loop and course_id == 1 and side > 0:
+		return .35
 	if closed_loop and course_id >= 1:
 		return 1.5
 	var d := fposmod(distance, length) if closed_loop else clampf(distance, 0, length)

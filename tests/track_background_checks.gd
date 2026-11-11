@@ -74,7 +74,8 @@ func run(tree: SceneTree) -> int:
 				if previous >= 0:
 					check(
 						(
-							d - previous < 39
+							d - previous >= 49
+							and (d - previous < 51 or d - previous > 600)
 							and p.distance_to(race.track.scenery.terrain_point(previous, placement.lane)) > 20
 						),
 						"광고 간격을3분의1로 줄이되 서로 겹치지 않는다"

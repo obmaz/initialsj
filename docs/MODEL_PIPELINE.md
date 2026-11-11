@@ -25,7 +25,7 @@ models/
     SOURCE.md
 ```
 
-기존 선택 차량의 시각 ID는 `hatch`(NIMORI), `wedge`(VELTRIX), `muscle`(IRONVALE), `gt`(STRAUD)입니다. `sport`는 교통 차량용입니다. 소품은64종과 예외 처리용 `fallback`, 도시 빌딩은12종의 팩을 사용합니다.
+기존 선택 차량의 시각 ID는 `hatch`(NIMORI), `wedge`(VELTRIX), `muscle`(IRONVALE), `gt`(STRAUD)입니다. `sport`는 교통 차량용입니다. 소품은65종과 예외 처리용 `fallback`, 도시 빌딩은12종의 팩을 사용합니다.
 
 **한 모델 작업의 기본 변경 범위는 해당 폴더 하나입니다.** 새 이미지·재질·메시·출처도 같은 폴더에 둡니다. 다른 모델의 `build.gd`를 가져다 참조하거나 공용 아틀라스를 덮어쓰지 않습니다. 공통 도우미는 `models/shared/`의 API를 사용하고 전용 표현은 팩 내부 파일로 만듭니다.
 

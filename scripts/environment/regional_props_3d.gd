@@ -88,12 +88,13 @@ func _ready() -> void:
 		if kind == "billboard":
 			group += ":ad" + str(ad_index)
 		if not groups.has(group):
-			groups[group] = {"kind": kind, "poses": [], "ad_index": ad_index}
+			groups[group] = {"kind": kind, "poses": [], "ad_index": ad_index, "print_fills": []}
 		var scale: float = p.get("scale", 1.0)
 		var transform := Transform3D(
 			Basis(Vector3.UP, float(p.get("yaw", 0))).scaled_local(Vector3.ONE * scale), p.position
 		)
 		groups[group].poses.append(transform)
+		groups[group].print_fills.append(float(p.get("print_fill", 0)))
 		var bounds: AABB = transform * model(kind).get_aabb()
 		world_bounds.append(bounds)
 		if Models.definition(kind).tags.has("tree"):
@@ -116,7 +117,9 @@ func _ready() -> void:
 				multi.set_instance_color(i, Color.WHITE)
 				var origin: Vector3 = poses[start + i].origin
 				var appearance := posmod(floori(origin.x * .017) + floori(origin.z * .031), 8)
-				multi.set_instance_custom_data(i, Color(float(appearance) / 7, 0, 0, 1))
+				multi.set_instance_custom_data(
+					i, Color(float(appearance) / 7, groups[group].print_fills[start + i], 0, 1)
+				)
 			var node := MultiMeshInstance3D.new()
 			node.name = "Regional3D_" + kind + "_" + str(start)
 			node.multimesh = multi

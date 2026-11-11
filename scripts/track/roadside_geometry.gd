@@ -143,10 +143,13 @@ static func edge_strand(section: Node3D, table: Dictionary, side: float, with_se
 	for i in range(samples.size()):
 		base.append(side * (halves[i] + (setback[i] if with_setback else 0.0)))
 		var hidden: bool = (
-			i > 0
-			and (
-				(samples[i - 1] < 150 and side == -section.entry_side)
-				or (curb_rule and not section.closed_loop and setback[i - 1] > 2.3)
+			(section.closed_loop and section.course_id == 1 and side > 0)
+			or (
+				i > 0
+				and (
+					(samples[i - 1] < 150 and side == -section.entry_side)
+					or (curb_rule and not section.closed_loop and setback[i - 1] > 2.3)
+				)
 			)
 		)
 		skip.append(1 if hidden else 0)
@@ -255,6 +258,8 @@ static func shoulders(section: Node3D) -> void:
 
 
 static func shoulders_part(section: Node3D, st: SurfaceTool, side: float, steps: int, from: int, to: int) -> void:
+	if section.closed_loop and section.course_id == 1 and side > 0:
+		return
 	for i in range(from, to):
 		var a: float = section.length * i / steps
 		var b: float = section.length * (i + 1) / steps

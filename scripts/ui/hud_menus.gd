@@ -99,9 +99,9 @@ func draw_courses() -> void:
 		["05 / SCARLET", "GORGE"]
 	]
 	var subtitles := [
-		"VIADUCT / RIDGE", "HILLS / BOOST SLALOM", "NIGHT / DRIFT GATES", "COAST / HEART DRIFT", "BRIDGE / CANYON ADS"
+		"VIADUCT / RIDGE", "INFIELD / BANKED TURNS", "NIGHT / DRIFT GATES", "COAST / HEART DRIFT", "BRIDGE / CANYON ADS"
 	]
-	var lengths := ["5.72 KM / 3 LAPS", "4.57 KM / 3 LAPS", "2.74 KM / 3 LAPS", "3.64 KM / 3 LAPS", "3.54 KM / 3 LAPS"]
+	var lengths := ["5.72 KM / 3 LAPS", "5.76 KM / 3 LAPS", "2.74 KM / 3 LAPS", "3.64 KM / 3 LAPS", "3.54 KM / 3 LAPS"]
 	for i in range(5):
 		var rect: Rect2 = rects[i]
 		var accent: Color = accents[i]
@@ -125,7 +125,7 @@ func draw_courses() -> void:
 		hud.text_at(Vector2(x, 448), titles[i][1], 21, accent)
 		hud.text_at(Vector2(x, 480), subtitles[i], 13, hud.WHITE)
 		hud.text_at(Vector2(x, 507), lengths[i], 14, Color("adc2d0"))
-	hud.centered(Vector2(640, 675), "FIVE CIRCUITS / THREE LAPS / EIGHT RACERS", 18, Color("8299a7"))
+	hud.centered(Vector2(640, 675), "THREE LAPS / TRACK02: 16 RACERS / OTHERS: 8", 18, Color("8299a7"))
 
 
 func draw_settings() -> void:

@@ -339,12 +339,20 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 			]
 		)
 	if section.closed_loop and section.course_id == 1:
-		# Two readable slaloms: a neutral line misses the alternating pads.
-		for start in [560.0, 2490.0]:
+		# 새 코스의 실제 직선에 배치하고 인필드 헤어핀 진입에서 가속시키지 않는다.
+		specifications.clear()
+		for start in [120.0, 1920.0]:
 			for index in range(6):
-				specifications.append(["boost", start + index * 78.0, -0.40 if index % 2 == 0 else 0.40, 12.0, 3.0])
-		specifications.append(["boost_lane", 1050.0, 0.42, 240.0, 4.4])
-		specifications.append(["boost_lane", 2070.0, -0.42, 280.0, 4.4])
+				specifications.append(["boost", start + index * 78.0, -.40 if index % 2 == 0 else .40, 12.0, 3.0])
+		specifications.append_array(
+			[
+				["boost_lane", 650.0, .42, 140.0, 4.4],
+				["boost_lane", 5075.0, -.42, 140.0, 4.4],
+				["boost", 4670.0, .35, 22.0, 3.6],
+				["water", 3620.0, .35, 16.0, 4.0],
+				["ramp", 5110.0, .40, 16.0, 3.8, .65]
+			]
+		)
 	for i in range(specifications.size()):
 		var spec: Array = specifications[i]
 		var d: float = spec[1]

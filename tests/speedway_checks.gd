@@ -26,7 +26,7 @@ func run(tree: SceneTree) -> int:
 		race.selected_course == 1 and race.track.scenery.theme == "speedway",
 		"Second course touch must select the speedway"
 	)
-	check(race.track.length > 4300 and race.track.length < 5200, "Speedway must have a full-size high speed lap")
+	check(race.track.length > 5500 and race.track.length < 6100, "Speedway must have a full-size high speed lap")
 	check(race.track.previews.is_empty(), "A circuit must never spawn Tour forks")
 	var max_bank := 0.0
 	var min_bank := INF
@@ -53,7 +53,7 @@ func run(tree: SceneTree) -> int:
 		rad_to_deg(max_bank) > 24 and rad_to_deg(min_bank) < 2,
 		"Turns must bank steeply and the back straight must flatten"
 	)
-	check(max_step < 0.009 and radius > 110, "Bank transitions and curvature must support high speed racing")
+	check(max_step < 0.012 and radius > 34, "Bank transitions and curvature must support high speed racing")
 	check(
 		highest - lowest > 25 and highest - lowest < 40,
 		"Suncoast must have meaningful rolling elevation while retaining a high-speed oval profile"
@@ -77,13 +77,14 @@ func run(tree: SceneTree) -> int:
 		"InfieldLake",
 		"SpeedwaySafetyWalls",
 		"CatchFence",
-		"GrandstandSeats0",
+		"MainGrandstands",
 		"PitLane",
 		"PitGarages",
 		"RaceControlTower"
 	]:
 		check(race.track.scenery.has_node(path), "Missing actual speedway geometry: " + path)
-	var stripe: MeshInstance3D = race.track.active.make_finish_stripe(race.track.length * 0.793)
+	var stripe_d: float = preload("res://scripts/track/speedway_course.gd").offset(race.track.active, 4)
+	var stripe: MeshInstance3D = race.track.active.make_finish_stripe(stripe_d)
 	var stripe_vertices: PackedVector3Array = stripe.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 	var lowest_stripe := INF
 	var highest_stripe := -INF
@@ -93,7 +94,20 @@ func run(tree: SceneTree) -> int:
 	check(
 		highest_stripe - lowest_stripe > 6, "Full-width finish stripe must follow a real steep bank without flat tiles"
 	)
-	check(stripe_vertices.size() >= 17 * 2 * 6, "Finish stripe must cover all speedway lanes with joined geometry")
+	var center: Vector3 = race.track.point(stripe_d)
+	var right: Vector3 = race.track.point(stripe_d, 1) - race.track.point(stripe_d, -1)
+	right.y = 0
+	right = right.normalized()
+	var left_edge := INF
+	var right_edge := -INF
+	for vertex in stripe_vertices:
+		var lane := (vertex - center).dot(right)
+		left_edge = minf(left_edge, lane)
+		right_edge = maxf(right_edge, lane)
+	check(
+		left_edge <= -race.track.half_width(stripe_d) + .05 and right_edge >= race.track.half_width(stripe_d) - .05,
+		"출발선은 실제 도로의 양 끝까지 빈틈 없이 이어진다"
+	)
 	stripe.free()
 	for index in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
 		check(

@@ -1,12 +1,19 @@
 extends Node3D
-# Real 3D trackside geometry, batched for the mobile/Web renderer.
+# 실제 노면과 일치하는 경기장 지형·콘크리트 방호벽·관중석·광고 구역.
+const Course = preload("res://scripts/track/speedway_course.gd")
+const Field = preload("res://scripts/environment/speedway_infield.gd")
+const Props = preload("res://scripts/environment/regional_props_3d.gd")
+const BASE_HEIGHT := 6.5
+const BERM_REACH := 45.0
+const WALL_HEIGHT := 1.7
+const AD_SPACING := 50.0
+const WALL_AD_EDGES := [0., .1849, .3625, .5366, .7057, .8760, 1.]
 var track: Node3D
 var theme := "speedway"
 var batches: Array[MultiMeshInstance3D] = []
 var grandstand_anchors: Array[Transform3D] = []
-const BASE_HEIGHT := 6.5
-const OUTER_SLOPE_END := 240.0
-const INNER_SLOPE_END := 180.0
+var ad_regions: Array[Vector2] = []
+var wall_ads: Array[Dictionary] = []
 
 
 func make_sky() -> Sky:
@@ -15,42 +22,54 @@ func make_sky() -> Sky:
 	)
 
 
+# 좁은 인필드 코너에서 지형 띠가 회전 중심을 넘어 뒤집히지 않게 한다.
+func berm_reach(d: float) -> float:
+	var edge: float = track.half_width(d) + 2
+	return minf(BERM_REACH, maxf(8, .7 / maxf(.0001, absf(track.curvature(d))) - edge))
+
+
+func ground_height(d: float, lane: float) -> float:
+	var edge: float = track.half_width(d) + track.rail_setback(d, signf(lane)) + .65
+	var platform: float = maxf(BASE_HEIGHT, track.point(d, signf(lane) * edge).y - .15)
+	# 지형 메시와 같은9개 구간 사이를 보간해 부지와 실제 지형의 높이를 맞춘다.
+	var u := clampf((absf(lane) - edge) / berm_reach(d), 0, 1) * 9
+	var first := floorf(u)
+	var blend := lerpf(smoothstep(0, 9, first), smoothstep(0, 9, minf(9, first + 1)), u - first)
+	return lerpf(platform, BASE_HEIGHT, blend)
+
+
 func outer_ground_height(d: float, lane: float) -> float:
-	var platform: float = maxf(7.4, track.point(d, track.half_width(d) + 2).y)
-	return lerpf(platform, BASE_HEIGHT, smoothstep(120, OUTER_SLOPE_END, lane))
+	return ground_height(d, absf(lane))
 
 
 func inner_ground_height(d: float, lane: float) -> float:
-	var platform: float = maxf(BASE_HEIGHT, track.point(d, -track.half_width(d) - 2).y - 0.15)
-	return lerpf(platform, BASE_HEIGHT, smoothstep(90, INNER_SLOPE_END, absf(lane)))
+	return ground_height(d, -absf(lane))
 
 
 func terrain_point(d: float, lane: float) -> Vector3:
 	var p: Vector3 = track.point(d, lane)
-	p.y = inner_ground_height(d, lane) if lane < 0 else outer_ground_height(d, lane)
+	p.y = ground_height(d, lane)
 	return p
 
 
 func distance_at_xz(p: Vector3) -> float:
-	# Prop footprints project onto the road in plan view. A fixed low Y would
-	# pull the closest point downhill after the circuit gains real elevation.
 	var d: float = track.curve.get_closest_offset(p)
 	for iteration in range(4):
 		var q: Vector3 = track.point(d)
-		var tangent: Vector3 = (track.point(d + 1) - track.point(d - 1)) * 0.5
+		var tangent: Vector3 = (track.point(d + 1) - track.point(d - 1)) * .5
 		var derivative := Vector2(tangent.x, tangent.z)
 		var offset := Vector2(p.x - q.x, p.z - q.z)
-		d = fposmod(d + clampf(offset.dot(derivative) / maxf(0.01, derivative.length_squared()), -80, 80), track.length)
+		d = fposmod(d + clampf(offset.dot(derivative) / maxf(.01, derivative.length_squared()), -80, 80), track.length)
 	return d
 
 
 func batch(label: String, size: Vector3, color: Color, poses: Array[Transform3D]) -> void:
 	if poses.is_empty():
 		return
-	var mesh := BoxMesh.new()
-	mesh.size = size
 	var instances := MultiMesh.new()
 	instances.transform_format = MultiMesh.TRANSFORM_3D
+	var mesh := BoxMesh.new()
+	mesh.size = size
 	instances.mesh = mesh
 	instances.instance_count = poses.size()
 	for i in range(poses.size()):
@@ -63,150 +82,106 @@ func batch(label: String, size: Vector3, color: Color, poses: Array[Transform3D]
 	batches.append(node)
 
 
-func pose(d: float, lane: float, height: float, scale: Vector3 = Vector3.ONE) -> Transform3D:
-	var p: Vector3 = track.point(d, lane)
-	p.y = (outer_ground_height(d, lane) if lane > 0 else inner_ground_height(d, lane)) + height
-	return Transform3D(Basis(Vector3.UP, track.heading(d)).scaled_local(scale), p)
+func pose(d: float, lane: float, height: float, size: Vector3 = Vector3.ONE) -> Transform3D:
+	return Transform3D(
+		Basis(Vector3.UP, track.heading(d)).scaled_local(size), terrain_point(d, lane) + Vector3.UP * height
+	)
 
 
 func _ready() -> void:
-	make_infield()
+	var grass := ShaderMaterial.new()
+	grass.shader = preload("res://shaders/grass_ground.gdshader")
+	grass.set_shader_parameter("terrain_variants", load("res://assets/environment/terrain-variants.png"))
+	grass.set_shader_parameter("lawn_gain", Vector3(.72, 1.16, .82))
+	grass.set_shader_parameter("mowing_strength", .12)
+	Field.build(self, grass)
+	make_berms(grass, -1, "SpeedwayInnerGround")
+	make_berms(grass, 1, "SpeedwayOuterGround")
 	make_walls_and_fences()
 	make_stands()
 	make_pits()
 	make_lights()
 	make_palms()
 	make_infield_ads()
+	make_wall_ads()
 
 
-func make_infield() -> void:
-	var grass := ShaderMaterial.new()
-	grass.shader = preload("res://shaders/grass_ground.gdshader")
-	grass.set_shader_parameter("terrain_variants", load("res://assets/environment/terrain-variants.png"))
-	var floor_mesh := PlaneMesh.new()
-	floor_mesh.size = Vector2(2800, 2100)
-	var floor_node := MeshInstance3D.new()
-	floor_node.name = "SpeedwayInfield"
-	floor_node.mesh = floor_mesh
-	floor_node.material_override = grass
-	floor_node.position.y = 6.5
-	add_child(floor_node)
-	make_outer_ground(grass)
-	make_inner_ground(grass)
-	var lake := MeshInstance3D.new()
-	lake.name = "InfieldLake"
-	var disk := CylinderMesh.new()
-	disk.top_radius = 1
-	disk.bottom_radius = 1
-	disk.height = 0.1
-	disk.radial_segments = 48
-	lake.mesh = disk
-	lake.material_override = track.material(Color("328dad"), 0.25)
-	lake.position = Vector3(140, 6.65, -60)
-	lake.scale = Vector3(250, 1, 130)
-	add_child(lake)
+func make_berms(grass: Material, side: float, label: String) -> void:
+	var root := Node3D.new()
+	root.name = label
+	add_child(root)
+	var pieces := ceili(track.length / 240)
+	for piece in range(pieces):
+		var start: float = track.length * piece / pieces
+		var finish: float = track.length * (piece + 1) / pieces
+		var steps := ceili((finish - start) / 4)
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for i in range(steps):
+			var a := lerpf(start, finish, float(i) / steps)
+			var b := lerpf(start, finish, float(i + 1) / steps)
+			for band in range(9):
+				var points: Array[Vector3] = []
+				for pair in [Vector2(a, band), Vector2(a, band + 1), Vector2(b, band), Vector2(b, band + 1)]:
+					var edge: float = track.half_width(pair.x) + track.rail_setback(pair.x, side) + .65
+					points.append(terrain_point(pair.x, side * (edge + berm_reach(pair.x) * pair.y / 9)))
+				for index in [0, 1, 2, 1, 3, 2] if side < 0 else [0, 2, 1, 1, 2, 3]:
+					st.add_vertex(points[index])
+		st.index()
+		st.generate_normals()
+		var node := MeshInstance3D.new()
+		node.mesh = st.commit()
+		node.material_override = grass
+		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(node)
 
 
-# The outer safety wall, grandstands and light masts share a raised foundation.
-# One continuous mesh closes the bank underside and descends to the base plane.
-func make_outer_ground(grass: Material) -> void:
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var steps := int(ceil(track.length / 8))
-	var lanes: Array[float] = [16.0, 16.5, 120.0]
-	for lane in range(125, int(OUTER_SLOPE_END) + 1, 5):
-		lanes.append(float(lane))
-	for i in range(steps):
-		var a: float = track.length * i / steps
-		var b: float = track.length * (i + 1) / steps
-		for band in range(lanes.size() - 1):
-			var points := [
-				track.point(a, lanes[band]),
-				track.point(a, lanes[band + 1]),
-				track.point(b, lanes[band]),
-				track.point(b, lanes[band + 1])
-			]
-			for corner in range(4):
-				var d: float = a if corner < 2 else b
-				var lane: float = lanes[band + (corner % 2)]
-				points[corner].y = (
-					track.point(d, lane).y - 0.16 if band == 0 and corner % 2 == 0 else outer_ground_height(d, lane)
-				)
-			for index in [0, 2, 1, 1, 2, 3]:
-				surface.add_vertex(points[index])
-	surface.index()
-	surface.generate_normals()
-	var terrain := MeshInstance3D.new()
-	terrain.name = "SpeedwayOuterGround"
-	terrain.mesh = surface.commit()
-	terrain.material_override = grass
-	terrain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(terrain)
-
-
-# An elevated inside shoulder needs a continuous bank down to the flat lake
-# and lawn; props and the pit lane share the same authored ground profile.
-func make_inner_ground(grass: Material) -> void:
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var steps := int(ceil(track.length / 8))
-	var lanes: Array[float] = [-16.0, -16.5, -90.0]
-	for lane in range(95, int(INNER_SLOPE_END) + 1, 5):
-		lanes.append(-float(lane))
-	for i in range(steps):
-		var a: float = track.length * i / steps
-		var b: float = track.length * (i + 1) / steps
-		for band in range(lanes.size() - 1):
-			var points := [
-				terrain_point(a, lanes[band]),
-				terrain_point(a, lanes[band + 1]),
-				terrain_point(b, lanes[band]),
-				terrain_point(b, lanes[band + 1])
-			]
-			for corner in [0, 2]:
-				if band == 0:
-					points[corner].y = track.point(a if corner == 0 else b, lanes[band]).y - 0.16
-			for index in [0, 1, 2, 1, 3, 2]:
-				surface.add_vertex(points[index])
-	surface.index()
-	surface.generate_normals()
-	var terrain := MeshInstance3D.new()
-	terrain.name = "SpeedwayInnerGround"
-	terrain.mesh = surface.commit()
-	terrain.material_override = grass
-	terrain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(terrain)
+func wall_point(d: float, height: float, offset: float = 0) -> Vector3:
+	# 인쇄면을 방호벽과 같은4m 구간에 맞춰 곡선 안쪽으로 묻히는 깊이 충돌을 막는다.
+	var step: float = track.length / ceili(track.length / 4)
+	var cell := fposmod(d, track.length) / step
+	var a := floorf(cell) * step
+	var b := a + step
+	var left: Vector3 = track.point(a, track.half_width(a) + track.rail_setback(a, 1) + offset)
+	var right: Vector3 = track.point(b, track.half_width(b) + track.rail_setback(b, 1) + offset)
+	return left.lerp(right, cell - floorf(cell)) + Vector3.UP * height
 
 
 func make_walls_and_fences() -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var posts: Array[Transform3D] = []
 	var fence := SurfaceTool.new()
 	fence.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var count := int(ceil(track.length / 5))
-	for side in [-1.0, 1.0]:
-		for i in range(count):
-			var a: float = track.length * i / count
-			var b: float = track.length * (i + 1) / count
-			var lane: float = side * (track.half_width(a) + track.rail_setback(a, side) + 0.25)
-			var next_lane: float = side * (track.half_width(b) + track.rail_setback(b, side) + 0.25)
-			var p: Vector3 = track.point(a, lane)
-			var q: Vector3 = track.point(b, next_lane)
-			for v in [p, q, p + Vector3.UP * 1.2, p + Vector3.UP * 1.2, q, q + Vector3.UP * 1.2]:
-				st.add_vertex(v)
-			if side < 0:
-				continue
-			for n in [0, 1, 2, 2, 1, 3]:
-				fence.set_uv(Vector2((a if n % 2 == 0 else b) / 2, 0 if n < 2 else 1))
-				fence.add_vertex((p if n % 2 == 0 else q) + Vector3.UP * (1.2 if n < 2 else 5.2))
-			if i % 4 == 0:
-				posts.append(pose(a, lane, 3.0))
+	var posts: Array[Transform3D] = []
+	var count := ceili(track.length / 4)
+	for i in range(count):
+		var a: float = track.length * i / count
+		var b: float = track.length * (i + 1) / count
+		# 두께60cm·높이1.7m의 닫힌 콘크리트 단면. 차도 쪽 면은 아스팔트 끝에 맞춘다.
+		var profile := [Vector2(-.3, -.25), Vector2(-.3, WALL_HEIGHT), Vector2(.3, WALL_HEIGHT), Vector2(.3, -.25)]
+		for face in range(4):
+			var near: Vector2 = profile[face]
+			var next: Vector2 = profile[(face + 1) % 4]
+			var points := [
+				wall_point(a, near.y, near.x),
+				wall_point(b, near.y, near.x),
+				wall_point(a, next.y, next.x),
+				wall_point(b, next.y, next.x)
+			]
+			for n in [0, 1, 2, 1, 3, 2]:
+				st.add_vertex(points[n])
+		for n in [0, 1, 2, 2, 1, 3]:
+			var d: float = a if n % 2 == 0 else b
+			fence.set_uv(Vector2(d / 2, 0 if n < 2 else 1))
+			fence.add_vertex(wall_point(d, WALL_HEIGHT if n < 2 else 5.6))
+		if i % 3 == 0:
+			var center := wall_point(a, (WALL_HEIGHT + 5.6) * .5)
+			posts.append(Transform3D(Basis(Vector3.UP, track.heading(a)), center))
 	st.generate_normals()
 	var wall := MeshInstance3D.new()
 	wall.name = "SpeedwaySafetyWalls"
 	wall.mesh = st.commit()
-	wall.material_override = track.material(Color("eff1e9"))
+	wall.material_override = track.material(Color("b7bdba"))
 	add_child(wall)
 	fence.generate_normals()
 	var net := MeshInstance3D.new()
@@ -217,76 +192,37 @@ func make_walls_and_fences() -> void:
 	net.material_override = wire
 	net.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(net)
-	batch("FencePosts", Vector3(0.1, 4.8, 0.1), Color("536d7b"), posts)
+	batch("FencePosts", Vector3(.15, 3.9, .15), Color("65747a"), posts)
 
 
 func make_stands() -> void:
-	var supports: Array[Transform3D] = []
-	var roofs: Array[Transform3D] = []
+	var placements: Array[Dictionary] = []
 	var foundations: Array[Transform3D] = []
-	var canopy_supports: Array[Transform3D] = []
-	var seats := [[], [], []]
-	for fraction in [0.015, 0.055, 0.095, 0.135, 0.45, 0.49, 0.53, 0.57, 0.71, 0.75]:
-		var d: float = track.length * fraction
-		var frame := Transform3D(Basis(Vector3.UP, track.heading(d)), track.point(d))
-		# A grandstand is one rigid building. Give every seat, tier and roof the
-		# same foundation instead of following different road banks per block.
-		var base := 7.4
-		for x in [34.3, 47.55, 60.8, 78.0]:
-			for z in range(-64, 65, 8):
-				var p := frame * Vector3(x, 0, z)
-				var at := distance_at_xz(p)
-				base = maxf(base, outer_ground_height(at, x))
-		frame.origin.y = base + 0.08
+	for i in range(18):
+		var d := -80.0 + i * 76
+		var frame := Transform3D(Basis(Vector3.UP, track.heading(d) - PI * .5), track.point(d, 30))
+		var base := BASE_HEIGHT
+		for x in [-37.0, 0.0, 37.0]:
+			for z in [0.0, -35.0, -70.0]:
+				var sample := frame * Vector3(x, 0, z)
+				var at := distance_at_xz(sample)
+				var center: Vector3 = track.point(at)
+				var lane := Vector2(sample.x - center.x, sample.z - center.z).length()
+				base = maxf(base, outer_ground_height(at, lane))
+		frame.origin.y = base + .4
 		grandstand_anchors.append(frame)
-		var foundation_height := frame.origin.y - 6.5
+		var height := frame.origin.y - BASE_HEIGHT
 		foundations.append(
-			(
-				frame
-				* Transform3D(
-					Basis.IDENTITY.scaled(Vector3(26.5, foundation_height, 116)),
-					Vector3(47.55, -foundation_height * 0.5, 0)
-				)
-			)
+			frame * Transform3D(Basis.IDENTITY.scaled(Vector3(76, height, 70.76)), Vector3(0, -height * .5, -35.13))
 		)
-		for row in range(8):
-			var lane := 36.0 + row * 3.3
-			var height := 0.8 + row * 1.25
-			for block in range(5):
-				seats[(row + block) % 3].append(
-					(
-						frame
-						* Transform3D(
-							Basis.IDENTITY.scaled(Vector3(3.2, 0.8, 22)), Vector3(lane, height, (block - 2) * 23)
-						)
-					)
-				)
-			var tier_height := 0.5 + row * 1.25
-			supports.append(
-				(
-					frame
-					* Transform3D(
-						Basis.IDENTITY.scaled(Vector3(3.4, tier_height, 116)), Vector3(lane, tier_height * 0.5, 0)
-					)
-				)
-			)
-		roofs.append(frame * Transform3D(Basis.IDENTITY.scaled(Vector3(32, 0.5, 122)), Vector3(62, 14, 0)))
-		for x in [48.0, 76.0]:
-			for z in [-50.0, 50.0]:
-				var p := frame * Vector3(x, 0, z)
-				var at := distance_at_xz(p)
-				var bottom := outer_ground_height(at, x)
-				var column_height := frame.origin.y + 14 - bottom
-				p.y = bottom + column_height * 0.5
-				canopy_supports.append(Transform3D(Basis.IDENTITY.scaled(Vector3(0.35, column_height, 0.35)), p))
-	for i in range(3):
-		var typed: Array[Transform3D] = []
-		typed.assign(seats[i])
-		batch("GrandstandSeats" + str(i), Vector3.ONE, Color(["217991", "e9ad51", "b5c9d0"][i]), typed)
-	batch("GrandstandFoundations", Vector3.ONE, Color("67797d"), foundations)
-	batch("GrandstandTerraces", Vector3.ONE, Color("73818a"), supports)
-	batch("GrandstandCanopies", Vector3.ONE, Color("dce2db"), roofs)
-	batch("GrandstandCanopySupports", Vector3.ONE, Color("8e9a9a"), canopy_supports)
+		placements.append(
+			{"kind": "stadium_grandstand", "position": frame.origin, "yaw": track.heading(d) - PI * .5, "scale": 1.0}
+		)
+	batch("GrandstandFoundations", Vector3.ONE, Color("7b8588"), foundations)
+	var stands := Props.new()
+	stands.name = "MainGrandstands"
+	stands.configure("hawaii", placements)
+	add_child(stands)
 
 
 func make_pits() -> void:
@@ -339,26 +275,107 @@ func make_pits() -> void:
 func make_lights() -> void:
 	var poles: Array[Transform3D] = []
 	var heads: Array[Transform3D] = []
-	for i in range(48):
-		var d: float = track.length * i / 48
-		poles.append(pose(d, 84, 12))
-		heads.append(pose(d, 82, 24))
-	batch("StadiumLightPoles", Vector3(0.32, 24, 0.32), Color("738594"), poles)
-	batch("StadiumLightBanks", Vector3(3.5, 1.6, 6), Color("f5f0d5"), heads)
+	for i in range(40):
+		var d: float = Course.offset(track, 10) * i / 40
+		poles.append(pose(d, 125, 22))
+		heads.append(pose(d, 125, 44))
+	batch("StadiumLightPoles", Vector3(.45, 44, .45), Color("738594"), poles)
+	batch("StadiumLightBanks", Vector3(4.5, 1.8, 7), Color("f5f0d5"), heads)
 
 
 func make_palms() -> void:
 	var placements: Array[Dictionary] = []
-	for i in range(32):
-		var d: float = track.length * (i + 0.35) / 32
-		var lane := -95.0 if d < 650 else -48.0
-		var p: Vector3 = track.point(d, lane)
-		p.y = inner_ground_height(d, lane) + 0.1
-		placements.append({"position": p, "yaw": i * 1.7, "scale": 0.85 + (i % 4) * 0.09, "variant": i})
-	var palms := preload("res://scripts/environment/regional_props_3d.gd").new()
+	for i in range(20):
+		var d := 500.0 + i * 40
+		var p := terrain_point(d, -80)
+		if Field.contains(p):
+			continue
+		var near: Vector3 = track.point(distance_at_xz(p))
+		if Vector2(near.x - p.x, near.z - p.z).length() < 30:
+			continue
+		placements.append({"position": p, "yaw": i * 1.7, "scale": .85 + (i % 4) * .09, "variant": i})
+	var palms := Props.new()
 	palms.name = "SpeedwayPalms"
 	palms.configure("hawaii", placements)
 	add_child(palms)
+
+
+func make_infield_ads() -> void:
+	var placements: Array[Dictionary] = []
+	for start in [Course.offset(track, 3) + 50, Course.offset(track, 15) + 20]:
+		ad_regions.append(Vector2(start, start + 20 * AD_SPACING))
+		for i in range(21):
+			var d: float = start + i * AD_SPACING
+			var radius: float = Props.radius("billboard")
+			var lane: float = -(track.half_width(d) + track.rail_setback(d, -1) + radius + 2)
+			placements.append(
+				{
+					"kind": "billboard",
+					"position": terrain_point(d, lane),
+					"distance": d,
+					"lane": lane,
+					"yaw": preload("res://scripts/environment/billboard_facing.gd").yaw(track, d, lane, 40, .60),
+					"scale": 1.0,
+					"print_fill": .6
+				}
+			)
+	var props := Props.new()
+	props.name = "InfieldAdvertisements"
+	props.configure("hawaii", placements)
+	add_child(props)
+
+
+func make_wall_ads() -> void:
+	var materials: Array[ShaderMaterial] = []
+	var atlas: Texture2D = preload("res://scripts/rendering/render_resources.gd").fetch(
+		"res://assets/environment/speedway-wall-ads.png"
+	)
+	for design in range(6):
+		var mat := ShaderMaterial.new()
+		mat.shader = preload("res://shaders/speedway_wall_ad.gdshader")
+		mat.set_shader_parameter("atlas", atlas)
+		mat.set_shader_parameter("row_bounds", Vector2(WALL_AD_EDGES[design], WALL_AD_EDGES[design + 1]))
+		materials.append(mat)
+	var root := Node3D.new()
+	root.name = "WallAdvertisements"
+	add_child(root)
+	for i in range(54):
+		var d: float = 100 + (track.length - 180) * i / 54
+		var design := i % 6
+		# 생성 원본의 실제 행 높이와 같은 종횡비. 문자·상품을 가로로 늘리지 않는다.
+		var width: float = (
+			1.18 * atlas.get_width() / (atlas.get_height() * (WALL_AD_EDGES[design + 1] - WALL_AD_EDGES[design]))
+		)
+		var metric: float = wall_point(d + .5, 0).distance_to(wall_point(d - .5, 0))
+		var span := width / maxf(.5, metric)
+		var begin := d - span * .5
+		var end := d + span * .5
+		var step: float = track.length / ceili(track.length / 4)
+		var cuts: Array[float] = [begin, end]
+		var index := floori(begin / step) + 1
+		while index * step < end:
+			cuts.append(index * step)
+			index += 1
+		cuts.sort()
+		var origin := wall_point(d, .86, -.325)
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for segment in range(cuts.size() - 1):
+			var a: float = cuts[segment]
+			var b: float = cuts[segment + 1]
+			for n in [0, 1, 2, 1, 3, 2]:
+				var at: float = a if n % 2 == 0 else b
+				st.set_uv(Vector2(1 - (at - begin) / span, 1 if n < 2 else 0))
+				st.add_vertex(wall_point(at, .27 if n < 2 else 1.45, -.325) - origin)
+		st.generate_normals()
+		var node := MeshInstance3D.new()
+		node.mesh = st.commit()
+		node.position = origin
+		node.material_override = materials[design]
+		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		node.visibility_range_end = 360
+		root.add_child(node)
+		wall_ads.append({"distance": d, "width": width, "height": 1.18, "design": design, "span": span})
 
 
 func set_shadow_quality(enabled: bool) -> void:
@@ -366,27 +383,3 @@ func set_shadow_quality(enabled: bool) -> void:
 		node.cast_shadow = (
 			GeometryInstance3D.SHADOW_CASTING_SETTING_ON if enabled else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		)
-
-
-# 피트 출입 구간(약650m 이전)을 비우고 도로 안쪽 레일 바깥에 촘촘한 상업 광고열을 둔다.
-func make_infield_ads() -> void:
-	var props := preload("res://scripts/environment/regional_props_3d.gd").new()
-	var placements: Array[Dictionary] = []
-	for i in range(42):
-		var d: float = 700 + i * (115.0 / 3)
-		# 회전한 패널의 전체 반경까지 계산해 레일과 최소2m 간격을 남긴다.
-		var radius: float = preload("res://scripts/environment/regional_props_3d.gd").radius("billboard")
-		var lane: float = -(track.half_width(d) + track.rail_setback(d, -1) + radius + 2)
-		placements.append(
-			{
-				"kind": "billboard",
-				"position": terrain_point(d, lane),
-				"distance": d,
-				"lane": lane,
-				"yaw": preload("res://scripts/environment/billboard_facing.gd").yaw(track, d, lane, 40, .60),
-				"scale": 1.0
-			}
-		)
-	props.name = "InfieldAdvertisements"
-	props.configure("hawaii", placements)
-	add_child(props)
