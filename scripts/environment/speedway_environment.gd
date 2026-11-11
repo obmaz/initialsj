@@ -7,6 +7,9 @@ const BASE_HEIGHT := 6.5
 const BERM_REACH := 45.0
 const WALL_HEIGHT := 1.7
 const AD_SPACING := 50.0
+const STAND_COUNT := 16
+const STAND_CENTER := 350.0
+const STAND_GAP := 3.5
 const WALL_AD_EDGES := [0., .1849, .3625, .5366, .7057, .8760, 1.]
 var track: Node3D
 var theme := "speedway"
@@ -198,12 +201,25 @@ func make_walls_and_fences() -> void:
 func make_stands() -> void:
 	var placements: Array[Dictionary] = []
 	var foundations: Array[Transform3D] = []
-	for i in range(18):
-		var d := -80.0 + i * 76
-		var frame := Transform3D(Basis(Vector3.UP, track.heading(d) - PI * .5), track.point(d, 30))
+	var bounds := Props.model("stadium_grandstand").get_aabb()
+	var limits: Vector2 = Props.Models.definition("stadium_grandstand").placement_limits
+	var scales: Array[float] = []
+	var span := STAND_GAP * (STAND_COUNT - 1)
+	for i in range(STAND_COUNT):
+		var from_center := absf(2.0 * i / (STAND_COUNT - 1) - 1)
+		var scale := lerpf(limits.y, limits.x, smoothstep(0, 1, from_center))
+		scales.append(scale)
+		span += bounds.size.x * scale
+	var cursor := STAND_CENTER - span * .5
+	for scale in scales:
+		var width: float = bounds.size.x * scale
+		var d := cursor + width * .5
+		cursor += width + STAND_GAP
+		var yaw: float = track.heading(d) - PI * .5
+		var frame := Transform3D(Basis(Vector3.UP, yaw).scaled_local(Vector3.ONE * scale), track.point(d, 30))
 		var base := BASE_HEIGHT
-		for x in [-37.0, 0.0, 37.0]:
-			for z in [0.0, -35.0, -70.0]:
+		for x in [bounds.position.x, bounds.get_center().x, bounds.end.x]:
+			for z in [bounds.position.z, bounds.get_center().z, bounds.end.z]:
 				var sample := frame * Vector3(x, 0, z)
 				var at := distance_at_xz(sample)
 				var center: Vector3 = track.point(at)
@@ -212,12 +228,14 @@ func make_stands() -> void:
 		frame.origin.y = base + .4
 		grandstand_anchors.append(frame)
 		var height := frame.origin.y - BASE_HEIGHT
+		var foundation_center := frame * Vector3(bounds.get_center().x, 0, bounds.get_center().z)
 		foundations.append(
-			frame * Transform3D(Basis.IDENTITY.scaled(Vector3(76, height, 70.76)), Vector3(0, -height * .5, -35.13))
+			Transform3D(
+				Basis(Vector3.UP, yaw).scaled_local(Vector3(width, height, bounds.size.z * scale)),
+				foundation_center - Vector3.UP * height * .5
+			)
 		)
-		placements.append(
-			{"kind": "stadium_grandstand", "position": frame.origin, "yaw": track.heading(d) - PI * .5, "scale": 1.0}
-		)
+		placements.append({"kind": "stadium_grandstand", "position": frame.origin, "yaw": yaw, "scale": scale})
 	batch("GrandstandFoundations", Vector3.ONE, Color("7b8588"), foundations)
 	var stands := Props.new()
 	stands.name = "MainGrandstands"

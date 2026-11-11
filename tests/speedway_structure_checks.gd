@@ -88,8 +88,8 @@ func run(tree: SceneTree) -> int:
 	var water_arrays = scenery.get_node("InfieldLake").mesh.surface_get_arrays(0)
 	check(water_arrays[Mesh.ARRAY_NORMAL][0].y > .9, "호수는 위에서 보이는 올바른 면 방향을 사용한다")
 	check(
-		scenery.grandstand_anchors.size() == 18 and scenery.has_node("GrandstandFoundations"),
-		"대형 관중석18개는 지면까지 이어지는 기초를 공유한다"
+		scenery.grandstand_anchors.size() == 16 and scenery.has_node("GrandstandFoundations"),
+		"관중석은16개로 줄이고 크기에 맞는 기초로 지면까지 연결한다"
 	)
 	var model := Props.model("stadium_grandstand")
 	check(model.get_aabb().size.y > 50 and model.get_aabb().size.x >= 74, "관중석은 자동차와 같은 미터 단위로 실제50m 이상 높이를 갖는다")
@@ -103,11 +103,29 @@ func run(tree: SceneTree) -> int:
 				"관중 전용 UV는 좌석 위·정면에 붙어 낮은 시점에서도 보인다"
 			)
 	check(print_count > 300, "관중석 계단에는 생성형 관중 전용 표면을 포함한다")
-	for frame: Transform3D in scenery.grandstand_anchors:
+	var total_width := 0.0
+	var anchors: Array = scenery.grandstand_anchors
+	for i in range(anchors.size()):
+		var frame: Transform3D = anchors[i]
+		var scale := frame.basis.get_scale().y
+		total_width += model.get_aabb().size.x * scale
+		var opposite: Transform3D = anchors[anchors.size() - 1 - i]
+		check(is_equal_approx(scale, opposite.basis.get_scale().y), "관중석은 중앙을 기준으로 양쪽 크기가 대칭이어야 한다")
+		if i > 0:
+			var previous: Transform3D = anchors[i - 1]
+			var difference := scale - previous.basis.get_scale().y
+			check(difference >= -.001 if i < anchors.size() / 2 else difference <= .001, "중앙은 높고 양 끝으로 갈수록 단계적으로 낮아진다")
 		for x in [-36.0, 36.0]:
 			var p := frame * Vector3(x, 0, 0)
 			var actual := mesh_height(outer, Vector2(p.x, p.z))
 			check(is_nan(actual) or frame.origin.y + .1 >= actual, "관중석 앞열은 도로 제방에 묻히지 않는다")
+	var middle: Transform3D = anchors[anchors.size() / 2]
+	var end: Transform3D = anchors[0]
+	check(
+		middle.basis.get_scale().y > 1.06 and middle.basis.get_scale().y > end.basis.get_scale().y * 1.6,
+		"중앙 인기 좌석은 기존보다 높고 끝 좌석보다 웅장해야 한다"
+	)
+	check(total_width < 18 * 76 * .85, "관중석 전체 폭은 기존 일률적인18개 배치보다 줄어야 한다")
 	check(
 		scenery.ad_regions.size() == 2 and scenery.ad_regions[1].x - scenery.ad_regions[0].y > 800,
 		"대형 광고열은 떨어진 두 구역으로 나눈다"
