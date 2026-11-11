@@ -1,4 +1,5 @@
 shader_type spatial;
+#include "res://shaders/surface_relief.gdshaderinc"
 uniform sampler2D container_skins : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D building_fronts : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D building_sides : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
@@ -45,4 +46,9 @@ void fragment() {
   ROUGHNESS=.82;SPECULAR=.22;
   AO=mix(.78,1.0,smoothstep(0.0,.07,min(q.x,1.0-q.x)));
  }
+ float height=dot(ALBEDO,vec3(.2126,.7152,.0722));
+ NORMAL=relief_normal(height,VERTEX,NORMAL,.45);
+ float foot=1.0-smoothstep(.80,1.0,UV.y);
+ AO*=mix(.73,1.0,foot)*mix(.84,1.0,smoothstep(.06,.5,height));
+ AO_LIGHT_AFFECT=.65;
 }

@@ -1,6 +1,9 @@
 shader_type spatial;
+#include "res://shaders/surface_relief.gdshaderinc"
 render_mode cull_disabled;
 uniform sampler2D rock_detail : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+uniform vec4 rock_tint : source_color = vec4(1.);
+uniform float rock_saturation = 1.0;
 varying vec3 world_position;
 varying vec3 world_normal;
 void vertex() { world_position=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;world_normal=normalize(MODEL_NORMAL_MATRIX*NORMAL); }
@@ -28,9 +31,10 @@ void fragment() {
  float transition=smoothstep(.12,.88,fract(geology));
  vec3 rock=mix(triplanar_rock(world_position,w,rock_tile(base)),triplanar_rock(world_position,w,rock_tile(next)),transition);
  float stain=sin(world_position.x*.027+sin(world_position.z*.033))*sin(world_position.y*.021);
+ rock=mix(vec3(dot(rock,vec3(.2126,.7152,.0722))),rock,rock_saturation)*rock_tint.rgb;
  ALBEDO=rock*(.97+.045*stain);
  float height=dot(rock,vec3(.2126,.7152,.0722));
- vec3 a=cross(dFdy(VERTEX),NORMAL);vec3 b=cross(NORMAL,dFdx(VERTEX));float det=dot(dFdx(VERTEX),a);
- NORMAL=normalize(abs(det)*NORMAL-sign(det)*(dFdx(height)*a+dFdy(height)*b)*.12);
- ROUGHNESS=.94;SPECULAR=.08;
+ NORMAL=relief_normal(height,VERTEX,NORMAL,.85);
+ AO=mix(.62,1.0,smoothstep(.08,.5,height));AO_LIGHT_AFFECT=.7;
+ ROUGHNESS=clamp(.82+height*.22,.82,.98);SPECULAR=.2;
 }

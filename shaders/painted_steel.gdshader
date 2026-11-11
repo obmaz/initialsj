@@ -1,4 +1,5 @@
 shader_type spatial;
+#include "res://shaders/surface_relief.gdshaderinc"
 uniform sampler2D material_atlas : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform vec2 material_tile = vec2(0.0,1.0);
 uniform vec4 paint_color : source_color = vec4(1.0);
@@ -31,7 +32,7 @@ void fragment() {
  else color=surface_sample((world.zy+instance_style*17.0)*texture_scale)*weights.x+surface_sample((world.xz+instance_style*17.0)*texture_scale)*weights.y+surface_sample((world.xy+instance_style*17.0)*texture_scale)*weights.z;
  ALBEDO=color*paint_color.rgb;
  float height=dot(color,vec3(.2126,.7152,.0722));
- vec3 a=cross(dFdy(VERTEX),NORMAL);vec3 b=cross(NORMAL,dFdx(VERTEX));float det=dot(dFdx(VERTEX),a);
- NORMAL=normalize(abs(det)*NORMAL-sign(det)*(dFdx(height)*a+dFdy(height)*b)*.055);
+ NORMAL=relief_normal(height,VERTEX,NORMAL,concrete_family ? .6 : .25);
+ AO=mix(.78,1.0,smoothstep(.07,.5,height));AO_LIGHT_AFFECT=.55;
  METALLIC=metalness;ROUGHNESS=clamp(surface_roughness+(height-.3)*.15,.25,.98);SPECULAR=.35;
 }

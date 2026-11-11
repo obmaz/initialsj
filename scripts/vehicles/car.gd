@@ -22,6 +22,14 @@ var nitro_glows: Array[MeshInstance3D] = []
 var smoke: Array[CPUParticles3D] = []
 var brake_lights: Array[StandardMaterial3D] = []
 var body: Node3D
+var boost_fx: Node3D
+var active_aero: MeshInstance3D
+var aero_rest := Transform3D.IDENTITY
+var aero_drop := 0.0
+var aero_pitch := 0.0
+var aero_blend := 0.0
+var effects_quality := 0
+var reduced_motion := false
 
 
 func mat(color: Color, metal: float = 0.0, glow: bool = false) -> StandardMaterial3D:
@@ -76,6 +84,10 @@ func _ready() -> void:
 	if wheels.is_empty():
 		make_wheels()
 	merge_static_body()
+	if not traffic:
+		boost_fx = preload("res://scripts/effects/boost_exhaust.gd").new()
+		body.add_child(boost_fx)
+		boost_fx.configure(self)
 	if traffic:
 		for part in ["wheels", "headlamp_lenses", "nitro_flames", "nitro_glows"]:
 			for child in get(part):
@@ -170,7 +182,8 @@ func animate(
 	body.rotation.y = (
 		lerp_angle(body.rotation.y, -steer * (0.40 if drifting else 0.07), delta * 6) if is_nan(yaw) else yaw
 	)
-	body.rotation.x = lerpf(body.rotation.x, 0.07 if braking else 0.0, 1 - exp(-delta * 8))
+	var thrust: float = boost_fx.envelope if boost_fx != null else (1.0 if boosting else 0.0)
+	body.rotation.x = lerpf(body.rotation.x, -.055 if braking else thrust * .025, 1 - exp(-delta * 8))
 	body.position.y = ride_offset + sin(Time.get_ticks_msec() * 0.05) * hit * 0.08
 	for lamp in brake_lights:
 		lamp.emission_energy_multiplier = 4.5 if braking else 1.7
@@ -178,11 +191,53 @@ func animate(
 		wheel.rotate_object_local(Vector3.UP, -road_speed * delta / wheel_radius)
 	for particles in smoke:
 		particles.emitting = drifting
-	for glow in nitro_glows:
-		glow.visible = boosting
-	for flame in nitro_flames:
-		flame.visible = boosting
-		flame.scale.y = randf_range(0.85, 1.35)
+	if boost_fx != null:
+		boost_fx.advance(boosting, delta, reduced_motion, effects_quality)
+		if active_aero != null:
+			aero_blend = lerpf(aero_blend, smoothstep(.2, .85, boost_fx.heat), 1 - exp(-delta * 5))
+			active_aero.transform = aero_rest
+			active_aero.position.y -= aero_blend * aero_drop
+			active_aero.rotate_object_local(Vector3.RIGHT, aero_blend * aero_pitch)
+	else:
+		for glow in nitro_glows:
+			glow.visible = boosting
+		for flame in nitro_flames:
+			flame.visible = boosting
+
+
+# 가동 부품을 한 표면으로 묶고 정적 차체 병합에서 제외한다. 실제 주행 능력에는 관여하지 않는다.
+func add_active_aero(parts: Array[MeshInstance3D], pivot: Vector3, drop: float, pitch: float) -> void:
+	if traffic:
+		return
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for part in parts:
+		var pose := part.transform
+		pose.origin -= pivot
+		append_baked(surface, part.mesh, pose, part.material_override)
+		body.remove_child(part)
+		part.queue_free()
+	surface.index()
+	active_aero = MeshInstance3D.new()
+	active_aero.name = "ActiveRearAero"
+	active_aero.mesh = surface.commit()
+	active_aero.material_override = shared_body_material()
+	body.add_child(active_aero)
+	active_aero.position = pivot
+	aero_rest = active_aero.transform
+	aero_drop = drop
+	aero_pitch = pitch
+
+
+func reset_driving_effects() -> void:
+	if boost_fx != null:
+		boost_fx.reset()
+	aero_blend = 0
+	if active_aero != null:
+		active_aero.transform = aero_rest
+	for particles in smoke:
+		particles.restart()
+		particles.emitting = false
 
 
 func wedge(pos: Vector3, lower: Vector2, upper: Vector2, height: float, offset: float, material: Material) -> void:
@@ -285,6 +340,7 @@ func merge_static_body() -> void:
 			or child in nitro_flames
 			or child in nitro_glows
 			or child in headlamp_lenses
+			or child == active_aero
 		):
 			continue
 		var material: Material = child.material_override

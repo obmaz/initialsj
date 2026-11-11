@@ -45,7 +45,7 @@ static func warm_paths(region: String) -> Array[String]:
 		paths.append(preload("res://scripts/environment/distant_ridges.gd").ATLAS_PATH)
 	paths.append_array(preload("res://scripts/environment/tour_vegetation.gd").warm_paths(region))
 	if region in ["city", "seoul", "ruins", "neon"]:
-		paths.append_array([Architecture.FACADE_IMAGES, Architecture.FACADE_EXTRA])
+		paths.append_array([Architecture.FACADE_IMAGES, Architecture.FACADE_EXTRA, Architecture.STRUCTURE_IMAGES])
 	if region == "jungle":
 		paths.append(preload("res://scripts/environment/jungle_overgrowth.gd").ROCK)
 	return paths
@@ -314,6 +314,7 @@ func make_city() -> void:
 	var plinths: Array[Transform3D] = []
 	var roof_details: Array[Transform3D] = []
 	var rubble: Array[Transform3D] = []
+	var mass: Array[Transform3D] = []
 	# Downtown roads are lined twice as densely, with a second row of towers behind.
 	var downtown: bool = theme in ["city", "neon"]
 	var count := int(track.length / (48 if downtown else 65))
@@ -356,6 +357,10 @@ func make_city() -> void:
 			pose = pose.scaled_local(size)
 			groups[style].poses.append(pose)
 			groups[style].dimensions.append(Color(size.x, size.y, size.z, variant))
+			if theme != "ruins" and definition.parameters.mesh_kind == "box":
+				var base := Transform3D(pose.basis.orthonormalized(), pose.origin)
+				for detail in Architecture.mass_parts(size):
+					mass.append(base * Transform3D(Basis.IDENTITY.scaled(detail.size), detail.position))
 		plinths.append(transform_at(d, lane, 1, Vector3(width * 1.1, 2, depth * 1.1)))
 		if definition.parameters.roof_detail == "plant":
 			roof_details.append(transform_at(d, lane, height + 1.2, Vector3(width * 0.32, 2.4, depth * 0.25)))
@@ -406,6 +411,7 @@ func make_city() -> void:
 		batches.append(node)
 	boxes(mat(Color("5d666b")), plinths)
 	boxes(mat(Color("78868a"), 0.3), roof_details)
+	Architecture.add_mass(self, mass)
 	if not rubble.is_empty():
 		boxes(mat(Color("6d695a")), rubble)
 	make_street_lights()

@@ -1,4 +1,5 @@
 shader_type spatial;
+#include "res://shaders/surface_relief.gdshaderinc"
 render_mode diffuse_burley;
 uniform sampler2D terrain_variants : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 #include "res://shaders/ground_variety.gdshaderinc"
@@ -13,4 +14,7 @@ void fragment(){
 		ALBEDO*=1.+mowing_strength*(stripe-.5);
 	}
 	ROUGHNESS=.98;SPECULAR=.08;
+	float height=dot(ALBEDO,vec3(.2126,.7152,.0722));
+	NORMAL=relief_normal(height,VERTEX,NORMAL,.28);
+	AO=mix(.86,1.0,smoothstep(.05,.5,height));AO_LIGHT_AFFECT=.4;
 }

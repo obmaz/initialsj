@@ -158,8 +158,10 @@ func make_yard() -> void:
 
 
 func make_warehouses() -> void:
+	var Architecture = preload("res://scripts/environment/urban_architecture.gd")
 	var poses: Array[Transform3D] = []
 	var sizes: Array[Color] = []
+	var mass: Array[Transform3D] = []
 	var count := int(track.length / 110)
 	for i in range(count):
 		var d: float = 120 + i * (track.length - 240) / count
@@ -177,6 +179,8 @@ func make_warehouses() -> void:
 		var base := pose(d, lane, height * 0.5)
 		poses.append(base.scaled_local(Vector3(width, height, depth)))
 		sizes.append(Color(width, height, depth, rng.randf()))
+		for detail in Architecture.mass_parts(Vector3(width, height, depth)):
+			mass.append(base * Transform3D(Basis.IDENTITY.scaled(detail.size), detail.position))
 	if poses.is_empty():
 		return
 	var multi := MultiMesh.new()
@@ -199,9 +203,10 @@ func make_warehouses() -> void:
 	node.name = "Warehouses"
 	node.multimesh = multi
 	node.material_override = material
-	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	add_child(node)
 	batches.append(node)
+	Architecture.add_mass(self, mass)
 
 
 # Big harbour furniture from the shared prop set: stacked cargo, dock cranes, fuel tanks, sheds and

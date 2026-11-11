@@ -131,7 +131,12 @@ func _ready() -> void:
 				node.set_meta("ad_index", groups[group].ad_index)
 			node.visibility_range_end = Models.definition(kind).visibility_range
 			node.visibility_range_end_margin = 24
-			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			# 건물·바위만 근거리 태양 그림자에 참여시킨다. 수많은 나무·광고의 그림자는 만들지 않는다.
+			node.cast_shadow = (
+				GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+				if Models.definition(kind).tags.has("building") or Models.definition(kind).tags.has("rock")
+				else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			)
 			add_child(node)
 			batches.append(node)
 			if not kinds.has(kind):
@@ -226,8 +231,7 @@ static func clear_cache() -> void:
 
 
 func set_shadow_quality(_enabled: bool) -> void:
-	# Small prop shadows are deliberately omitted; nearby car/architecture shadows
-	# retain depth without submitting hundreds of extra shadow casters on phones.
+	# 건물·바위만 그림자를 만든다. 화질별 그림자 거리는 RenderBudget가 일괄 제한한다.
 	pass
 
 

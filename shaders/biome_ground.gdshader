@@ -1,4 +1,5 @@
 shader_type spatial;
+#include "res://shaders/surface_relief.gdshaderinc"
 render_mode diffuse_burley;
 uniform sampler2D terrain_variants : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 #include "res://shaders/ground_variety.gdshaderinc"
@@ -28,4 +29,6 @@ void fragment() {
 	}
 	ROUGHNESS = 0.95;
 	SPECULAR = 0.12;
+	NORMAL=relief_normal(luma,VERTEX,NORMAL,.28);
+	AO=mix(.84,1.0,smoothstep(.04,.5,luma));AO_LIGHT_AFFECT=.4;
 }

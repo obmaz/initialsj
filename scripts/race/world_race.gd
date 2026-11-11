@@ -781,6 +781,7 @@ func recover_player() -> bool:
 	reversing = false
 	recovery_clock = 0
 	race.tire_trails.reset()
+	race.player.reset_driving_effects()
 	race.cancel_nitro()
 	place_cars()
 	race.camera_offset = -site.forward * 7.1 + Vector3.UP * 3
@@ -803,7 +804,8 @@ func update_camera(delta: float) -> void:
 		race.camera_time += delta
 		var jitter: float = 0.010 * pace * pace + race.edge_rumble * pace * 0.03 + race.offroad_amount * pace * 0.02
 		desired += right * sin(race.camera_time * 53) * jitter + Vector3.UP * cos(race.camera_time * 67) * jitter * 0.55
-		desired += -forward * race.boost_kick * 0.55
+		var heat: float = race.player.boost_fx.heat if race.player.boost_fx != null else 0.0
+		desired += -forward * (race.boost_kick * .55 + heat * .35)
 		desired.y -= race.air.landing_flash * race.air.landing_strength * 0.4
 	race.camera_intro = maxf(0, race.camera_intro - delta * 0.8)
 	race.camera_offset = race.camera_offset.lerp(desired, 1 - exp(-delta * 7))
@@ -817,6 +819,8 @@ func update_camera(delta: float) -> void:
 			race.camera.position = obstruction.position + obstruction.normal * 0.2
 	race.camera.look_at(race.player.position + forward * (5.0 + pace * 3.0) + up * 0.8, up)
 	var fov: float = 68 if race.motion_reduced else 66 + pace * 17 + (6 if race.boosting else 0)
+	if not race.motion_reduced and race.boosting and race.player.boost_fx != null:
+		fov += race.player.boost_fx.heat * 2.5
 	race.camera.fov = lerpf(race.camera.fov, fov, 1 - exp(-delta * 5))
 
 

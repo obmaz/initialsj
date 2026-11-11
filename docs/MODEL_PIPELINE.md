@@ -82,7 +82,9 @@ models/
 | 차량 | `static func build(car: Node3D) -> void` | `car.body` 아래의 차체, 공통 효과 연결 |
 | 빌딩 | `static func build(definition: Resource, width: float, height: float, depth: float) -> Array[Dictionary]` | `position`·`size`가 있는 유한한 양의 크기 파츠 |
 
-차량 빌더는 `car.mat()`·`block()`·`wedge()`·`add_headlight()`·`add_boost_jet()`와 `models/shared/vehicle_geometry.gd`를 사용합니다. 브레이크 재질은 `car.brake_lights`에 등록합니다. `parameters`의 휠 반경·반트랙·반휠베이스·두께·림 배율·`ride_offset`·스포크 수·림 색을 함께 맞춥니다. 이 값은 시각 모델의 제원이며 물리 능력치는 [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd)가 소유합니다.
+차량 빌더는 `car.mat()`·`block()`·`wedge()`·`add_headlight()`·`add_boost_jet()`·`add_active_aero()`와 `models/shared/vehicle_geometry.gd`를 사용합니다. 브레이크 재질은 `car.brake_lights`에 등록합니다. `parameters`의 휠 반경·반트랙·반휠베이스·두께·림 배율·`ride_offset`·스포크 수·림 색을 함께 맞춥니다. 이 값은 시각 모델의 제원이며 물리 능력치는 [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd)가 소유합니다.
+
+가동 스포일러는 `car.add_active_aero(parts, pivot, drop, pitch)`에 `Array[MeshInstance3D]`, 차체 로컬 피벗(m), 하강량(m), 회전각(rad)을 전달합니다. 부품은 불투명 `StandardMaterial3D`와 단일 표면을 사용합니다. 어댑터가 한 메시로 묶고 정적 차체 병합에서 제외합니다. 교통 차량은 기존 정적 차체에 합쳐 효과 방출기와 가동 부품을 따로 만들지 않습니다. 부스트 유지 시간과 복원은 공통 효과 어댑터가 소유하고 모델 팩에는 프레임 처리·파티클·주행 능력 변경을 넣지 않습니다.
 
 소품 정적 씬은 메시 하나·표면 하나로 내보내고 UV·법선·재질을 포함합니다. 차량 정적 씬은 차체만 넣으면 공통 휠을 사용합니다. 자체 휠을 쓰면 `parameters.scene_wheels=true`와 MeshInstance3D 이름 `wheel_fl`, `wheel_rl`, `wheel_fr`, `wheel_rr`을 제공합니다. 휠의 로컬 `+Y`가 회전축이며 휠 노드 원점이 회전 중심이어야 합니다. 렌즈·배기구 좌표는 정의의 `headlamp_positions`·`headlight_position`·`exhaust_positions`로 연결합니다.
 

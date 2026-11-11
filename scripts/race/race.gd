@@ -645,6 +645,7 @@ func restart(start_countdown: bool = true) -> void:
 		if mode == "track" and selected_course == 1:
 			preload("res://scripts/race/rolling_start.gd").begin(self)
 	tire_trails.reset()
+	player.reset_driving_effects()
 	place_cars()
 	update_camera(1)
 	player.reset_physics_interpolation()
@@ -851,11 +852,13 @@ func _physics_process(delta: float) -> void:
 	speed_effect.material.set_shader_parameter("high_quality", render_budget.level == 0)
 	update_camera(delta)
 	player.road_speed = speed if state == RaceState.RACING else 0.0
+	player.effects_quality = render_budget.level
+	player.reduced_motion = motion_reduced
 	player.animate(
 		steer,
-		drifting and state == RaceState.RACING,
+		drifting and not air.active and state == RaceState.RACING,
 		(nitro_active or pad_active) and state == RaceState.RACING,
-		delta,
+		0.0 if state == RaceState.PAUSED else delta,
 		0.0 if world_race != null else slip_angle,
 		braking and state == RaceState.RACING,
 		impact if state == RaceState.RACING and not motion_reduced else 0.0
@@ -1043,6 +1046,7 @@ func recover_car() -> void:
 	drift_pending = 0
 	cancel_nitro()
 	tire_trails.reset()
+	player.reset_driving_effects()
 	place_cars()
 	update_camera(1)
 	player.reset_physics_interpolation()

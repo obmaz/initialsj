@@ -1,4 +1,5 @@
 shader_type spatial;
+#include "res://shaders/surface_relief.gdshaderinc"
 uniform sampler2D facade_images : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D facade_extra : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform bool ruined = false;
@@ -62,8 +63,9 @@ void fragment() {
 	vec3 variant_tint=mix(vec3(1.12,.93,.81),vec3(.79,.97,1.14),dimensions.a);
 	ALBEDO = photographed*variant_tint;
 	if(abs(local_normal.y)>.5) ALBEDO=concrete;
-	METALLIC = pane * 0.65;
-	ROUGHNESS = mix(0.83,0.24,pane);
+	float glass_mask=pane*(1.0-smoothstep(.2,.48,dot(photographed,vec3(.3,.59,.11))));
+	METALLIC = glass_mask * 0.32;
+	ROUGHNESS = mix(0.88,0.28,glass_mask);
 	EMISSION = glass*pane*(night_city ? 0.7 : 0.07);
 	if (night_city) {
 		float room = fract(sin(dot(floor(vec2(u/3.2,v/4.0)),vec2(12.98,78.23))+dimensions.a*17.0)*43758.5);
@@ -77,4 +79,10 @@ void fragment() {
 		EMISSION += mix(vec3(0.15,0.03,0.24),vec3(0.02,0.25,0.34),dimensions.a)*floor_line;
 	}
 	}
+	float luma=dot(photographed,vec3(.2126,.7152,.0722));
+	float wall=1.0-step(.5,abs(local_normal.y));
+	NORMAL=relief_normal(luma,VERTEX,NORMAL,.48*wall);
+	float foot=smoothstep(0.0,2.4,(local_point.y+.5)*dimensions.y);
+	AO=mix(.58,1.0,foot)*mix(.78,1.0,smoothstep(.08,.5,luma));
+	AO_LIGHT_AFFECT=.7;
 }

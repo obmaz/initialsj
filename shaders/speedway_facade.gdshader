@@ -1,4 +1,5 @@
 shader_type spatial;
+#include "res://shaders/surface_relief.gdshaderinc"
 uniform sampler2D facade_atlas : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform vec2 tile = vec2(0);
 uniform vec2 metres_per_tile = vec2(6,7);
@@ -16,4 +17,7 @@ void fragment() {
  vec2 uv=tile*.5+margin+fract(facade_uv)*(.5-2.*margin);
  ALBEDO=textureGrad(facade_atlas,uv,dFdx(facade_uv)*.49,dFdy(facade_uv)*.49).rgb;
  ROUGHNESS=.92;SPECULAR=.1;
+ float height=dot(ALBEDO,vec3(.2126,.7152,.0722));
+ NORMAL=relief_normal(height,VERTEX,NORMAL,.5);
+ AO=mix(.72,1.0,smoothstep(.08,.5,height));AO_LIGHT_AFFECT=.65;
 }

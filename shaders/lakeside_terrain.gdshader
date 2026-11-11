@@ -1,4 +1,5 @@
 shader_type spatial;
+#include "res://shaders/surface_relief.gdshaderinc"
 render_mode diffuse_burley;
 uniform sampler2D terrain_variants : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 #include "res://shaders/ground_variety.gdshaderinc"
@@ -22,4 +23,7 @@ void fragment() {
 	ALBEDO = mix(terrain,vec3(0.16,0.145,0.11),shore*0.65);
 	ROUGHNESS = 1.0;
 	SPECULAR = 0.10;
+	float height=dot(ALBEDO,vec3(.2126,.7152,.0722));
+	NORMAL=relief_normal(height,VERTEX,NORMAL,mix(.28,.65,steepness));
+	AO=mix(.8,1.0,smoothstep(.05,.5,height));AO_LIGHT_AFFECT=.5;
 }

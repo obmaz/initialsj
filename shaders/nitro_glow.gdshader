@@ -7,9 +7,10 @@ void vertex() {
 	MODELVIEW_MATRIX = VIEW_MATRIX * facing;
 }
 uniform vec4 tint : source_color = vec4(0.1, 0.7, 1.0, 1.0);
+uniform float strength = 1.0;
 void fragment() {
 	float radius = length(UV - 0.5) * 2.0;
 	float core = exp(-radius * 8.0);
-	ALBEDO = mix(tint.rgb, vec3(1.0), core) * 2.0;
-	ALPHA = pow(max(0.0, 1.0 - radius), 2.0) * 0.75;
+	ALBEDO = mix(tint.rgb, vec3(1.0), core * .45) * 1.2;
+	ALPHA = pow(max(0.0, 1.0 - radius), 2.0) * 0.75 * strength;
 }
