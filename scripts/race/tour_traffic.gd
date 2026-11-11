@@ -12,6 +12,7 @@ var clock: Node
 
 
 func _ready() -> void:
+	add_to_group("tour_road_traffic")
 	collision_mask = 15
 	clock = road
 	while clock != null and not clock.is_in_group("tour_traffic_clock"):

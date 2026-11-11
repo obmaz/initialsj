@@ -290,6 +290,7 @@ func step(
 		race.speed = speed_of(player_body)
 	update_rivals(delta)
 	update_passes(old_gaps, old_position.y)
+	update_tour_passes(old_position.y)
 	var road_forward: Vector3 = (race.track.point(race.distance + 2) - race.track.point(race.distance - 2)).normalized()
 	wrong_way_time = (
 		wrong_way_time + delta if player_body.velocity.dot(road_forward) < -5 and player_body.grounded else 0.0
@@ -448,6 +449,41 @@ func update_passes(old_gaps: Array[float], previous_distance: float) -> void:
 			race.near_miss_flash = 1.1
 			race.nitro = minf(100, race.nitro + 6)
 			race.score += 150
+
+
+func update_tour_passes(previous_distance: float) -> void:
+	if race.mode != "tour":
+		return
+	var clean: bool = (
+		player_body.grounded
+		and race.protection_left <= 0
+		and race.impact_age > 1
+		and race.offroad_amount < 0.15
+		and race.speed > 25
+		and race.distance > previous_distance
+		and player_body.velocity.dot(player_body.road_heading) > 20
+	)
+	if not clean:
+		race.rewards.break_pass_chain()
+	var forward: Vector3 = player_body.road_heading.slide(Vector3.UP).normalized()
+	var right := Vector3(-forward.z, 0, forward.x)
+	for other in get_tree().get_nodes_in_group("tour_road_traffic"):
+		if other.clock != race:
+			continue
+		var relative: Vector3 = other.feet_position() - player_body.feet_position()
+		if relative.length_squared() > 45 * 45:
+			continue
+		if race.rewards.observe_traffic(
+			other.get_instance_id(), relative.dot(forward), absf(relative.dot(right)), absf(relative.y), clean
+		):
+			race.overtakes += 1
+			race.near_misses += 1
+			race.near_miss_flash = 1.1
+			race.score += 150 * race.rewards.pass_chain
+			if race.vehicle.mode != "charges":
+				race.nitro = minf(100, race.nitro + 6 + race.rewards.pass_chain * 2)
+			if race.vehicle.mode != "gauge" and race.rewards.close_passes % 4 == 0:
+				race.nitro_charges = mini(race.vehicle.charges, race.nitro_charges + 1)
 
 
 func impact(hit: Dictionary) -> void:

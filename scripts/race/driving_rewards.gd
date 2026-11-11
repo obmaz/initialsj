@@ -10,6 +10,12 @@ var drift_turn := 0.0
 var settle := 0.0
 var corner_key := ""
 var rewarded_corners: Dictionary = {}
+var pass_chain := 0
+var max_pass_chain := 0
+var pass_window := 0.0
+var close_passes := 0
+var traffic_gaps: Dictionary = {}
+var passed_traffic: Dictionary = {}
 
 
 func reset() -> void:
@@ -19,6 +25,12 @@ func reset() -> void:
 	flash = 0
 	cancel_drift()
 	rewarded_corners.clear()
+	pass_chain = 0
+	max_pass_chain = 0
+	pass_window = 0
+	close_passes = 0
+	traffic_gaps.clear()
+	passed_traffic.clear()
 
 
 func cancel_drift() -> void:
@@ -32,6 +44,35 @@ func cancel_drift() -> void:
 func tick(delta: float) -> void:
 	exit_boost = maxf(0, exit_boost - delta)
 	flash = maxf(0, flash - delta)
+	pass_window = maxf(0, pass_window - delta)
+	if pass_window <= 0:
+		pass_chain = 0
+
+
+func break_pass_chain() -> void:
+	pass_chain = 0
+	pass_window = 0
+
+
+# 관측한 앞차가 실제 뒤쪽으로 넘어온 순간만 인정한다. 차체 참조는 저장하지 않는다.
+func observe_traffic(id: int, ahead: float, lateral: float, height: float, clean: bool) -> bool:
+	if passed_traffic.has(id):
+		return false
+	var before: float = traffic_gaps.get(id, ahead)
+	traffic_gaps[id] = ahead
+	if before <= 0 or ahead > 0:
+		return false
+	passed_traffic[id] = true
+	traffic_gaps.erase(id)
+	if not clean or ahead < -12 or height > 1.5 or lateral < 2.25 or lateral > 4.0:
+		return false
+	close_passes += 1
+	pass_chain = mini(5, pass_chain + 1)
+	max_pass_chain = maxi(max_pass_chain, pass_chain)
+	pass_window = 5.0
+	message = "CLOSE PASS x%d  +%d" % [pass_chain, 150 * pass_chain]
+	flash = 1.4
+	return true
 
 
 func drift_step(
