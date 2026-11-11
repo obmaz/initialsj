@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "stadium_grandstand"
+category = "props"
+source_path = "res://models/props/stadium_grandstand/SOURCE.md"
+order = 90
+builder_path = "res://models/props/stadium_grandstand/build.gd"
+material_path = "res://models/props/stadium_grandstand/material.tres"
+base_size = Vector3(74, 53, 72)
+visibility_range = 1250.0
+placement_limits = Vector2(1, 1)

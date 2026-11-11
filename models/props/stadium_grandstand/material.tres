@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+[ext_resource type="Shader" path="res://models/props/stadium_grandstand/crowd.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://models/props/stadium_grandstand/crowd.png" id="2"]
+[resource]
+shader = ExtResource("1")
+shader_parameter/crowd = ExtResource("2")
