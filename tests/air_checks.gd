@@ -166,7 +166,16 @@ func run(tree: SceneTree) -> int:
 				not drop.has("launch")
 				and slow.velocity <= 0
 				and not slow.trick
-				and slow.world_y <= section.point(ramp.distance + ramp.length * 0.5, ramp.lane).y + ramp.height + 0.001
+				and (
+					slow.world_y
+					<= (
+						maxf(
+							section.point(ramp.distance + ramp.length * .5, ramp.lane).y + ramp.height,
+							section.point(ramp.distance + 20, ramp.lane).y
+						)
+						+ .001
+					)
+				)
 			),
 			"Slow cars must roll off under gravity without an artificial upward impulse"
 		)

@@ -3,7 +3,8 @@ extends RefCounted
 const WorldCar = preload("res://scripts/physics/world_car.gd")
 const SEARCH_STEP := 8.0
 const SURFACE_MARGIN := .2
-const RUNOUT := 6.0
+const RUNOUT := 100.0
+const RESUME_SPEED := 50.0 / 3.6
 
 
 static func stable_hit(space: PhysicsDirectSpaceState3D, at: Vector3, up: Vector3, reach: float) -> Dictionary:
@@ -37,20 +38,29 @@ static func candidate(race: Node3D, body: CharacterBody3D, d: float, lane: float
 			var support := stable_hit(space, at, up, .6)
 			if support.is_empty() or absf((support.position - feet).dot(up)) > .3:
 				return {}
-	# 복구 직후 도로 끝으로 떨어지지 않도록 앞쪽에도 차량 폭의 연속 노면을 남긴다.
-	for ahead in [3.0, RUNOUT]:
-		var next: Vector3 = road.point(d + ahead, lane)
-		for side in [-half_size.x, 0.0, half_size.x]:
-			if stable_hit(space, next + basis.x * side, up, 2).is_empty():
-				return {}
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = body.contact_shape.shape
-	query.transform = Transform3D(basis, feet + up * WorldCar.SUPPORT_HEIGHT)
 	query.margin = .25
 	query.collision_mask = 6
 	query.exclude = [body.get_rid()]
-	if not space.intersect_shape(query, 1).is_empty():
-		return {}
+	# 복구 지점뿐 아니라 전방100m의 차체 폭·장애물을 검사해 가속할 여유를 보장한다.
+	for ahead in range(0, int(RUNOUT) + 1, 5):
+		var next: Vector3 = road.point(d + ahead, lane)
+		var next_forward: Vector3 = (road.point(d + ahead + 2, lane) - road.point(d + ahead - 2, lane)).normalized()
+		var next_right: Vector3 = (road.point(d + ahead, 1) - road.point(d + ahead, -1)).normalized()
+		var next_up := next_right.cross(next_forward).normalized()
+		var hit := stable_hit(space, next, next_up, 2)
+		if hit.is_empty():
+			return {}
+		for side in [-half_size.x - SURFACE_MARGIN, half_size.x + SURFACE_MARGIN]:
+			if stable_hit(space, next + next_right * side, next_up, 2).is_empty():
+				return {}
+		query.transform = Transform3D(
+			Basis.looking_at(next_forward.slide(hit.normal).normalized(), hit.normal),
+			hit.position + hit.normal * (WorldCar.SUPPORT_HEIGHT + .04)
+		)
+		if not space.intersect_shape(query, 1).is_empty():
+			return {}
 	return {"distance": d, "lane": lane, "feet": feet, "forward": forward, "up": up}
 
 

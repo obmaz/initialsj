@@ -125,9 +125,9 @@ func update_ground() -> void:
 # staged이면 구간의 곡선만 즉시 만들고 메시·풍경·충돌체는 maintain()이 프레임마다 나눠 만든다.
 # 완성 전에는 숨겨 두며, 그동안에도 point()·half_width()는 곡선만으로 동작한다.
 func build_previews(staged: bool = false) -> void:
-	if not previews.is_empty() or active.stage >= Library.STAGES - 1:
+	if previews.size() >= 2 or active.stage >= Library.STAGES - 1:
 		return
-	for side in [0, 1]:
+	for side in range(previews.size(), 2):
 		var section := Section.new(
 			active.point(active.length),
 			active.heading(active.length),
@@ -146,6 +146,8 @@ func build_previews(staged: bool = false) -> void:
 		else:
 			add_world_collision(section)
 		previews.append(section)
+		if staged:
+			break
 
 
 func finish_previews() -> void:

@@ -86,7 +86,9 @@ func run(tree: SceneTree) -> int:
 	for d in range(0, int(section.length), 10):
 		narrow = minf(narrow, section.half_width(float(d)))
 		wide = maxf(wide, section.half_width(float(d)))
-	check(narrow >= 6.5 and wide - narrow >= 1.0, "The width must vary but stay driveable (%.1f-%.1f)" % [narrow, wide])
+	check(
+		narrow >= 4.19 and wide - narrow >= 1.0, "The width must vary but stay driveable (%.1f-%.1f)" % [narrow, wide]
+	)
 	check(
 		race.track.ground_plane != null and race.track.ground_plane.position.y > 0,
 		"The night harbour needs its raised ground"

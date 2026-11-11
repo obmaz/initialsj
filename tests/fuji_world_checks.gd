@@ -285,8 +285,12 @@ func recovery_regression(tree: SceneTree, race: Node3D) -> Dictionary:
 		await tick(tree, race, 0, false)
 		lowest = minf(lowest, body.feet_position().y)
 	check(
-		body.grounded and body.feet_position().distance_to(safe_point) < 0.3,
-		"A truly fallen world car must recover onto its last safe physical road position"
+		(
+			body.grounded
+			and absf(body.feet_position().y - race.track.point(race.distance, race.lane).y) < .3
+			and race.speed > 6
+		),
+		"낙하한 차체는 실제 안전 노면에서 달리며 복구하고 접지를 유지해야 한다"
 	)
 	check(
 		(

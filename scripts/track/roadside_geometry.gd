@@ -11,6 +11,7 @@ static func frames(section: Node3D, table: Dictionary) -> void:
 		var empty: Array[float] = []
 		table.merge(
 			{
+				"speedway": section.closed_loop and section.course_id == 1,
 				"samples": empty,
 				"origins": PackedVector3Array(),
 				"laterals": PackedVector3Array(),
@@ -108,7 +109,11 @@ static func ribbon_part(
 		var tangent := origins[mini(i + 1, last)] - origins[maxi(i - 1, 0)]
 		var ring := PackedVector3Array()
 		for offset: Vector2 in profile:
-			ring.append(origin + lateral * (base[i] + offset.x * side) + Vector3.UP * offset.y)
+			var lane: float = base[i] + offset.x * side
+			var point := origin + lateral * lane + Vector3.UP * offset.y
+			if table.speedway and absf(lane) > table.halves[i]:
+				point.y = origin.y + lateral.y * clampf(lane, -table.halves[i], table.halves[i]) + offset.y
+			ring.append(point)
 		var above := Vector3.ZERO
 		for k in range(rows):
 			var normal := above
@@ -143,7 +148,9 @@ static func edge_strand(section: Node3D, table: Dictionary, side: float, with_se
 	for i in range(samples.size()):
 		base.append(side * (halves[i] + (setback[i] if with_setback else 0.0)))
 		var hidden: bool = (
-			(section.closed_loop and section.course_id == 1 and side > 0)
+			(curb_rule and preload("res://scripts/track/harbor_corridor.gd").contains(section, samples[i]))
+			or (section.closed_loop and section.course_id == 1 and side > 0)
+			or (with_setback and side < 0 and section.speedway_pit_wall(samples[i]))
 			or (
 				i > 0
 				and (
@@ -231,8 +238,6 @@ static func road_mass_part(section: Node3D, st: SurfaceTool, count: int, from: i
 
 
 static func shoulders(section: Node3D) -> void:
-	if section.closed_loop and section.course_id == 1:
-		return  # Speedway has a paved apron and safety walls.
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var count := int(ceil(section.length / 5))
@@ -258,11 +263,16 @@ static func shoulders(section: Node3D) -> void:
 
 
 static func shoulders_part(section: Node3D, st: SurfaceTool, side: float, steps: int, from: int, to: int) -> void:
-	if section.closed_loop and section.course_id == 1 and side > 0:
-		return
 	for i in range(from, to):
 		var a: float = section.length * i / steps
 		var b: float = section.length * (i + 1) / steps
+		if (
+			section.closed_loop
+			and section.course_id == 1
+			and side > 0
+			and maxf(section.rail_setback(a, side), section.rail_setback(b, side)) < .5
+		):
+			continue
 		if a < 150 and side == -section.entry_side:
 			continue
 		if (
@@ -290,7 +300,11 @@ static func shoulders_part(section: Node3D, st: SurfaceTool, side: float, steps:
 					section.scenery.terrain_point(b, side * (outer_b + section.shoulder_bank_span(b, side)))
 				]
 			for index in [0, 2, 1, 1, 2, 3] if side > 0 else [0, 1, 2, 1, 3, 2]:
-				st.set_color(Color.WHITE if bank == 1 and section.closed_loop else Color.BLACK)
+				var grass: bool = (
+					section.closed_loop
+					and (bank == 1 or (section.course_id in [1, 3] and section.rail_setback(a, side) > 3))
+				)
+				st.set_color(Color.WHITE if grass else Color.BLACK)
 				st.set_uv(Vector2(points[index].x, points[index].z) / 5)
 				st.add_vertex(points[index])
 
@@ -330,8 +344,13 @@ static func lane_marks(section: Node3D, table: Dictionary) -> void:
 					1
 					if (
 						i > 0
-						and section.collapse != null
-						and section.collapse.contains((samples[i - 1] + samples[i]) * 0.5, center * 9)
+						and (
+							preload("res://scripts/track/harbor_corridor.gd").contains(section, samples[i])
+							or (
+								section.collapse != null
+								and section.collapse.contains((samples[i - 1] + samples[i]) * 0.5, center * 9)
+							)
+						)
 					)
 					else 0
 				)

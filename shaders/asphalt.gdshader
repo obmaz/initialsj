@@ -3,6 +3,8 @@ render_mode diffuse_burley, specular_schlick_ggx;
 uniform sampler2D asphalt_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D asphalt_variants : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 #include "res://shaders/ground_variety.gdshaderinc"
+uniform bool harbor_corridor=false;
+uniform sampler2D yard_gravel : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform float rain_wetness = 0.0;
 varying vec3 world_position;
 
@@ -22,6 +24,15 @@ void fragment() {
 	ROUGHNESS = mix(ROUGHNESS,.24,rain_wetness);
 	SPECULAR = mix(SPECULAR,.65,rain_wetness);
 	METALLIC = 0.0;
+	if(harbor_corridor){
+		float d=UV.y*6.0;
+		float blend=smoothstep(1300.0,1360.0,d)*(1.0-smoothstep(1690.0,1750.0,d));
+		vec3 gravel=texture(yard_gravel,world_position.xz*.37).rgb;
+		float ruts=pow(max(0.0,cos(world_position.x*.31+world_position.z*.06)),8.0);
+		ALBEDO=mix(ALBEDO,gravel*vec3(.71,.68,.62)*mix(.85,1.1,patches)*(1.0-.08*ruts),blend);
+		ROUGHNESS=mix(ROUGHNESS,.98,blend);
+		SPECULAR=mix(SPECULAR,.12,blend);
+	}
 	float h = dot(texture(asphalt_texture,UV).rgb, vec3(0.333));
 	float hx = dot(texture(asphalt_texture, UV + vec2(0.001, 0)).rgb, vec3(0.333));
 	float hy = dot(texture(asphalt_texture, UV + vec2(0, 0.001)).rgb, vec3(0.333));

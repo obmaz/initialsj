@@ -19,7 +19,7 @@
 | 차량 규칙·소리 | [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd), [nitro_system.gd](../scripts/race/nitro_system.gd), [vehicle_audio.gd](../scripts/audio/vehicle_audio.gd), [racing_audio.gd](../scripts/audio/racing_audio.gd) |
 | 공용 렌더 | [render_resources.gd](../scripts/rendering/render_resources.gd), [render_budget.gd](../scripts/rendering/render_budget.gd), [tunnel_lights.gd](../scripts/rendering/tunnel_lights.gd) |
 
-투어의 다음 분기 도로 두 개는 주행 중에 만들어집니다. [track.gd](../scripts/track/track.gd)는 지나온 구간을 먼저 해제한 뒤(진입 420m 이후) 새 구간의 곡선만 즉시 만들고, 메시·풍경·충돌체는 [road_section.gd](../scripts/track/road_section.gd)의 단계 큐(`build_queue`)에 쌓아 `maintain()`이 프레임마다 약 1.5ms씩 실행합니다. 완성 전 구간은 숨겨 두며 충돌체 등록 뒤에 표시합니다. 긴 띠 메시는 표본 범위별로, 충돌체는 수집·장벽 구간·등록으로 나눕니다. 갈림길 1,200m 앞이나 분기 진입 시점까지 남은 단계는 한 번에 끝냅니다. 처음 출발과 코스 전환은 로딩 화면 뒤에서 같은 단계를 한 번에 실행합니다.
+투어의 다음 분기 도로 두 개는 주행 중에 만들어집니다. [track.gd](../scripts/track/track.gd)는 지나온 구간을 먼저 해제한 뒤(진입 420m 이후) 한 프레임에 한 구간의 곡선만 만들고, 메시·풍경·충돌체는 [road_section.gd](../scripts/track/road_section.gd)의 단계 큐(`build_queue`)에 쌓아 `maintain()`이 프레임마다 약 1.5ms씩 실행합니다. 완성 전 구간은 숨겨 두며 충돌체 등록 뒤에 표시합니다. 긴 띠 메시는 표본 범위별로, 도로 기믹·교통 차량은 하나씩, 식생은 작은 배치별로, 충돌체는 수집·장벽 구간·등록으로 나눕니다. 갈림길 1,200m 앞이나 분기 진입 시점까지 남은 단계는 한 번에 끝냅니다. 처음 출발과 코스 전환은 로딩 화면 뒤에서 같은 단계를 한 번에 실행합니다.
 
 투어와 트랙은 같은 `CharacterBody3D`와 실제 노면·장벽 물리를 사용합니다. 도로 곡선은 경기 계측과 CPU 판단에 사용하며 플레이어 차체를 매 프레임 곡선 위로 강제 이동시키지 않습니다. 실제 차체 중력은 [drive_tuning.gd](../scripts/physics/drive_tuning.gd)의 `WORLD_GRAVITY`를 공유하며 명목 점프 설계용 중력과 구분합니다. 단위는 미터·초이고 차량 충돌 기준은 약2.1×1.3×4.3m입니다.
 
@@ -56,8 +56,9 @@ flowchart LR
 - 쿼드와 면별 UV가 있는 단위 상자는 [render_resources.gd](../scripts/rendering/render_resources.gd)에서 공유합니다. 인스턴스는 공유 메시의 크기나 재질을 수정하지 않습니다.
 - 소품은180m 공간 단위·배치당12개 이하로 나눕니다. 무제한 크기의 MultiMesh AABB로 화면 밖 전체 월드를 제출하지 않습니다.
 - [car.gd](../scripts/vehicles/car.gd)는 무텍스처 정적 부품만 재질별로 병합합니다. 외부 모델의 UV·텍스처·ShaderMaterial·다중 표면은 유지합니다.
+- 일반 교통 차량은 차종별 완성된 시각 씬과 좌우 바퀴 메시를 재사용합니다. 색은 셰이더의 차량별 도장 유니폼으로 구분하며 주행하지 않는 교통 차량에는 드리프트 파티클을 생성하지 않습니다. 캐시는 차종 수에 한정하고 마지막 게임 씬 종료 때 비웁니다.
 - 코스 전환 때 전용 광고·모델 캐시를 비웁니다. 게임 씬이 여러 개면 공유 캐시를 유지하고 마지막 씬 종료 때 메시·광고·소품 캐시의 강한 참조를 해제합니다.
-- 스키드 자국160개, 충돌 파티클4세트, 물보라6개는 고정 풀입니다. 도로 밖 낙석은 지점별14개를 한 MultiMesh로 그리고 도로 안9개만 실제 충돌체를 가집니다. 착지 후에는 변환 갱신을 멈춥니다.
+- 스키드 자국160개, 충돌 파티클4세트, 물보라6개는 고정 풀입니다. 도로 밖 낙석은 지점별24개를 한 MultiMesh로 그리고 도로 안24개 중9개만 잔해와 실제 충돌체를 유지합니다. 착지 후에는 변환 갱신을 멈춥니다.
 - 차량 물리 LOD는 가까운 차를 매 틱, 중거리를 번갈아, 원거리를 간소화합니다. 공중·충돌 차량은 실제 시뮬레이션을 유지합니다. 터널은 가까운 광원6개까지만 켭니다.
 
 큰 재질·외벽은 GPU 압축과 밉맵을 사용합니다. 웹은 S3TC·ETC2를 함께, Android는 ETC2만 포함합니다. 하늘·메뉴의 그라데이션은 손실 WebP로 가져옵니다. 상자형 강재·콘크리트는 실제 미터 크기로 보정한 면별 UV를 쓰고 암벽·곡면은 삼면 투영을 사용합니다.

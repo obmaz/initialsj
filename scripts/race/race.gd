@@ -1000,7 +1000,7 @@ func return_to_road() -> void:
 	player.body.rotation.x = 0
 	player.body.rotation.z = 0
 	player.body.position = Vector3(0, player.ride_offset, 0)
-	speed = 0
+	speed = world_race.RoadRecovery.RESUME_SPEED
 	lane_velocity = 0
 	steer = 0
 	slip_angle = 0
@@ -1026,7 +1026,7 @@ func recover_car() -> void:
 	player.body.rotation.x = 0
 	player.body.rotation.z = 0
 	player.body.position = Vector3(0, player.ride_offset, 0)
-	speed = 0
+	speed = world_race.RoadRecovery.RESUME_SPEED
 	lane_velocity = 0
 	steer = 0
 	slip_angle = 0

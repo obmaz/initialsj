@@ -47,8 +47,9 @@ func run(tree: SceneTree) -> int:
 		maximum_grade = maxf(maximum_grade, absf(race.track.point(d + 2).y - race.track.point(d - 2).y) / 4)
 		check(race.track.half_width(d) >= 7.4, "The oval needs a genuinely wide multi-lane surface")
 		check(not race.track.active.in_tunnel(d), "Open speedway must not inherit the Fuji tunnel")
-		var cross: Vector3 = race.track.point(d, 10) - race.track.point(d, -10)
-		check(absf(cross.y - 20 * tan(bank)) < 0.001, "The bank must be actual 3D road geometry")
+		var lane := minf(10, race.track.half_width(d))
+		var cross: Vector3 = race.track.point(d, lane) - race.track.point(d, -lane)
+		check(absf(cross.y - 2 * lane * tan(bank)) < 0.001, "The bank must be actual 3D road geometry")
 	check(
 		rad_to_deg(max_bank) > 24 and rad_to_deg(min_bank) < 2,
 		"Turns must bank steeply and the back straight must flatten"

@@ -38,7 +38,7 @@ func run(_tree: SceneTree) -> int:
 					crests += 1
 				before = rise
 			check(
-				high - low >= 34.9 and high - low <= 85.0,
+				high - low >= 60 and high - low <= 140.0,
 				"Every Tour theme must have substantial bounded ridge elevation"
 			)
 			check(crests >= 2, "Tour roads must climb and descend two separate ridges")

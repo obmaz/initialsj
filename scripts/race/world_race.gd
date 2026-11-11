@@ -112,7 +112,7 @@ func speed_of(body: CharacterBody3D) -> float:
 
 func frame(body: CharacterBody3D, visual: Node3D) -> Transform3D:
 	# Authored body offsets differ between selected cars and traffic models.
-	return Transform3D(body.global_basis, body.feet_position() - body.surface_normal * visual.ride_offset)
+	return body.visual_frame(visual.ride_offset)
 
 
 func place_cars() -> void:
@@ -205,6 +205,7 @@ func step(
 		# instead of accelerating the chassis head-first into the same barrier.
 		target = move_toward(signed_speed, 0, race.vehicle.brake * 0.8 * delta)
 	var grip: float = race.surface.grip_factor * lerpf(1, 0.72, race.offroad_amount)
+	grip *= preload("res://scripts/track/harbor_corridor.gd").grip(race.track.active, race.distance)
 	var ahead: float = race.distance + 6.0
 	player_body.road_heading = (
 		(race.track.point(ahead, race.lane) - race.track.point(race.distance, race.lane)).normalized()
@@ -687,7 +688,17 @@ func update_rivals(delta: float) -> void:
 				axis = float(rival.world_reverse_axis)
 		elif signed_speed < -0.5:
 			desired = move_toward(signed_speed, 0, race.vehicle.brake * dt)
-		body.advance(dt, axis, desired, false, rival.surface.grip_factor * lerpf(1, 0.72, dirt))
+		body.advance(
+			dt,
+			axis,
+			desired,
+			false,
+			(
+				rival.surface.grip_factor
+				* lerpf(1, 0.72, dirt)
+				* preload("res://scripts/track/harbor_corridor.gd").grip(race.track.active, d)
+			)
+		)
 		var old := Vector2(rival.lane, rival.distance)
 		var data: Dictionary = trackers[i].update(body.feet_position(), dt)
 		rival.distance = data.distance
@@ -704,7 +715,7 @@ func update_rivals(delta: float) -> void:
 				if event == "water":
 					body.velocity *= 0.96
 		rival.boosting = rival.surface.pad_time > 0
-		if body.feet_position().y < race.track.point(d).y - 25:
+		if body.feet_position().y < race.track.point(d).y - 8:
 			recover_body(i, d, 0)
 
 
@@ -726,9 +737,15 @@ func update_recovery(delta: float, data: Dictionary) -> void:
 	if data.valid and player_body.grounded and absf(race.lane) < race.track.half_width(race.distance) - 1:
 		safe_distance = race.distance
 		safe_lane = race.lane
-	var fallen: bool = player_body.feet_position().y < race.track.point(race.distance).y - 25
+	var below: float = race.track.point(race.distance, race.lane).y - player_body.feet_position().y
+	var offscreen: bool = (
+		below > 3
+		and player_body.velocity.y < -1
+		and not race.camera.is_position_in_frustum(player_body.global_position)
+	)
+	var fallen: bool = below > 8 or offscreen
 	recovery_clock = recovery_clock + delta if fallen else 0.0
-	if recovery_clock > 0.8:
+	if recovery_clock > 0.15:
 		recovery_clock = 0
 		race.return_to_road()
 
@@ -740,6 +757,12 @@ func recover_body(index: int, d: float, lane: float) -> Dictionary:
 		return {}
 	teleport(index, site.distance, site.lane, false)
 	bodies[index].reset_pose(site.feet, site.forward, site.up)
+	bodies[index].velocity = site.forward * RoadRecovery.RESUME_SPEED
+	bodies[index].grounded = true
+	if index == 0:
+		race.speed = RoadRecovery.RESUME_SPEED
+	else:
+		race.rivals[index - 1].speed = RoadRecovery.RESUME_SPEED
 	return site
 
 

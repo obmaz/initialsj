@@ -80,7 +80,7 @@ func run(tree: SceneTree) -> int:
 						hazard.start_fall(plan)
 					hazard.advance(4, 0, 2)
 					check(
-						hazard.plans.size() == 3 and hazard.scenic_plans.size() == 15, "최대 세 주회분의 도로·장식 낙석을 실제로 생성해야 한다"
+						hazard.plans.size() == 3 and hazard.scenic_plans.size() == 30, "최대 세 주회분의 도로·장식 낙석을 실제로 생성해야 한다"
 					)
 					await settle(tree)
 				r.restart()

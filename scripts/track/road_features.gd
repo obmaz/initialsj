@@ -55,18 +55,12 @@ static func tour_slot(
 			continue
 		# 능선 꼭대기에서 도로가 급히 멀어지는 점프는 피하고 착지 여유를 남긴다.
 		if kind == "ramp":
-			var near_hill := false
-			for hill in section.hill_spans():
-				if d - 110 < hill.y and d + 200 > hill.x:
-					near_hill = true
+			var launch_y: float = section.point(d).y
+			var launch_grade: float = (section.point(d + 4).y - section.point(d - 4).y) / 8
+			for ahead_m in [40.0, 80.0, 120.0, 180.0]:
+				if section.point(d + ahead_m).y < launch_y + launch_grade * ahead_m - 1.0:
+					blocked = true
 					break
-			if near_hill:
-				var launch_y: float = section.point(d).y
-				var launch_grade: float = (section.point(d + 4).y - section.point(d - 4).y) / 8
-				for ahead_m in [40.0, 80.0, 120.0, 180.0]:
-					if section.point(d + ahead_m).y < launch_y + launch_grade * ahead_m - 1.0:
-						blocked = true
-						break
 		if blocked:
 			continue
 		if tunnel.y > tunnel.x:
@@ -76,7 +70,7 @@ static func tour_slot(
 		var grade: float = (section.point(d + 4).y - section.point(d - 4).y) / 8
 		if kind == "ramp" and absf(grade) > 0.045:
 			continue
-		var score: float = absf(d - desired) + absf(section.curvature(d)) * (18000 if kind == "ramp" else 9000)
+		var score: float = absf(d - desired) + absf(section.curvature(d)) * (600000 if kind == "ramp" else 9000)
 		if kind == "ramp":
 			score += absf(grade) * 1000
 		if score < best:
@@ -154,7 +148,7 @@ static func tour_layout(section: Node3D) -> Array[Dictionary]:
 			d = tour_slot(section, desired, 70, "ramp", occupied, 120.0)
 		# The tight last resort only keeps a first jump on crowded early routes.
 		if d < 0 and i == 0:
-			d = tour_slot(section, desired, 18, "ramp", occupied, 40.0)
+			d = tour_slot(section, desired, 18, "ramp", occupied, 120.0)
 		if d < 0:
 			continue
 		var fraction: float = side * (0.46 if i % 2 == 0 else -0.46)
@@ -290,16 +284,14 @@ static func layout(section: Node3D) -> Array[Dictionary]:
 			]
 		)
 	if section.closed_loop and section.course_id == 2:
-		# MIDNIGHT HARBOR: a pad on each hairpin exit pays for a clean slide, a short jump and a
-		# boost lane on the long back straight, one puddle where the road is straight but slippery.
+		# 항만 뒤쪽 비포장 통로를 비우고 점프는 출발 직선, 부스트 차로는 앞쪽 연결 직선에 둔다.
 		specifications.append_array(
 			[
-				["boost", 170.0, -0.30, 22.0, 3.4],
+				["boost", 130.0, -0.30, 22.0, 3.4],
 				["boost", 870.0, -0.30, 20.0, 3.4],
 				["water", 930.0, 0.25, 16.0, 4.0],
-				["boost", 1330.0, -0.35, 24.0, 3.6],
-				["ramp", 1420.0, -0.35, 18.0, 3.8, 0.9],
-				["boost_lane", 1580.0, 0.40, 200.0, 3.8],
+				["ramp", 220.0, -0.35, 18.0, 3.8, 0.9],
+				["boost_lane", 480.0, 0.40, 90.0, 3.8],
 				["boost", 2135.0, 0.30, 20.0, 3.4],
 				["boost", 2355.0, -0.30, 20.0, 3.4],
 				["boost", 2670.0, 0.0, 24.0, 3.6]
@@ -418,7 +410,15 @@ static func swept_hit(feature: Dictionary, from: Vector2, to: Vector2, center_di
 
 
 static func build(section: Node3D) -> void:
-	for feature in section.features:
+	var steps: Array[Callable] = []
+	for index in range(section.features.size()):
+		steps.append(func(): build_range(section, index, index + 1))
+	section.queue_next(steps)
+
+
+static func build_range(section: Node3D, begin: int, end: int) -> void:
+	for feature_index in range(begin, end):
+		var feature: Dictionary = section.features[feature_index]
 		if feature.kind == "ramp":
 			build_ramp(section, feature)
 			continue
@@ -792,3 +792,4 @@ static func build_car(section: Node3D, feature: Dictionary) -> void:
 	body.set_meta("parked_car", true)
 	section.add_child(body)
 	body.reset_pose(car.position, -car.basis.z, car.basis.y)
+	car.global_transform = body.visual_frame(car.ride_offset)

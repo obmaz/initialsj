@@ -50,14 +50,22 @@ func fall(tree: SceneTree, race: Node3D, d: float, lane: float, label: String) -
 	world.teleport(0, d, lane, false)
 	world.safe_distance = d
 	world.safe_lane = lane
-	world.player_body.position.y -= 35
+	world.player_body.position.y -= 9
 	await tree.physics_frame
 	var tracker: RefCounted = world.trackers[0]
 	var laps: int = race.laps_completed
 	var checkpoints: int = race.checkpoints
 	var elapsed: float = race.elapsed
-	world.update_recovery(.9, {"valid": false})
+	world.update_recovery(.2, {"valid": false})
 	check(supported(tree, world.player_body), label + ": 자동 낙하 복구는 차체 전체가 남은 도로 위에 놓여야 한다")
+	check(
+		is_equal_approx(race.speed * 3.6, 50) and is_equal_approx(world.player_body.velocity.length() * 3.6, 50),
+		label + ": 시속50km로 달리며 복구한다"
+	)
+	for ahead in range(5, 101, 5):
+		var at: Vector3 = race.track.point(race.distance + ahead, race.lane)
+		var hit := Recovery.stable_hit(tree.root.get_world_3d().direct_space_state, at, Vector3.UP, 2)
+		check(not hit.is_empty(), label + ": 전방100m에 남아 있는 노면이 있어야 한다")
 	check(
 		race.laps_completed == laps and race.checkpoints == checkpoints and race.elapsed == elapsed,
 		label + ": 복구가 경기 진행을 변경하지 않는다"
@@ -121,6 +129,21 @@ func run(tree: SceneTree) -> int:
 		quiet(race)
 		await tree.physics_frame
 		await fall(tree, race, 230, 0, "트랙%d" % (course + 1))
+		if course == 4:
+			world = race.world_race
+			world.teleport(0, 230, 0, false)
+			world.safe_distance = 230
+			world.safe_lane = 0
+			world.player_body.position.y -= 4
+			world.player_body.velocity = Vector3.DOWN * 15
+			race.camera.position = race.track.point(230) + Vector3.UP * 5
+			race.camera.look_at(race.camera.position + Vector3.RIGHT)
+			await tree.physics_frame
+			world.update_recovery(.2, {"valid": false})
+			check(
+				supported(tree, world.player_body) and is_equal_approx(race.speed * 3.6, 50),
+				"낙하선8m에 닿기 전에도 화면 밖으로 내려가면 시속50km로 복구한다"
+			)
 		if course == 0:
 			for d in [
 				race.track.active.bridge_lower_distance,

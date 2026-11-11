@@ -4,6 +4,8 @@ static var owners := 0
 static var quads: Dictionary = {}
 static var box_mesh: ArrayMesh
 static var vehicle_body: ShaderMaterial
+static var traffic_models := {}
+static var vehicle_wheels := {}
 # 작업 스레드에서 읽는 중인 리소스 경로. fetch()가 결과를 받아 가면 지운다.
 static var warming: Dictionary = {}
 
@@ -20,6 +22,8 @@ static func release_owner() -> bool:
 	quads.clear()
 	box_mesh = null
 	vehicle_body = null
+	traffic_models.clear()
+	vehicle_wheels.clear()
 	for path in warming:
 		ResourceLoader.load_threaded_get(path)
 	warming.clear()

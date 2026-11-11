@@ -95,13 +95,14 @@ static func walls(section: Node3D, state: Dictionary, span: float) -> bool:
 			var wall_basis := basis
 			var size := Vector3(.30, 1.45, step + .35)
 			var center: Vector3 = section.point(middle, lane) + basis.y * .65
-			if section.closed_loop and section.course_id == 1 and side > 0:
+			if section.closed_loop and section.course_id == 1 and (side > 0 or section.speedway_pit_wall(middle)):
 				var forward := -basis.z
 				forward.y = 0
 				wall_basis = Basis.looking_at(forward.normalized(), Vector3.UP)
 				# 상단 철망도 충돌을 막는다. 콘크리트와 같은 횡단면을 사용한다.
-				size = Vector3(.60, 5.6, step + .35)
-				center = section.point(middle, lane) + Vector3.UP * 2.8
+				var height := 5.6 if side > 0 else 1.5
+				size = Vector3(.60, height, step + .35)
+				center = section.point(middle, lane) + Vector3.UP * height * .5
 			barriers.append_array(Transform3D(wall_basis.scaled_local(size), center) * unit)
 		d += step
 	state.walls = barriers

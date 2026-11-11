@@ -37,6 +37,7 @@ func _ready() -> void:
 	make_ground()
 	find_drift_gates()
 	make_yard()
+	make_container_corridor()
 	make_warehouses()
 	make_cranes()
 	make_harbor_props()
@@ -97,14 +98,14 @@ func find_drift_gates() -> void:
 		d += 6.0
 
 
-func batch(label: String, size: Vector3, material: Material, poses: Array[Transform3D]) -> void:
+func batch(label: String, size: Vector3, material: Material, poses: Array[Transform3D], source: Mesh = null) -> void:
 	if poses.is_empty():
 		return
 	var mesh := BoxMesh.new()
 	mesh.size = size
 	var instances := MultiMesh.new()
 	instances.transform_format = MultiMesh.TRANSFORM_3D
-	instances.mesh = mesh
+	instances.mesh = source if source != null else mesh
 	instances.instance_count = poses.size()
 	for i in range(poses.size()):
 		instances.set_instance_transform(i, poses[i])
@@ -133,7 +134,7 @@ func pose(d: float, lane: float, height: float, yaw: float = 0.0) -> Transform3D
 
 
 func make_yard() -> void:
-	var colours := [Color("8a3b2c"), Color("2f5f86"), Color("2d7a62"), Color("a77a2c")]
+	var colours := [Color("8a3b2c"), Color("2f5f86"), Color("c4c1ab")]
 	var stacks: Array = []
 	for index in range(colours.size()):
 		var empty: Array[Transform3D] = []
@@ -150,14 +151,10 @@ func make_yard() -> void:
 		var colour_index := rng.randi() % colours.size()
 		for tier in range(tiers):
 			stacks[(colour_index + tier) % colours.size()].append(
-				pose(d, lane, 1.25 + tier * 2.5, rng.randf_range(-0.05, 0.05))
+				pose(d, lane, tier * 2.65, rng.randf_range(-0.05, 0.05))
 			)
 	for index in range(colours.size()):
-		var skin := ShaderMaterial.new()
-		skin.shader = preload("res://shaders/container_skin.gdshader")
-		skin.set_shader_parameter("skins", load("res://assets/environment/container-elevations.png"))
-		skin.set_shader_parameter("brand", index)
-		batch("Containers" + str(index), Vector3(12, 2.45, 2.6), skin, stacks[index])
+		batch("Containers" + str(index), Vector3.ONE, cargo_material(), stacks[index], cargo_mesh(index))
 
 
 func make_warehouses() -> void:
@@ -351,3 +348,51 @@ func make_gates() -> void:
 	batch("DriftGatePosts", Vector3(0.5, 6.4, 0.5), lit(Color("1b2630"), 0.2), posts)
 	batch("DriftGateBars", Vector3(1, 1, 1), lit(Color("152433"), 0.12), bars)
 	batch("DriftGateStrips", Vector3(1, 1, 1), lit(Color("32e6ff"), 3.0), strips)
+
+
+func cargo_material() -> Material:
+	return preload("res://scripts/environment/regional_props_3d.gd").material_for("containers")
+
+
+func cargo_mesh(brand: int) -> ArrayMesh:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	preload("res://models/shared/cargo_geometry.gd").container(surface, Vector3.ZERO, brand)
+	surface.index()
+	return surface.commit()
+
+
+func make_container_corridor() -> void:
+	var Corridor = preload("res://scripts/track/harbor_corridor.gd")
+	var meshes := [cargo_mesh(0), cargo_mesh(1), cargo_mesh(2)]
+	for cell in range(4):
+		var groups := [[], [], []]
+		for row in range(8):
+			var d: float = Corridor.SPAN.x + 25 + (cell * 8 + row) * 12.8
+			if d > Corridor.SPAN.y - 20:
+				continue
+			for side in [-1.0, 1.0]:
+				var lane: float = side * (track.half_width(d) + track.rail_setback(d, side) + 1.65)
+				var tiers := 2 + (row + cell + int(side)) % 2
+				for tier in range(tiers):
+					var brand := posmod(row + tier + cell + int(side), 3)
+					var at: Vector3 = track.point(d, lane) + Vector3.UP * tier * 2.65
+					groups[brand].append(Transform3D(Basis(Vector3.UP, track.heading(d)), at))
+		for brand in range(3):
+			var poses: Array[Transform3D] = []
+			poses.assign(groups[brand])
+			batch("ContainerCorridor_%d_%d" % [cell, brand], Vector3.ONE, cargo_material(), poses, meshes[brand])
+	var sign := Node3D.new()
+	sign.name = "PortAccessSign"
+	add_child(sign)
+	sign.position = track.point(Corridor.SPAN.x - 70, -track.half_width(Corridor.SPAN.x - 70) - 4)
+	sign.rotation.y = track.heading(Corridor.SPAN.x - 70)
+	track.box(sign, Vector3(0, 2, 0), Vector3(.22, 4, .22), track.material(Color("686d6c")))
+	track.box(sign, Vector3(0, 4.2, 0), Vector3(5.8, 2.3, .25), lit(Color("b89438"), .18))
+	var label := Label3D.new()
+	label.text = "PORT ACCESS\n2 LANES / LOOSE SURFACE"
+	label.font_size = 54
+	label.pixel_size = .006
+	label.position = Vector3(0, 4.2, .15)
+	label.modulate = Color("182128")
+	sign.add_child(label)

@@ -44,6 +44,8 @@ static func warm_paths(region: String) -> Array[String]:
 	if preload("res://scripts/environment/distant_ridges.gd").THEMES.has(region):
 		paths.append(preload("res://scripts/environment/distant_ridges.gd").ATLAS_PATH)
 	paths.append_array(preload("res://scripts/environment/tour_vegetation.gd").warm_paths(region))
+	if region == "jungle":
+		paths.append(preload("res://scripts/environment/jungle_overgrowth.gd").ROCK)
 	return paths
 
 
@@ -118,6 +120,8 @@ func terrain_point(d: float, lane: float) -> Vector3:
 		p.y += edge_blend * (3 + 3 * sin(p.x * .016) * cos(p.z * .011))
 	elif theme in ["hawaii", "jeju", "fuji", "bamboo", "amusement", "jungle"]:
 		p.y += edge_blend * 3 * sin(p.x * .012 + p.z * .006) * cos(p.z * .009)
+	if theme == "jungle":
+		p.y += track.jungle_cut_depth(d) * smoothstep(15, 38, absf(lane))
 	if theme == "amusement" and lane < -40:
 		var flat := smoothstep(600, 750, d) * (1 - smoothstep(1700, 1850, d)) * (1 - smoothstep(-110, -40, lane))
 		p.y = lerpf(p.y, track.point(1120).y - .3, flat)
@@ -613,6 +617,11 @@ func make_cover() -> void:
 	var tunnel := Library.tunnel_span(track.stage, track.route_node)
 	if tunnel.y > tunnel.x:
 		make_tunnel(tunnel)
+	if theme == "jungle":
+		var growth := preload("res://scripts/environment/jungle_overgrowth.gd").new()
+		growth.name = "JungleOvergrowth"
+		growth.scenery = self
+		add_child(growth)
 
 
 func make_canopy(span: Vector2) -> void:
@@ -658,13 +667,24 @@ func make_tunnel(span: Vector2) -> void:
 		for j in range(a.size() - 1):
 			var corners := [a[j], b[j], a[j + 1], b[j + 1]]
 			for index in [0, 1, 2, 1, 3, 2]:
+				surface.set_uv(
+					Vector2((j + index / 2) * .65, lerpf(span.x, span.y, float(i + index % 2) / segments) / 5)
+				)
 				surface.add_vertex(corners[index])
 	surface.generate_normals()
 	var shell := MeshInstance3D.new()
 	shell.mesh = surface.commit()
 	var material := mat(Color("37434c") if theme in ["city", "seoul"] else Color("635e55"))
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	shell.material_override = material
+	if theme == "jungle":
+		var moss := ShaderMaterial.new()
+		moss.shader = preload("res://shaders/jungle_tunnel.gdshader")
+		moss.set_shader_parameter(
+			"rock_detail", RenderResources.fetch(preload("res://scripts/environment/jungle_overgrowth.gd").ROCK)
+		)
+		shell.material_override = moss
+	else:
+		shell.material_override = material
 	add_child(shell)
 	var lighting := preload("res://scripts/rendering/tunnel_lights.gd").new()
 	lighting.track = track

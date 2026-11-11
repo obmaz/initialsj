@@ -96,7 +96,7 @@ func run(tree: SceneTree) -> int:
 	var data = model.surface_get_arrays(0)
 	var print_count := 0
 	for i in range(data[Mesh.ARRAY_VERTEX].size()):
-		if data[Mesh.ARRAY_TEX_UV2][i].x > .5:
+		if data[Mesh.ARRAY_TEX_UV2][i].x > .5 and data[Mesh.ARRAY_TEX_UV2][i].x < 1.5:
 			print_count += 1
 			check(
 				data[Mesh.ARRAY_NORMAL][i].y > .9 or data[Mesh.ARRAY_NORMAL][i].z > .9,
@@ -149,8 +149,9 @@ func run(tree: SceneTree) -> int:
 		var ad_data = node.mesh.surface_get_arrays(0)
 		var normal: Vector3 = node.global_basis * ad_data[Mesh.ARRAY_NORMAL][0]
 		var view_right := Vector3.UP.cross(normal).normalized()
-		var edge: Vector3 = node.global_basis * (ad_data[Mesh.ARRAY_VERTEX][1] - ad_data[Mesh.ARRAY_VERTEX][0])
-		var du: float = ad_data[Mesh.ARRAY_TEX_UV][1].x - ad_data[Mesh.ARRAY_TEX_UV][0].x
+		var corner := 1 if absf(ad_data[Mesh.ARRAY_TEX_UV][1].x - ad_data[Mesh.ARRAY_TEX_UV][0].x) > .001 else 2
+		var edge: Vector3 = node.global_basis * (ad_data[Mesh.ARRAY_VERTEX][corner] - ad_data[Mesh.ARRAY_VERTEX][0])
+		var du: float = ad_data[Mesh.ARRAY_TEX_UV][corner].x - ad_data[Mesh.ARRAY_TEX_UV][0].x
 		check(edge.dot(view_right) * du > 0, "도로에서 보는 벽 광고의 글자가 좌우로 뒤집히면 안 된다")
 
 	await tree.physics_frame

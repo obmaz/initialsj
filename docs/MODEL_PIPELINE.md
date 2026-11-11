@@ -25,7 +25,7 @@ models/
     SOURCE.md
 ```
 
-기존 선택 차량의 시각 ID는 `hatch`(NIMORI), `wedge`(VELTRIX), `muscle`(IRONVALE), `gt`(STRAUD)입니다. `sport`는 교통 차량용입니다. 소품은65종과 예외 처리용 `fallback`, 도시 빌딩은12종의 팩을 사용합니다.
+기존 선택 차량의 시각 ID는 `hatch`(NIMORI), `wedge`(VELTRIX), `muscle`(IRONVALE), `gt`(STRAUD)입니다. `sport`는 교통 차량용입니다. 소품은66종과 예외 처리용 `fallback`, 도시 빌딩은12종의 팩을 사용합니다.
 
 **한 모델 작업의 기본 변경 범위는 해당 폴더 하나입니다.** 새 이미지·재질·메시·출처도 같은 폴더에 둡니다. 다른 모델의 `build.gd`를 가져다 참조하거나 공용 아틀라스를 덮어쓰지 않습니다. 공통 도우미는 `models/shared/`의 API를 사용하고 전용 표현은 팩 내부 파일로 만듭니다.
 
@@ -113,4 +113,4 @@ python3 tools/verify_repository.py
 
 ## 다중 표면 식생
 
-`models/vegetation/<id>/`는 SJRPG의 원본 GLB·Mesh를 보존합니다. 일반 소품과 달리 두 표면(줄기·잎)과 최대4358삼각형을 허용합니다. [tour_vegetation.gd](../scripts/environment/tour_vegetation.gd)가 표면별 메시·재질을 한 번 만들고120m 셀·최대12개씩 공유하며, 모델 정의의 미터 높이를 적용합니다. 공통 생성형 잎·수피의 출처는 `models/shared/foliage/SOURCE.md`에 기록합니다. 검사는 전체 모델 검사에 포함합니다.
+`models/vegetation/<id>/`는 SJRPG의 원본 GLB·Mesh를 보존합니다. 일반 소품과 달리 두 표면(줄기·잎)과 최대4358삼각형을 허용합니다. [tour_vegetation.gd](../scripts/environment/tour_vegetation.gd)가 원본 다중 표면·생성된 LOD를 보존한 메시와 재질을 한 번 만들고120m 셀·최대12개씩 공유하며, 모델 정의의 미터 높이를 적용합니다. 공통 생성형 잎·수피의 출처는 `models/shared/foliage/SOURCE.md`에 기록합니다. 검사는 전체 모델 검사에 포함합니다.

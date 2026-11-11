@@ -1,5 +1,9 @@
 extends Node3D
 # 주회마다 다른 협곡 지점에 떨어진 바위가 남는다. 중앙 통과 폭을 보장한다.
+const ROAD_REMAINS := 9
+const ROAD_FALL_COUNT := 24
+const SCENIC_FALL_COUNT := 24
+const SCENIC_BURSTS := 10
 var section: Node3D
 var rng := RandomNumberGenerator.new()
 var plans: Array[Dictionary] = []
@@ -85,9 +89,9 @@ func plan_lap(lap: int) -> void:
 			"marker": null
 		}
 	)
-	# 도로 장애물과 별도로, 협곡 양쪽에서 주회마다 다섯 차례 대량 낙하한다.
-	for i in range(5):
-		var at: float = 1120 + (section.length - 1400) * (i + .5) / 5 + rng.randf_range(-70, 70)
+	# 도로 장애물과 별도로, 협곡 양쪽에서 주회마다 열 차례 대량 낙하한다.
+	for i in range(SCENIC_BURSTS):
+		var at: float = 1120 + (section.length - 1400) * (i + .5) / SCENIC_BURSTS + rng.randf_range(-70, 70)
 		scenic_plans.append(
 			{
 				"distance": at,
@@ -111,7 +115,7 @@ func start_fall(plan: Dictionary) -> void:
 	add_child(group)
 	plan.node = group
 	var scenic: bool = plan.get("scenic", false)
-	var count := 14 if scenic else 9
+	var count := SCENIC_FALL_COUNT if scenic else ROAD_FALL_COUNT
 	var multi := MultiMesh.new()
 	multi.transform_format = MultiMesh.TRANSFORM_3D
 	multi.mesh = rock_mesh
@@ -124,7 +128,7 @@ func start_fall(plan: Dictionary) -> void:
 	plan.poses = []
 	plan.sizes = []
 	for i in range(count):
-		var d: float = float(plan.distance) + (i - (6.5 if scenic else 4)) * 3.7
+		var d: float = float(plan.distance) + ((i - (count - 1) * .5) if scenic else (i % ROAD_REMAINS - 4)) * 3.7
 		var lane: float = float(plan.side) * (section.half_width(d) * .66 + (i % 2) * .8)
 		if scenic:
 			lane = float(plan.side) * (section.half_width(d) + section.rail_setback(d, plan.side) + 5.5 + (i % 3) * 2.4)
@@ -140,7 +144,7 @@ func start_fall(plan: Dictionary) -> void:
 		plan.sizes.append(size)
 		plan.targets.append(target)
 		# 도로 밖 연출에는 물리 노드가 없다. 도로 안 장애물만 같은 충돌 모양을 공유한다.
-		if not scenic:
+		if not scenic and i < ROAD_REMAINS:
 			var body := StaticBody3D.new()
 			body.collision_layer = 0
 			body.collision_mask = 4
@@ -193,8 +197,11 @@ func advance(delta: float, distance: float, lap: int) -> void:
 			var rotation_at := Vector3(t * (.3 + i * .21), t * i * .43, t * .8 * float(plan.side))
 			var pose := Transform3D(Basis.from_euler(rotation_at).scaled_local(plan.sizes[i]), position_at)
 			plan.poses[i] = pose
+			# 도로 안의 추가 낙하는 착지하면서 사라진다. 남는9개만 충돌체를 가진다.
+			if not scenic and i >= ROAD_REMAINS and t >= 1:
+				pose.basis = Basis.IDENTITY.scaled(Vector3.ZERO)
 			plan.batch.multimesh.set_instance_transform(i, pose)
-			if not scenic:
+			if not scenic and i < plan.bodies.size():
 				plan.bodies[i].transform = pose
 				if t >= 1:
 					plan.bodies[i].collision_layer = 2
@@ -202,6 +209,8 @@ func advance(delta: float, distance: float, lap: int) -> void:
 				all_landed = false
 		if all_landed:
 			plan.landed = true
+			if not scenic:
+				plan.batch.multimesh.visible_instance_count = ROAD_REMAINS
 			if is_instance_valid(plan.marker):
 				plan.marker.visible = false
 

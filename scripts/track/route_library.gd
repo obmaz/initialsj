@@ -81,6 +81,8 @@ static func canopy_span(stage: int, node: int) -> Vector2:
 
 static func tunnel_span(stage: int, node: int) -> Vector2:
 	match theme(stage, node):
+		"jungle":
+			return Vector2(1080, 1510)
 		"city", "neon":
 			return Vector2(1420, 2370)
 		"hawaii":

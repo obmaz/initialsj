@@ -91,6 +91,18 @@ func pose(d: float, lane: float, height: float, size: Vector3 = Vector3.ONE) -> 
 	)
 
 
+func facade(tile: Vector2, metres: Vector2 = Vector2(8, 8)) -> ShaderMaterial:
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/speedway_facade.gdshader")
+	mat.set_shader_parameter(
+		"facade_atlas",
+		preload("res://scripts/rendering/render_resources.gd").fetch("res://assets/environment/speedway-facades.png")
+	)
+	mat.set_shader_parameter("tile", tile)
+	mat.set_shader_parameter("metres_per_tile", metres)
+	return mat
+
+
 func _ready() -> void:
 	var grass := ShaderMaterial.new()
 	grass.shader = preload("res://shaders/grass_ground.gdshader")
@@ -139,14 +151,14 @@ func make_berms(grass: Material, side: float, label: String) -> void:
 		root.add_child(node)
 
 
-func wall_point(d: float, height: float, offset: float = 0) -> Vector3:
+func wall_point(d: float, height: float, offset: float = 0, side: float = 1) -> Vector3:
 	# 인쇄면을 방호벽과 같은4m 구간에 맞춰 곡선 안쪽으로 묻히는 깊이 충돌을 막는다.
 	var step: float = track.length / ceili(track.length / 4)
 	var cell := fposmod(d, track.length) / step
 	var a := floorf(cell) * step
 	var b := a + step
-	var left: Vector3 = track.point(a, track.half_width(a) + track.rail_setback(a, 1) + offset)
-	var right: Vector3 = track.point(b, track.half_width(b) + track.rail_setback(b, 1) + offset)
+	var left: Vector3 = track.point(a, side * (track.half_width(a) + track.rail_setback(a, side) + offset))
+	var right: Vector3 = track.point(b, side * (track.half_width(b) + track.rail_setback(b, side) + offset))
 	return left.lerp(right, cell - floorf(cell)) + Vector3.UP * height
 
 
@@ -172,6 +184,7 @@ func make_walls_and_fences() -> void:
 				wall_point(b, next.y, next.x)
 			]
 			for n in [0, 1, 2, 1, 3, 2]:
+				st.set_uv(Vector2((a if n % 2 == 0 else b) / 6, (near.y if n < 2 else next.y) / 6))
 				st.add_vertex(points[n])
 		for n in [0, 1, 2, 2, 1, 3]:
 			var d: float = a if n % 2 == 0 else b
@@ -184,8 +197,34 @@ func make_walls_and_fences() -> void:
 	var wall := MeshInstance3D.new()
 	wall.name = "SpeedwaySafetyWalls"
 	wall.mesh = st.commit()
-	wall.material_override = track.material(Color("b7bdba"))
+	var concrete := facade(Vector2.ONE)
+	concrete.set_shader_parameter("box_uv", false)
+	wall.material_override = concrete
 	add_child(wall)
+	var pit_surface := SurfaceTool.new()
+	pit_surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in range(298):
+		var a := -260.0 + i * 1190.0 / 298
+		var b := -260.0 + (i + 1) * 1190.0 / 298
+		var profile := [Vector2(-.3, -.2), Vector2(-.3, 1.5), Vector2(.3, 1.5), Vector2(.3, -.2)]
+		for face in range(4):
+			var near: Vector2 = profile[face]
+			var next: Vector2 = profile[(face + 1) % 4]
+			var points := [
+				wall_point(a, near.y, near.x, -1),
+				wall_point(b, near.y, near.x, -1),
+				wall_point(a, next.y, next.x, -1),
+				wall_point(b, next.y, next.x, -1)
+			]
+			for index in [0, 2, 1, 1, 2, 3]:
+				pit_surface.set_uv(Vector2((a if index % 2 == 0 else b) / 6, (near.y if index < 2 else next.y) / 6))
+				pit_surface.add_vertex(points[index])
+	pit_surface.generate_normals()
+	var pit_wall := MeshInstance3D.new()
+	pit_wall.name = "PitSafetyWall"
+	pit_wall.mesh = pit_surface.commit()
+	pit_wall.material_override = concrete
+	add_child(pit_wall)
 	fence.generate_normals()
 	var net := MeshInstance3D.new()
 	net.name = "CatchFence"
@@ -237,6 +276,7 @@ func make_stands() -> void:
 		)
 		placements.append({"kind": "stadium_grandstand", "position": frame.origin, "yaw": yaw, "scale": scale})
 	batch("GrandstandFoundations", Vector3.ONE, Color("7b8588"), foundations)
+	get_node("GrandstandFoundations").material_override = facade(Vector2.ONE)
 	var stands := Props.new()
 	stands.name = "MainGrandstands"
 	stands.configure("hawaii", placements)
@@ -261,25 +301,21 @@ func make_pits() -> void:
 	apron.material_override = track.material(Color("47555b"))
 	add_child(apron)
 	var garages: Array[Transform3D] = []
-	var doors: Array[Transform3D] = []
 	for i in range(20):
 		var d := 30.0 + i * 28
 		var p: Vector3 = track.point(d, -45)
 		p.y = inner_ground_height(d, -45) + 3.5
 		garages.append(Transform3D(Basis(Vector3.UP, track.heading(d)), p))
-		p = track.point(d, -34.7)
-		p.y = inner_ground_height(d, -34.7) + 2.4
-		doors.append(Transform3D(Basis(Vector3.UP, track.heading(d)), p))
 	batch("PitGarages", Vector3(20, 7, 26), Color("d4dbd8"), garages)
-	batch("PitDoors", Vector3(0.2, 4, 20), Color("235565"), doors)
+	get_node("PitGarages").material_override = facade(Vector2.ZERO, Vector2(6, 7))
 	var tower := Node3D.new()
 	tower.name = "RaceControlTower"
 	add_child(tower)
 	tower.position = track.point(170, -70)
 	tower.position.y = inner_ground_height(170, -70) + 0.05
 	tower.rotation.y = track.heading(170)
-	track.box(tower, Vector3(0, 10, 0), Vector3(15, 20, 20), track.material(Color("cbd6d4")))
-	track.box(tower, Vector3(0, 21, 0), Vector3(21, 5, 27), track.material(Color("28566c"), 0.4))
+	track.box(tower, Vector3(0, 10, 0), Vector3(15, 20, 20), facade(Vector2(1, 0), Vector2(8, 10)))
+	track.box(tower, Vector3(0, 21, 0), Vector3(21, 5, 27), facade(Vector2(1, 0), Vector2(8, 5)))
 	track.box(tower, Vector3(0, 24, 0), Vector3(24, 1, 30), track.material(Color("e4ad4b")))
 	var label := Label3D.new()
 	label.text = "SUNCOAST"
@@ -320,19 +356,26 @@ func make_palms() -> void:
 
 func make_infield_ads() -> void:
 	var placements: Array[Dictionary] = []
-	for start in [Course.offset(track, 3) + 50, Course.offset(track, 15) + 20]:
+	for start in [50.0, Course.offset(track, 15) + 20]:
 		ad_regions.append(Vector2(start, start + 20 * AD_SPACING))
 		for i in range(21):
 			var d: float = start + i * AD_SPACING
 			var radius: float = Props.radius("billboard")
-			var lane: float = -(track.half_width(d) + track.rail_setback(d, -1) + radius + 2)
+			var on_roof := d <= 600
+			var lane: float = -45 if on_roof else -(track.half_width(d) + track.rail_setback(d, -1) + radius + 2)
 			placements.append(
 				{
 					"kind": "billboard",
-					"position": terrain_point(d, lane),
+					"position": terrain_point(d, lane) + Vector3.UP * (7.1 if on_roof else 0),
+					"pit_roof": on_roof,
 					"distance": d,
 					"lane": lane,
-					"yaw": preload("res://scripts/environment/billboard_facing.gd").yaw(track, d, lane, 40, .60),
+					"yaw":
+					(
+						track.heading(d) + PI * .5 - .30
+						if start < 100
+						else preload("res://scripts/environment/billboard_facing.gd").yaw(track, d, lane, 40, .60)
+					),
 					"scale": 1.0,
 					"print_fill": .6
 				}
@@ -358,13 +401,13 @@ func make_wall_ads() -> void:
 	root.name = "WallAdvertisements"
 	add_child(root)
 	for i in range(54):
-		var d: float = 100 + (track.length - 180) * i / 54
+		var d: float = -230 + 21.4 * i
 		var design := i % 6
 		# 생성 원본의 실제 행 높이와 같은 종횡비. 문자·상품을 가로로 늘리지 않는다.
 		var width: float = (
 			1.18 * atlas.get_width() / (atlas.get_height() * (WALL_AD_EDGES[design + 1] - WALL_AD_EDGES[design]))
 		)
-		var metric: float = wall_point(d + .5, 0).distance_to(wall_point(d - .5, 0))
+		var metric: float = wall_point(d + .5, 0, 0, -1).distance_to(wall_point(d - .5, 0, 0, -1))
 		var span := width / maxf(.5, metric)
 		var begin := d - span * .5
 		var end := d + span * .5
@@ -375,16 +418,16 @@ func make_wall_ads() -> void:
 			cuts.append(index * step)
 			index += 1
 		cuts.sort()
-		var origin := wall_point(d, .86, -.325)
+		var origin := wall_point(d, .86, -.325, -1)
 		var st := SurfaceTool.new()
 		st.begin(Mesh.PRIMITIVE_TRIANGLES)
 		for segment in range(cuts.size() - 1):
 			var a: float = cuts[segment]
 			var b: float = cuts[segment + 1]
-			for n in [0, 1, 2, 1, 3, 2]:
+			for n in [0, 2, 1, 1, 2, 3]:
 				var at: float = a if n % 2 == 0 else b
-				st.set_uv(Vector2(1 - (at - begin) / span, 1 if n < 2 else 0))
-				st.add_vertex(wall_point(at, .27 if n < 2 else 1.45, -.325) - origin)
+				st.set_uv(Vector2((at - begin) / span, 1 if n < 2 else 0))
+				st.add_vertex(wall_point(at, .27 if n < 2 else 1.45, -.325, -1) - origin)
 		st.generate_normals()
 		var node := MeshInstance3D.new()
 		node.mesh = st.commit()

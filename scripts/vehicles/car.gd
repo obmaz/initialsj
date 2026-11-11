@@ -45,17 +45,53 @@ func block(pos: Vector3, size: Vector3, material: Material) -> MeshInstance3D:
 
 
 func _ready() -> void:
-	body = Node3D.new()
-	add_child(body)
 	model_definition = preload("res://models/vehicle_models.gd").definition(model)
 	for field in ["wheel_radius", "wheel_half_track", "wheel_half_base", "wheel_thickness", "rim_scale", "ride_offset"]:
 		set(field, model_definition.parameters[field])
+	var resources = preload("res://scripts/rendering/render_resources.gd")
+	if traffic and resources.traffic_models.has(model):
+		body = resources.traffic_models[model].instantiate()
+		add_child(body)
+		for child in body.get_children():
+			if child is SpotLight3D:
+				headlight = child
+			if child.get_meta("traffic_brake", false):
+				child.material_override = child.material_override.duplicate()
+				brake_lights.append(child.material_override)
+			var part: String = child.get_meta("traffic_part", "")
+			if part == "traffic_wheels":
+				traffic_wheels = child
+			elif not part.is_empty():
+				get(part).append(child)
+		var shell: MeshInstance3D = body.get_node("BodyShell")
+		shell.material_override = shell.material_override.duplicate()
+		shell.material_override.set_shader_parameter("traffic_paint", paint)
+		return
+	body = Node3D.new()
+	add_child(body)
 	preload("res://models/vehicle_models.gd").build(self, model_definition)
 	body.position.y = ride_offset
-	make_drift_smoke()
+	if not traffic:
+		make_drift_smoke()
 	if wheels.is_empty():
 		make_wheels()
 	merge_static_body()
+	if traffic:
+		for part in ["wheels", "headlamp_lenses", "nitro_flames", "nitro_glows"]:
+			for child in get(part):
+				child.set_meta("traffic_part", part)
+		traffic_wheels.set_meta("traffic_part", "traffic_wheels")
+		for child in body.find_children("*", "", true, false):
+			child.owner = body
+			if (
+				child is MeshInstance3D
+				and child.material_override is StandardMaterial3D
+				and child.material_override in brake_lights
+			):
+				child.set_meta("traffic_brake", true)
+		var prototype := PackedScene.new()
+		if prototype.pack(body) == OK:
+			resources.traffic_models[model] = prototype
 
 
 func make_drift_smoke() -> void:
@@ -88,6 +124,10 @@ func make_drift_smoke() -> void:
 
 # 타이어와 림을 한 메시로 만들어 바퀴 하나를 한 번에 그린다. 좌우는 림이 붙는 면만 다르다.
 func make_wheel_mesh(side: float) -> ArrayMesh:
+	var resources = preload("res://scripts/rendering/render_resources.gd")
+	var key := model + ":" + str(side)
+	if resources.vehicle_wheels.has(key):
+		return resources.vehicle_wheels[key]
 	var tire := CylinderMesh.new()
 	tire.top_radius = wheel_radius
 	tire.bottom_radius = wheel_radius
@@ -103,7 +143,9 @@ func make_wheel_mesh(side: float) -> ArrayMesh:
 		rim_pose.basis = Basis(Vector3(0, 0, 1), PI) * rim_pose.basis
 	append_baked(surface, make_rim_mesh(), rim_pose, mat(model_definition.parameters.rim_color, 0.85))
 	surface.index()
-	return surface.commit()
+	var mesh := surface.commit()
+	resources.vehicle_wheels[key] = mesh
+	return mesh
 
 
 func make_wheels() -> void:
@@ -205,7 +247,9 @@ static func bakeable(material: Material) -> bool:
 	return true
 
 
-static func append_baked(surface: SurfaceTool, mesh: Mesh, pose: Transform3D, material: BaseMaterial3D) -> void:
+static func append_baked(
+	surface: SurfaceTool, mesh: Mesh, pose: Transform3D, material: BaseMaterial3D, paint_mask: bool = false
+) -> void:
 	var arrays: Array = mesh.surface_get_arrays(0)
 	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
@@ -218,7 +262,10 @@ static func append_baked(surface: SurfaceTool, mesh: Mesh, pose: Transform3D, ma
 		material.emission_energy_multiplier if material.emission_enabled else 0.0
 	)
 	# 발광 재질은 발광색과 표면색이 같은 색으로 만들어진다(mat()).
-	surface.set_color(material.albedo_color)
+	var color := material.albedo_color
+	if paint_mask:
+		color.a = .5
+	surface.set_color(color)
 	surface.set_uv(surface_data)
 	surface.set_uv2(coat)
 	for index in indices:
@@ -249,16 +296,23 @@ func merge_static_body() -> void:
 				groups[material] = []
 			groups[material].append(child)
 			continue
-		append_baked(baked, child.mesh, child.transform, material)
+		append_baked(
+			baked, child.mesh, child.transform, material, traffic and material.albedo_color.is_equal_approx(paint)
+		)
 		baked_count += 1
 		body.remove_child(child)
 		child.queue_free()
 	if baked_count > 0:
-		baked.index()
 		var shell := MeshInstance3D.new()
 		shell.name = "BodyShell"
+		baked.index()
 		shell.mesh = baked.commit()
-		shell.material_override = shared_body_material()
+		var material := shared_body_material()
+		if traffic:
+			material = material.duplicate()
+			material.set_shader_parameter("repaint_traffic", true)
+			material.set_shader_parameter("traffic_paint", paint)
+		shell.material_override = material
 		body.add_child(shell)
 	for material in groups:
 		var surface := SurfaceTool.new()

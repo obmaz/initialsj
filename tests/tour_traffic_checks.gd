@@ -49,6 +49,15 @@ func run(tree: SceneTree) -> int:
 	for frame in range(25):
 		await tree.physics_frame
 	check(traffic.activated and traffic.position.distance_to(unseen) > .2, "시야에 들어온 교통 차량이 실제 차체로 움직인다")
+	check(
+		(
+			traffic.visual.global_position.distance_to(
+				traffic.feet_position() - traffic.surface_normal * traffic.visual.ride_offset
+			)
+			< .02
+		),
+		"움직이는 교통 차량의 시각 모델은 물리 중심보다 타이어 접지면에 맞춰 떠 보이지 않아야 한다"
+	)
 	var motor = preload("res://scripts/physics/world_car.gd").new()
 	motor.configure(preload("res://scripts/vehicles/vehicle_catalog.gd").spec(0))
 	tree.root.add_child(motor)

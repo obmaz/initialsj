@@ -21,7 +21,7 @@ func run(tree: SceneTree) -> int:
 		hazard.reset_effect(seed_value)
 		hazard.plan_lap(1)
 		hazard.plan_lap(2)
-		check(hazard.scenic_plans.size() == 15, "도로 밖 낙하는 매 주회 다섯 차례씩 계획해야 한다")
+		check(hazard.scenic_plans.size() == 30, "도로 밖 낙하는 매 주회 열 차례씩 계획해야 한다")
 		check(hazard.plans.size() == 3, "모든 주회에 다른 낙석 지점이 있어야 한다")
 		for i in range(hazard.plans.size()):
 			var d: float = hazard.plans[i].distance
@@ -51,6 +51,14 @@ func run(tree: SceneTree) -> int:
 	await tree.physics_frame
 	await tree.physics_frame
 	check(hazard.plans[0].landed, "낙석은 실제 도로에 착지해야 한다")
+	check(
+		(
+			hazard.plans[0].targets.size() == 24
+			and hazard.plans[0].batch.multimesh.visible_instance_count == 9
+			and hazard.plans[0].bodies.size() == 9
+		),
+		"도로 안24개 낙하 중9개만 남고 추가 낙석은 사라져 통로를 유지한다"
+	)
 	var hit_at: Vector3 = hazard.plans[0].bodies[1].position
 	var query := PhysicsShapeQueryParameters3D.new()
 	var box := BoxShape3D.new()
@@ -70,9 +78,9 @@ func run(tree: SceneTree) -> int:
 	check(hazard.plans[0].landed and hazard.plans[0].bodies[0].collision_layer == 2, "이전 주회 낙석이 다음 주회에도 남아야 한다")
 	var scenic: Dictionary = hazard.scenic_plans[0]
 	hazard.advance(1.0, scenic.distance - 200, 0)
-	check(scenic.poses.size() == 14 and scenic.bodies.is_empty(), "도로 밖에는 한 번에14개의 바위가 떨어져야 한다")
+	check(scenic.poses.size() == 24 and scenic.bodies.is_empty(), "도로 밖에는 한 번에24개의 바위가 떨어져야 한다")
 	check(
-		scenic.node.get_child_count() == 1 and scenic.batch.multimesh.instance_count == 14,
+		scenic.node.get_child_count() == 1 and scenic.batch.multimesh.instance_count == 24,
 		"도로 밖 낙석은 물리 노드 없이 공간별 MultiMesh 하나로 그려야 한다"
 	)
 	hazard.advance(4.0, scenic.distance - 180, 0)

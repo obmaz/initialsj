@@ -58,7 +58,7 @@ func _physics_process(delta: float) -> void:
 		move_toward(velocity.dot(forward), target, delta * 5),
 		false
 	)
-	visual.global_transform = global_transform
+	visual.global_transform = visual_frame(visual.ride_offset)
 	visual.animate(steering, false, false, delta)
 	visual.road_speed = velocity.length()
 	visual.set_detail(camera.global_position.distance_to(global_position) if camera != null else 0)

@@ -108,9 +108,9 @@ func run(tree: SceneTree) -> int:
 	)
 	race.choose_mode("track", 2)
 	check(race.competitor_count() == 8 and race.world_race.bodies.size() == 8, "다른 트랙은8대 구성을 유지해야 한다")
-	for i in range(4):
+	for i in range(3):
 		var skin: ShaderMaterial = race.track.scenery.get_node("Containers" + str(i)).material_override
-		check(skin.get_shader_parameter("skins") != null, "항만 컨테이너 네 종류에 생성형 외장을 연결해야 한다")
+		check(skin.get_shader_parameter("skins") != null, "항만 컨테이너 세 도색에 생성형 외장을 연결해야 한다")
 	var signs := 0
 	for child in race.track.scenery.get_children():
 		if child is Label3D and child.text.contains("DRIFT") and child.text.contains("CURVE"):

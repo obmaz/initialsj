@@ -30,6 +30,7 @@ var features: Array[Dictionary] = []
 var closed_loop := false
 var course_id := 0
 var bank_samples := PackedFloat32Array()
+var runoff_samples := PackedVector2Array()
 var bridge_span := Vector2.ZERO
 var bridge_lower_distance := 0.0
 var bridge_upper_distance := 0.0
@@ -69,7 +70,47 @@ func ground_height(distance: float) -> float:
 	return point(distance).y + excavation_depth(distance)
 
 
+var elevation_benches := {}
+
+
 func tour_elevation(distance: float, span: float) -> float:
+	var height := elevated_base(distance, span) - jungle_cut_depth(distance)
+	for steep in steep_starts():
+		var blend := (
+			smoothstep(steep - 160, steep - 20, distance) * (1 - smoothstep(steep + 165, steep + 525, distance))
+		)
+		if blend <= 0:
+			continue
+		if not elevation_benches.has(steep):
+			elevation_benches[steep] = elevated_base(steep + 70, span) - jungle_cut_depth(steep + 70)
+		height = lerpf(height, elevation_benches[steep], blend)
+	return height + steep_lift(distance)
+
+
+func elevated_base(distance: float, span: float) -> float:
+	var height := ridge_height(distance, span)
+	var profile: Vector4 = TOUR_ELEVATION[Library.theme(stage, route_node)]
+	var first_center := 180 + (span - Library.CHECKPOINT_RUNUP - 260) * profile.z * .5
+	if not steep_starts().is_empty():
+		first_center = minf(first_center, steep_starts()[0] - 210)
+	var first_terrace := (
+		smoothstep(first_center - 400, first_center - 220, distance)
+		* (1 - smoothstep(first_center + 220, first_center + 400, distance))
+	)
+	if not elevation_benches.has("first_terrace"):
+		elevation_benches["first_terrace"] = ridge_height(first_center, span)
+	height = lerpf(height, elevation_benches["first_terrace"], first_terrace)
+	# 능선 사이의 넓은 평탄부는 점프의 진입·착지와 잠깐의 휴식 구간을 제공한다.
+	var center := span * .74
+	var terrace := (
+		smoothstep(center - 400, center - 160, distance) * (1 - smoothstep(center + 160, center + 400, distance))
+	)
+	if not elevation_benches.has("terrace"):
+		elevation_benches["terrace"] = ridge_height(center, span)
+	return lerpf(height, elevation_benches["terrace"], terrace)
+
+
+func ridge_height(distance: float, span: float) -> float:
 	var u := clampf((distance - 180) / (span - Library.CHECKPOINT_RUNUP - 260), 0, 1)
 	var profile: Vector4 = TOUR_ELEVATION[Library.theme(stage, route_node)]
 	var first := sin(PI * clampf(u / profile.z, 0, 1))
@@ -83,10 +124,17 @@ func tour_elevation(distance: float, span: float) -> float:
 		extra *= (
 			1.0 - smoothstep(steep - 200, steep - 40, distance) * (1 - smoothstep(steep + 230, steep + 390, distance))
 		)
+	return (65 + stage * 6 + route_node * 3 + profile.x) * (profile.y * first * first + second * second) + extra
+
+
+func jungle_cut_depth(distance: float) -> float:
+	if closed_loop or Library.theme(stage, route_node) != "jungle":
+		return 0
+	var tunnel := Library.tunnel_span(stage, route_node)
 	return (
-		(37 + stage * 4 + route_node * 2 + profile.x) * (profile.y * first * first + second * second)
-		+ steep_lift(distance)
-		+ extra
+		30
+		* smoothstep(tunnel.x - 300, tunnel.x + 80, distance)
+		* (1 - smoothstep(tunnel.y - 60, tunnel.y + 300, distance))
 	)
 
 
@@ -234,7 +282,30 @@ func _init(
 			p += Vector3(-sin(angle), 0, -cos(angle)) * 5
 		p.y = origin.y + tour_elevation(d, span)
 		curve.add_point(p)
+	limit_tour_grade()
 	length = curve.get_baked_length()
+
+
+func limit_tour_grade() -> void:
+	# 큰 능선·터널 절개·평탄부를 합쳐도 실제 도로의 종단 경사는32%를 넘지 않는다.
+	var count := curve.point_count
+	for direction in [1, -1]:
+		for step in range(1, count):
+			var index: int = step if direction > 0 else count - 1 - step
+			var neighbor := curve.get_point_position(index - direction)
+			var point := curve.get_point_position(index)
+			point.y = clampf(point.y, neighbor.y - 1.6, neighbor.y + 1.6)
+			curve.set_point_position(index, point)
+	var heights := PackedFloat32Array()
+	for i in range(count):
+		var height := 0.0
+		for offset in range(-2, 3):
+			height += curve.get_point_position(clampi(i + offset, 0, count - 1)).y * (3 - abs(offset))
+		heights.append(height / 9)
+	for i in range(count):
+		var point := curve.get_point_position(i)
+		point.y = heights[i]
+		curve.set_point_position(i, point)
 
 
 func point(distance: float, lane: float = 0) -> Vector3:
@@ -248,7 +319,8 @@ func point(distance: float, lane: float = 0) -> Vector3:
 	var bank := bank_at(d)
 	# Speedway camber lifts its inner edge above the infield; Fuji rolls about
 	# its centreline so the elevated crossing has a consistent deck height.
-	var bank_height := lane * tan(bank)
+	var bank_lane := clampf(lane, -half_width(d), half_width(d)) if closed_loop and course_id == 1 else lane
+	var bank_height := bank_lane * tan(bank)
 	if closed_loop and course_id == 1:
 		bank_height += half_width(d) * absf(tan(bank))
 	return p + Vector3(-forward.z, 0, forward.x).normalized() * lane + Vector3.UP * bank_height
@@ -359,7 +431,9 @@ func authored_half_width(distance: float) -> float:
 	if closed_loop and course_id == 1:
 		return width_profile(SUNCOAST_WIDTH, fposmod(distance, length) / length)
 	if closed_loop and course_id == 2:
-		return width_profile(NIGHT_WIDTH, fposmod(distance, length) / length)
+		var d := fposmod(distance, length)
+		var corridor = preload("res://scripts/track/harbor_corridor.gd")
+		return lerpf(width_profile(NIGHT_WIDTH, d / length), corridor.HALF_WIDTH, corridor.weight(d))
 	if closed_loop and course_id == 4:
 		return 11.6 + 1.0 * pow(sin(TAU * fposmod(distance, length) / length), 2)
 	if closed_loop and course_id == 3:
@@ -387,10 +461,12 @@ func authored_half_width(distance: float) -> float:
 
 
 func rail_setback(distance: float, side: float) -> float:
-	if closed_loop and course_id == 1 and side > 0:
-		return .35
 	if closed_loop and course_id >= 1:
-		return 1.5
+		if runoff_samples.is_empty():
+			runoff_samples = preload("res://scripts/track/circuit_runoff.gd").build(self)
+		var u := fposmod(distance, length) / length * (runoff_samples.size() - 1)
+		var index := floori(u)
+		return runoff_samples[index].lerp(runoff_samples[index + 1], u - index)[0 if side < 0 else 1]
 	var d := fposmod(distance, length) if closed_loop else clampf(distance, 0, length)
 	if excavation_depth(d) > 0.05:
 		return 1.5
@@ -423,6 +499,11 @@ func rail_setback(distance: float, side: float) -> float:
 		)
 		width *= 1 - viaduct
 	return 1.5 + width * (1.0 if closed_loop else (1.0 - route_node * 0.10))
+
+
+func speedway_pit_wall(distance: float) -> bool:
+	var d := fposmod(distance, length)
+	return closed_loop and course_id == 1 and (d <= 930 or d >= length - 260)
 
 
 func roadside_point(distance: float, lane: float) -> Vector3:
@@ -527,11 +608,18 @@ func strip(left: float, right: float, height: float, mat: Material, begin: float
 
 
 func strip_edges(left: float, right: float, height: float, d: float) -> Array[Vector3]:
-	# point(d,lane)는 lane에 대해 선형이므로 양쪽 가장자리를 한 번의 표본으로 구한다.
+	# 도로 안은 선형이며 스피드웨이의 바깥 갓길은 경사를 끝내 평탄하게 잇는다.
 	var origin := point(d)
 	var lateral := point(d, 1) - origin
 	var lift := Vector3.UP * (height + surface_lift)
-	return [origin + lateral * surface_lane(left, d) + lift, origin + lateral * surface_lane(right, d) + lift]
+	var points: Array[Vector3] = []
+	for reference in [left, right]:
+		var lane := surface_lane(reference, d)
+		var p := origin + lateral * lane + lift
+		if closed_loop and course_id == 1:
+			p.y = origin.y + lateral.y * clampf(lane, -half_width(d), half_width(d)) + lift.y
+		points.append(p)
+	return points
 
 
 func strip_part(
@@ -558,6 +646,7 @@ func paint(color: Color) -> ShaderMaterial:
 	mat.shader = PAINT_SHADER
 	mat.set_shader_parameter("asphalt_texture", ASPHALT)
 	mat.set_shader_parameter("paint_color", color)
+	mat.set_shader_parameter("harbor_corridor", closed_loop and course_id == 2)
 	return mat
 
 
@@ -627,6 +716,9 @@ func _ready() -> void:
 			asphalt.set_shader_parameter(
 				"rain_wetness", 1.0 if region_metadata.get("weather", "") == "rain" and not closed_loop else 0.0
 			)
+			asphalt.set_shader_parameter("harbor_corridor", closed_loop and course_id == 2)
+			if closed_loop and course_id == 2:
+				asphalt.set_shader_parameter("yard_gravel", preload("res://assets/environment/dirt-shoulder.png"))
 			asphalt.set_shader_parameter("asphalt_texture", ASPHALT)
 			asphalt.set_shader_parameter("asphalt_variants", preload("res://assets/environment/asphalt-variants.png"))
 			road_surface = strip(-9, 9, 0, asphalt)

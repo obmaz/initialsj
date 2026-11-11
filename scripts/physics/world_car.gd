@@ -97,6 +97,11 @@ func feet_position() -> Vector3:
 	return global_position - global_basis.y * SUPPORT_HEIGHT
 
 
+func visual_frame(ride_offset: float) -> Transform3D:
+	# 모델 원점은 물리 상자의 중심이 아니라 타이어 접지면을 기준으로 한다.
+	return Transform3D(global_basis, feet_position() - surface_normal * ride_offset)
+
+
 # After a rail hit the nose is eased toward the road direction, fading out with the timer.
 # Only part of the angle is removed, so a hard hit still leaves the car visibly turned.
 func realigned(forward: Vector3, delta: float) -> Vector3:

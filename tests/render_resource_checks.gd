@@ -56,10 +56,7 @@ func run(tree: SceneTree) -> int:
 		Props.material_for("convenience_store").get_shader_parameter("building_fronts") is Texture2D,
 		"건물에 필요한 전용 정면 이미지는 유지해야 한다"
 	)
-	check(
-		Props.material_for("containers").get_shader_parameter("container_skins") is Texture2D,
-		"컨테이너의 전용 인쇄 이미지는 유지해야 한다"
-	)
+	check(Props.material_for("containers").get_shader_parameter("skins") is Texture2D, "컨테이너의 전용 인쇄 이미지는 유지해야 한다")
 	var viewport_was_disabled: bool = tree.root.disable_3d
 	var a = load("res://scenes/race.tscn").instantiate()
 	var b = load("res://scenes/race.tscn").instantiate()
@@ -86,6 +83,31 @@ func run(tree: SceneTree) -> int:
 		a.hud.menus.art(a.hud.menus.HOME_BG) is Texture2D and a.hud.menus.art(a.hud.menus.GARAGE_BG) is Texture2D,
 		"메뉴로 돌아오면 배경을 다시 읽어야 한다"
 	)
+	var cars: Array[Node3D] = []
+	for paint in [Color.RED, Color.BLUE]:
+		var car := preload("res://scripts/vehicles/car.gd").new()
+		car.traffic = true
+		car.model = "gt"
+		car.paint = paint
+		a.add_child(car)
+		cars.append(car)
+	check(
+		(
+			cars[0].body.get_node("BodyShell").mesh == cars[1].body.get_node("BodyShell").mesh
+			and cars[0].wheels[0].mesh == cars[1].wheels[0].mesh
+		),
+		"교통 차량은 생성 메시와 바퀴를 공유해야 한다"
+	)
+	check(cars[0].brake_lights[0] != cars[1].brake_lights[0], "교통 차량의 브레이크 발광 상태는 인스턴스마다 독립적으로 보존한다")
+	for car in cars:
+		check(car.headlight != null and car.headlamp_lenses.size() == 2, "캐시에서 만든 차량도 전조등·렌즈 참조를 복원해야 한다")
+		check(
+			car.body.get_node("BodyShell").material_override.get_shader_parameter("traffic_paint").is_equal_approx(
+				car.paint
+			),
+			"공유 메시를 쓰더라도 각 교통 차량의 도장색을 보존한다"
+		)
+		car.queue_free()
 	var quad := Pool.quad(Vector2(20, 8.75))
 	check(Pool.quad(quad.size) == quad and Pool.quad(Vector2.ONE) != quad, "같은 크기의 쿼드만 공유하고 다른 크기는 구분해야 한다")
 	var box := Pool.unit_box()
@@ -133,7 +155,16 @@ func run(tree: SceneTree) -> int:
 	check(Pool.owners == 1, "동일 노드 재진입은 _ready 재호출 없이도 캐시 소유권을 다시 가져야 한다")
 	b.queue_free()
 	await settle(tree)
-	check(Pool.owners == 0 and Pool.quads.is_empty() and Pool.box_mesh == null, "마지막 씬이 끝나면 공유 메시의 강한 참조를 해제해야 한다")
+	check(
+		(
+			Pool.owners == 0
+			and Pool.quads.is_empty()
+			and Pool.box_mesh == null
+			and Pool.traffic_models.is_empty()
+			and Pool.vehicle_wheels.is_empty()
+		),
+		"마지막 씬이 끝나면 공유 메시의 강한 참조를 해제해야 한다"
+	)
 	check(
 		(
 			Ads.materials.is_empty()

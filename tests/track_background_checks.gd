@@ -69,8 +69,12 @@ func run(tree: SceneTree) -> int:
 					- race.track.half_width(d)
 					- race.track.active.rail_setback(d, -1)
 				)
-				check(clearance >= 1.99 and clearance < 2.1, "패널 전체가 레일 밖2m에 붙어 차도를 가리지 않는다")
-				check(d >= 700, "피트 진출입·차고 앞에 광고판을 세우지 않는다")
+				check(clearance >= 1.99 and (placement.pit_roof or clearance < 2.1), "패널 전체가 레일 밖에 놓여 차도를 가리지 않는다")
+				if placement.pit_roof:
+					check(
+						placement.lane == -45 and p.y >= race.track.scenery.terrain_point(d, placement.lane).y + 7,
+						"피트 쪽 광고는 차고 지붕 위에 올려 진출입 통로를 비운다"
+					)
 				if previous >= 0:
 					check(
 						(
@@ -82,8 +86,12 @@ func run(tree: SceneTree) -> int:
 					)
 				var front: Vector3 = Basis(Vector3.UP, placement.yaw).z
 				var toward: Vector3 = (race.track.point(d - 40) - p).normalized()
-				check(front.dot(toward) > .96, "광고 정면은40m 뒤에서 접근하는 운전자에게 읽히는 각도를 향한다")
-				check(absf(placement.lane) < 45, "기존65m 대신 도로 가까이 광고를 배치한다")
+				if d <= 1050:
+					var audience: Vector3 = (race.track.point(d, 35) - p).normalized()
+					check(front.dot(audience) > .7, "피트 쪽 광고 정면은 맞은편 관중석을 향한다")
+				else:
+					check(front.dot(toward) > .96, "인필드 광고는 접근하는 운전자에게 읽히는 각도를 향한다")
+				check(absf(placement.lane) <= 45, "광고는 관중석 맞은편 피트 지붕이나 가까운 인필드에 둔다")
 				previous = d
 	check(textures.size() == 5, "다섯 트랙은 각자의 원경을 사용한다")
 	race.queue_free()
