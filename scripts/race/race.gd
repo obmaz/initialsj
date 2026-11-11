@@ -252,7 +252,7 @@ func _ready() -> void:
 	add_child(player)
 	var colors := ["e7c456", "91aabe", "aaa3b7", "e8e5dc", "4c9c97", "ad6f55", "62798c"]
 	for i in range(16):
-		var car := Car.new()
+		var car := Factory.create(i % Catalog.SPECS.size())
 		car.traffic = true
 		car.paint = Color(colors[i % colors.size()])
 		add_child(car)
@@ -379,7 +379,7 @@ func initialize_traffic() -> void:
 			r.lane = -2.0 if r.id % 2 == 0 else 2.0
 			r.target_lane = r.lane
 			r.speed = 0.0
-			r.pace = vehicle.max_speed * (0.94 + r.id * 0.018)
+			r.pace = float(r.specification.max_speed) * float(r.style.pace) * (0.96 + (r.id % 3) * 0.015)
 	else:
 		# The Tour is a solo time attack: no CPU cars on the road.
 		for r in rivals:

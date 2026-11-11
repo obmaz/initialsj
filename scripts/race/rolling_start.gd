@@ -46,7 +46,8 @@ static func advance(race: Node3D, delta: float) -> void:
 		var right := Vector3(-forward.z, 0, forward.x).normalized()
 		var aim: Vector3 = race.track.point(tracker.distance + 28, lane) - body.feet_position()
 		var angle := atan2(aim.dot(right), aim.dot(forward))
-		var wheel: float = (.46 + race.vehicle.handling * .007) / (1 + SPEED * .035) * body.steering_scale(SPEED)
+		var spec: Dictionary = race.vehicle if i == 0 else race.rivals[i - 1].specification
+		var wheel: float = (.46 + float(spec.handling) * .007) / (1 + SPEED * .035) * body.steering_scale(SPEED)
 		body.advance(delta, clampf(atan(5.4 * sin(angle) / 28) / wheel, -1, 1), SPEED, false)
 		var data: Dictionary = tracker.update(body.feet_position(), delta)
 		if i == 0:

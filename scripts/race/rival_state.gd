@@ -24,6 +24,17 @@ var world_reverse_axis := 0.0
 # 먼 차량이 건너뛴 물리 시간과 표시 애니메이션 실행 여부.
 var lod_time := 0.0
 var visual_running := true
+var vehicle_index := 0
+var specification: Dictionary = {}
+var style: Dictionary = {}
+var boost_energy := 0.0
+var boost_charges := 0
+var boost_left := 0.0
+var boost_cooldown := 0.0
+var boost_lap := 0
+var corner_memory := 0.0
+var nitro_active := false
+var boost_cell := false
 
 
 func _init(visual: Node3D = null) -> void:
@@ -33,6 +44,7 @@ func _init(visual: Node3D = null) -> void:
 # 경기 시작 전의 기본 배치. 모드별 배치는 race.gd가 이어서 덮어쓴다.
 func reset(index: int) -> void:
 	id = index
+	preload("res://scripts/race/rival_driving.gd").reset(self, index)
 	active = index < 8
 	distance = 150.0 + index * 57
 	speed = 32.0 + (index % 5) * 4
