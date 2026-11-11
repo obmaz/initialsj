@@ -1,0 +1,15 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://shaders/painted_steel.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://assets/environment/generated-structure-variants.png" id="2"]
+
+[resource]
+shader = ExtResource("1")
+shader_parameter/material_atlas = ExtResource("2")
+shader_parameter/material_tile = Vector2(0, 0)
+shader_parameter/paint_color = Color(0.77, 0.75, 0.69, 1)
+shader_parameter/metalness = 0.0
+shader_parameter/surface_roughness = 0.94
+shader_parameter/concrete_family = true
+shader_parameter/uv_projection = false
+shader_parameter/texture_scale = 0.32

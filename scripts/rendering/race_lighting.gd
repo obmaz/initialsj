@@ -135,12 +135,12 @@ func update(delta: float) -> void:
 		"neon":
 			profile.merge(
 				{
-					"top": Color("101027"),
-					"horizon": Color("383456"),
-					"fog": Color("292a46"),
-					"sun": 0.12,
-					"ambient": 0.5,
-					"sun_color": Color("b7c4ef")
+					"top": Color("16121d"),
+					"horizon": Color("493039"),
+					"fog": Color("30232d"),
+					"sun": 0.16,
+					"ambient": 0.34,
+					"sun_color": Color("f3d5b3")
 				},
 				true
 			)

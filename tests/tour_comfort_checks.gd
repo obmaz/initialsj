@@ -12,6 +12,25 @@ func check(ok: bool, message: String) -> void:
 		push_error(message)
 
 
+func check_closed_soffit(mesh: Mesh) -> void:
+	var points := {}
+	var edges := {}
+	var faces := mesh.get_faces()
+	for start in range(0, faces.size(), 3):
+		var ids: Array[int] = []
+		for corner in range(3):
+			var point: Vector3 = faces[start + corner]
+			if not points.has(point):
+				points[point] = points.size()
+			ids.append(points[point])
+		for corner in range(3):
+			var a := ids[corner]
+			var b := ids[(corner + 1) % 3]
+			var edge := Vector2i(mini(a, b), maxi(a, b))
+			edges[edge] = edges.get(edge, 0) + 1
+	check(edges.values().all(func(count): return count == 2), "고가 하부는 열린 경계나 겹친 난간 면 없이 닫혀야 한다")
+
+
 func run(tree: SceneTree) -> int:
 	var tunnels := 0
 	var skyways := 0
@@ -47,6 +66,16 @@ func run(tree: SceneTree) -> int:
 	for pair in [[1, 1], [3, 1], [3, 3]]:
 		var road := Section.new(Vector3(0, 6, 0), -PI / 2, pair[0], pair[1])
 		tree.root.add_child(road)
+		var soffit: MeshInstance3D = road.get_node("SkywayConcreteSoffit")
+		check(soffit.mesh != null and soffit.mesh.get_faces().size() > 100, "고가 하부는 닫힌 입체 GLB로 연결한다")
+		check_closed_soffit(soffit.mesh)
+		check(not soffit.has_meta("world_ground"), "장식용 바닥판이 새로운 주행 노면이나 허공의 접지를 만들면 안 된다")
+		var supports := 0
+		for node in road.get_children():
+			if node.has_meta("structural_mass_version"):
+				supports += 1
+				check(node.material_override is ShaderMaterial, "교각 기둥·받침보·기단에 콘크리트 표면을 연결한다")
+		check(supports == 1, "고가의 실제 지지 구조 배치를 유지한다")
 		check(
 			road.scenery.building_manifest.size() >= (45 if pair[0] == 3 and pair[1] == 1 else 70),
 			"도시 배경은 여러 줄의 충분한 건물 군집을 가져야 한다"

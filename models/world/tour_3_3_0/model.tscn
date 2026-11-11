@@ -64,6 +64,13 @@
 [ext_resource type="Shader" path="res://shaders/course_banner.gdshader" id="62_1728t"]
 [ext_resource type="Script" path="res://scripts/rendering/world_asset_preview.gd" id="63_5qi6l"]
 
+[ext_resource type="Material" path="res://models/shared/bridge_concrete.tres" id="MassConcrete"]
+
+[ext_resource type="Material" path="res://models/shared/bridge_soffit.tres" id="MassSoffit"]
+
+[ext_resource type="Texture2D" path="res://assets/environment/hong-kong-night-facades.png" id="HongKongFacades"]
+[ext_resource type="PackedScene" path="res://models/world/tour_3_3_0/market.tscn" id="NeonMarket"]
+
 [sub_resource type="Curve3D" id="Curve3D_agsok"]
 bake_interval = 2.0
 _data = {
@@ -686,8 +693,8 @@ roughness = 0.65
 
 [sub_resource type="MultiMesh" id="MultiMesh_quwex"]
 transform_format = 1
-instance_count = 14
-buffer = PackedFloat32Array(0.30661777, 0, -0.9518327, 1706.3402, 0, 3.888, 0, 86.68673, 0.9518327, 0, 0.30661777, -941.61127, 2.767296, 0, -0.8566494, 1707.5706, 0, 0.7, 0, 88.13073, 8.590509, 0, 0.27595598, -937.79193, 0.23347904, 0, -0.97236186, 1736.1321, 0, 6, 0, 92.26611, 0.97236186, 0, 0.23347904, -949.96515, 2.1072075, 0, -0.87512565, 1737.0688, 0, 0.7, 0, 94.76611, 8.775812, 0, 0.21013112, -946.0634, 0.16622826, 0, -0.9860873, 1766.4539, 0, 6, 0, 95.80661, 0.9860873, 0, 0.16622826, -956.1639, 1.5002602, 0, -0.8874786, 1767.1208, 0, 0.7, 0, 98.30661, 8.899735, 0, 0.14960544, -952.20703, 0.10510613, 0, -0.994461, 1797.1381, 0, 6, 0, 97.91514, 0.994461, 0, 0.10510613, -960.3143, 0.94151586, 0, -0.8950149, 1797.5562, 0, 0.7, 0, 100.41514, 8.908147, 0, 0.094595514, -956.3574, 0.049363647, 0, -0.99878085, 1827.9884, 0, 6, 0, 98.88195, 0.99878085, 0, 0.049363647, -962.37683, 0.4253825, 0, -0.8989027, 1828.1765, 0, 0.7, 0, 101.38195, 8.606817, 0, 0.04442728, -958.5728, -0.0015871956, 0, -0.99999875, 1858.8137, 0, 6, 0, 99.533905, 0.99999875, 0, -0.0015871956, -962.5956, -0.012833979, 0, -0.89999884, 1858.8081, 0, 0.7, 0, 102.033905, 8.085937, 0, -0.001428476, -959.0526, -0.048570752, 0, -0.99881977, 1889.5243, 0, 6, 0, 99.90335, 0.99881977, 0, -0.048570752, -961.22516, -0.362947, 0, -0.89893776, 1889.3672, 0, 0.7, 0, 102.40335, 7.4637227, 0, -0.043713674, -957.9927)
+instance_count = 28
+buffer = PackedFloat32Array(0.735882668, 0, -2.47476509, 1706.3402, 0, 3.888, 0, 86.68673, 2.28439854, 0, 0.797206224, -941.61127, 2.767296, 0, -0.8566494, 1707.5706, 0, 1.5, 0, 87.73073, 8.590509, 0, 0.27595598, -937.79193, 0.560349682, 0, -2.52814077, 1736.1321, 0, 6, 0, 92.26611, 2.33366841, 0, 0.607045489, -949.96515, 2.1072075, 0, -0.87512565, 1737.0688, 0, 1.5, 0, 94.36611, 8.775812, 0, 0.21013112, -946.0634, 0.398947824, 0, -2.56382698, 1766.4539, 0, 6, 0, 95.80661, 2.36660952, 0, 0.432193477, -956.1639, 1.5002602, 0, -0.8874786, 1767.1208, 0, 1.5, 0, 97.90661, 8.899735, 0, 0.14960544, -952.20703, 0.252254715, 0, -2.58559863, 1797.1381, 0, 6, 0, 97.91514, 2.38670642, 0, 0.273275941, -960.3143, 0.94151586, 0, -0.8950149, 1797.5562, 0, 1.5, 0, 100.01514, 8.908147, 0, 0.094595514, -956.3574, 0.118472755, 0, -2.59683027, 1827.9884, 0, 6, 0, 98.88195, 2.39707409, 0, 0.128345485, -962.37683, 0.4253825, 0, -0.8989027, 1828.1765, 0, 1.5, 0, 100.98195, 8.606817, 0, 0.04442728, -958.5728, -0.0038092694, 0, -2.59999673, 1858.8137, 0, 6, 0, 99.533905, 2.39999698, 0, -0.00412670852, -962.5956, -0.012833979, 0, -0.89999884, 1858.8081, 0, 1.5, 0, 101.633905, 8.085937, 0, -0.001428476, -959.0526, -0.116569802, 0, -2.59693134, 1889.5243, 0, 6, 0, 99.90335, 2.39716739, 0, -0.126283952, -961.22516, -0.362947, 0, -0.89893776, 1889.3672, 0, 1.5, 0, 102.00335, 7.4637227, 0, -0.043713674, -957.9927, 1.16514756, 0, -3.8073309, 1706.3402, 0, 0.75, 0, 84.79273, 3.61696436, 0, 1.22647111, -941.61127, 0.981176891, 0, -3.23623127, 1706.3402, 0, 0.85, 0, 87.98073, 3.04586472, 0, 1.04250045, -941.61127, 0.88722033, 0, -3.88944734, 1736.1321, 0, 0.75, 0, 89.31611, 3.69497498, 0, 0.933916137, -949.96515, 0.74713291, 0, -3.30603024, 1736.1321, 0, 0.85, 0, 94.61611, 3.11155788, 0, 0.793828717, -949.96515, 0.631667389, 0, -3.9443492, 1766.4539, 0, 0.75, 0, 92.85661, 3.74713174, 0, 0.664913041, -956.1639, 0.531930433, 0, -3.35269682, 1766.4539, 0, 0.85, 0, 98.15661, 3.15547936, 0, 0.565176085, -956.1639, 0.399403298, 0, -3.97784404, 1797.1381, 0, 0.75, 0, 94.96514, 3.77895184, 0, 0.420424524, -960.3143, 0.33633962, 0, -3.38116744, 1797.1381, 0, 0.85, 0, 100.26514, 3.18227523, 0, 0.357360846, -960.3143, 0.187581863, 0, -3.99512349, 1827.9884, 0, 0.75, 0, 95.93195, 3.79536731, 0, 0.197454592, -962.37683, 0.157963674, 0, -3.39585496, 1827.9884, 0, 0.85, 0, 101.23195, 3.19609879, 0, 0.167836403, -962.37683, -0.00603134322, 0, -3.99999496, 1858.8137, 0, 0.75, 0, 96.583905, 3.79999521, 0, -0.00634878234, -962.5956, -0.00507902587, 0, -3.39999572, 1858.8137, 0, 0.85, 0, 101.883905, 3.19999597, 0, -0.00539646499, -962.5956, -0.184568853, 0, -3.99527898, 1889.5243, 0, 0.75, 0, 96.95335, 3.79551503, 0, -0.194283003, -961.22516, -0.155426402, 0, -3.39598713, 1889.5243, 0, 0.85, 0, 102.25335, 3.19622318, 0, -0.165140553, -961.22516)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_aesr3"]
 render_priority = 0
@@ -795,6 +802,7 @@ shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 0
 shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_y6hoh"]
 transform_format = 1
@@ -814,6 +822,7 @@ shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 1
 shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_gcqta"]
 transform_format = 1
@@ -833,6 +842,7 @@ shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 2
 shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_t8hin"]
 transform_format = 1
@@ -852,6 +862,7 @@ shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 3
 shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_45n8q"]
 transform_format = 1
@@ -871,6 +882,7 @@ shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 4
 shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_5i0ye"]
 transform_format = 1
@@ -890,6 +902,7 @@ shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 5
 shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_42p53"]
 transform_format = 1
@@ -909,6 +922,7 @@ shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 6
 shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_whk8b"]
 transform_format = 1
@@ -928,6 +942,7 @@ shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 7
 shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_dme10"]
 transform_format = 1
@@ -947,6 +962,7 @@ shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 8
 shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_fpape"]
 transform_format = 1
@@ -966,6 +982,7 @@ shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 9
 shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_b3om6"]
 transform_format = 1
@@ -985,6 +1002,7 @@ shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 10
 shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_gxgsp"]
 transform_format = 1
@@ -1004,6 +1022,7 @@ shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 11
 shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_epybt"]
 transform_format = 1
@@ -2083,7 +2102,8 @@ shader_parameter/ruined = false
 shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 0
-shader_parameter/regional_style = 0
+shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_lmvgk"]
 transform_format = 1
@@ -2102,7 +2122,8 @@ shader_parameter/ruined = false
 shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 3
-shader_parameter/regional_style = 0
+shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_6yb81"]
 transform_format = 1
@@ -2121,7 +2142,8 @@ shader_parameter/ruined = false
 shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 6
-shader_parameter/regional_style = 0
+shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_y65bp"]
 transform_format = 1
@@ -2140,7 +2162,8 @@ shader_parameter/ruined = false
 shader_parameter/night_city = true
 shader_parameter/industrial_facade = false
 shader_parameter/facade_style = 8
-shader_parameter/regional_style = 0
+shader_parameter/regional_style = 2
+shader_parameter/neon_facades = ExtResource("HongKongFacades")
 
 [sub_resource type="MultiMesh" id="MultiMesh_67qf8"]
 transform_format = 1
@@ -4299,9 +4322,10 @@ cast_shadow = 0
 metadata/mesh_ref = "res://models/world/tour_3_3_0/geometry.glb#Geometry0092"
 
 [node name="Part0136" type="MultiMeshInstance3D" parent="." unique_id=1282430847]
-material_override = SubResource("StandardMaterial3D_h377v")
+material_override = ExtResource("MassConcrete")
 multimesh = SubResource("MultiMesh_quwex")
 metadata/mesh_ref = "res://models/world/tour_3_3_0/geometry.glb#Geometry0093"
+metadata/structural_mass_version = 1
 
 [node name="Part0137" type="MeshInstance3D" parent="." unique_id=1654850430]
 material_override = SubResource("ShaderMaterial_aesr3")
@@ -8686,3 +8710,10 @@ metadata/mesh_ref = "res://models/world/tour_3_3_0/geometry.glb#Geometry0184"
 
 [node name="GLBPreview" type="Node" parent="." unique_id=1954062422]
 script = ExtResource("63_5qi6l")
+[node name="SkywayConcreteSoffit" type="MeshInstance3D" parent="."]
+material_override = ExtResource("MassSoffit")
+metadata/soffit_depth = 0.95
+metadata/mesh_ref = "res://models/world/tour_3_3_0/geometry.glb#SkywayConcreteSoffit"
+
+
+[node name="NeonMarketStreet" parent="." instance=ExtResource("NeonMarket")]

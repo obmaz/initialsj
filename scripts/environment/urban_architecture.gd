@@ -5,6 +5,7 @@ const Variants = preload("res://scripts/environment/facade_variants.gd")
 const FACADE_IMAGES := "res://assets/environment/urban-harbor-facades.png"
 const FACADE_EXTRA := "res://assets/environment/urban-truck-elevations.png"
 const STRUCTURE_IMAGES := "res://assets/environment/generated-structure-variants.png"
+const NEON_FACADES := "res://assets/environment/hong-kong-night-facades.png"
 
 
 static func count() -> int:
@@ -104,4 +105,6 @@ static func material(style: int, theme: String) -> Material:
 	material.set_shader_parameter("facade_style", definition.parameters.facade_index)
 	material.set_shader_parameter("night_city", theme == "neon")
 	material.set_shader_parameter("regional_style", 1 if theme == "seoul" else (2 if theme == "neon" else 0))
+	if theme == "neon":
+		material.set_shader_parameter("neon_facades", RenderResources.fetch(NEON_FACADES))
 	return material

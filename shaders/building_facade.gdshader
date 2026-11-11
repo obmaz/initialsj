@@ -4,6 +4,7 @@ uniform sampler2D facade_images : source_color, filter_linear_mipmap_anisotropic
 uniform sampler2D facade_extra : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D facade_alternate_a : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D facade_alternate_b : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+uniform sampler2D neon_facades : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform bool ruined = false;
 uniform bool night_city = false;
 uniform bool industrial_facade = false;
@@ -41,7 +42,8 @@ void fragment() {
 	vec2 alternate_uv=alternate_tile*vec2(.25,1./3.)+vec2(.002,.004)+q*vec2(.246,1./3.-.008);
 	vec2 gradient_x=dFdx(projected)*vec2(.246,1./3.-.008),gradient_y=dFdy(projected)*vec2(.246,1./3.-.008);
 	vec3 photographed;
-	if(skin>.5 && skin<1.5) photographed=textureGrad(facade_alternate_a,alternate_uv,gradient_x,gradient_y).rgb;
+	if(regional_style==2) photographed=textureGrad(neon_facades,alternate_uv,gradient_x,gradient_y).rgb;
+	else if(skin>.5 && skin<1.5) photographed=textureGrad(facade_alternate_a,alternate_uv,gradient_x,gradient_y).rgb;
 	else if(skin>1.5) photographed=textureGrad(facade_alternate_b,alternate_uv,gradient_x,gradient_y).rgb;
 	else if(extra) photographed=textureGrad(facade_extra,uv,gradient_x,gradient_y).rgb;
 	else photographed=textureGrad(facade_images,uv,gradient_x,gradient_y).rgb;
@@ -81,6 +83,14 @@ void fragment() {
 	if (night_city) {
 		float room = fract(sin(dot(floor(vec2(u/3.2,v/4.0)),vec2(12.98,78.23))+dimensions.a*17.0)*43758.5);
 		vec3 window_light = mix(vec3(0.85,0.42,0.12),vec3(0.08,0.55,0.85),step(0.5,dimensions.a));
+		if(regional_style==2) {
+			float hue=fract(room*13.17+dimensions.a*5.31);
+			window_light=vec3(1.0,.51,.17);
+			if(hue>.58) window_light=vec3(1.0,.80,.46);
+			if(hue>.82) window_light=vec3(.85,.94,.83);
+			if(hue>.92) window_light=vec3(.18,.68,.61);
+			if(hue>.97) window_light=vec3(.64,.13,.35);
+		}
 		ALBEDO *= industrial_facade ? .95 : .55;
 		EMISSION = window_light*pane*step(0.42,room)*0.95;
 		if (industrial_facade) {
@@ -88,6 +98,13 @@ void fragment() {
 			EMISSION=photographed*smoothstep(.25,.65,glow)*1.1;
 		}
 		EMISSION += mix(vec3(0.15,0.03,0.24),vec3(0.02,0.25,0.34),dimensions.a)*floor_line;
+		if(regional_style==2) {
+			float peak=max(photographed.r,max(photographed.g,photographed.b));
+			float saturation=peak-min(photographed.r,min(photographed.g,photographed.b));
+			EMISSION=photographed*smoothstep(.23,.72,peak)*(.52+.78*smoothstep(.08,.3,saturation));
+			EMISSION+=window_light*pane*step(.74,room)*.22;
+			ALBEDO=photographed*vec3(.82,.77,.72);
+		}
 	}
 	}
 	float luma=dot(photographed,vec3(.2126,.7152,.0722));

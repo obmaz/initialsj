@@ -1,6 +1,7 @@
 extends RefCounted
 const Section = preload("res://scripts/track/road_section.gd")
 const Props = preload("res://scripts/environment/regional_props_3d.gd")
+const Assets = preload("res://scripts/rendering/world_assets.gd")
 var failures := 0
 
 
@@ -74,6 +75,23 @@ func run(tree: SceneTree) -> int:
 					),
 					"서울 전망대의 원형 전망실도 전용 유리 외벽을 사용한다"
 				)
+			if scenery.theme == "neon":
+				for node in Assets.nodes(road):
+					if not node is GeometryInstance3D:
+						continue
+					var material: Material = node.material_override
+					if (
+						material is ShaderMaterial
+						and material.shader.resource_path == "res://shaders/building_facade.gdshader"
+					):
+						check(
+							(
+								material.get_shader_parameter("neon_facades") is Texture2D
+								and material.get_shader_parameter("regional_style") == 2
+								and material.get_shader_parameter("night_city") == true
+							),
+							"네온시티의 근경·원경 빌딩 모두 전용 야간 외벽을 연결한다"
+						)
 			if scenery.theme == "canyon":
 				var meshes: Array = scenery.landmarks.get_children().filter(
 					func(node):
@@ -91,6 +109,22 @@ func run(tree: SceneTree) -> int:
 			road.queue_free()
 			await tree.process_frame
 	check(regions == 15 and textured_kinds.size() >= 6, "투어15지역에서 실제 사용하는 여러 종류의 건물을 검사해야 한다")
+	for entry in [-1, 0, 1]:
+		var road := Section.new(Vector3(300, 20, -50), .7, 3, 3, entry)
+		tree.root.add_child(road)
+		var market: Node3D = road.get_node("NeonMarketStreet")
+		var records: Array = market.get_meta("market_manifest")
+		var variants := {}
+		for record in records:
+			variants[record.variant] = true
+		check(records.size() >= 30 and variants.size() == 12, "모든 진입 방향에12종의 밀집 상가 이미지를 배치한다")
+		check(market.get_meta("sign_count") > records.size(), "상가 앞에 입체 돌출 간판을 충분히 배치한다")
+		for batch in market.get_children():
+			check(batch.multimesh.mesh != null, "하위 조립 씬의 메시도 실제 GLB 형상에 연결한다")
+			check(batch.multimesh.instance_count <= 12 and batch.visibility_range_end > 0, "거리별 셀 배치와 컬링을 유지한다")
+		check(road.asset_paths.has("res://models/props/neon_tenement/model.glb"), "분기 진입 전에 새 상가 GLB를 미리 읽는다")
+		road.queue_free()
+		await tree.process_frame
 	if pool.release_owner():
 		Props.clear_cache()
 		preload("res://scripts/environment/tour_vegetation.gd").clear_cache()

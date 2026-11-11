@@ -1,0 +1,1044 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://models/props/neon_tenement/material.tres" id="1_cdprs"]
+[ext_resource type="Material" path="res://models/props/neon_blade_sign/material.tres" id="2_4tf2b"]
+[ext_resource type="Shader" path="res://shaders/neon_spill.gdshader" id="3_qtcub"]
+
+[sub_resource type="MultiMesh" id="MultiMesh_o5x8g"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 4
+buffer = PackedFloat32Array(1.0779954, 0, -0.21533199, 674.9181, 0, 1.24, 0, 88.00051, 0.2427978, 0, 0.9560503, -78.123505, 1, 1, 1, 1, 0.08331299, 0, 0, 1, -1.1028855, 0, 0.060598135, 667.5972, 0, 1.24, 0, 87.93468, -0.06832749, 0, -0.9781247, -26.801823, 1, 1, 1, 1, 0.25, 0, 0, 1, 0.8402477, 0, -0.3090488, 702.69257, 0, 0.9, 0, 88.01287, 0.26150283, 0, 0.99302, -73.92765, 1, 1, 1, 1, 0.6665039, 0, 0, 1, 0.9231871, 0, -0.43458283, 756.3086, 0, 1.07, 0, 87.995605, 0.4567554, 0, 0.87837225, -57.361614, 1, 1, 1, 1, 0.8330078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_dtdsc"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(0.75936455, 0, -0.70264804, 852.84296, 0, 0.985, 0, 87.78858, 0.6958918, 0, 0.76673704, -2.1893673, 1, 1, 1, 1, 0.16662598, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_lfsva"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(-0.6706906, 0, 0.63445425, 855.3157, 0, 1.155, 0, 86.0715, -0.569714, 0, -0.7469055, 73.41656, 1, 1, 1, 1, 0.5, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_pod2b"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(0.5804322, 0, -0.8258677, 913.0401, 0, 1.24, 0, 84.904366, 0.75836897, 0, 0.6320936, 54.348724, 1, 1, 1, 1, 0.9165039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_y4v11"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-0.5567648, 0, 0.74747455, 931.28705, 0, 1.155, 0, 87.17955, -0.7759111, 0, -0.5363598, 169.84021, 1, 1, 1, 1, 0.4165039, 0, 0, 1, -0.5768681, 0, 0.88702977, 955.022, 0, 0.9, 0, 93.39488, -0.9424692, 0, -0.54293466, 213.38011, 1, 1, 1, 1, 0.5830078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_ibboe"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(0.4196951, 0, -0.9620651, 1002.2395, 0, 0.9, 0, 93.32207, 1.0221943, 0, 0.39500713, 189.42886, 1, 1, 1, 1, 0.4165039, 0, 0, 1, 0.308162, 0, -0.86174643, 1012.5201, 0, 0.985, 0, 90.00089, 0.8242792, 0, 0.3221694, 213.89603, 1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_5xh0o"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(-0.7622035, 0, 0.48980477, 1173.5049, 0, 1.07, 0, 27.902355, -0.43982467, 0, -0.8488176, 594.55743, 1, 1, 1, 1, 0.5, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_h2bsi"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-1.0903714, 0, 0.15893494, 1250.4602, 0, 0.9, 0, 25.701006, -0.17920725, 0, -0.96702623, 629.6921, 1, 1, 1, 1, 0.25, 0, 0, 1, -0.95195174, 0, -0.07344812, 1306.6967, 0, 1.07, 0, 26.34753, 0.07624234, 0, -0.9170635, 636.74036, 1, 1, 1, 1, 0.4165039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_uxs1p"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-0.8065179, 0, -0.368037, 1389.997, 0, 0.9, 0, 31.661911, 0.35203534, 0, -0.8431778, 623.9638, 1, 1, 1, 1, 0.16662598, 0, 0, 1, 0.94316113, 0, 0.41795972, 1417.3085, 0, 1.07, 0, 44.5026, -0.41394088, 0, 0.952318, 561.474, 1, 1, 1, 1, 0.16662598, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_uagpe"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-0.8653561, 0, -0.5640458, 1440.2201, 0, 1.07, 0, 44.432613, 0.55862224, 0, -0.8737576, 604.0828, 1, 1, 1, 1, 0.33325195, 0, 0, 1, -0.72202206, 0, -0.68070155, 1508.589, 0, 0.9, 0, 54.60211, 0.6250673, 0, -0.78628576, 561.7163, 1, 1, 1, 1, 0.08331299, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_ntvj3"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(1.0129529, 0, -0.16668764, 1798.0356, 0, 1.155, 0, 65.5416, 0.18661767, 0, 0.9047736, 389.07434, 1, 1, 1, 1, 0.5, 0, 0, 1, 0.8258186, 0, -0.3592875, 1853.4973, 0, 0.9, 0, 73.94777, 0.3040125, 0, 0.9759674, 397.6735, 1, 1, 1, 1, 0.6665039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_rfbh8"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-1.098345, 0, 0.10739327, 1815.4641, 0, 1.24, 0, 69.47551, -0.121091396, 0, -0.9740979, 447.0678, 1, 1, 1, 1, 0.25, 0, 0, 1, -0.863648, 0, 0.19955626, 1837.9736, 0, 0.9, 0, 73.80281, -0.16885531, 0, -1.0206748, 453.14844, 1, 1, 1, 1, 0.8330078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_pcldx"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(0.86802983, 0, -0.38358927, 1879.6869, 0, 0.985, 0, 78.45708, 0.39818233, 0, 0.8362173, 407.1233, 1, 1, 1, 1, 0.25, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_c8qnj"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-0.97053176, 0, 0.32817373, 1882.3188, 0, 1.07, 0, 82.75092, -0.34491727, 0, -0.92341864, 468.7517, 1, 1, 1, 1, 0, 0, 0, 1, -0.78382474, 0, 0.41820636, 1924.7361, 0, 1.24, 0, 90.465385, -0.4000235, 0, -0.8194532, 490.77634, 1, 1, 1, 1, 0.16662598, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_1csxd"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(0.6117943, 0, -0.79857033, 2059.4666, 0, 1.24, 0, 96.44833, 0.7333026, 0, 0.6662472, 529.6406, 1, 1, 1, 1, 0.9165039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_3fk7q"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-0.86106575, 0, 0.21457659, 2445.9578, 0, 0.985, 0, 65.07967, -0.18156481, 0, -1.0176231, 1113.2417, 1, 1, 1, 1, 0.8330078, 0, 0, 1, -1.1020967, 0, -0.07534029, 2526.8486, 0, 1.24, 0, 46.151913, 0.08004907, 0, -1.0372674, 1126.499, 1, 1, 1, 1, 0.5830078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_vxtix"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(0.9202922, 0, -0.24577187, 2481.5295, 0, 1.07, 0, 60.108994, 0.2551219, 0, 0.88656425, 1075.1278, 1, 1, 1, 1, 0.25, 0, 0, 1, 1.0138797, 0, -0.17270444, 2504.4304, 0, 1.155, 0, 53.600315, 0.18151589, 0, 0.96466225, 1077.5339, 1, 1, 1, 1, 0.8330078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_fwbwl"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(0.87999886, 0, -0.0014954994, 2550.089, 0, 0.9, 0, 38.801144, 0.0014304776, 0, 0.9199988, 1077.8342, 1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_mmxk6"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(-0.92814434, 0, -0.23077165, 2580.6838, 0, 0.985, 0, 32.047207, 0.2248846, 0, -0.95244133, 1122.3337, 1, 1, 1, 1, 0.75, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_if07p"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 4
+buffer = PackedFloat32Array(0.9755615, 0, -0.21972652, 680.26874, 0, 1, 0, 91.60051, 0.21972652, 0, 0.9755615, -67.68267, 1, 1, 1, 1, 0.08331299, 0, 0, 1, -0.9980864, 0, 0.06183483, 660.6547, 0, 1, 0, 91.534676, -0.06183483, 0, -0.9980864, -36.25921, 1, 1, 1, 1, 0.25, 0, 0, 1, 0.95482695, 0, -0.29716232, 705.604, 0, 1, 0, 91.61287, 0.29716232, 0, 0.95482695, -63.14541, 1, 1, 1, 1, 0.6665039, 0, 0, 1, 0.89629817, 0, -0.44345185, 758.59076, 0, 1, 0, 91.595604, 0.44345185, 0, 0.89629817, -46.18003, 1, 1, 1, 1, 0.8330078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_iy4vs"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(0.73724717, 0, -0.6756231, 851.6355, 0, 1, 0, 91.38858, 0.6756231, 0, 0.73724717, 9.494938, 1, 1, 1, 1, 0.16662598, 0, 0, 1, -0.76214844, 0, 0.6474023, 856.5881, 0, 1, 0, 89.6715, -0.6474023, 0, -0.76214844, 62.675545, 1, 1, 1, 1, 0.5, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_kh336"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(0.60778236, 0, -0.7941036, 909.49866, 0, 1, 0, 88.504364, 0.7941036, 0, 0.60778236, 65.23702, 1, 1, 1, 1, 0.9165039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_x677e"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 3
+buffer = PackedFloat32Array(-0.58299977, 0, 0.81247234, 934.48016, 0, 1, 0, 90.77955, -0.81247234, 0, -0.58299977, 159.55605, 1, 1, 1, 1, 0.4165039, 0, 0, 1, -0.46639982, 0, 0.64997786, 941.63544, 0, 0.8, 0, 91.87955, -0.64997786, 0, -0.46639982, 170.64258, 1, 1, 1, 1, 0.8330078, 0, 0, 1, -0.5220526, 0, 0.85291326, 959.1422, 0, 1, 0, 96.99488, -0.85291326, 0, -0.5220526, 202.04837, 1, 1, 1, 1, 0.5830078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_s5e0r"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(0.37981457, 0, -0.92506266, 996.3701, 0, 1, 0, 96.922066, 0.92506266, 0, 0.37981457, 199.96144, 1, 1, 1, 1, 0.4165039, 0, 0, 1, 0.28014728, 0, -0.74934477, 1002.9257, 0, 0.8, 0, 94.70089, 0.74934477, 0, 0.28014728, 210.90652, 1, 1, 1, 1, 0.4165039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_lvulq"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(0.3501841, 0, -0.9366809, 1006.5695, 0, 1, 0, 93.60089, 0.9366809, 0, 0.3501841, 222.50922, 1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_kak1a"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(-0.86614037, 0, 0.49980077, 1172.8251, 0, 1, 0, 31.502356, -0.49980077, 0, -0.86614037, 583.7627, 1, 1, 1, 1, 0.5, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_p8q0l"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 3
+buffer = PackedFloat32Array(-0.98676145, 0, 0.1621785, 1244.5068, 0, 1, 0, 29.301006, -0.1621785, 0, -0.98676145, 619.5827, 1, 1, 1, 1, 0.25, 0, 0, 1, -0.9968081, 0, -0.079834916, 1299.5376, 0, 1, 0, 29.94753, 0.079834916, 0, -0.9968081, 628.6962, 1, 1, 1, 1, 0.4165039, 0, 0, 1, -0.7974465, 0, -0.063867934, 1312.7264, 0, 0.8, 0, 31.047531, 0.063867934, 0, -0.7974465, 628.292, 1, 1, 1, 1, 0.8330078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_eskhj"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 4
+buffer = PackedFloat32Array(-0.9164976, 0, -0.40004018, 1381.0762, 0, 1, 0, 35.26191, 0.40004018, 0, -0.9164976, 618.4849, 1, 1, 1, 1, 0.16662598, 0, 0, 1, -0.7331981, 0, -0.32003215, 1392.4663, 0, 0.8, 0, 36.36191, 0.32003215, 0, -0.7331981, 614.2226, 1, 1, 1, 1, 0.5830078, 0, 0, 1, 0.9156904, 0, 0.40188435, 1427.5117, 0, 1, 0, 48.1026, -0.40188435, 0, 0.9156904, 567.2941, 1, 1, 1, 1, 0.16662598, 0, 0, 1, -0.84015155, 0, -0.5423517, 1429.2213, 0, 1, 0, 48.03261, 0.5423517, 0, -0.84015155, 599.95886, 1, 1, 1, 1, 0.33325195, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_0ytr3"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(-0.75604403, 0, -0.65452075, 1497.5071, 0, 1, 0, 58.20211, 0.65452075, 0, -0.75604403, 558.8373, 1, 1, 1, 1, 0.08331299, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_uer3f"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 4
+buffer = PackedFloat32Array(0.9834495, 0, -0.1811822, 1803.3673, 0, 1, 0, 69.1416, 0.1811822, 0, 0.9834495, 398.7912, 1, 1, 1, 1, 0.5, 0, 0, 1, 0.7867596, 0, -0.14494577, 1789.5063, 0, 0.8, 0, 70.2416, 0.14494577, 0, 0.7867596, 395.5766, 1, 1, 1, 1, 0.9165039, 0, 0, 1, -0.9939774, 0, 0.10958497, 1808.9827, 0, 1, 0, 73.07551, -0.10958497, 0, -0.9939774, 437.28864, 1, 1, 1, 1, 0.25, 0, 0, 1, 0.93843025, 0, -0.34546876, 1855.8551, 0, 1, 0, 77.54777, 0.34546876, 0, 0.93843025, 408.59018, 1, 1, 1, 1, 0.6665039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_efr2o"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(-0.9814182, 0, 0.19188103, 1833.9103, 0, 1, 0, 77.40281, -0.19188103, 0, -0.9814182, 442.74545, 1, 1, 1, 1, 0.8330078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_fgkiy"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(0.9089318, 0, -0.41694486, 1882.0079, 0, 1, 0, 82.057076, 0.41694486, 0, 0.9089318, 417.63867, 1, 1, 1, 1, 0.25, 0, 0, 1, 0.72714543, 0, -0.3335559, 1870.3002, 0, 0.8, 0, 83.157074, 0.3335559, 0, 0.72714543, 411.55295, 1, 1, 1, 1, 0.6665039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_pear6"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 3
+buffer = PackedFloat32Array(-0.9422639, 0, 0.33487114, 1878.7365, 0, 1, 0, 86.35092, -0.33487114, 0, -0.9422639, 457.91647, 1, 1, 1, 1, 0, 0, 0, 1, -0.89070994, 0, 0.45457214, 1923.3109, 0, 1, 0, 94.065384, -0.45457214, 0, -0.89070994, 480.405, 1, 1, 1, 1, 0.16662598, 0, 0, 1, -0.712568, 0, 0.3636577, 1933.8322, 0, 0.8, 0, 95.16538, -0.3636577, 0, -0.712568, 486.50427, 1, 1, 1, 1, 0.5830078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_t3p6l"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(0.6406223, 0, -0.7678561, 2056.3857, 0, 1, 0, 100.04833, 0.7678561, 0, 0.6406223, 540.66815, 1, 1, 1, 1, 0.9165039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_lqnsd"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-0.9784838, 0, 0.20632365, 2442.048, 0, 1, 0, 68.67967, -0.20632365, 0, -0.9784838, 1102.78, 1, 1, 1, 1, 0.8330078, 0, 0, 1, -0.99737257, 0, -0.07244259, 2518.6714, 0, 1, 0, 49.75191, 0.07244259, 0, -0.99737257, 1117.6381, 1, 1, 1, 1, 0.5830078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_vxodj"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 3
+buffer = PackedFloat32Array(0.9636568, 0, -0.26714334, 2485.493, 0, 1, 0, 63.708992, 0.26714334, 0, 0.9636568, 1085.1405, 1, 1, 1, 1, 0.25, 0, 0, 1, 0.77092546, 0, -0.21371467, 2472.9663, 0, 0.8, 0, 64.80899, 0.21371467, 0, 0.77092546, 1080.9934, 1, 1, 1, 1, 0.6665039, 0, 0, 1, 0.9843492, 0, -0.17622901, 2509.7368, 0, 1, 0, 57.200314, 0.17622901, 0, 0.9843492, 1087.6372, 1, 1, 1, 1, 0.8330078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_j4toh"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(0.9999987, 0, -0.0016255428, 2556.059, 0, 1, 0, 42.401142, 0.0016255428, 0, 0.9999987, 1086.434, 1, 1, 1, 1, 0, 0, 0, 1, 0.79999894, 0, -0.0013004342, 2543.9163, 0, 0.8, 0, 43.501144, 0.0013004342, 0, 0.79999894, 1085.7642, 1, 1, 1, 1, 0.4165039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_o20cc"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(-0.9718789, 0, -0.23548126, 2572.251, 0, 1, 0, 35.647205, 0.23548126, 0, -0.9718789, 1115.1063, 1, 1, 1, 1, 0.75, 0, 0, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_gpfxy"]
+render_priority = 0
+shader = ExtResource("3_qtcub")
+
+[sub_resource type="MultiMesh" id="MultiMesh_mi0xb"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 4
+buffer = PackedFloat32Array(-0.6779279, 14.851177, 0, 673.04285, 0, 0, 1, 88.29937, 4.7518854, 2.1077373, 0, -64.977394, 1, 1, 1, 1, 0.08331299, 0, 0, 1, -0.6779279, 14.851177, 0, 669.58826, 0, 0, 1, 88.29937, 4.7518854, 2.1077373, 0, -40.75936, 1, 1, 1, 1, 0.25, 0, 0, 1, -1.0564452, 14.642391, 0, 699.58167, 0, 0, 1, 88.29938, 4.6822996, 3.2558227, 0, -60.139164, 1, 1, 1, 1, 0.6665039, 0, 0, 1, -1.7786242, 13.915455, 0, 751.06604, 0, 0, 1, 88.29937, 4.458307, 5.6000104, 0, -44.2213, 1, 1, 1, 1, 0.8330078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_1spg8"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-2.9504485, 11.82659, 0, 843.81476, 0, 0, 1, 88.17912, 3.78614, 9.226689, 0, 9.39637, 1, 1, 1, 1, 0.16662598, 0, 0, 1, -3.389367, 10.621198, 0, 866.4271, 0, 0, 1, 86.451416, 3.3988519, 10.591987, 0, 62.274002, 1, 1, 1, 1, 0.5, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_okjwu"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(-3.5669198, 10.041069, 0, 902.1253, 0, 0, 1, 85.342705, 3.2120223, 11.143471, 0, 64.17747, 1, 1, 1, 1, 0.9165039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_n07kb"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 3
+buffer = PackedFloat32Array(-4.1106057, 7.74445, 0, 944.3417, 0, 0, 1, 87.46141, 2.4784923, 12.846147, 0, 161.96895, 1, 1, 1, 1, 0.4165039, 0, 0, 1, -4.2807865, 6.7965574, 0, 989.1404, 0, 0, 1, 93.676, 2.171374, 13.371866, 0, 196.07344, 1, 1, 1, 1, 0.4165039, 0, 0, 1, -4.2807865, 6.7965574, 0, 969.4945, 0, 0, 1, 93.676, 2.171374, 13.371866, 0, 206.03886, 1, 1, 1, 1, 0.5830078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_dtry0"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(-4.347722, 6.371615, 0, 1000.1073, 0, 0, 1, 90.34012, 2.0340395, 13.579489, 0, 219.70316, 1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_3v8ec"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(-2.7228312, 12.316428, 0, 1180.4454, 0, 0, 1, 28.258503, 3.9529977, 8.561868, 0, 584.4802, 1, 1, 1, 1, 0.5, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_hpwi5"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-1.1536903, 14.560607, 0, 1253.4222, 0, 0, 1, 26.053852, 4.6592917, 3.6039882, 0, 617.7266, 1, 1, 1, 1, 0.25, 0, 0, 1, 0.0005859375, 14.99983, 0, 1306.6954, 0, 0, 1, 26.701092, 4.8, 0.07144521, 0, 624.3944, 1, 1, 1, 1, 0.4165039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_jtdvk"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(1.5632566, 14.181125, 0, 1385.6737, 0, 0, 1, 32.024464, 4.538307, -4.8883247, 0, 611.4119, 1, 1, 1, 1, 0.16662598, 0, 0, 1, 2.273408, 13.211153, 0, 1424.6625, 0, 0, 1, 44.822395, 4.2274837, -7.1039047, 0, 575.15015, 1, 1, 1, 1, 0.16662598, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_8dk4i"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(2.273408, 13.211153, 0, 1433.3634, 0, 0, 1, 44.822395, 4.2274837, -7.1039047, 0, 591.3314, 1, 1, 1, 1, 0.33325195, 0, 0, 1, 2.8423166, 12.094037, 0, 1500.0164, 0, 0, 1, 55.01949, 3.8679762, -8.873233, 0, 550.04913, 1, 1, 1, 1, 0.08331299, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_u14j5"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 4
+buffer = PackedFloat32Array(-0.4904225, 14.919427, 0, 1796.5503, 0, 0, 1, 65.834335, 4.774881, 1.552642, 0, 403.5423, 1, 1, 1, 1, 0.5, 0, 0, 1, -0.90467995, 14.719634, 0, 1818.1003, 0, 0, 1, 69.8334, 4.7139745, 2.886585, 0, 433.33252, 1, 1, 1, 1, 0.25, 0, 0, 1, -1.2937238, 14.439946, 0, 1849.3129, 0, 0, 1, 74.19366, 4.6223674, 4.0605383, 0, 412.62704, 1, 1, 1, 1, 0.6665039, 0, 0, 1, -1.2937238, 14.439946, 0, 1841.8751, 0, 0, 1, 74.19366, 4.6223674, 4.0605383, 0, 439.20602, 1, 1, 1, 1, 0.8330078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_byt41"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(-1.6470455, 14.089659, 0, 1874.6971, 0, 0, 1, 78.719, 4.5085745, 5.1460176, 0, 420.78455, 1, 1, 1, 1, 0.25, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_8ulqb"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-1.9629384, 13.6881895, 0, 1888.0388, 0, 0, 1, 83.184555, 4.3802824, 6.1346126, 0, 455.98886, 1, 1, 1, 1, 0, 0, 0, 1, -2.5159948, 12.790736, 0, 1931.809, 0, 0, 1, 90.91083, 4.087759, 7.8356295, 0, 479.2845, 1, 1, 1, 1, 0.16662598, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_txqcl"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(-3.428796, 10.516723, 0, 2049.3687, 0, 0, 1, 96.89486, 3.3590717, 10.695725, 0, 539.5341, 1, 1, 1, 1, 0.9165039, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_6pcvw"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-1.3617885, 14.39066, 0, 2449.5696, 0, 0, 1, 65.4081, 4.6027746, 4.2318926, 0, 1101.037, 1, 1, 1, 1, 0.8330078, 0, 0, 1, -0.035155308, 14.999603, 0, 2526.9404, 0, 0, 1, 46.501396, 4.7998714, 0.10912283, 0, 1113.7714, 1, 1, 1, 1, 0.5830078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_l063n"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 2
+buffer = PackedFloat32Array(-0.9093359, 14.728109, 0, 2479.304, 0, 0, 1, 60.451202, 4.7130785, 2.843025, 0, 1086.6589, 1, 1, 1, 1, 0.25, 0, 0, 1, -0.4664196, 14.929041, 0, 2503.242, 0, 0, 1, 53.92929, 4.7772856, 1.4573044, 0, 1089.712, 1, 1, 1, 1, 0.8330078, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_37twg"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(0.37499827, 14.954133, 0, 2551.0068, 0, 0, 1, 39.121456, 4.7853293, -1.172127, 0, 1089.5422, 1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="MultiMesh" id="MultiMesh_g6uv8"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+buffer = PackedFloat32Array(0.75469774, 14.8134985, 0, 2578.76, 0, 0, 1, 32.425568, 4.7402987, -2.3580213, 0, 1110.2499, 1, 1, 1, 1, 0.75, 0, 0, 1)
+
+[node name="NeonMarketStreet" type="Node3D" unique_id=1630164720]
+metadata/market_manifest = [{
+"distance": 714.0,
+"lane": -25.510776990722533,
+"position": Vector3(674.9181, 88.00051, -78.123505),
+"scale": Vector3(1.105, 1.24, 0.98),
+"variant": 1,
+"yaw": -0.2215341305344467
+}, {
+"distance": 714.0,
+"lane": 26.330420912507655,
+"position": Vector3(667.5972, 87.93468, -26.801823),
+"scale": Vector3(1.105, 1.24, 0.98),
+"variant": 3,
+"yaw": 3.079718457760935
+}, {
+"distance": 740.0,
+"lane": -26.429123701372802,
+"position": Vector3(702.69257, 88.01287, -73.92765),
+"scale": Vector3(0.88, 0.9, 1.04),
+"variant": 8,
+"yaw": -0.30171932603010504
+}, {
+"distance": 792.0,
+"lane": -26.510655704952036,
+"position": Vector3(756.3086, 87.995605, -57.361614),
+"scale": Vector3(1.03, 1.07, 0.98),
+"variant": 10,
+"yaw": -0.4594462635152675
+}, {
+"distance": 896.0,
+"lane": -27.06042469291745,
+"position": Vector3(852.84296, 87.78858, -2.1893673),
+"scale": Vector3(1.03, 0.985, 1.04),
+"variant": 2,
+"yaw": -0.7418095376201203
+}, {
+"distance": 948.0,
+"lane": 28.053579811571893,
+"position": Vector3(855.3157, 86.0715, 73.41656),
+"scale": Vector3(0.88, 1.155, 0.98),
+"variant": 6,
+"yaw": 2.4374216044020636
+}, {
+"distance": 974.0,
+"lane": -26.954379578668245,
+"position": Vector3(913.0401, 84.904366, 54.348724),
+"scale": Vector3(0.955, 1.24, 1.04),
+"variant": 11,
+"yaw": -0.9175313561489524
+}, {
+"distance": 1078.0,
+"lane": 26.949341357240336,
+"position": Vector3(931.28705, 87.17955, 169.84021),
+"scale": Vector3(0.955, 1.155, 0.92),
+"variant": 5,
+"yaw": 2.193212183425279
+}, {
+"distance": 1130.0,
+"lane": -25.702411936149417,
+"position": Vector3(1002.2395, 93.32207, 189.42886),
+"scale": Vector3(1.105, 0.9, 1.04),
+"variant": 5,
+"yaw": -1.1812004720573723
+}, {
+"distance": 1130.0,
+"lane": 27.242411936149416,
+"position": Vector3(955.022, 93.39488, 213.38011),
+"scale": Vector3(1.105, 0.9, 1.04),
+"variant": 7,
+"yaw": 2.1200521092305333
+}, {
+"distance": 1156.0,
+"lane": -24.24088458757869,
+"position": Vector3(1012.5201, 90.00089, 213.89603),
+"scale": Vector3(0.88, 0.985, 0.92),
+"variant": 0,
+"yaw": -1.2130286522632672
+}, {
+"distance": 1572.0,
+"lane": 19.577881537009475,
+"position": Vector3(1173.5049, 27.902355, 594.55743),
+"scale": Vector3(0.88, 1.07, 0.98),
+"variant": 6,
+"yaw": 2.6182238700589795
+}, {
+"distance": 1650.0,
+"lane": 19.78067861374656,
+"position": Vector3(1250.4602, 25.701006, 629.6921),
+"scale": Vector3(1.105, 0.9, 0.98),
+"variant": 3,
+"yaw": 2.978694584596949
+}, {
+"distance": 1702.0,
+"lane": 19.98491114154111,
+"position": Vector3(1306.6967, 26.34753, 636.74036),
+"scale": Vector3(0.955, 1.07, 0.92),
+"variant": 5,
+"yaw": -3.061672602135583
+}, {
+"distance": 1780.0,
+"lane": 21.592256527009006,
+"position": Vector3(1389.997, 31.661911, 623.9638),
+"scale": Vector3(0.88, 0.9, 0.92),
+"variant": 2,
+"yaw": -2.7300320713315385
+}, {
+"distance": 1832.0,
+"lane": -24.714129414497293,
+"position": Vector3(1417.3085, 44.5026, 561.474),
+"scale": Vector3(1.03, 1.07, 1.04),
+"variant": 2,
+"yaw": 0.4135737670504998
+}, {
+"distance": 1832.0,
+"lane": 23.66412941449729,
+"position": Vector3(1440.2201, 44.432613, 604.0828),
+"scale": Vector3(1.03, 1.07, 1.04),
+"variant": 4,
+"yaw": -2.568358872717771
+}, {
+"distance": 1910.0,
+"lane": 25.264716967000126,
+"position": Vector3(1508.589, 54.60211, 561.7163),
+"scale": Vector3(0.955, 0.9, 1.04),
+"variant": 1,
+"yaw": -2.4280440995493695
+}, {
+"distance": 2248.0,
+"lane": -27.398010668699463,
+"position": Vector3(1798.0356, 65.5416, 389.07434),
+"scale": Vector3(1.03, 1.155, 0.92),
+"variant": 6,
+"yaw": -0.18218842428987778
+}, {
+"distance": 2274.0,
+"lane": 27.499737914916743,
+"position": Vector3(1815.4641, 69.47551, 447.0678),
+"scale": Vector3(1.105, 1.24, 0.98),
+"variant": 3,
+"yaw": 3.031787252374845
+}, {
+"distance": 2300.0,
+"lane": -29.327999687194826,
+"position": Vector3(1853.4973, 73.94777, 397.6735),
+"scale": Vector3(0.88, 0.9, 1.04),
+"variant": 8,
+"yaw": -0.352738261582535
+}, {
+"distance": 2300.0,
+"lane": 28.27799968719482,
+"position": Vector3(1837.9736, 73.80281, 453.14844),
+"scale": Vector3(0.88, 0.9, 1.04),
+"variant": 10,
+"yaw": 2.9485142369782102
+}, {
+"distance": 2326.0,
+"lane": -28.344000136852266,
+"position": Vector3(1879.6869, 78.45708, 407.1233),
+"scale": Vector3(0.955, 0.985, 0.92),
+"variant": 3,
+"yaw": -0.43008147313204576
+}, {
+"distance": 2352.0,
+"lane": 27.786000156402586,
+"position": Vector3(1882.3188, 82.75092, 468.7517),
+"scale": Vector3(1.03, 1.07, 0.98),
+"variant": 0,
+"yaw": 2.8001242251236165
+}, {
+"distance": 2404.0,
+"lane": 27.29400013685226,
+"position": Vector3(1924.7361, 90.465385, 490.77634),
+"scale": Vector3(0.88, 1.24, 0.92),
+"variant": 2,
+"yaw": 2.669700834169103
+}, {
+"distance": 2534.0,
+"lane": -27.936873306930195,
+"position": Vector3(2059.4666, 96.44833, 529.6406),
+"scale": Vector3(0.955, 1.24, 1.04),
+"variant": 11,
+"yaw": -0.8754878561564657
+}, {
+"distance": 3236.0,
+"lane": 23.008894557404247,
+"position": Vector3(2445.9578, 65.07967, 1113.2417),
+"scale": Vector3(0.88, 0.985, 1.04),
+"variant": 10,
+"yaw": 2.9337763779549766
+}, {
+"distance": 3262.0,
+"lane": -22.536321880257535,
+"position": Vector3(2481.5295, 60.108994, 1075.1278),
+"scale": Vector3(0.955, 1.07, 0.92),
+"variant": 3,
+"yaw": -0.2704274010743469
+}, {
+"distance": 3288.0,
+"lane": -23.463093244306783,
+"position": Vector3(2504.4304, 53.600315, 1077.5339),
+"scale": Vector3(1.03, 1.155, 0.98),
+"variant": 10,
+"yaw": -0.17715418107535844
+}, {
+"distance": 3314.0,
+"lane": 24.298587912593163,
+"position": Vector3(2526.8486, 46.151913, 1126.499),
+"scale": Vector3(1.105, 1.24, 1.04),
+"variant": 7,
+"yaw": -3.069086444827176
+}, {
+"distance": 3340.0,
+"lane": -23.571511799909956,
+"position": Vector3(2550.089, 38.801144, 1077.8342),
+"scale": Vector3(0.88, 0.9, 0.92),
+"variant": 0,
+"yaw": -0.0016255434615629273
+}, {
+"distance": 3366.0,
+"lane": 24.248653036958046,
+"position": Vector3(2580.6838, 32.047207, 1122.3337),
+"scale": Vector3(0.955, 0.985, 0.98),
+"variant": 9,
+"yaw": -2.903879042475121
+}]
+metadata/sign_count = 41
+metadata/coordinates = "course_local"
+
+[node name="neon_tenement_000" type="MultiMeshInstance3D" parent="." unique_id=138892561]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_o5x8g")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_001" type="MultiMeshInstance3D" parent="." unique_id=185309094]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_dtdsc")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_002" type="MultiMeshInstance3D" parent="." unique_id=1903288042]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_lfsva")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_003" type="MultiMeshInstance3D" parent="." unique_id=1871395043]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_pod2b")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_004" type="MultiMeshInstance3D" parent="." unique_id=1430331504]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_y4v11")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_005" type="MultiMeshInstance3D" parent="." unique_id=1636461044]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_ibboe")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_006" type="MultiMeshInstance3D" parent="." unique_id=72483930]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_5xh0o")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_007" type="MultiMeshInstance3D" parent="." unique_id=1097589335]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_h2bsi")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_008" type="MultiMeshInstance3D" parent="." unique_id=699871869]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_uxs1p")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_009" type="MultiMeshInstance3D" parent="." unique_id=853278111]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_uagpe")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_010" type="MultiMeshInstance3D" parent="." unique_id=302545765]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_ntvj3")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_011" type="MultiMeshInstance3D" parent="." unique_id=838502455]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_rfbh8")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_012" type="MultiMeshInstance3D" parent="." unique_id=1987890953]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_pcldx")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_013" type="MultiMeshInstance3D" parent="." unique_id=1218493635]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_c8qnj")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_014" type="MultiMeshInstance3D" parent="." unique_id=712516278]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_1csxd")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_015" type="MultiMeshInstance3D" parent="." unique_id=953605369]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_3fk7q")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_016" type="MultiMeshInstance3D" parent="." unique_id=926034138]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_vxtix")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_017" type="MultiMeshInstance3D" parent="." unique_id=1248919040]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_fwbwl")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_tenement_018" type="MultiMeshInstance3D" parent="." unique_id=774907763]
+material_override = ExtResource("1_cdprs")
+visibility_range_end = 300.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_mmxk6")
+metadata/mesh_ref = "res://models/props/neon_tenement/model.glb#Visual"
+
+[node name="neon_blade_sign_000" type="MultiMeshInstance3D" parent="." unique_id=1580745801]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_if07p")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_001" type="MultiMeshInstance3D" parent="." unique_id=1380793055]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_iy4vs")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_002" type="MultiMeshInstance3D" parent="." unique_id=2131656506]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_kh336")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_003" type="MultiMeshInstance3D" parent="." unique_id=1153454952]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_x677e")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_004" type="MultiMeshInstance3D" parent="." unique_id=1818706278]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_s5e0r")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_005" type="MultiMeshInstance3D" parent="." unique_id=624154588]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_lvulq")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_006" type="MultiMeshInstance3D" parent="." unique_id=102816721]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_kak1a")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_007" type="MultiMeshInstance3D" parent="." unique_id=741244654]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_p8q0l")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_008" type="MultiMeshInstance3D" parent="." unique_id=424676031]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_eskhj")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_009" type="MultiMeshInstance3D" parent="." unique_id=1917260025]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_0ytr3")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_010" type="MultiMeshInstance3D" parent="." unique_id=2130373875]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_uer3f")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_011" type="MultiMeshInstance3D" parent="." unique_id=1117430273]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_efr2o")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_012" type="MultiMeshInstance3D" parent="." unique_id=35450779]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_fgkiy")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_013" type="MultiMeshInstance3D" parent="." unique_id=1176946965]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_pear6")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_014" type="MultiMeshInstance3D" parent="." unique_id=1957519361]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_t3p6l")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_015" type="MultiMeshInstance3D" parent="." unique_id=498112703]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_lqnsd")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_016" type="MultiMeshInstance3D" parent="." unique_id=120610827]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_vxodj")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_017" type="MultiMeshInstance3D" parent="." unique_id=1073121799]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_j4toh")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="neon_blade_sign_018" type="MultiMeshInstance3D" parent="." unique_id=110394984]
+material_override = ExtResource("2_4tf2b")
+cast_shadow = 0
+visibility_range_end = 330.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_o20cc")
+metadata/mesh_ref = "res://models/props/neon_blade_sign/model.glb#Visual"
+
+[node name="street_glow_000" type="MultiMeshInstance3D" parent="." unique_id=2134050913]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_mi0xb")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_001" type="MultiMeshInstance3D" parent="." unique_id=1656814344]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_1spg8")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_002" type="MultiMeshInstance3D" parent="." unique_id=1731329349]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_okjwu")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_003" type="MultiMeshInstance3D" parent="." unique_id=580422200]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_n07kb")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_004" type="MultiMeshInstance3D" parent="." unique_id=1516983684]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_dtry0")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_005" type="MultiMeshInstance3D" parent="." unique_id=1360651019]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_3v8ec")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_006" type="MultiMeshInstance3D" parent="." unique_id=1417495340]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_hpwi5")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_007" type="MultiMeshInstance3D" parent="." unique_id=1783097334]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_jtdvk")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_008" type="MultiMeshInstance3D" parent="." unique_id=853252259]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_8dk4i")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_009" type="MultiMeshInstance3D" parent="." unique_id=167153467]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_u14j5")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_010" type="MultiMeshInstance3D" parent="." unique_id=734689488]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_byt41")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_011" type="MultiMeshInstance3D" parent="." unique_id=38840377]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_8ulqb")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_012" type="MultiMeshInstance3D" parent="." unique_id=1847445370]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_txqcl")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_013" type="MultiMeshInstance3D" parent="." unique_id=995406047]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_6pcvw")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_014" type="MultiMeshInstance3D" parent="." unique_id=1906942532]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_l063n")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_015" type="MultiMeshInstance3D" parent="." unique_id=1068646377]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_37twg")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
+
+[node name="street_glow_016" type="MultiMeshInstance3D" parent="." unique_id=1108379941]
+material_override = SubResource("ShaderMaterial_gpfxy")
+cast_shadow = 0
+visibility_range_end = 170.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_g6uv8")
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#quad_100000_100000"
