@@ -20,6 +20,7 @@ var split_label := ""
 var cursor := 0
 var capped := false
 var scope := ""
+var scope_stage := -1
 var next_sector := 1
 var sector_started := 0.0
 var last_progress := 0.0
@@ -52,6 +53,7 @@ func prepare(race: Node3D) -> void:
 	capped = false
 	cursor = 0
 	scope = ""
+	scope_stage = -1
 	next_sector = 1
 	sector_started = 0
 	last_progress = 0
@@ -124,12 +126,14 @@ func observe(race: Node3D, valid: bool, delta: float) -> void:
 	)
 	var progress: float = race.distance - 80 if race.mode == "track" else race.distance
 	if current_scope != scope:
+		var reconsidered: bool = not scope.is_empty() and race.mode == "tour" and scope_stage == race.stage_index
+		scope_stage = race.stage_index
 		scope = current_scope
 		next_sector = 1
 		sector_started = 0 if race.stage_index == 0 or race.mode == "track" else race.elapsed
 		last_progress = progress
 		last_elapsed = race.elapsed
-		segment_valid = true
+		segment_valid = not reconsidered
 	if not valid or progress < last_progress - 2 or progress - last_progress > race.speed * delta * 2 + 10:
 		segment_valid = false
 	var third: float = race.track.length / 3

@@ -116,7 +116,7 @@ func warm_section(section: Section) -> void:
 
 # 주행 중 다음 구간 생성에 한 프레임이 쓸 수 있는 시간. 한 단계는 끝까지 실행한다.
 const BUILD_BUDGET_USEC := 1500
-# 갈림길까지 이 거리 안으로 들어오면 남은 단계를 한 번에 끝낸다(정상 주행에서는 그 전에 끝난다).
+# 갈림길까지 이 거리 안으로 들어오면 프레임 예산을3ms로 늘려 준비를 서두른다.
 const BUILD_DEADLINE := 1200.0
 
 

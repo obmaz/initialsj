@@ -80,7 +80,12 @@ func draw_home() -> void:
 		hud.text_at(Vector2(x + 450, rect.position.y + 85), ">", 48, accent)
 	hud.slant(hud.HOME_PASSPORT, Color("102637ed"), 10)
 	hud.centered(Vector2(160, 63), "TOUR PASSPORT", 23, hud.CYAN)
-	hud.centered(Vector2(160, 90), "%d / 5 GOALS  /  P" % race.passport.goals.size(), 16, hud.WHITE)
+	hud.centered(
+		Vector2(160, 90),
+		"%d / 5 GOALS  /  %s" % [race.passport.goals.size(), race.pad.label("route_left") if hud.pad_on() else "P"],
+		16,
+		hud.WHITE
+	)
 	hud.slant(hud.HOME_SETTINGS, Color("102637ed"), 10)
 	hud.centered(Vector2(hud.HOME_SETTINGS.get_center().x, 77), "SETTINGS", 30)
 	hud.centered(Vector2(640, 694), hud.AppVersion.label(), 22, Color("b2cbd8"))
@@ -199,7 +204,12 @@ func draw_garage() -> void:
 		if race.personal_run.reference.is_empty()
 		else ("ROUTE " + race.personal_run.reference_route if race.mode == "tour" else "PERSONAL BEST")
 	)
-	hud.centered(Vector2(1080, 89), reference_note + " / G", 13, Color("9db6c9"))
+	hud.centered(
+		Vector2(1080, 89),
+		reference_note + " / " + (race.pad.label("alt2") if hud.pad_on() else "G"),
+		13,
+		Color("9db6c9")
+	)
 	hud.slant(Rect2(92, 129, 675, 76), Color("07111ebd"), 10)
 	hud.text_at(Vector2(120, 168), race.vehicle.name, 48)
 	hud.text_at(Vector2(123, 195), race.vehicle["class"], 21, color)
@@ -258,11 +268,21 @@ func draw_garage() -> void:
 	for entry in [
 		[
 			hud.GARAGE_PAINT,
-			"PAINT " + str(race.passport.PAINTS[race.passport.paint_index(race.selected_vehicle)].name) + " / C"
+			(
+				"PAINT "
+				+ str(race.passport.PAINTS[race.passport.paint_index(race.selected_vehicle)].name)
+				+ " / "
+				+ (race.pad.label("alt") if hud.pad_on() else "C")
+			)
 		],
 		[
 			hud.GARAGE_PLATE,
-			"PLATE " + str(race.passport.PLATES[race.passport.plate_index(race.selected_vehicle)]) + " / N"
+			(
+				"PLATE "
+				+ str(race.passport.PLATES[race.passport.plate_index(race.selected_vehicle)])
+				+ " / "
+				+ (race.pad.label("restart") if hud.pad_on() else "N")
+			)
 		]
 	]:
 		hud.slant(entry[0], Color("20374a"), 8)

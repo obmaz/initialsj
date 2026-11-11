@@ -14,7 +14,7 @@ func slide(rewards: RefCounted, curve: float, key: String) -> void:
 		rewards.drift_step(1.0 / 60, true, 0.3, 40, 40.0 / 60, curve, true, key)
 
 
-func run(_tree: SceneTree) -> int:
+func run(tree: SceneTree) -> int:
 	var rewards := Rewards.new()
 	slide(rewards, 0.008, "corner")
 	check(rewards.drift_step(.016, false, .05, 40, .64, 0, true, "exit") > 0, "빠른 실제 코너의 깨끗한 탈출을 보상한다")
@@ -38,5 +38,37 @@ func run(_tree: SceneTree) -> int:
 	check(not rewards.observe_traffic(13, -1, 3, 0, false), "충돌·보호 중 추월은 보상하지 않는다")
 	rewards.tick(6)
 	check(rewards.pass_chain == 0 and rewards.max_pass_chain == 2, "연속 추월 제한 시간과 경기 최고 연속 횟수를 구분한다")
+	var race = load("res://scenes/race.tscn").instantiate()
+	tree.root.add_child(race)
+	race.save_records = false
+	race.set_physics_process(false)
+	race.restart()
+	race.state = "racing"
+	var traffic: Array = tree.get_nodes_in_group("tour_road_traffic").filter(func(node): return node.clock == race)
+	check(not traffic.is_empty(), "투어 교통 차량을 실제 추월 관측 그룹에 등록한다")
+	if not traffic.is_empty():
+		for other in traffic:
+			other.set_physics_process(false)
+		var other: CharacterBody3D = traffic[0]
+		other.reset_pose(race.track.point(105, 3), race.track.point(107, 3) - race.track.point(103, 3))
+		other.lane = 3
+		other.activated = true
+		other.set_physics_process(true)
+		race.world_race.teleport(0, 80, 0)
+		var body: CharacterBody3D = race.world_race.player_body
+		body.velocity = body.forward_direction() * 45
+		race.speed = 45
+		race.nitro = 10
+		for frame in range(180):
+			await tree.physics_frame
+			race.step(1.0 / 60, 0, false, true, false)
+			if race.near_misses > 0:
+				break
+		check(
+			race.near_misses == 1 and race.rewards.close_passes == 1 and race.nitro >= 18,
+			"실제 움직이는 투어 차 옆을 추월하면 점수·연속 횟수·니트로를 함께 갱신한다"
+		)
+	race.free()
+	await tree.process_frame
 	print("드리프트 탈출 / 실제 코너·속도 / 중복·충돌 보상 방지: ", "PASS" if failures == 0 else "FAIL")
 	return failures

@@ -19,7 +19,7 @@
 | 차량 규칙·소리 | [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd), [nitro_system.gd](../scripts/race/nitro_system.gd), [vehicle_audio.gd](../scripts/audio/vehicle_audio.gd), [racing_audio.gd](../scripts/audio/racing_audio.gd) |
 | 공용 렌더 | [render_resources.gd](../scripts/rendering/render_resources.gd), [render_budget.gd](../scripts/rendering/render_budget.gd), [tunnel_lights.gd](../scripts/rendering/tunnel_lights.gd) |
 
-투어의 다음 두 분기는 `models/world/`의 GLB·씬·주행 프로필을 읽습니다. 진입420m 이후 지나온 구간을 먼저 해제하고 GLB·씬의 읽기를 미리 요청합니다. 읽는 동안 기다리지 않고, 메시 연결·상태 복원·자식 배치를8개 노드 단위 작업으로 나눕니다. [road_section.gd](../scripts/track/road_section.gd)의 큐를 `maintain()`이 프레임별 약1.5ms 예산으로 진행하며 실제 충돌체 등록 후 표시합니다. 갈림길1,200m 앞이나 분기 진입 시 남은 단계를 마칩니다. 준비 중 취소한 구간의 임시 씬과 미리 읽은 참조도 해제합니다. 처음 출발과 코스 전환은 로딩 화면 뒤에서 같은 단계를 한 번에 실행합니다.
+투어의 다음 두 분기는 `models/world/`의 GLB·씬·주행 프로필을 읽습니다. 진입420m 이후 지나온 구간을 먼저 해제하고 GLB·씬의 읽기를 미리 요청합니다. 읽는 동안 기다리지 않고, 메시 연결·상태 복원·자식 배치를8개 노드 단위 작업으로 나눕니다. [road_section.gd](../scripts/track/road_section.gd)의 큐를 `maintain()`이 프레임별 약1.5ms 예산으로 진행하며 실제 충돌체 등록 후 표시합니다. 갈림길1,200m 앞에서는 프레임 예산을3ms로 늘리고, 분기 진입까지 준비가 끝나지 않았을 때만 남은 단계를 마칩니다. 준비 중 취소한 구간의 임시 씬과 미리 읽은 참조도 해제합니다. 처음 출발과 코스 전환은 로딩 화면 뒤에서 같은 단계를 한 번에 실행합니다.
 
 투어와 트랙은 같은 `CharacterBody3D`와 실제 노면·장벽 물리를 사용합니다. 도로 곡선은 경기 계측과 CPU 판단에 사용하며 플레이어 차체를 매 프레임 곡선 위로 강제 이동시키지 않습니다. 실제 차체 중력은 [drive_tuning.gd](../scripts/physics/drive_tuning.gd)의 `WORLD_GRAVITY`를 공유하며 명목 점프 설계용 중력과 구분합니다. 단위는 미터·초이고 차량 충돌 기준은 약2.1×1.3×4.3m입니다.
 

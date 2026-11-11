@@ -66,6 +66,9 @@ func step(
 			race.route_confirm_title = race.route_banner()
 			changed = true
 	if changed:
+		race.rewards.cancel_drift()
+		race.route_challenges.invalidate()
+		race.tour_score_multiplier = race.TourChallenge.score_multiplier(race.track.history)
 		# 차체의 world transform·속도·공중 상태는 보존하고 계측 기준만 바꾼다.
 		trackers[0].reposition(race.distance)
 		var projection: Dictionary = trackers[0].sample(player_body.feet_position(), race.distance)

@@ -53,4 +53,10 @@ static func draw(hud: Control) -> void:
 		hud.draw_rect(Rect2(x, 600, 220, 6), color if index in unlocked else Color("263746"))
 		hud.text_at(Vector2(x, 636), passport.PAINTS[index].name, 18, color if index in unlocked else Color("688396"))
 		hud.text_at(Vector2(x, 662), "UNLOCKED" if index in unlocked else passport.PAINTS[index].goal, 12, hud.WHITE)
-	hud.centered(Vector2(640, 702), "CHANGE PAINT & PLATE IN GARAGE / COSMETICS ONLY", 16, Color("8eacbe"))
+	hud.centered(
+		Vector2(640, 688),
+		"PLATES: 1 GOAL = TOUR-01 / 5 GOALS = ALL-05 / CLEAN TOUR = CLEAN / 16 ROUTES = TOUR-16",
+		13,
+		Color("8eacbe")
+	)
+	hud.centered(Vector2(640, 711), "CHANGE PAINT & PLATE IN GARAGE / COSMETICS ONLY", 13, Color("8eacbe"))

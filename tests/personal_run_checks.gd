@@ -1,4 +1,5 @@
 extends RefCounted
+const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const Personal = preload("res://scripts/race/personal_run.gd")
 var failures := 0
 
@@ -65,8 +66,15 @@ func run(tree: SceneTree) -> int:
 		race.personal_run.best_sectors.has("track:0:launch") and race.personal_run.split_new,
 		"실제 순방향 구간 통과의 시간과 개인 구간 베스트를 계산한다"
 	)
+	race.mode = "tour"
+	race.personal_run.scope = "LLLL:0"
+	race.personal_run.scope_stage = 0
+	race.track.history.assign([1])
+	race.distance = 100
+	race.personal_run.observe(race, true, .1)
+	check(not race.personal_run.segment_valid, "같은 지역의 분기를 뒤늦게 바꾸어 첫 구간 기록을 단축할 수 없다")
 	var folder: String = race.personal_run.directory
-	var path: String = race.personal_run.file_path(race.record_key())
+	var path: String = race.personal_run.file_path(Catalog.record_key(0, "track", 0))
 	DirAccess.remove_absolute(path)
 	DirAccess.remove_absolute(folder.path_join("index.cfg"))
 	DirAccess.remove_absolute(folder)
