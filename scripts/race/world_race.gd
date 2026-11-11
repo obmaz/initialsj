@@ -142,6 +142,7 @@ func step(
 			bodies[i].collision_layer = layer
 			bodies[i].collision_mask = 15 if layer else 0
 	update_protection(delta)
+	race.rewards.tick(delta)
 	var old_position := Vector2(race.lane, race.distance)
 	var old_gaps: Array[float] = []
 	for i in range(bodies.size() - 1):
@@ -181,6 +182,9 @@ func step(
 	if race.nitro_active:
 		cap = race.vehicle.overdrive_speed if race.nitro_burst_left > 0 else race.vehicle.boost_speed
 		accel = race.vehicle.boost_accel
+	if race.rewards.exit_boost > 0 and race.throttling and not race.drifting:
+		cap = maxf(cap, race.vehicle.max_speed + 4)
+		accel = maxf(accel, race.vehicle.accel * 1.25)
 	if race.pad_active:
 		cap = maxf(cap, race.pad_speed_cap())
 		accel = maxf(accel, race.vehicle.boost_accel + 8.4)
@@ -302,6 +306,28 @@ func step(
 		)
 	elif race.drifting and player_body.grounded and race.offroad_amount < 0.15:
 		race.score += delta * race.speed * (2 + race.drift_charge)
+	var clean_exit: bool = (
+		player_body.grounded
+		and not race.crash.active
+		and race.protection_left <= 0
+		and race.offroad_amount < 0.15
+		and race.impact < 0.15
+		and race.throttling
+	)
+	var corner_key: String = (
+		"%s:%s:%d:%d:%d"
+		% [race.mode, race.selected_course, race.stage_index, race.laps_completed, int(old_position.y / 100)]
+	)
+	race.score += race.rewards.drift_step(
+		delta,
+		race.drifting,
+		race.slip_angle,
+		race.speed,
+		race.distance - old_position.y,
+		race.track.curvature(race.distance),
+		clean_exit,
+		corner_key
+	)
 	var laps: int = int(data.finished_laps)
 	if laps > race.laps_completed:
 		race.laps_completed = laps

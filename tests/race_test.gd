@@ -248,4 +248,5 @@ func run() -> void:
 	failures += await preload("res://tests/road_recovery_checks.gd").new().run(self)
 	failures += await preload("res://tests/drive_revision_checks.gd").new().run(self)
 	failures += await preload("res://tests/tour_refinement_checks.gd").new().run(self)
+	failures += await preload("res://tests/skill_rewards_checks.gd").new().run(self)
 	quit(1 if failures else 0)

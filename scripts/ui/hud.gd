@@ -1223,6 +1223,8 @@ func draw_pace_feedback() -> void:
 		hint("MUD", Color("d9b38a"), minf(1, race.surface.mud_flash * 2))
 	elif race.surface.water_flash > 0:
 		hint("WET ROAD", Color("a9dfff"), minf(1, race.surface.water_flash * 2))
+	elif race.rewards.flash > 0:
+		hint(race.rewards.message, GOLD, minf(1, race.rewards.flash * 3))
 	elif race.near_miss_flash > 0:
 		hint("CLOSE PASS +150", GOLD, minf(1, race.near_miss_flash * 2.5))
 	elif race.overtake_flash > 0:

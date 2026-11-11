@@ -21,6 +21,7 @@ const Crash = preload("res://scripts/physics/crash_state.gd")
 const Recovery = preload("res://scripts/race/recovery_state.gd")
 var crash := Crash.new()
 var recovery := Recovery.new()
+var rewards := preload("res://scripts/race/driving_rewards.gd").new()
 var protection_left := 0.0
 var auto_accelerate := true
 var recovery_distance := 80.0
@@ -603,6 +604,7 @@ func restart(start_countdown: bool = true) -> void:
 	countdown = 3
 	time_left = Library.START_TIME
 	score = 0
+	rewards.reset()
 	surface.reset()
 	offroad_amount = 0
 	shoulder_dust_clock = 0
@@ -872,7 +874,7 @@ func _physics_process(delta: float) -> void:
 	player.animate(
 		steer,
 		drifting and not air.active and state == RaceState.RACING,
-		(nitro_active or pad_active) and state == RaceState.RACING,
+		(nitro_active or pad_active or rewards.exit_boost > 0) and state == RaceState.RACING,
 		0.0 if state == RaceState.PAUSED else delta,
 		0.0 if world_race != null else slip_angle,
 		braking and state == RaceState.RACING,
@@ -1017,6 +1019,8 @@ func return_to_road() -> void:
 		return
 	crash.reset()
 	recovery.reset()
+	rewards.cancel_drift()
+	rewards.exit_boost = 0
 	player.body.rotation.x = 0
 	player.body.rotation.z = 0
 	player.body.position = Vector3(0, player.ride_offset, 0)
@@ -1043,6 +1047,8 @@ func recover_car() -> void:
 		return
 	crash.reset()
 	recovery.reset()
+	rewards.cancel_drift()
+	rewards.exit_boost = 0
 	player.body.rotation.x = 0
 	player.body.rotation.z = 0
 	player.body.position = Vector3(0, player.ride_offset, 0)
