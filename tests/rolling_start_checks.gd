@@ -9,13 +9,41 @@ func check(ok: bool, message: String) -> void:
 		push_error(message)
 
 
+func dirty_restart(race: Node3D) -> void:
+	# 이전 충돌에서 남은 보정 목표·타이머를 심어 재시작 시 옆으로 꺾이는 조건을 재현한다.
+	for body in race.world_race.bodies:
+		body.road_heading = body.forward_direction().rotated(Vector3.UP, deg_to_rad(80))
+		body.realign_time = body.REALIGN_TIME
+		body.yaw_rate = .7
+	race.restart()
+	check(race.race_position() == 10, "플레이어는 앞9대·뒤6대가 있는10번째에서 출발해야 한다")
+	for body in race.world_race.bodies:
+		check(
+			body.road_heading.is_zero_approx() and body.realign_time == 0 and body.yaw_rate == 0,
+			"재시작은 이전 충돌의 방향 보정과 회전 속도를 모두 초기화해야 한다"
+		)
+
+
+func heading_error(race: Node3D) -> float:
+	var worst := 0.0
+	for i in range(race.world_race.bodies.size()):
+		var body: CharacterBody3D = race.world_race.bodies[i]
+		var tracker: RefCounted = race.world_race.trackers[i]
+		var lane: float = race.lane if i == 0 else race.rivals[i - 1].target_lane
+		var direction: Vector3 = (
+			(race.track.point(tracker.distance + 2, lane) - race.track.point(tracker.distance - 2, lane)).normalized()
+		)
+		worst = maxf(worst, rad_to_deg(body.forward_direction().angle_to(direction)))
+	return worst
+
+
 func run(tree: SceneTree) -> int:
 	var race = load("res://scenes/race.tscn").instantiate()
 	tree.root.add_child(race)
 	race.set_physics_process(false)
 	race.save_records = false
 	race.choose_mode("track", 1)
-	race.restart()
+	dirty_restart(race)
 	check(race.competitor_count() == 16 and race.world_race.bodies.size() == 16, "트랙2는15대의 상대와 실제16대 차체를 생성해야 한다")
 	check(race.track.scenery.get_node("SpeedwayPalms/NativeTreeModels").tree_count > 0, "트랙2도 투어의 최신 입체 나무를 사용한다")
 	check(race.track.scenery.get_node("InfieldAdvertisements").placements.size() >= 12, "빈 안쪽 평지에 여러 실제 광고판을 배치한다")
@@ -24,14 +52,19 @@ func run(tree: SceneTree) -> int:
 	var ranks := {race.race_position(): true}
 	for rival in race.rivals:
 		if rival.active:
+			low = minf(low, rival.distance)
 			high = maxf(high, rival.distance)
 			ranks[race.competitor_position(rival.id)] = true
 	check(high - low >= 340 and ranks.size() == 16, "16대의 출발 순위가 중복되지 않고340m 이상 분산되어야 한다")
-	check(is_equal_approx(race.countdown, 6.0), "트랙2는6초 동안 두 배 길이로 롤링해야 한다")
+	check(is_equal_approx(race.countdown, 5.0), "트랙2는5초 동안 롤링해야 한다")
 	var initial: Vector3 = race.world_race.player_body.position
+	var peak_heading := heading_error(race)
+	var rolling_frames := 0
 	for frame in range(90):
 		await tree.physics_frame
 		race._physics_process(1.0 / 60)
+		rolling_frames += 1
+		peak_heading = maxf(peak_heading, heading_error(race))
 	check(
 		(
 			race.elapsed == 0
@@ -49,6 +82,8 @@ func run(tree: SceneTree) -> int:
 	for frame in range(275):
 		await tree.physics_frame
 		race._physics_process(1.0 / 60)
+		rolling_frames += 1
+		peak_heading = maxf(peak_heading, heading_error(race))
 		if race.state == "racing":
 			break
 	check(
@@ -56,6 +91,8 @@ func run(tree: SceneTree) -> int:
 		"GO 때 출발선 부근에서 속도를 유지한 채 실제 경기 계측을 시작해야 한다"
 	)
 	check(race.wall_hits == 0, "16대의 자동 롤링 출발은 장벽에 부딪히면 안 된다")
+	check(rolling_frames in [300, 301] and race.race_position() == 10, "일시정지를 제외한5초 뒤에도10번째 대열에서 GO해야 한다")
+	check(peak_heading < 12, "롤링 중16대 모두 도로의 진행 방향을 유지해야 한다: %.2f도" % peak_heading)
 	var levels := {0: 0, 1: 0, 2: 0}
 	for body in race.world_race.bodies.slice(1):
 		levels[race.world_race.rival_stride(body)] += 1
@@ -75,6 +112,29 @@ func run(tree: SceneTree) -> int:
 	race.best_time = 131.5
 	board.refresh()
 	check(board.labels[4].text.contains("02:11.500"), "개인 베스트도 실제 기록을 표시해야 한다")
+	var heading_trials := [{"vehicle": race.selected_vehicle, "max_error_degrees": peak_heading}]
+	for choice in range(1, race.Catalog.SPECS.size()):
+		race.open_garage()
+		race.select_vehicle(choice)
+		dirty_restart(race)
+		var worst := heading_error(race)
+		for frame in range(301):
+			await tree.physics_frame
+			race._physics_process(1.0 / 60)
+			worst = maxf(worst, heading_error(race))
+			if race.state == "racing":
+				break
+		check(
+			(
+				race.state == "racing"
+				and race.race_position() == 10
+				and race.speed > 32
+				and race.wall_hits == 0
+				and worst < 12
+			),
+			"모든 차종은 충돌 후 재시작해도10번째에서 도로 방향을 유지하며 출발해야 한다: %d / %.2f도" % [choice, worst]
+		)
+		heading_trials.append({"vehicle": choice, "max_error_degrees": worst})
 	var timings := {}
 	for count in [8, 16]:
 		race.restart()
@@ -98,6 +158,9 @@ func run(tree: SceneTree) -> int:
 				{
 					"headless_cpu_only": true,
 					"physics_lod_at_start": levels,
+					"heading_trials": heading_trials,
+					"rolling_seconds": 5,
+					"player_start_position": 10,
 					"active_competitors": timings,
 					"failures": failures
 				},
@@ -136,5 +199,5 @@ func run(tree: SceneTree) -> int:
 	)
 	race.queue_free()
 	await tree.process_frame
-	print("16대 분산 롤링 / 실제 GO 계측 / 기록 전광판 / 항만 외장 / 노을광: ", "PASS" if failures == 0 else "FAIL")
+	print("5초·10번째 분산 롤링 / 충돌 후4차종 재시작 / 실제 GO 계측 / 기록 전광판 / 항만 외장 / 노을광: ", "PASS" if failures == 0 else "FAIL")
 	return failures

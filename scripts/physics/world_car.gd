@@ -81,6 +81,9 @@ func reset_pose(feet: Vector3, forward: Vector3, up: Vector3 = Vector3.UP) -> vo
 	flight_time = 0
 	steering = 0
 	yaw_rate = 0
+	# 충돌 보정의 방향·남은 시간이 재시작이나 복구 후 새 출발 방향을 꺾지 않게 한다.
+	road_heading = Vector3.ZERO
+	realign_time = 0
 	slip_angle = 0
 	coast_slide = 0
 	coast_angle = 0
