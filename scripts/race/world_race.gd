@@ -334,7 +334,9 @@ func step(
 		race.route_challenges.land(race, clean_exit and not crash_flight)
 	race.route_challenges.observe(race)
 	race.max_drift_multiplier = maxi(race.max_drift_multiplier, race.coast_drift.multiplier)
-	race.personal_run.observe(race, bool(data.valid), delta)
+	race.personal_run.observe(
+		race, bool(data.valid) and race.protection_left <= 0 and player_body.velocity.dot(road_forward) >= -1, delta
+	)
 	var laps: int = int(data.finished_laps)
 	if laps > race.laps_completed:
 		race.laps_completed = laps
@@ -883,6 +885,12 @@ func recover_player() -> bool:
 	var site := recover_body(0, safe_distance, safe_lane)
 	if site.is_empty():
 		return false
+	# 성공한 복구만 여기서 한 번 집계해 모든 호출 경로의 보상·기록을 함께 무효화한다.
+	race.personal_run.invalidate()
+	race.route_challenges.invalidate()
+	race.rewards.cancel_drift()
+	race.rewards.exit_boost = 0
+	race.rewards.break_pass_chain()
 	safe_distance = site.distance
 	safe_lane = site.lane
 	race.lane_velocity = 0

@@ -42,6 +42,9 @@ func run(tree: SceneTree) -> int:
 	race.new_record = true
 	race.save_records = true
 	race.personal_run.finish(race, true)
+	check(
+		not FileAccess.file_exists(race.personal_run.directory.path_join("index.cfg.tmp")), "개인 기록은 임시 저장 완료 후 원본을 교체한다"
+	)
 	race.save_records = false
 	race.personal_run.prepare(race)
 	check(race.personal_run.reference.size() == 18, "개인 최고 기록의 자세는 압축 저장 후 다시 읽을 수 있다")
@@ -53,6 +56,9 @@ func run(tree: SceneTree) -> int:
 		if node is Light3D:
 			check(not node.visible, "고스트는 추가 광원을 켜지 않는다")
 	check(not physical, "고스트는 순위·교통·충돌에 참여하는 물리 차체가 아니다")
+	race.show_ghost = false
+	race.ghost.prepare(race)
+	check(not is_instance_valid(race.ghost.car), "고스트 표시를 끄면 이전 시각 객체와 전용 재질 참조를 놓는다")
 	race.personal_run.prepare(race)
 	race.distance = 80
 	race.elapsed = 0
@@ -66,6 +72,16 @@ func run(tree: SceneTree) -> int:
 		race.personal_run.best_sectors.has("track:0:launch") and race.personal_run.split_new,
 		"실제 순방향 구간 통과의 시간과 개인 구간 베스트를 계산한다"
 	)
+	race.state = "racing"
+	race.world_race.safe_distance = 500
+	race.world_race.safe_lane = 0
+	race.recovery.available = true
+	race.route_challenges.gates["pending"] = race.elapsed
+	race.recover_car()
+	check(race.personal_run.recoveries == 1 and not race.personal_run.segment_valid, "수동 복구도 무복구 도전과 현재 구간 기록을 무효화한다")
+	check(race.route_challenges.gates.is_empty() and race.protection_left == 3, "수동 복구는 위험 구간 보상을 끊고 기존3초 보호를 유지한다")
+	race.return_to_road()
+	check(race.personal_run.recoveries == 2, "자동·수동 복구는 성공 한 번당 정확히 한 번 집계한다")
 	race.mode = "tour"
 	race.personal_run.scope = "LLLL:0"
 	race.personal_run.scope_stage = 0

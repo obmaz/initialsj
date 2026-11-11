@@ -203,7 +203,11 @@ func finish(race: Node3D, success: bool) -> void:
 	store.set_value("sectors", context, best_sectors)
 	if success and race.mode == "tour" and race.track.history.size() == 4:
 		store.set_value("tour_routes", str(race.vehicle.id), Challenge.route_id(race.track.history))
-	store.save(directory.path_join("index.cfg"))
+	var index_path := directory.path_join("index.cfg")
+	if store.save(index_path + ".tmp") != OK:
+		return
+	if DirAccess.rename_absolute(index_path + ".tmp", index_path) != OK:
+		return
 	if not success or not race.new_record or capped:
 		return
 	sample(race, true)

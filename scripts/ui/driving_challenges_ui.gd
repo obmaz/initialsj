@@ -23,12 +23,13 @@ static func draw_result(hud: Control) -> void:
 	hud.text_at(
 		Vector2(307, 592),
 		(
-			"EXIT %d  /  DRIFT x%d  /  PASS x%d  /  HITS %d"
+			"EXIT %d / DRIFT x%d / PASS x%d / HITS %d / RESET %d"
 			% [
 				race.rewards.clean_exits,
 				race.max_drift_multiplier,
 				race.rewards.max_pass_chain,
-				race.wall_hits + race.traffic_hits
+				race.wall_hits + race.traffic_hits,
+				race.personal_run.recoveries
 			]
 		),
 		20,

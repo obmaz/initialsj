@@ -1098,12 +1098,8 @@ func return_to_road() -> void:
 		return
 	if not world_race.recover_player():
 		return
-	personal_run.invalidate()
-	route_challenges.invalidate()
 	crash.reset()
 	recovery.reset()
-	rewards.cancel_drift()
-	rewards.exit_boost = 0
 	player.body.rotation.x = 0
 	player.body.rotation.z = 0
 	player.body.position = Vector3(0, player.ride_offset, 0)
@@ -1130,8 +1126,6 @@ func recover_car() -> void:
 		return
 	crash.reset()
 	recovery.reset()
-	rewards.cancel_drift()
-	rewards.exit_boost = 0
 	player.body.rotation.x = 0
 	player.body.rotation.z = 0
 	player.body.position = Vector3(0, player.ride_offset, 0)

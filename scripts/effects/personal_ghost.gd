@@ -7,11 +7,11 @@ var vehicle_index := -1
 func prepare(race: Node3D) -> void:
 	visible = false
 	if not race.show_ghost or race.personal_run.reference.is_empty():
+		clear_visual()
 		return
 	if vehicle_index == race.selected_vehicle and is_instance_valid(car):
 		return
-	if is_instance_valid(car):
-		car.free()
+	clear_visual()
 	vehicle_index = race.selected_vehicle
 	car = preload("res://scripts/vehicles/vehicle_factory.gd").create(vehicle_index)
 	car.traffic = true
@@ -26,6 +26,13 @@ func prepare(race: Node3D) -> void:
 			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		elif node is Light3D:
 			node.visible = false
+
+
+func clear_visual() -> void:
+	if is_instance_valid(car):
+		car.free()
+	car = null
+	vehicle_index = -1
 
 
 func update(race: Node3D) -> void:
