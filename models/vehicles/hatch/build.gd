@@ -37,7 +37,9 @@ static func build(car: Node3D) -> void:
 	car.block(Vector3(0, 0.82, -2.16), Vector3(0.24, 0.24, 0.07), white)
 	car.block(Vector3(0, 0.54, 2.14), Vector3(1.86, 0.25, 0.18), black)
 	car.block(Vector3(0, 0.86, 2.08), Vector3(1.76, 0.24, 0.075), black)
-	car.block(Vector3(0, 1.035, 1.88), Vector3(1.73, 0.055, 0.15), black)
+	var flap: MeshInstance3D = car.block(Vector3(0, 1.065, 1.88), Vector3(1.73, 0.09, 0.24), black)
+	var aero_parts: Array[MeshInstance3D] = [flap]
+	car.add_active_aero(aero_parts, flap.position, .07, deg_to_rad(-6))
 	var red: StandardMaterial3D = car.mat(Color("d92b23"), 0, true)
 	car.brake_lights.append(red)
 	for side in [-1.0, 1.0]:

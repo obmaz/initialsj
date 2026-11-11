@@ -393,6 +393,9 @@ static func build(car: Node3D) -> void:
 		car, "STRAUD", Vector3(0, 0.60, Z_REAR + 0.02), Color("d9dee2"), 0.0016
 	)
 	car.add_headlight(Vector3(0, 0.76, -1.95))
+	var flap: MeshInstance3D = car.block(Vector3(0, .98, 1.81), Vector3(1.42, .085, .30), trim)
+	var aero_parts: Array[MeshInstance3D] = [flap]
+	car.add_active_aero(aero_parts, Vector3(0, .98, 1.68), .10, deg_to_rad(-8))
 
 
 static func lamp(car: Node3D, at: Vector3, frame: Basis, radius: float, depth: float, material: Material) -> void:

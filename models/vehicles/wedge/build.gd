@@ -3,6 +3,7 @@ const Geometry = preload("res://models/shared/vehicle_geometry.gd")
 
 
 static func build(car: Node3D) -> void:
+	var aero_parts: Array[MeshInstance3D] = []
 	var paint: StandardMaterial3D = car.mat(car.paint, 0.4)
 	paint.clearcoat_enabled = true
 	paint.clearcoat = 0.5
@@ -25,7 +26,8 @@ static func build(car: Node3D) -> void:
 		var lamp: Material = car.mat(Color("d5faff"), 0, true)
 		Geometry.beam(car, Vector3(side * 0.83, 0.80, -2.17), Vector3(side * 0.64, 0.73, -2.17), 0.045, lamp)
 		Geometry.beam(car, Vector3(side * 0.64, 0.73, -2.17), Vector3(side * 0.43, 0.80, -2.17), 0.045, lamp)
-		car.block(Vector3(side * 0.64, 1.02, 1.72), Vector3(0.10, 0.48, 0.12), dark)
+		car.block(Vector3(side * .64, .95, 1.72), Vector3(.16, .27, .18), dark)
+		aero_parts.append(car.block(Vector3(side * .64, 1.16, 1.72), Vector3(.085, .24, .10), dark))
 		var red: StandardMaterial3D = car.mat(Color("ff372c"), 0, true)
 		car.brake_lights.append(red)
 		for i in range(3):
@@ -33,8 +35,9 @@ static func build(car: Node3D) -> void:
 		car.add_boost_jet(Vector3(side * 0.55, 0.40, 2.25), 0.18)
 	car.block(Vector3(0, 0.72, -2.16), Vector3(0.25, 0.29, 0.06), paint)
 	for side in [-1.0, 1.0]:
-		car.block(Vector3(side * 0.61, 1.29, 1.80), Vector3(0.98, 0.07, 0.40), paint)
-		car.block(Vector3(side * 1.07, 1.34, 1.80), Vector3(0.05, 0.16, 0.35), dark)
+		aero_parts.append(car.block(Vector3(side * .61, 1.29, 1.80), Vector3(.98, .09, .40), paint))
+		aero_parts.append(car.block(Vector3(side * 1.07, 1.34, 1.80), Vector3(.065, .16, .35), dark))
+	car.add_active_aero(aero_parts, Vector3(0, 1.29, 1.72), .17, deg_to_rad(-7))
 	Geometry.label(car, "VELTRIX", Vector3(0, 0.66, 2.27), Color("e4e7ea"), 0.002)
 
 	car.add_headlight(Vector3(0, 0.9, -2.0))

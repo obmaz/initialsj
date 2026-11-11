@@ -48,3 +48,6 @@ static func build(car: Node3D) -> void:
 	car.block(Vector3(0, 0.56, 2.17), Vector3(2.04, 0.12, 0.18), car.mat(Color("a5b4bb"), 0.8))
 	Geometry.label(car, "IRONVALE", Vector3(0, 0.68, 2.28), Color("e4e7ea"), 0.0018)
 	car.add_headlight(Vector3(0, 0.9, -2.0))
+	var flap: MeshInstance3D = car.block(Vector3(0, 1.11, 1.92), Vector3(1.65, .10, .32), dark)
+	var aero_parts: Array[MeshInstance3D] = [flap]
+	car.add_active_aero(aero_parts, Vector3(0, 1.11, 1.78), .08, deg_to_rad(-6))

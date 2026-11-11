@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://shaders/sandstone.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://assets/environment/generated-rock-variants.png" id="2"]
+
+[resource]
+shader = ExtResource("1")
+shader_parameter/rock_detail = ExtResource("2")
+shader_parameter/rock_tint = Color(0.48, 0.57, 0.6, 1)
+shader_parameter/rock_saturation = 0.12

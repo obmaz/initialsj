@@ -1,3 +1,5 @@
 # basalt
 
 프로젝트에서 직접 작성한 절차적 형상입니다. 단위와 제작 인터페이스는 [모델 제작 지침](../../../docs/MODEL_PIPELINE.md)을 따릅니다.
+
+공통 생성형 암석 이미지 `assets/environment/generated-rock-variants.png`를 이 팩의 `material.tres`에서 참조합니다. 출처는 [환경 이미지 기록](../../../assets/environment/README.md#지질구조물-재질-변형)을 따릅니다. 사암은 원본 층리색을 유지하고 현무암은 낮은 채도·어두운 청회색으로 재질을 구분합니다. 표면 법선·거칠기·음영은 공통 암석 셰이더가 담당합니다.
