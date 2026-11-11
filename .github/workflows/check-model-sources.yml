@@ -10,6 +10,7 @@ on:
       - 'tools/optimize_models.py'
       - 'tools/test_optimize_models.py'
       - '.github/workflows/check-model-sources.yml'
+      - '.gitattributes'
   pull_request:
     paths:
       - 'model_sources/**'
@@ -18,6 +19,7 @@ on:
       - 'tools/optimize_models.py'
       - 'tools/test_optimize_models.py'
       - '.github/workflows/check-model-sources.yml'
+      - '.gitattributes'
 
 permissions:
   contents: read
