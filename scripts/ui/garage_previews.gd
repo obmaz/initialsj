@@ -4,6 +4,7 @@ const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 var textures: Array[Texture2D] = []
 var viewports: Array[SubViewport] = []
 var rendered := []
+var cars: Array[Node3D] = []
 # Set before the node enters the tree: weak GPUs (game consoles) get smaller, unsmoothed previews.
 var lite := false
 
@@ -64,6 +65,7 @@ func _ready() -> void:
 		var car := Factory.create(i)
 		car.position.y = 0.12
 		viewport.add_child(car)
+		cars.append(car)
 		var camera := Camera3D.new()
 		camera.position = Vector3(-3.5, 1.9, -4.8)
 		camera.fov = 30
@@ -76,3 +78,9 @@ func show_vehicle(index: int) -> void:
 	if not rendered[index]:
 		viewports[index].render_target_update_mode = SubViewport.UPDATE_ONCE
 		rendered[index] = true
+
+
+func customize(index: int, passport: RefCounted) -> void:
+	passport.apply_car(cars[index], index)
+	rendered[index] = false
+	show_vehicle(index)

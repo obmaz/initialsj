@@ -78,6 +78,9 @@ func draw_home() -> void:
 			Color("a5becd")
 		)
 		hud.text_at(Vector2(x + 450, rect.position.y + 85), ">", 48, accent)
+	hud.slant(hud.HOME_PASSPORT, Color("102637ed"), 10)
+	hud.centered(Vector2(160, 63), "TOUR PASSPORT", 23, hud.CYAN)
+	hud.centered(Vector2(160, 90), "%d / 5 GOALS  /  P" % race.passport.goals.size(), 16, hud.WHITE)
 	hud.slant(hud.HOME_SETTINGS, Color("102637ed"), 10)
 	hud.centered(Vector2(hud.HOME_SETTINGS.get_center().x, 77), "SETTINGS", 30)
 	hud.centered(Vector2(640, 694), hud.AppVersion.label(), 22, Color("b2cbd8"))
@@ -243,7 +246,7 @@ func draw_garage() -> void:
 		var role: String = v.role
 		hud.text_at(rect.position + Vector2(23, 66), role, 20, Color("94acbe"))
 	hud.text_at(
-		Vector2(80, 678),
+		Vector2(80, 637),
 		(
 			"16 ROUTES / SEPARATE BESTS"
 			if race.mode == "tour"
@@ -252,5 +255,17 @@ func draw_garage() -> void:
 		22,
 		hud.GOLD
 	)
+	for entry in [
+		[
+			hud.GARAGE_PAINT,
+			"PAINT " + str(race.passport.PAINTS[race.passport.paint_index(race.selected_vehicle)].name) + " / C"
+		],
+		[
+			hud.GARAGE_PLATE,
+			"PLATE " + str(race.passport.PLATES[race.passport.plate_index(race.selected_vehicle)]) + " / N"
+		]
+	]:
+		hud.slant(entry[0], Color("20374a"), 8)
+		hud.centered(entry[0].get_center() + Vector2(0, 7), entry[1], 19, hud.CYAN)
 	hud.slant(hud.GARAGE_START, color, 8)
 	hud.centered(Vector2(hud.GARAGE_START.get_center().x, 680), "DRIVE", 34, Color("07111e"))

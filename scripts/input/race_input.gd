@@ -30,11 +30,17 @@ func handle(event: InputEvent) -> void:
 	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
+		if race.passport_open:
+			if event.keycode in [KEY_ESCAPE, KEY_P, KEY_ENTER]:
+				race.toggle_passport()
+			return
 		if race.state == RaceState.MENU:
 			if event.keycode in [KEY_ENTER, KEY_1, KEY_T]:
 				race.navigate_to_mode("tour")
 			elif event.keycode in [KEY_2, KEY_C]:
 				race.navigate(race.open_courses)
+			elif event.keycode == KEY_P:
+				race.toggle_passport()
 			elif event.keycode == KEY_TAB:
 				race.navigate(race.open_settings)
 			return
@@ -73,6 +79,8 @@ func handle(event: InputEvent) -> void:
 			race.select_vehicle(posmod(race.selected_vehicle - 1, Catalog.SPECS.size()))
 		elif race.state == RaceState.READY and event.keycode in [KEY_D, KEY_RIGHT]:
 			race.select_vehicle((race.selected_vehicle + 1) % Catalog.SPECS.size())
+		elif race.state == RaceState.READY and event.keycode in [KEY_C, KEY_N]:
+			race.cycle_cosmetic(event.keycode == KEY_N)
 		elif race.state == RaceState.READY and event.keycode == KEY_G:
 			race.toggle_ghost()
 		elif event.keycode == KEY_V:
@@ -98,10 +106,16 @@ func handle(event: InputEvent) -> void:
 
 # A pad button press, mapped like the keyboard shortcuts of the same screen.
 func pad_pressed(button: int) -> void:
+	if race.passport_open:
+		if button in [JOY_BUTTON_A, JOY_BUTTON_B, JOY_BUTTON_BACK, JOY_BUTTON_LEFT_SHOULDER]:
+			race.toggle_passport()
+		return
 	var count := Catalog.SPECS.size()
 	match race.state:
 		RaceState.MENU:
 			match button:
+				JOY_BUTTON_LEFT_SHOULDER:
+					race.toggle_passport()
 				JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN:
 					pad_focus(button)
 				JOY_BUTTON_A:
@@ -144,6 +158,10 @@ func pad_pressed(button: int) -> void:
 					race.navigate(race.close_settings)
 		RaceState.READY:
 			match button:
+				JOY_BUTTON_X:
+					race.cycle_cosmetic()
+				JOY_BUTTON_BACK:
+					race.cycle_cosmetic(true)
 				JOY_BUTTON_Y:
 					race.toggle_ghost()
 				JOY_BUTTON_A, JOY_BUTTON_START:

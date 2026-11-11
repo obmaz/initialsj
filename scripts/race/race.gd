@@ -22,6 +22,8 @@ const Crash = preload("res://scripts/physics/crash_state.gd")
 const Recovery = preload("res://scripts/race/recovery_state.gd")
 var crash := Crash.new()
 var recovery := Recovery.new()
+var passport := preload("res://scripts/race/tour_passport.gd").new()
+var passport_open := false
 var route_challenges := preload("res://scripts/race/route_challenges.gd").new()
 var personal_run := preload("res://scripts/race/personal_run.gd").new()
 var ghost: Node3D
@@ -124,6 +126,8 @@ var state := RaceState.MENU:
 			push_error("Unknown race state: " + str(value))
 			return
 		state = value
+		if state != RaceState.MENU:
+			passport_open = false
 		shell.sync_back()
 		if state != RaceState.SETTINGS:
 			shell.hide_control()
@@ -310,6 +314,11 @@ func _ready() -> void:
 				JavaScriptBridge.eval("window.matchMedia('(prefers-reduced-motion: reduce)').matches")
 			)
 	load_preferences()
+	passport.load_progress()
+	apply_cosmetics()
+	if previews != null:
+		for index in range(Catalog.SPECS.size()):
+			previews.customize(index, passport)
 	render_budget.set_mode(graphics_mode, self)
 	load_record()
 	reset_nitro()
@@ -342,6 +351,9 @@ func navigate_back() -> bool:
 	if Time.get_ticks_msec() < shell.back_ignored_until:
 		return true
 	if screen_transition != null and screen_transition.busy:
+		return true
+	if passport_open:
+		toggle_passport()
 		return true
 	match state:
 		RaceState.RACING, RaceState.COUNTDOWN:
@@ -552,6 +564,29 @@ func toggle_auto_accelerate() -> void:
 	save_preferences()
 
 
+func toggle_passport() -> void:
+	if state != RaceState.MENU:
+		return
+	passport_open = not passport_open
+	hud.fingers.clear()
+	shell.sync_back()
+
+
+func cycle_cosmetic(plate: bool = false) -> void:
+	if state != RaceState.READY:
+		return
+	passport.cycle(selected_vehicle, plate)
+	apply_cosmetics()
+	if save_records:
+		passport.save_progress()
+
+
+func apply_cosmetics() -> void:
+	passport.apply_car(player, selected_vehicle)
+	if previews != null:
+		previews.customize(selected_vehicle, passport)
+
+
 func toggle_ghost() -> void:
 	show_ghost = not show_ghost
 	ghost.prepare(self)
@@ -632,6 +667,8 @@ func restart(start_countdown: bool = true) -> void:
 	if record_key() != loaded_record_key:
 		load_record()
 	rewards.reset()
+	passport.new_unlocks.clear()
+	apply_cosmetics()
 	route_challenges.reset()
 	max_drift_multiplier = 1
 	surface.reset()
@@ -778,6 +815,7 @@ func select_vehicle(index: int) -> void:
 	player.queue_free()
 	player = Factory.create(selected_vehicle)
 	add_child(player)
+	apply_cosmetics()
 	reset_nitro()
 	load_record()
 	if world_race != null:
@@ -1180,7 +1218,8 @@ func finish() -> void:
 	drifting = false
 	boosting = false
 	if mode == "tour":
-		score = (score + int(time_left) * 100) * TourChallenge.score_multiplier(track.history)
+		tour_score_multiplier = TourChallenge.score_multiplier(track.history)
+		score = (score + int(time_left) * 100) * tour_score_multiplier
 		run_medal = TourChallenge.medal(elapsed, track.history, vehicle.max_speed)
 	if mode == "track":
 		run_medal = 3 if race_position() == 1 else (2 if race_position() <= 3 else 1)
@@ -1197,6 +1236,7 @@ func finish() -> void:
 			saved.set_value(RECORD_GROUP, medal_key, maxi(run_medal, int(saved.get_value(RECORD_GROUP, medal_key, 0))))
 		saved.save("user://records.cfg")
 	personal_run.finish(self, true)
+	passport.finish(self)
 
 
 func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vector3.INF) -> void:

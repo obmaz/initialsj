@@ -123,7 +123,9 @@ func busy() -> bool:
 # 홈 화면에서만 브라우저의 뒤로 가기가 페이지를 떠나게 둔다.
 func sync_back() -> void:
 	if back_callback != null:
-		JavaScriptBridge.get_interface("window").initialsjSetBackEnabled(race.state != RaceState.MENU or busy())
+		JavaScriptBridge.get_interface("window").initialsjSetBackEnabled(
+			race.state != RaceState.MENU or race.passport_open or busy()
+		)
 
 
 func hold_back() -> void:

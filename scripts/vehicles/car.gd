@@ -34,6 +34,7 @@ var aero_pitch := 0.0
 var aero_blend := 0.0
 var effects_quality := 0
 var reduced_motion := false
+var custom_plate := "STOCK"
 
 
 func _ready() -> void:
@@ -256,6 +257,23 @@ func restore_paint() -> void:
 			and node.material_override.shader == material.shader
 		):
 			node.material_override = material
+
+
+func apply_customization(color: Color, plate: String) -> void:
+	if paint == color and custom_plate == plate:
+		return
+	set_protection(false)
+	protection_parts.clear()
+	protection_originals.clear()
+	protection_materials.clear()
+	paint = color
+	custom_plate = plate
+	restore_paint()
+	for node in body.get_children():
+		if node is Label3D and absf(node.position.x) < .05 and node.position.z > 1.5:
+			if not node.has_meta("stock_plate"):
+				node.set_meta("stock_plate", node.text)
+			node.text = str(node.get_meta("stock_plate")) if plate == "STOCK" else plate
 
 
 # 불투명한 청록 차체로 보호 상태를 표시한다. 공유 재질은 바꾸지 않는다.

@@ -59,3 +59,9 @@ static func draw_result(hud: Control) -> void:
 			19,
 			hud.CYAN
 		)
+
+	if not race.passport.new_unlocks.is_empty():
+		hud.text_at(Vector2(307, 676), "UNLOCK: " + " / ".join(race.passport.new_unlocks.slice(0, 2)), 14, hud.GOLD)
+	hud.text_at(
+		Vector2(780, 289), "BEST SCORE %d" % int(race.passport.high_scores.get(race.record_key(), 0)), 16, hud.CYAN
+	)

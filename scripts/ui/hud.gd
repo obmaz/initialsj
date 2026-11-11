@@ -19,6 +19,10 @@ const ROUTE_RIGHT := Rect2(700, 98, 300, 64)
 const PAUSE_BUTTON := Rect2(814, 15, 66, 60)
 const HOME_TOUR := Rect2(100, 470, 520, 170)
 const HOME_TRACK := Rect2(660, 470, 520, 170)
+const HOME_PASSPORT := Rect2(30, 24, 260, 84)
+const PASSPORT_CLOSE := Rect2(1020, 24, 220, 84)
+const GARAGE_PAINT := Rect2(80, 650, 270, 56)
+const GARAGE_PLATE := Rect2(370, 650, 300, 56)
 const HOME_SETTINGS := Rect2(1000, 24, 250, 84)
 const COURSE_FUJI := Rect2(24, 150, 236, 440)
 const COURSE_SPEEDWAY := Rect2(272, 150, 236, 440)
@@ -191,8 +195,14 @@ func handle_pointer(event: InputEvent) -> void:
 	if recovery_touches.has(index):
 		return
 	var p := to_design(event.position)
+	if race.passport_open:
+		if PASSPORT_CLOSE.has_point(p):
+			race.toggle_passport()
+		return
 	if race.state == RaceState.MENU:
-		if HOME_TOUR.has_point(p):
+		if HOME_PASSPORT.has_point(p):
+			race.toggle_passport()
+		elif HOME_TOUR.has_point(p):
 			race.navigate_to_mode("tour")
 		elif HOME_TRACK.has_point(p):
 			race.navigate(race.open_courses)
@@ -238,6 +248,10 @@ func handle_pointer(event: InputEvent) -> void:
 				race.navigate(race.open_courses)
 			else:
 				race.navigate(race.open_menu)
+		elif GARAGE_PAINT.has_point(p):
+			race.cycle_cosmetic()
+		elif GARAGE_PLATE.has_point(p):
+			race.cycle_cosmetic(true)
 		elif GARAGE_GHOST.has_point(p):
 			race.toggle_ghost()
 		elif GARAGE_START.has_point(p):
@@ -552,6 +566,9 @@ func _draw() -> void:
 	if race == null:
 		return
 	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
+	if race.passport_open:
+		preload("res://scripts/ui/passport_ui.gd").draw(self)
+		return
 	if race.state == RaceState.COURSES:
 		menus.draw_courses()
 		draw_pad_hints()

@@ -103,3 +103,5 @@ Compatibility 렌더러에서는 소품의 정점색을 보존하도록 MultiMes
 [driving_rewards.gd](../scripts/race/driving_rewards.gd)는 실제 코너 탈출과 투어 교통 추월의 보상·중복 방지를 소유합니다. [tour_challenge.gd](../scripts/race/tour_challenge.gd)는 분기 순서별 기록 ID·위험 배율·메달 기준을 제공합니다. [rival_driving.gd](../scripts/race/rival_driving.gd)는 플레이어와 독립된 차종·성격·자원으로 상대 차량의 니트로 사용을 판단합니다.
 
 [personal_run.gd](../scripts/race/personal_run.gd)는 구간 기록 캐시와 고정 상한의10Hz 자세 기록을 소유하고 메뉴 준비와 경기 종료에만 파일에 접근합니다. [personal_ghost.gd](../scripts/effects/personal_ghost.gd)는 기존 GLB 차량을 충돌·광원·오디오 없이 보간 재생합니다. 표시 재질은 고스트가 소유하고 원본 공유 재질은 변경하지 않습니다. 투어 경로가 달라지거나 재생 위치가 멀리 점프하면 표시를 생략합니다. [driving_challenges_ui.gd](../scripts/ui/driving_challenges_ui.gd)는 구간 비교·결과 평가를 HUD에 그립니다.
+
+[tour_passport.gd](../scripts/race/tour_passport.gd)는 목적지·경로 메달·장식 해금·차량별 선택·경로별 최고 점수를 보관합니다. [passport_ui.gd](../scripts/ui/passport_ui.gd)는 메인 화면 안의 별도 여권 패널이며 브라우저·Android 뒤로가기와 입력 가림을 공유합니다. 차량 장식은 기존 GLB·판 위치를 사용하고 성능 카탈로그와 원본 재질을 바꾸지 않습니다.
