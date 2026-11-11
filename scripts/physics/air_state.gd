@@ -9,6 +9,8 @@ var landing_flash := 0.0
 var landing_strength := 0.0
 var launches := 0
 var landings := 0
+
+
 func reset() -> void:
 	active = false
 	trick = false

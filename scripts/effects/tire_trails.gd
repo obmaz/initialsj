@@ -7,6 +7,7 @@ var material := ShaderMaterial.new()
 var cursor := 0
 var previous: Array[Vector3] = []
 
+
 func _ready() -> void:
 	var mesh := PlaneMesh.new()
 	mesh.size = Vector2(0.24, 1)
@@ -22,6 +23,7 @@ func _ready() -> void:
 	add_child(batch)
 	reset()
 
+
 func reset() -> void:
 	previous.clear()
 	cursor = 0
@@ -29,9 +31,15 @@ func reset() -> void:
 		instances.set_instance_transform(i, Transform3D(Basis.IDENTITY.scaled_local(Vector3.ZERO), Vector3.ZERO))
 		instances.set_instance_custom_data(i, Color(-1000, 0, 0, 0))
 
+
 func update(race: Node3D) -> void:
 	material.set_shader_parameter("clock", race.elapsed)
-	if race.state != RaceState.RACING or race.air.active or not race.drifting or absf(race.lane) > race.track.half_width(race.distance)-1.1:
+	if (
+		race.state != RaceState.RACING
+		or race.air.active
+		or not race.drifting
+		or absf(race.lane) > race.track.half_width(race.distance) - 1.1
+	):
 		previous.clear()
 		return
 	var points: Array[Vector3] = []
@@ -39,11 +47,14 @@ func update(race: Node3D) -> void:
 		var wheel: Node3D = race.player.wheels[wheel_index]
 		var p: Vector3 = race.player.body.to_global(wheel.position)
 		if race.world_race != null:
-			var query := PhysicsRayQueryParameters3D.create(p+Vector3.UP*0.5,p-Vector3.UP*1.5,1)
+			var query := PhysicsRayQueryParameters3D.create(p + Vector3.UP * 0.5, p - Vector3.UP * 1.5, 1)
 			var hit := get_world_3d().direct_space_state.intersect_ray(query)
-			if hit.is_empty(): previous.clear(); return
-			p = hit.position+hit.normal*0.04
-		else: p.y = race.track.point(race.distance - wheel.position.z).y + 0.045
+			if hit.is_empty():
+				previous.clear()
+				return
+			p = hit.position + hit.normal * 0.04
+		else:
+			p.y = race.track.point(race.distance - wheel.position.z).y + 0.045
 		points.append(p)
 	if previous.is_empty():
 		previous = points
@@ -54,7 +65,9 @@ func update(race: Node3D) -> void:
 	if traveled < 7:
 		for i in range(2):
 			var direction := points[i] - previous[i]
-			var basis := Basis.looking_at(direction.normalized(), Vector3.UP).scaled_local(Vector3(1, 1, direction.length()))
+			var basis := Basis.looking_at(direction.normalized(), Vector3.UP).scaled_local(
+				Vector3(1, 1, direction.length())
+			)
 			instances.set_instance_transform(cursor, Transform3D(basis, (points[i] + previous[i]) / 2))
 			instances.set_instance_custom_data(cursor, Color(race.elapsed, 0, 0, 1))
 			cursor = (cursor + 1) % CAPACITY

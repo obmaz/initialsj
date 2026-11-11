@@ -9,10 +9,10 @@ const RACING := "racing"
 const PAUSED := "paused"
 const FINISHED := "finished"
 const FAILED := "failed"
-const ALL := [MENU,COURSES,READY,SETTINGS,COUNTDOWN,RACING,PAUSED,FINISHED,FAILED]
+const ALL := [MENU, COURSES, READY, SETTINGS, COUNTDOWN, RACING, PAUSED, FINISHED, FAILED]
 # 3D 화면을 가리는 불투명 메뉴 화면.
-const MENUS := [MENU,COURSES,READY,SETTINGS]
+const MENUS := [MENU, COURSES, READY, SETTINGS]
 # 차가 움직이는 상태(출발 카운트다운 포함).
-const DRIVING := [COUNTDOWN,RACING]
+const DRIVING := [COUNTDOWN, RACING]
 # 완주하거나 시간이 끝난 결과 화면.
-const ENDED := [FINISHED,FAILED]
+const ENDED := [FINISHED, FAILED]

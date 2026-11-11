@@ -24,7 +24,8 @@ var recovery := Recovery.new()
 var recovery_distance := 80.0
 var recovery_lane := -3.2
 var recovery_available: bool:
-	get: return state == RaceState.RACING and recovery.available
+	get:
+		return state == RaceState.RACING and recovery.available
 const GAME_PACE := 1.2
 const RECORD_GROUP := "coast_rush_v3"
 var selected_vehicle := 0
@@ -64,7 +65,14 @@ var shoulder_dust_clock := 0.0
 var landing_dust: Node3D
 var water_effect: Node3D
 var pad_active: bool:
-	get: return state == RaceState.RACING and not crash.active and (surface.pad_time > 0 or surface.lane_active) and not braking and impact < 0.15
+	get:
+		return (
+			state == RaceState.RACING
+			and not crash.active
+			and (surface.pad_time > 0 or surface.lane_active)
+			and not braking
+			and impact < 0.15
+		)
 var mode := "tour"
 var graphics_mode := 0
 var render_budget := RenderBudget.new()
@@ -78,14 +86,18 @@ var warming_world := false:
 var camera_intro := 0.0
 var selected_course := 0
 var world_race: Node3D
-const COURSE_TITLES := ["FUJI LAKESIDE","SUNCOAST SPEEDWAY","MIDNIGHT HARBOR","AZURE RIVIERA","SCARLET GORGE"]
-const COURSE_LABELS := ["FUJI / CIRCUIT 01","SUNCOAST / CIRCUIT 02","MIDNIGHT / CIRCUIT 03","RIVIERA / CIRCUIT 04","GORGE / CIRCUIT 05"]
+const COURSE_TITLES := ["FUJI LAKESIDE", "SUNCOAST SPEEDWAY", "MIDNIGHT HARBOR", "AZURE RIVIERA", "SCARLET GORGE"]
+const COURSE_LABELS := [
+	"FUJI / CIRCUIT 01", "SUNCOAST / CIRCUIT 02", "MIDNIGHT / CIRCUIT 03", "RIVIERA / CIRCUIT 04", "GORGE / CIRCUIT 05"
+]
 const COURSE_COUNT := 5
 var coast_drift := preload("res://scripts/race/coast_drift.gd").new()
 var course_title: String:
-	get: return COURSE_TITLES[clampi(selected_course,0,COURSE_COUNT-1)]
+	get:
+		return COURSE_TITLES[clampi(selected_course, 0, COURSE_COUNT - 1)]
 var course_label: String:
-	get: return COURSE_LABELS[clampi(selected_course,0,COURSE_COUNT-1)]
+	get:
+		return COURSE_LABELS[clampi(selected_course, 0, COURSE_COUNT - 1)]
 var settings_return := RaceState.MENU
 # Shown on the loading card of the next screen transition (empty for an ordinary fade).
 var loading_title := ""
@@ -100,11 +112,12 @@ var state := RaceState.MENU:
 	set(value):
 		# 오타로 생긴 상태는 모든 비교에서 조용히 빠진다. 선언된 값만 받는다.
 		if value not in RaceState.ALL:
-			push_error("Unknown race state: "+str(value))
+			push_error("Unknown race state: " + str(value))
 			return
 		state = value
 		shell.sync_back()
-		if state != RaceState.SETTINGS: shell.hide_control()
+		if state != RaceState.SETTINGS:
+			shell.hide_control()
 		sync_world_rendering()
 var distance := 80.0
 var completed_distance := 0.0
@@ -192,15 +205,20 @@ var new_record := false
 var save_records := true
 # 투어와 TRACK04·05의 해안 드리프트 규칙: 쉬운 드리프트 진입·유지와 드리프트 점수를 쓴다.
 var coast_handling: bool:
-	get: return mode == "tour" or selected_course in [3,4]
+	get:
+		return mode == "tour" or selected_course in [3, 4]
 var stage_index: int:
-	get: return track.active.stage
+	get:
+		return track.active.stage
 var route_node: int:
-	get: return track.active.route_node
+	get:
+		return track.active.route_node
+
 
 func _enter_tree() -> void:
 	RenderResources.acquire_owner()
 	owns_render_resources = true
+
 
 func _ready() -> void:
 	rendering_viewport = get_viewport()
@@ -222,7 +240,7 @@ func _ready() -> void:
 	add_child(impacts)
 	player = Factory.create(selected_vehicle)
 	add_child(player)
-	var colors := ["e7c456","91aabe","aaa3b7","e8e5dc","4c9c97","ad6f55","62798c"]
+	var colors := ["e7c456", "91aabe", "aaa3b7", "e8e5dc", "4c9c97", "ad6f55", "62798c"]
 	for i in range(16):
 		var car := Car.new()
 		car.traffic = true
@@ -254,20 +272,28 @@ func _ready() -> void:
 		add_child(screen_transition)
 	if DisplayServer.get_name() != "headless":
 		if OS.has_feature("web"):
-			lite_graphics = bool(JavaScriptBridge.eval("window.initialsjLiteGraphics ? window.initialsjLiteGraphics() : false"))
-			haptics.phone_buzz = bool(JavaScriptBridge.eval("typeof navigator.vibrate === 'function' && /Android/i.test(navigator.userAgent)"))
-		elif OS.has_feature("android"): haptics.phone_buzz = true
+			lite_graphics = bool(
+				JavaScriptBridge.eval("window.initialsjLiteGraphics ? window.initialsjLiteGraphics() : false")
+			)
+			haptics.phone_buzz = bool(
+				JavaScriptBridge.eval("typeof navigator.vibrate === 'function' && /Android/i.test(navigator.userAgent)")
+			)
+		elif OS.has_feature("android"):
+			haptics.phone_buzz = true
 		previews = preload("res://scripts/ui/garage_previews.gd").new()
 		previews.lite = lite_graphics
 		add_child(previews)
-		for index in range(Catalog.SPECS.size()): previews.show_vehicle(index)
+		for index in range(Catalog.SPECS.size()):
+			previews.show_vehicle(index)
 		var audio = preload("res://scripts/audio/racing_audio.gd").new()
 		audio.race = self
 		add_child(audio)
 		if OS.has_feature("web"):
-			motion_reduced = bool(JavaScriptBridge.eval("window.matchMedia('(prefers-reduced-motion: reduce)').matches"))
+			motion_reduced = bool(
+				JavaScriptBridge.eval("window.matchMedia('(prefers-reduced-motion: reduce)').matches")
+			)
 	load_preferences()
-	render_budget.set_mode(graphics_mode,self)
+	render_budget.set_mode(graphics_mode, self)
 	load_record()
 	reset_nitro()
 	create_world_controller()
@@ -279,28 +305,42 @@ func _ready() -> void:
 		get_tree().quit_on_go_back = false
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	sync_world_rendering()
-	if OS.has_feature("web"): _announce_ready()
+	if OS.has_feature("web"):
+		_announce_ready()
+
 
 # The page keeps its loading screen until the first menu frames are drawn.
 func _announce_ready() -> void:
-	for i in range(3): await get_tree().process_frame
+	for i in range(3):
+		await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	JavaScriptBridge.eval("window.initialsjGameReady && window.initialsjGameReady()")
+
 
 # Keep hardware/browser Back consistent with the visible screen's back action.
 # Repeated Back during a transition is consumed rather than queued.
 func navigate_back() -> bool:
-	if Time.get_ticks_msec() < shell.back_ignored_until: return true
-	if screen_transition != null and screen_transition.busy: return true
+	if Time.get_ticks_msec() < shell.back_ignored_until:
+		return true
+	if screen_transition != null and screen_transition.busy:
+		return true
 	match state:
-		RaceState.RACING,RaceState.COUNTDOWN: pause_tour()
-		RaceState.PAUSED: resume_tour()
-		RaceState.READY: navigate(open_courses if mode == "track" else open_menu)
-		RaceState.COURSES: navigate(open_menu)
-		RaceState.SETTINGS: navigate(close_settings)
-		RaceState.FINISHED,RaceState.FAILED: navigate(open_garage)
-		_: return false
+		RaceState.RACING, RaceState.COUNTDOWN:
+			pause_tour()
+		RaceState.PAUSED:
+			resume_tour()
+		RaceState.READY:
+			navigate(open_courses if mode == "track" else open_menu)
+		RaceState.COURSES:
+			navigate(open_menu)
+		RaceState.SETTINGS:
+			navigate(close_settings)
+		RaceState.FINISHED, RaceState.FAILED:
+			navigate(open_garage)
+		_:
+			return false
 	return true
+
 
 func _exit_tree() -> void:
 	if owns_render_resources:
@@ -310,27 +350,32 @@ func _exit_tree() -> void:
 			preload("res://scripts/environment/regional_props_3d.gd").clear_cache()
 			preload("res://scripts/environment/tour_vegetation.gd").clear_cache()
 	shell.detach()
-	if is_instance_valid(rendering_viewport): rendering_viewport.disable_3d = previous_disable_3d
+	if is_instance_valid(rendering_viewport):
+		rendering_viewport.disable_3d = previous_disable_3d
 	Engine.time_scale = 1.0
+
 
 func competitor_count() -> int:
 	return 16 if mode == "track" and selected_course == 1 else 8
 
+
 func initialize_traffic() -> void:
-	for i in range(rivals.size()): rivals[i].reset(i)
+	for i in range(rivals.size()):
+		rivals[i].reset(i)
 	if mode == "track":
 		for r in rivals:
-			r.active = r.id < competitor_count()-1
-			r.distance = 95.0+int(r.id/2)*10
-			r.lane = -2.0 if r.id%2 == 0 else 2.0
+			r.active = r.id < competitor_count() - 1
+			r.distance = 95.0 + int(r.id / 2) * 10
+			r.lane = -2.0 if r.id % 2 == 0 else 2.0
 			r.target_lane = r.lane
 			r.speed = 0.0
-			r.pace = vehicle.max_speed*(0.94+r.id*0.018)
+			r.pace = vehicle.max_speed * (0.94 + r.id * 0.018)
 	else:
 		# The Tour is a solo time attack: no CPU cars on the road.
 		for r in rivals:
 			r.active = false
 			r.car.visible = false
+
 
 func navigate(action: Callable) -> void:
 	shell.hide_control()
@@ -342,45 +387,54 @@ func navigate(action: Callable) -> void:
 		await screen_transition.play(action)
 		shell.sync_back()
 
+
 func start_race() -> void:
-	navigate(func():
-		restart()
-		camera_intro = 0.0 if motion_reduced else 1.0
-		if camera_intro > 0:
-			var f := (track.point(distance+3)-track.point(distance)).normalized()
-			camera_offset += -f*3.5+Vector3.UP*2.0
-			camera.position = player.position+camera_offset
-			camera.reset_physics_interpolation()
+	navigate(
+		func():
+			restart()
+			camera_intro = 0.0 if motion_reduced else 1.0
+			if camera_intro > 0:
+				var f := (track.point(distance + 3) - track.point(distance)).normalized()
+				camera_offset += -f * 3.5 + Vector3.UP * 2.0
+				camera.position = player.position + camera_offset
+				camera.reset_physics_interpolation()
 	)
 
+
 func cycle_graphics() -> void:
-	graphics_mode = (graphics_mode+1)%3
-	render_budget.set_mode(graphics_mode,self)
+	graphics_mode = (graphics_mode + 1) % 3
+	render_budget.set_mode(graphics_mode, self)
+
 
 func open_courses() -> void:
 	menu_focus = 0
 	hud.fingers.clear()
 	state = RaceState.COURSES
 
+
 # The region name plus its style, e.g. "SKYLINE DRIVE / SKYWAY CITY".
 func route_banner() -> String:
-	var label: String = Features.THEME_FEEL.get(Library.theme(stage_index,route_node),{}).get("label","")
-	return Library.title(stage_index,route_node)+("  /  "+label if label != "" else "")
+	var label: String = Features.THEME_FEEL.get(Library.theme(stage_index, route_node), {}).get("label", "")
+	return Library.title(stage_index, route_node) + ("  /  " + label if label != "" else "")
+
 
 func mode_loading_title(value: String, course: int = 0) -> String:
-	if value != "track": return "COAST TOUR"
-	return COURSE_TITLES[clampi(course,0,COURSE_COUNT-1)]
+	if value != "track":
+		return "COAST TOUR"
+	return COURSE_TITLES[clampi(course, 0, COURSE_COUNT - 1)]
+
 
 # Opens a mode through the transition, with a loading card when the course must be rebuilt.
 func navigate_to_mode(value: String, course: int = 0) -> void:
 	var desired := "track" if value == "track" else "tour"
-	if not (mode == desired and (desired == "tour" or selected_course == clampi(course,0,COURSE_COUNT-1))):
-		loading_title = mode_loading_title(value,course)
-	navigate(func(): choose_mode(value,course))
+	if not (mode == desired and (desired == "tour" or selected_course == clampi(course, 0, COURSE_COUNT - 1))):
+		loading_title = mode_loading_title(value, course)
+	navigate(func(): choose_mode(value, course))
+
 
 func choose_mode(value: String, course: int = 0) -> void:
 	var desired := "track" if value == "track" else "tour"
-	if mode == desired and (desired == "tour" or selected_course == clampi(course,0,COURSE_COUNT-1)):
+	if mode == desired and (desired == "tour" or selected_course == clampi(course, 0, COURSE_COUNT - 1)):
 		open_garage()
 		load_record()
 		return
@@ -390,7 +444,7 @@ func choose_mode(value: String, course: int = 0) -> void:
 		world_race.queue_free()
 		world_race = null
 	mode = "track" if value == "track" else "tour"
-	selected_course = clampi(course,0,COURSE_COUNT-1)
+	selected_course = clampi(course, 0, COURSE_COUNT - 1)
 	remove_child(track)
 	# 새 코스를 만들기 전에 바로 해제해 두 코스의 메시가 같은 프레임에 함께 남지 않게 한다.
 	track.free()
@@ -400,7 +454,8 @@ func choose_mode(value: String, course: int = 0) -> void:
 		preload("res://scripts/environment/regional_props_3d.gd").clear_cache()
 		preload("res://scripts/environment/tour_vegetation.gd").clear_cache()
 	track = Circuit.new() if mode == "track" else Track.new()
-	if mode == "track": track.course_id = selected_course
+	if mode == "track":
+		track.course_id = selected_course
 	add_child(track)
 	lighting.apply_course()
 	create_world_controller()
@@ -409,11 +464,13 @@ func choose_mode(value: String, course: int = 0) -> void:
 	open_garage()
 	load_record()
 
+
 func create_world_controller() -> void:
 	world_race = WorldRace.new() if mode == "track" else TourRace.new()
 	world_race.race = self
 	add_child(world_race)
 	world_race.setup()
+
 
 func open_menu() -> void:
 	menu_focus = 0
@@ -421,35 +478,43 @@ func open_menu() -> void:
 	hud.fingers.clear()
 	state = RaceState.MENU
 
+
 func open_settings() -> void:
-	if OS.has_feature("web"): JavaScriptBridge.eval("window.initialsjPrepareInstall && window.initialsjPrepareInstall()")
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("window.initialsjPrepareInstall && window.initialsjPrepareInstall()")
 	settings_return = state
 	hud.fingers.clear()
 	state = RaceState.SETTINGS
+
 
 func close_settings() -> void:
 	state = settings_return
 	save_preferences()
 
+
 func load_preferences() -> void:
 	var config := ConfigFile.new()
 	if config.load(preferences_path) == OK:
-		sound_enabled = bool(config.get_value("preferences","sound",true))
+		sound_enabled = bool(config.get_value("preferences", "sound", true))
 		# Only a stored choice overrides the system reduced-motion preference.
-		if config.has_section_key("preferences","reduced_motion"):
-			motion_reduced = bool(config.get_value("preferences","reduced_motion"))
+		if config.has_section_key("preferences", "reduced_motion"):
+			motion_reduced = bool(config.get_value("preferences", "reduced_motion"))
 			motion_user_set = true
-		graphics_mode = clampi(int(config.get_value("preferences","graphics",0)),0,2)
-		show_fps = bool(config.get_value("preferences","show_fps",false))
+		graphics_mode = clampi(int(config.get_value("preferences", "graphics", 0)), 0, 2)
+		show_fps = bool(config.get_value("preferences", "show_fps", false))
+
 
 func save_preferences() -> void:
-	if not save_records: return
+	if not save_records:
+		return
 	var config := ConfigFile.new()
-	config.set_value("preferences","sound",sound_enabled)
-	config.set_value("preferences","show_fps",show_fps)
-	if motion_user_set: config.set_value("preferences","reduced_motion",motion_reduced)
-	config.set_value("preferences","graphics",graphics_mode)
+	config.set_value("preferences", "sound", sound_enabled)
+	config.set_value("preferences", "show_fps", show_fps)
+	if motion_user_set:
+		config.set_value("preferences", "reduced_motion", motion_reduced)
+	config.set_value("preferences", "graphics", graphics_mode)
 	config.save(preferences_path)
+
 
 # Every screen that offers these switches goes through here, so a choice made on
 # the pause or result dialog survives a reload like one made in Settings.
@@ -457,45 +522,58 @@ func toggle_sound() -> void:
 	sound_enabled = not sound_enabled
 	save_preferences()
 
+
 func toggle_fps() -> void:
 	show_fps = not show_fps
 	save_preferences()
+
 
 func toggle_motion() -> void:
 	motion_reduced = not motion_reduced
 	motion_user_set = true
 	save_preferences()
 
+
 func relative_gap(other: float, reference: float) -> float:
-	return wrapf(other-reference,-track.length/2,track.length/2) if mode == "track" else other-reference
+	return wrapf(other - reference, -track.length / 2, track.length / 2) if mode == "track" else other - reference
+
 
 func race_position() -> int:
 	return competitor_position(-1)
 
+
 func competitor_position(id: int) -> int:
 	var progress: float = distance if id < 0 else rivals[id].distance
 	var place := 1
-	if id >= 0 and distance > progress+0.001: place += 1
+	if id >= 0 and distance > progress + 0.001:
+		place += 1
 	for r in rivals:
-		if not r.active or r.id == id: continue
-		if r.distance > progress+0.001 or (absf(r.distance-progress) <= 0.001 and r.id > id): place += 1
+		if not r.active or r.id == id:
+			continue
+		if r.distance > progress + 0.001 or (absf(r.distance - progress) <= 0.001 and r.id > id):
+			place += 1
 	return place
+
 
 func restart(start_countdown: bool = true) -> void:
 	hazard_text = ""
-	if track.active.closed_loop and track.active.course_id == 3: track.scenery.rock_arches.reset_effect()
+	if track.active.closed_loop and track.active.course_id == 3:
+		track.scenery.rock_arches.reset_effect()
 	haptics.stop()
 	edge_rumble = 0
 	crash.reset()
 	recovery.reset()
 	player.body.rotation.x = 0
 	player.body.rotation.z = 0
-	player.body.position = Vector3(0,player.ride_offset,0)
+	player.body.position = Vector3(0, player.ride_offset, 0)
 	recovery_distance = 80
 	recovery_lane = -3.2
-	if mode == "tour" and (track.active.stage != 0 or not track.history.is_empty()): track.reset()
-	if track.active.collapse != null: track.active.collapse.reset_effect()
-	if track.active.rockfall != null: track.active.rockfall.reset_effect()
+	if mode == "tour" and (track.active.stage != 0 or not track.history.is_empty()):
+		track.reset()
+	if track.active.collapse != null:
+		track.active.collapse.reset_effect()
+	if track.active.rockfall != null:
+		track.active.rockfall.reset_effect()
 	preload("res://scripts/environment/advertisement_library.gd").reshuffle(get_tree())
 	distance = 80
 	completed_distance = 0
@@ -563,61 +641,81 @@ func restart(start_countdown: bool = true) -> void:
 	initialize_traffic()
 	if world_race != null:
 		world_race.reset()
-		if mode == "track" and selected_course == 1: preload("res://scripts/race/rolling_start.gd").begin(self)
+		if mode == "track" and selected_course == 1:
+			preload("res://scripts/race/rolling_start.gd").begin(self)
 	tire_trails.reset()
 	place_cars()
 	update_camera(1)
 	player.reset_physics_interpolation()
 	camera.reset_physics_interpolation()
-	for r in rivals: r.car.reset_physics_interpolation()
+	for r in rivals:
+		r.car.reset_physics_interpolation()
 	# A screen transition can finish after the device rotated to portrait. The
 	# rotate guide hides the road, so wait paused rather than run unseen.
-	if shell.portrait: pause_tour()
+	if shell.portrait:
+		pause_tour()
+
 
 func _input(event: InputEvent) -> void:
 	controls.handle(event)
 
+
 func _on_joy_connection_changed(_device: int, connected: bool) -> void:
-	if connected: return
+	if connected:
+		return
 	# A pad that disappears mid-race must not leave the car steering or boosting on its own.
 	pad.clear()
-	if Input.get_connected_joypads().is_empty(): gamepad_active = false
+	if Input.get_connected_joypads().is_empty():
+		gamepad_active = false
 	pause_tour()
+
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		if not navigate_back() and OS.has_feature("android"): get_tree().quit()
+		if not navigate_back() and OS.has_feature("android"):
+			get_tree().quit()
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
-		if hud != null: hud.fingers.clear()
+		if hud != null:
+			hud.fingers.clear()
 		pad.clear()
 		pause_tour()
+
 
 func pause_tour() -> void:
 	if state in RaceState.DRIVING:
 		haptics.stop()
 		resume_state = state
 		state = RaceState.PAUSED
-		if hud != null: hud.fingers.clear()
+		if hud != null:
+			hud.fingers.clear()
+
 
 func resume_tour() -> void:
-	if shell.portrait: return
+	if shell.portrait:
+		return
 	if state == RaceState.PAUSED:
 		hud.fingers.clear()
 		state = resume_state
+
 
 func load_record() -> void:
 	best_time = 0
 	previous_best = 0
 	new_record = false
 	var saved := ConfigFile.new()
-	if saved.load("user://records.cfg") == OK: best_time = float(saved.get_value(RECORD_GROUP,Catalog.record_key(selected_vehicle,mode,selected_course),0))
-	if mode == "track" and selected_course == 1: track.active.speedway_board.bind(self)
+	if saved.load("user://records.cfg") == OK:
+		best_time = float(saved.get_value(RECORD_GROUP, Catalog.record_key(selected_vehicle, mode, selected_course), 0))
+	if mode == "track" and selected_course == 1:
+		track.active.speedway_board.bind(self)
+
 
 func select_vehicle(index: int) -> void:
-	if state != RaceState.READY: return
-	if selected_vehicle == clampi(index,0,Catalog.SPECS.size()-1): return
+	if state != RaceState.READY:
+		return
+	if selected_vehicle == clampi(index, 0, Catalog.SPECS.size() - 1):
+		return
 	var old_index := selected_vehicle
-	selected_vehicle = clampi(index,0,Catalog.SPECS.size()-1)
+	selected_vehicle = clampi(index, 0, Catalog.SPECS.size() - 1)
 	hud.vehicle_changed(old_index)
 	vehicle = Catalog.spec(selected_vehicle)
 	remove_child(player)
@@ -626,14 +724,19 @@ func select_vehicle(index: int) -> void:
 	add_child(player)
 	reset_nitro()
 	load_record()
-	if world_race != null: world_race.reset()
+	if world_race != null:
+		world_race.reset()
 	place_cars()
 	update_camera(1)
-	if previews != null: previews.show_vehicle(selected_vehicle)
+	if previews != null:
+		previews.show_vehicle(selected_vehicle)
+
 
 func open_garage() -> void:
 	restart(false)
-	if previews != null: previews.show_vehicle(selected_vehicle)
+	if previews != null:
+		previews.show_vehicle(selected_vehicle)
+
 
 func reset_nitro() -> void:
 	nitro = vehicle.energy_start
@@ -645,6 +748,7 @@ func reset_nitro() -> void:
 	nitro_cooldown = 0
 	cancel_nitro()
 
+
 func cancel_nitro() -> void:
 	surface.cancel_boost()
 	boost_kick = 0
@@ -654,83 +758,148 @@ func cancel_nitro() -> void:
 	cell_pending = false
 	boosting = false
 
+
 func gear_number() -> int:
-	if world_race != null and world_race.reversing: return -1
-	if speed < 0.3: return 0
-	return clampi(ceili(speed/(vehicle.max_speed/5.8)),1,6)
+	if world_race != null and world_race.reversing:
+		return -1
+	if speed < 0.3:
+		return 0
+	return clampi(ceili(speed / (vehicle.max_speed / 5.8)), 1, 6)
+
 
 func engine_rpm() -> float:
-	if state in [RaceState.MENU,RaceState.COURSES,RaceState.READY,RaceState.SETTINGS,RaceState.FINISHED,RaceState.FAILED]: return 0
-	var band: float = vehicle.max_speed/5.8
-	var gear := maxi(1,gear_number())
-	var progress := clampf((speed-(gear-1)*band)/band,0,1)
-	return clampf(900+progress*6400,900,7500)
+	if (
+		state
+		in [
+			RaceState.MENU, RaceState.COURSES, RaceState.READY, RaceState.SETTINGS, RaceState.FINISHED, RaceState.FAILED
+		]
+	):
+		return 0
+	var band: float = vehicle.max_speed / 5.8
+	var gear := maxi(1, gear_number())
+	var progress := clampf((speed - (gear - 1) * band) / band, 0, 1)
+	return clampf(900 + progress * 6400, 900, 7500)
+
 
 func nitro_ratio() -> float:
-	if vehicle.mode == "charges": return (nitro_charges+nitro_burst_left/vehicle.burst_duration)/vehicle.charges
-	return nitro/100
+	if vehicle.mode == "charges":
+		return (nitro_charges + nitro_burst_left / vehicle.burst_duration) / vehicle.charges
+	return nitro / 100
+
 
 func _physics_process(delta: float) -> void:
-	Engine.time_scale = (GAME_PACE if state in RaceState.DRIVING else 1.0)*(0.15 if Time.get_ticks_msec() < hitstop_until else 1.0)
-	return_flash = maxf(0,return_flash-delta)
+	Engine.time_scale = (
+		(GAME_PACE if state in RaceState.DRIVING else 1.0) * (0.15 if Time.get_ticks_msec() < hitstop_until else 1.0)
+	)
+	return_flash = maxf(0, return_flash - delta)
 	update_atmosphere(delta)
 	if state == RaceState.COUNTDOWN:
-		if mode == "track" and selected_course == 1: preload("res://scripts/race/rolling_start.gd").advance(self,minf(delta,countdown))
+		if mode == "track" and selected_course == 1:
+			preload("res://scripts/race/rolling_start.gd").advance(self, minf(delta, countdown))
 		countdown -= delta
 		if countdown <= 0:
-			if mode == "track" and selected_course == 1: preload("res://scripts/race/rolling_start.gd").release(self)
+			if mode == "track" and selected_course == 1:
+				preload("res://scripts/race/rolling_start.gd").release(self)
 			state = RaceState.RACING
 			launch_flash = 0.7
 	if state == RaceState.RACING:
-		var axis := float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
-		axis = clampf(axis + hud.touch_axis() + pad.steer(),-1,1)
+		var axis := (
+			float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))
+			- float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
+		)
+		axis = clampf(axis + hud.touch_axis() + pad.steer(), -1, 1)
 		var nitro_input := Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("nitro") or pad.nitro()
 		var cell_input := Input.is_physical_key_pressed(KEY_E) or hud.held("cell") or pad.cell()
-		var gas := Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP) or hud.held("gas") or pad.gas() or nitro_input
-		var brake := Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or hud.held("brake") or pad.brake()
-		step(delta,axis,Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift") or pad.drift(),gas,brake,nitro_input,cell_input)
+		var gas := (
+			Input.is_physical_key_pressed(KEY_W)
+			or Input.is_physical_key_pressed(KEY_UP)
+			or hud.held("gas")
+			or pad.gas()
+			or nitro_input
+		)
+		var brake := (
+			Input.is_physical_key_pressed(KEY_S)
+			or Input.is_physical_key_pressed(KEY_DOWN)
+			or hud.held("brake")
+			or pad.brake()
+		)
+		step(
+			delta,
+			axis,
+			Input.is_physical_key_pressed(KEY_SPACE) or hud.held("drift") or pad.drift(),
+			gas,
+			brake,
+			nitro_input,
+			cell_input
+		)
 	place_cars(delta)
 	sync_world_rendering()
 	var world_visible := not rendering_viewport.disable_3d
-	shoulder_dust_clock = maxf(0,shoulder_dust_clock-delta)
+	shoulder_dust_clock = maxf(0, shoulder_dust_clock - delta)
 	shoulder_dust.visible = world_visible and state == RaceState.RACING
 	if state == RaceState.RACING and offroad_amount > 0.25 and speed > 12 and not air.active:
 		if shoulder_dust_clock <= 0:
-			shoulder_dust.burst(player.position if world_race != null else track.point(distance-2,lane),true)
+			shoulder_dust.burst(player.position if world_race != null else track.point(distance - 2, lane), true)
 			shoulder_dust_clock = 0.24
-	else: shoulder_dust.particles.emitting = false
+	else:
+		shoulder_dust.particles.emitting = false
 	tire_trails.update(self)
 	speed_ambience.update(self)
 	speed_effect.visible = state == RaceState.RACING and not motion_reduced and speed > 35 and render_budget.level < 2
-	speed_effect.material.set_shader_parameter("strength",clampf((speed-35)/53*1.2,0,1))
-	speed_effect.material.set_shader_parameter("high_quality",render_budget.level == 0)
+	speed_effect.material.set_shader_parameter("strength", clampf((speed - 35) / 53 * 1.2, 0, 1))
+	speed_effect.material.set_shader_parameter("high_quality", render_budget.level == 0)
 	update_camera(delta)
 	player.road_speed = speed if state == RaceState.RACING else 0.0
-	player.animate(steer,drifting and state == RaceState.RACING,(nitro_active or pad_active) and state == RaceState.RACING,delta,0.0 if world_race != null else slip_angle,braking and state == RaceState.RACING,impact if state == RaceState.RACING and not motion_reduced else 0.0)
+	player.animate(
+		steer,
+		drifting and state == RaceState.RACING,
+		(nitro_active or pad_active) and state == RaceState.RACING,
+		delta,
+		0.0 if world_race != null else slip_angle,
+		braking and state == RaceState.RACING,
+		impact if state == RaceState.RACING and not motion_reduced else 0.0
+	)
 	if crash.active:
 		apply_crash_pose()
 	if offroad_amount > 0.2:
-		for particles in player.smoke: particles.emitting = false
-	var night: bool = track.scenery.theme in ["neon","night"]
+		for particles in player.smoke:
+			particles.emitting = false
+	var night: bool = track.scenery.theme in ["neon", "night"]
 	player.set_headlights(track.active.in_tunnel(distance) or night)
 	for r in rivals:
-		r.car.set_headlights(r.active and (night or track.active.in_tunnel(r.distance)),false)
-		if not r.active or not r.car.visible or absf(relative_gap(r.distance,distance)) > 145:
-			if r.visual_running: r.car.animate(0,false,false,0)
+		r.car.set_headlights(r.active and (night or track.active.in_tunnel(r.distance)), false)
+		if not r.active or not r.car.visible or absf(relative_gap(r.distance, distance)) > 145:
+			if r.visual_running:
+				r.car.animate(0, false, false, 0)
 			r.visual_running = false
 			continue
 		r.visual_running = true
 		r.car.road_speed = r.speed if state == RaceState.RACING else 0.0
-		r.car.animate(clampf((r.target_lane-r.lane)/2,-1,1),r.active and r.drifting and r.car.visible and absf(relative_gap(r.distance,distance)) < 80 and state == RaceState.RACING,r.boosting and state == RaceState.RACING,delta,0)
+		r.car.animate(
+			clampf((r.target_lane - r.lane) / 2, -1, 1),
+			(
+				r.active
+				and r.drifting
+				and r.car.visible
+				and absf(relative_gap(r.distance, distance)) < 80
+				and state == RaceState.RACING
+			),
+			r.boosting and state == RaceState.RACING,
+			delta,
+			0
+		)
 	# HUD._process owns its redraw; physics ticks need not enqueue it again.
 
+
 func sync_world_rendering() -> void:
-	if not is_instance_valid(rendering_viewport) or not is_instance_valid(player): return
+	if not is_instance_valid(rendering_viewport) or not is_instance_valid(player):
+		return
 	var world_visible := warming_world or state not in RaceState.MENUS
 	# GLES3는 첫 렌더 전 교체된 Sky의 대기 중 큐브맵을 남길 수 있다.
 	# 가려진 코스 선택에서는 만들지 않고 실제 렌더·프리워밍 때 생성한다.
 	if world_visible and atmosphere.sky == null:
-		if mode == "track": atmosphere.sky = track.scenery.make_sky()
+		if mode == "track":
+			atmosphere.sky = track.scenery.make_sky()
 		else:
 			var sky := Sky.new()
 			sky.sky_material = sky_colors
@@ -745,25 +914,37 @@ func sync_world_rendering() -> void:
 				tour_weather = preload("res://scripts/environment/tour_weather.gd").new()
 				tour_weather.race = self
 				player.get_parent().add_child(tour_weather)
-	if world_visible and mode == "tour" and is_instance_valid(goal_background): goal_background._process(0)
+	if world_visible and mode == "tour" and is_instance_valid(goal_background):
+		goal_background._process(0)
 	rendering_viewport.disable_3d = not world_visible
 	if is_instance_valid(track):
 		track.visible = world_visible
 		# Pause decorative animation without removing road collision bodies from
 		# the physics space (PROCESS_MODE_DISABLED would also disable colliders).
-		if track.scenery.has_method("_process"): track.scenery.set_process(world_visible)
+		if track.scenery.has_method("_process"):
+			track.scenery.set_process(world_visible)
 	player.visible = world_visible
 	tire_trails.visible = world_visible
 	if not world_visible:
-		for r in rivals: r.car.visible = false
+		for r in rivals:
+			r.car.visible = false
 
-func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool = false, cell_input: bool = false) -> void:
-	edge_rumble = move_toward(edge_rumble,0,delta*4)
+
+func step(
+	delta: float,
+	axis: float,
+	drift_input: bool,
+	gas: bool,
+	brake: bool,
+	nitro_input: bool = false,
+	cell_input: bool = false
+) -> void:
+	edge_rumble = move_toward(edge_rumble, 0, delta * 4)
 	haptics.enabled = not motion_reduced
 	if crash.advance(delta):
 		player.body.rotation.x = 0
 		player.body.rotation.z = 0
-		player.body.position = Vector3(0,player.ride_offset,0)
+		player.body.position = Vector3(0, player.ride_offset, 0)
 	update_recovery(delta)
 	if crash.active:
 		axis = 0
@@ -773,43 +954,50 @@ func step(delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, 
 		nitro_input = false
 		cell_input = false
 	hazard_text = ""
-	world_race.step(delta,axis,drift_input,gas,brake,nitro_input,cell_input)
+	world_race.step(delta, axis, drift_input, gas, brake, nitro_input, cell_input)
 	if track.active.collapse != null:
-		track.active.collapse.advance(delta,distance,motion_reduced)
+		track.active.collapse.advance(delta, distance, motion_reduced)
 		hazard_text = track.active.collapse.warning(distance)
 	if track.active.rockfall != null:
-		track.active.rockfall.advance(delta,distance,laps_completed)
+		track.active.rockfall.advance(delta, distance, laps_completed)
 		var rock_warning: String = track.active.rockfall.warning(distance)
-		if not rock_warning.is_empty(): hazard_text = rock_warning
+		if not rock_warning.is_empty():
+			hazard_text = rock_warning
 
 	if track.active.closed_loop and track.active.course_id == 3:
-		hazard_text = preload("res://scripts/track/riviera_profile.gd").warning(fposmod(distance,track.length))
-		track.scenery.rock_arches.advance(delta,distance,laps_completed)
+		hazard_text = preload("res://scripts/track/riviera_profile.gd").warning(fposmod(distance, track.length))
+		track.scenery.rock_arches.advance(delta, distance, laps_completed)
 		var arch_warning: String = track.scenery.rock_arches.warning(distance)
-		if not arch_warning.is_empty(): hazard_text = arch_warning
+		if not arch_warning.is_empty():
+			hazard_text = arch_warning
+
 
 func pad_speed_cap() -> float:
-	return maxf(vehicle.overdrive_speed+2,vehicle.max_speed+21)
+	return maxf(vehicle.overdrive_speed + 2, vehicle.max_speed + 21)
+
 
 func update_recovery(delta: float) -> void:
-	recovery.advance(delta,world_race.player_body.feet_position())
+	recovery.advance(delta, world_race.player_body.feet_position())
+
 
 func apply_crash_pose() -> void:
 	# Rotate about the chassis centre, so a barrel roll cannot orbit the road
 	# contact point or bury the model beneath the visible road on touchdown.
-	var pivot := Vector3(0,0.7,0)
-	player.body.rotation = Vector3(crash.visual_pitch,0,crash.visual_roll)
-	player.body.position = Vector3(0,player.ride_offset,0)+pivot-player.body.basis*pivot
+	var pivot := Vector3(0, 0.7, 0)
+	player.body.rotation = Vector3(crash.visual_pitch, 0, crash.visual_roll)
+	player.body.position = Vector3(0, player.ride_offset, 0) + pivot - player.body.basis * pivot
+
 
 # Back on the road after leaving it past the guardrail; no button, no waiting.
 func return_to_road() -> void:
-	if world_race == null or state != RaceState.RACING: return
+	if world_race == null or state != RaceState.RACING:
+		return
 	world_race.rescue_player()
 	crash.reset()
 	recovery.reset()
 	player.body.rotation.x = 0
 	player.body.rotation.z = 0
-	player.body.position = Vector3(0,player.ride_offset,0)
+	player.body.position = Vector3(0, player.ride_offset, 0)
 	speed = 0
 	lane_velocity = 0
 	steer = 0
@@ -823,16 +1011,19 @@ func return_to_road() -> void:
 	drift_charge = 0
 	return_flash = 1.6
 
+
 func recover_car() -> void:
-	if not recovery_available: return
+	if not recovery_available:
+		return
 	var launches: int = air.launches
 	var landings: int = air.landings
-	if not world_race.recover_player(): return
+	if not world_race.recover_player():
+		return
 	crash.reset()
 	recovery.reset()
 	player.body.rotation.x = 0
 	player.body.rotation.z = 0
-	player.body.position = Vector3(0,player.ride_offset,0)
+	player.body.position = Vector3(0, player.ride_offset, 0)
 	speed = 0
 	lane_velocity = 0
 	steer = 0
@@ -855,45 +1046,60 @@ func recover_car() -> void:
 	player.reset_physics_interpolation()
 	camera.reset_physics_interpolation()
 
+
 func route_choices_visible() -> bool:
-	return mode == "tour" and state == RaceState.RACING and stage_index < Library.STAGES-1 and checkpoint_stage == stage_index
+	return (
+		mode == "tour"
+		and state == RaceState.RACING
+		and stage_index < Library.STAGES - 1
+		and checkpoint_stage == stage_index
+	)
+
 
 func select_route(side: int) -> void:
-	if not route_choices_visible(): return
-	route_preference = clampi(side,0,1)
+	if not route_choices_visible():
+		return
+	route_preference = clampi(side, 0, 1)
 	route_choice_flash = 0.4
-	if screen_transition != null and sound_enabled: screen_transition.ui_sound.play()
+	if screen_transition != null and sound_enabled:
+		screen_transition.ui_sound.play()
+
 
 func award_checkpoint() -> void:
-	if checkpoint_stage == stage_index: return
+	if checkpoint_stage == stage_index:
+		return
 	checkpoint_stage = stage_index
 	checkpoints += 1
 	checkpoint_flash = 2
 	checkpoint_award = Library.checkpoint_bonus(route_node)
 	time_left += checkpoint_award
-	nitro = minf(100,nitro+15)
-	nitro_charges = mini(vehicle.charges,nitro_charges+1)
+	nitro = minf(100, nitro + 15)
+	nitro_charges = mini(vehicle.charges, nitro_charges + 1)
+
 
 func advance_route() -> void:
 	recovery.reset()
 	recovery_distance = 5
 	recovery_lane = 0
 	var choice := 0 if lane < 0 else 1
-	var result := track.advance(choice,distance,lane)
+	var result := track.advance(choice, distance, lane)
 	completed_distance += result.old_length
 	distance = result.distance
 	lane = result.lane
 	route_preference = -1
 	route_confirm_flash = 1.4
 	route_confirm_title = route_banner()
-	for rival in rivals: rival.active = false
+	for rival in rivals:
+		rival.active = false
+
 
 func finish() -> void:
 	state = RaceState.FINISHED
 	cancel_nitro()
 	drifting = false
 	boosting = false
-	if mode == "tour": score += int(time_left)*100
+	if mode == "tour":
+		score += int(time_left) * 100
 	previous_best = best_time
 	new_record = best_time == 0 or elapsed < best_time
 	if new_record:
@@ -901,24 +1107,29 @@ func finish() -> void:
 		if save_records:
 			var saved := ConfigFile.new()
 			saved.load("user://records.cfg")
-			saved.set_value(RECORD_GROUP,Catalog.record_key(selected_vehicle,mode,selected_course),best_time)
+			saved.set_value(RECORD_GROUP, Catalog.record_key(selected_vehicle, mode, selected_course), best_time)
 			saved.save("user://records.cfg")
 	if mode == "track" and selected_course == 1:
-		track.active.speedway_board.add_result(elapsed,str(vehicle.name),save_records)
+		track.active.speedway_board.add_result(elapsed, str(vehicle.name), save_records)
+
 
 func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vector3.INF) -> void:
 	# Separation and speed loss happen at the contact site. Feedback is emitted
 	# once per cooldown, and parked/gentle contacts do not create a crash burst.
-	if bump_cooldown > 0: return
-	strength = clampf(strength,0,1)
-	if strength < 0.07: strength = 0
-	impact = maxf(impact,strength)
+	if bump_cooldown > 0:
+		return
+	strength = clampf(strength, 0, 1)
+	if strength < 0.07:
+		strength = 0
+	impact = maxf(impact, strength)
 	impact_normal = normal.normalized()
 	impact_recoil = strength
 	impact_age = 0
 	# A freeze-frame on hard hits makes them land (skipped with reduced motion).
-	if strength > 0.55 and not motion_reduced: hitstop_until = Time.get_ticks_msec()+int(50+strength*70)
-	if strength > 0: haptics.pulse(0.35+0.65*strength,0.5+0.5*strength,0.1+0.3*strength,3)
+	if strength > 0.55 and not motion_reduced:
+		hitstop_until = Time.get_ticks_msec() + int(50 + strength * 70)
+	if strength > 0:
+		haptics.pulse(0.35 + 0.65 * strength, 0.5 + 0.5 * strength, 0.1 + 0.3 * strength, 3)
 	cancel_nitro()
 	drifting = false
 	drift_charge = 0
@@ -926,41 +1137,57 @@ func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vecto
 	drift_pending = 0
 	bump_cooldown = 0.45
 	if strength > 0 and DisplayServer.get_name() != "headless":
-		var f := (track.point(distance+2)-track.point(distance)).normalized()
-		if world_race != null: f = world_race.player_body.forward_direction()
-		var right := Vector3(-f.z,0,f.x)
-		var at := track.point(distance,lane) + Vector3.UP*0.55 - right*normal.x*1.25 + f*normal.y*2.0
-		if world_at.is_finite(): at = world_at
-		impacts.burst(at,-right*normal.x+f*normal.y-f*0.7,motion_reduced,strength)
+		var f := (track.point(distance + 2) - track.point(distance)).normalized()
+		if world_race != null:
+			f = world_race.player_body.forward_direction()
+		var right := Vector3(-f.z, 0, f.x)
+		var at := track.point(distance, lane) + Vector3.UP * 0.55 - right * normal.x * 1.25 + f * normal.y * 2.0
+		if world_at.is_finite():
+			at = world_at
+		impacts.burst(at, -right * normal.x + f * normal.y - f * 0.7, motion_reduced, strength)
+
 
 # Called every frame the car grinds along a rail: rumble, camera shake and a stream of sparks.
 func scrape(delta: float, outward: Vector3, at: Vector3) -> void:
 	edge_rumble = 1.0
-	haptics.pulse(0.25,0.6,0.08,1)
+	haptics.pulse(0.25, 0.6, 0.08, 1)
 	scrape_timer -= delta
-	if scrape_timer > 0 or impact_age < 0.5: return
+	if scrape_timer > 0 or impact_age < 0.5:
+		return
 	scrape_timer = 0.14 if motion_reduced else 0.07
-	if DisplayServer.get_name() == "headless": return
-	var f := (track.point(distance+2)-track.point(distance)).normalized()
-	if world_race != null: f = world_race.player_body.forward_direction()
-	impacts.burst(at,-f*0.9-outward*0.25,motion_reduced,0.3)
+	if DisplayServer.get_name() == "headless":
+		return
+	var f := (track.point(distance + 2) - track.point(distance)).normalized()
+	if world_race != null:
+		f = world_race.player_body.forward_direction()
+	impacts.burst(at, -f * 0.9 - outward * 0.25, motion_reduced, 0.3)
+
 
 func place_cars(_delta: float = 1.0) -> void:
 	world_race.place_cars()
+
 
 func _process(delta: float) -> void:
 	render_budget.tick(self)
 	controls.pad_stick_navigation(delta)
 
+
 func collision_camera_offset(forward: Vector3, right: Vector3) -> Vector3:
-	if state != RaceState.RACING or motion_reduced or impact_age > 0.42: return Vector3.ZERO
+	if state != RaceState.RACING or motion_reduced or impact_age > 0.42:
+		return Vector3.ZERO
 	# A quick directional compression and a single diminishing rebound rather
 	# than an arbitrary shake that looks identical for left and right impacts.
-	var pulse := impact_recoil*exp(-impact_age*16)*cos(impact_age*22)
-	return (right*impact_normal.x*0.48-forward*impact_normal.y*0.36+Vector3.UP*0.055)*pulse*(1.0+impact_recoil*1.6)
+	var pulse := impact_recoil * exp(-impact_age * 16) * cos(impact_age * 22)
+	return (
+		(right * impact_normal.x * 0.48 - forward * impact_normal.y * 0.36 + Vector3.UP * 0.055)
+		* pulse
+		* (1.0 + impact_recoil * 1.6)
+	)
+
 
 func update_camera(delta: float) -> void:
 	world_race.update_camera(delta)
+
 
 func update_atmosphere(delta: float) -> void:
 	lighting.update(delta)

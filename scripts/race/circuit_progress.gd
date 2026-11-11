@@ -25,32 +25,38 @@ var fast_updates := 0
 var full_searches := 0
 var jump_air_spans: Array[Vector3] = []
 
+
 func configure(road: Node3D) -> void:
 	section = road
 	jump_air_spans.clear()
 	var authored: Variant = road.get("features")
 	if authored is Array:
 		for feature in authored:
-			if feature.kind == "ramp" and float(feature.get("height",0)) > 4:
-				jump_air_spans.append(Vector3(feature.distance-feature.length*.5-5,feature.distance+400,float(feature.height)+70))
+			if feature.kind == "ramp" and float(feature.get("height", 0)) > 4:
+				jump_air_spans.append(
+					Vector3(
+						feature.distance - feature.length * .5 - 5, feature.distance + 400, float(feature.height) + 70
+					)
+				)
 	centers.clear()
 	forwards.clear()
 	rights.clear()
 	widths.clear()
 	banks.clear()
-	var count := maxi(8,ceili(float(section.length)/CACHE_SPACING))
-	spacing = float(section.length)/count
+	var count := maxi(8, ceili(float(section.length) / CACHE_SPACING))
+	spacing = float(section.length) / count
 	for i in range(count):
-		var d := i*spacing
-		var f: Vector3 = section.point(d+1)-section.point(d-1)
+		var d := i * spacing
+		var f: Vector3 = section.point(d + 1) - section.point(d - 1)
 		f.y = 0
 		f = f.normalized()
 		centers.append(section.point(d))
 		forwards.append(f)
-		rights.append(Vector3(-f.z,0,f.x))
+		rights.append(Vector3(-f.z, 0, f.x))
 		widths.append(section.half_width(d))
 		banks.append(tan(float(section.bank_at(d))))
 	reset()
+
 
 func reset(at_distance: float = 80.0) -> void:
 	distance = at_distance
@@ -58,12 +64,13 @@ func reset(at_distance: float = 80.0) -> void:
 	lane = 0
 	laps = 0
 	gates_passed = 0
-	next_gate = at_distance+float(section.length)/GATE_COUNT if is_instance_valid(section) else at_distance
+	next_gate = at_distance + float(section.length) / GATE_COUNT if is_instance_valid(section) else at_distance
 	has_previous_world = false
 	previous_trackable = false
 	fast_updates = 0
 	full_searches = 0
 	last_valid_world = section.point(at_distance) if is_instance_valid(section) else Vector3.ZERO
+
 
 func reposition(at_distance: float) -> void:
 	# A physical rescue may move back to a safe point without starting a new
@@ -74,75 +81,104 @@ func reposition(at_distance: float) -> void:
 	previous_trackable = false
 	last_valid_world = section.point(at_distance) if is_instance_valid(section) else Vector3.ZERO
 
-func _score(offset: Vector3, forward: Vector3, right: Vector3, width: float, bank: float, d: float, hint: float) -> float:
+
+func _score(
+	offset: Vector3, forward: Vector3, right: Vector3, width: float, bank: float, d: float, hint: float
+) -> float:
 	var lateral := offset.dot(right)
-	var vertical := offset.y-lateral*bank
-	var outside := maxf(0,absf(lateral)-width-4)
-	return pow(offset.dot(forward),2)+vertical*vertical+outside*outside*4+lateral*lateral*0.012+pow(d-hint,2)*0.00005
+	var vertical := offset.y - lateral * bank
+	var outside := maxf(0, absf(lateral) - width - 4)
+	return (
+		pow(offset.dot(forward), 2)
+		+ vertical * vertical
+		+ outside * outside * 4
+		+ lateral * lateral * 0.012
+		+ pow(d - hint, 2) * 0.00005
+	)
+
 
 func _at(world: Vector3, d: float, hint: float) -> Dictionary:
 	var center: Vector3 = section.point(d)
-	var forward: Vector3 = section.point(d+1)-section.point(d-1)
+	var forward: Vector3 = section.point(d + 1) - section.point(d - 1)
 	forward.y = 0
 	forward = forward.normalized()
-	var right := Vector3(-forward.z,0,forward.x)
-	var offset := world-center
+	var right := Vector3(-forward.z, 0, forward.x)
+	var offset := world - center
 	var lateral := offset.dot(right)
-	var ground: Vector3 = section.point(d,lateral)
-	var vertical := world.y-ground.y
+	var ground: Vector3 = section.point(d, lateral)
+	var vertical := world.y - ground.y
 	var width: float = section.half_width(d)
 	var gate_margin := 4.0
 	var tracking_margin := 4.0
 	if section.has_method("rail_setback"):
-		var setback: float = section.rail_setback(d,signf(lateral))
+		var setback: float = section.rail_setback(d, signf(lateral))
 		# Dirt inside the real barrier is drivable track, including at lap gates.
 		# Follow the flat runoff a little farther for telemetry, without allowing
 		# an outside-barrier shortcut to earn gates or move the physical chassis.
-		gate_margin = setback+0.25
-		tracking_margin = maxf(4,setback+1.3)
+		gate_margin = setback + 0.25
+		tracking_margin = maxf(4, setback + 1.3)
 	# 높은 점프대의 연속 비행은 계측을 유지한다. 차체 이동·차선·속도 검사는 그대로 적용한다.
 	var ceiling := 6.0
 	for span in jump_air_spans:
-		if d >= span.x and d <= span.y: ceiling = maxf(ceiling,span.z)
+		if d >= span.x and d <= span.y:
+			ceiling = maxf(ceiling, span.z)
 	var right_height := vertical >= -2.0 and vertical <= ceiling
-	return {"distance":d,"lane":lateral,"ground_height":ground.y,"vertical_error":vertical,"valid":absf(lateral) <= width+gate_margin and right_height,"trackable":absf(lateral) <= width+tracking_margin and right_height,"score":_score(offset,forward,right,width,tan(float(section.bank_at(d))),d,hint)}
+	return {
+		"distance": d,
+		"lane": lateral,
+		"ground_height": ground.y,
+		"vertical_error": vertical,
+		"valid": absf(lateral) <= width + gate_margin and right_height,
+		"trackable": absf(lateral) <= width + tracking_margin and right_height,
+		"score": _score(offset, forward, right, width, tan(float(section.bank_at(d))), d, hint)
+	}
+
 
 func sample(world: Vector3, hint_distance: float) -> Dictionary:
-	assert(is_instance_valid(section) and not centers.is_empty(),"Configure a circuit before projecting vehicle telemetry")
+	assert(
+		is_instance_valid(section) and not centers.is_empty(), "Configure a circuit before projecting vehicle telemetry"
+	)
 	full_searches += 1
 	var best_score := INF
 	var chosen := hint_distance
-	var first := floori((hint_distance-SEARCH_WINDOW)/spacing)
-	var last := ceili((hint_distance+SEARCH_WINDOW)/spacing)
-	for i in range(first,last+1):
-		var index := posmod(i,centers.size())
-		var d := i*spacing
-		var score := _score(world-centers[index],forwards[index],rights[index],widths[index],banks[index],d,hint_distance)
+	var first := floori((hint_distance - SEARCH_WINDOW) / spacing)
+	var last := ceili((hint_distance + SEARCH_WINDOW) / spacing)
+	for i in range(first, last + 1):
+		var index := posmod(i, centers.size())
+		var d := i * spacing
+		var score := _score(
+			world - centers[index], forwards[index], rights[index], widths[index], banks[index], d, hint_distance
+		)
 		if score < best_score:
 			best_score = score
 			chosen = d
-	var best := _at(world,chosen,hint_distance)
+	var best := _at(world, chosen, hint_distance)
 	# Refine only the chosen local branch; never consult the global nearest
 	# offset, which can jump between bridge decks or nearby switchbacks.
-	for i in range(-8,9):
-		var result := _at(world,chosen+i*spacing/8.0,hint_distance)
-		if float(result.score) < float(best.score): best = result
+	for i in range(-8, 9):
+		var result := _at(world, chosen + i * spacing / 8.0, hint_distance)
+		if float(result.score) < float(best.score):
+			best = result
 	var center_d: float = best.distance
-	for i in range(-4,5):
-		var result := _at(world,center_d+i*0.0625,hint_distance)
-		if float(result.score) < float(best.score): best = result
+	for i in range(-4, 5):
+		var result := _at(world, center_d + i * 0.0625, hint_distance)
+		if float(result.score) < float(best.score):
+			best = result
 	best.erase("score")
 	return best
+
 
 func _nearby(world: Vector3, hint: float, radius: float) -> Dictionary:
 	var best_score := INF
 	var chosen := hint
-	var first := floori((hint-radius)/spacing)
-	var last := ceili((hint+radius)/spacing)
-	for i in range(first,last+1):
-		var index := posmod(i,centers.size())
-		var d := i*spacing
-		var score := _score(world-centers[index],forwards[index],rights[index],widths[index],banks[index],d,hint)
+	var first := floori((hint - radius) / spacing)
+	var last := ceili((hint + radius) / spacing)
+	for i in range(first, last + 1):
+		var index := posmod(i, centers.size())
+		var d := i * spacing
+		var score := _score(
+			world - centers[index], forwards[index], rights[index], widths[index], banks[index], d, hint
+		)
 		if score < best_score:
 			best_score = score
 			chosen = d
@@ -152,41 +188,46 @@ func _nearby(world: Vector3, hint: float, radius: float) -> Dictionary:
 	var residual := INF
 	for iteration in range(3):
 		var center: Vector3 = section.point(chosen)
-		var direction: Vector3 = section.point(chosen+1)-section.point(chosen-1)
+		var direction: Vector3 = section.point(chosen + 1) - section.point(chosen - 1)
 		direction.y = 0
-		var right := Vector3(-direction.z,0,direction.x).normalized()
-		residual = (world-center).dot(direction.normalized())
+		var right := Vector3(-direction.z, 0, direction.x).normalized()
+		residual = (world - center).dot(direction.normalized())
 		# Lateral offsets travel different arc lengths on the inside/outside of
 		# a corner. Estimate that Jacobian from the cached neighboring tangents.
-		var index := posmod(roundi(chosen/spacing),centers.size())
-		var before := forwards[posmod(index-1,forwards.size())]
-		var after := forwards[(index+1)%forwards.size()]
-		var curvature := atan2(before.cross(after).y,before.dot(after))/(spacing*2)
-		var lateral := (world-center).dot(right)
-		var horizontal_scale := direction.length()/2
-		var jacobian := maxf(0.45,horizontal_scale*(1+lateral*curvature))
-		chosen += clampf(residual/jacobian,-spacing,spacing)
-		if absf(chosen-hint) > radius-2: return {}
-	var result := _at(world,chosen,hint)
-	if not result.trackable or absf(residual) > 0.3: return {}
+		var index := posmod(roundi(chosen / spacing), centers.size())
+		var before := forwards[posmod(index - 1, forwards.size())]
+		var after := forwards[(index + 1) % forwards.size()]
+		var curvature := atan2(before.cross(after).y, before.dot(after)) / (spacing * 2)
+		var lateral := (world - center).dot(right)
+		var horizontal_scale := direction.length() / 2
+		var jacobian := maxf(0.45, horizontal_scale * (1 + lateral * curvature))
+		chosen += clampf(residual / jacobian, -spacing, spacing)
+		if absf(chosen - hint) > radius - 2:
+			return {}
+	var result := _at(world, chosen, hint)
+	if not result.trackable or absf(residual) > 0.3:
+		return {}
 	result.erase("score")
 	return result
 
-func update(world_feet: Vector3, delta: float = 1.0/60) -> Dictionary:
+
+func update(world_feet: Vector3, delta: float = 1.0 / 60) -> Dictionary:
 	var projected := {}
-	var radius := clampf(maxf(0,delta)*MAX_PROGRESS_SPEED+6,12,24)
-	if has_previous_world and previous_trackable and world_feet.distance_to(previous_world) < radius*0.65:
-		projected = _nearby(world_feet,distance,radius)
-	if projected.is_empty(): projected = sample(world_feet,distance)
-	else: fast_updates += 1
+	var radius := clampf(maxf(0, delta) * MAX_PROGRESS_SPEED + 6, 12, 24)
+	if has_previous_world and previous_trackable and world_feet.distance_to(previous_world) < radius * 0.65:
+		projected = _nearby(world_feet, distance, radius)
+	if projected.is_empty():
+		projected = sample(world_feet, distance)
+	else:
+		fast_updates += 1
 	var candidate: float = projected.distance
-	var advance := candidate-distance
-	var max_advance := minf(SEARCH_WINDOW*0.75,maxf(2.0,maxf(0,delta)*MAX_PROGRESS_SPEED+1.5))
+	var advance := candidate - distance
+	var max_advance := minf(SEARCH_WINDOW * 0.75, maxf(2.0, maxf(0, delta) * MAX_PROGRESS_SPEED + 1.5))
 	var plausible := absf(advance) <= max_advance
 	if has_previous_world:
 		var moved := world_feet.distance_to(previous_world)
-		plausible = plausible and moved <= maxf(4.0,maxf(0,delta)*200+2.0)
-		plausible = plausible and absf(advance) <= moved*1.6+2.0
+		plausible = plausible and moved <= maxf(4.0, maxf(0, delta) * 200 + 2.0)
+		plausible = plausible and absf(advance) <= moved * 1.6 + 2.0
 	previous_world = world_feet
 	has_previous_world = true
 	lane = float(projected.lane)
@@ -196,12 +237,13 @@ func update(world_feet: Vector3, delta: float = 1.0/60) -> Dictionary:
 	if trackable:
 		var before := distance
 		distance = candidate
-		if valid: last_valid_world = world_feet
+		if valid:
+			last_valid_world = world_feet
 		while distance > before and before < next_gate and distance >= next_gate:
 			if valid:
 				gates_passed += 1
-				laps = floori(float(gates_passed)/GATE_COUNT)
-				next_gate += float(section.length)/GATE_COUNT
+				laps = floori(float(gates_passed) / GATE_COUNT)
+				next_gate += float(section.length) / GATE_COUNT
 			else:
 				# A continuous excursion beyond the barrier cannot earn this gate.
 				# Keep its identity and retry at the next physical circuit crossing

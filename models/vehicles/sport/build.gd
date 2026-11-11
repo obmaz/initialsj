@@ -1,5 +1,6 @@
 extends RefCounted
 
+
 static func build(car: Node3D) -> void:
 	var shell: StandardMaterial3D = car.mat(car.paint, 0.55)
 	shell.clearcoat_enabled = true
@@ -15,9 +16,9 @@ static func build(car: Node3D) -> void:
 	car.wedge(Vector3(0, 0.24, 2.15), Vector2(1.5, 0.26), Vector2(1.9, 0.25), 0.30, 0, dark)
 	car.block(Vector3(0, 0.42, -2.21), Vector3(2.12, 0.12, 0.25), dark)
 	for x in [-0.50, 0.50]:
-		var lamp: StandardMaterial3D = car.mat(Color("ff2620"),0,true)
+		var lamp: StandardMaterial3D = car.mat(Color("ff2620"), 0, true)
 		car.brake_lights.append(lamp)
-		car.block(Vector3(x,0.87,2.19),Vector3(0.66,0.055,0.05),lamp)
+		car.block(Vector3(x, 0.87, 2.19), Vector3(0.66, 0.055, 0.05), lamp)
 		car.block(Vector3(x, 0.81, -2.19), Vector3(0.65, 0.08, 0.05), car.mat(Color("c6f3ff"), 0, true))
 		car.block(Vector3(x, 1.01, 1.76), Vector3(0.08, 0.32, 0.12), dark)
 		var exhaust := MeshInstance3D.new()
@@ -65,4 +66,4 @@ static func build(car: Node3D) -> void:
 		car.block(Vector3(side * 1.1, 1.02, -0.45), Vector3(0.24, 0.12, 0.32), shell)
 	car.block(Vector3(0, 1.17, 1.8), Vector3(2.2, 0.08, 0.36), dark)
 
-	car.add_headlight(Vector3(0,0.84,-2.02))
+	car.add_headlight(Vector3(0, 0.84, -2.02))

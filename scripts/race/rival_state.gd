@@ -25,8 +25,10 @@ var world_reverse_axis := 0.0
 var lod_time := 0.0
 var visual_running := true
 
+
 func _init(visual: Node3D = null) -> void:
 	car = visual
+
 
 # 경기 시작 전의 기본 배치. 모드별 배치는 race.gd가 이어서 덮어쓴다.
 func reset(index: int) -> void:
@@ -35,7 +37,7 @@ func reset(index: int) -> void:
 	distance = 150.0 + index * 57
 	speed = 32.0 + (index % 5) * 4
 	pace = speed
-	lane = [-6.0,-2.0,2.0,6.0][index % 4]
+	lane = [-6.0, -2.0, 2.0, 6.0][index % 4]
 	target_lane = lane
 	decision = index * 0.07
 	surface = SurfaceState.new()

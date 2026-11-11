@@ -8,24 +8,30 @@ var busy_until := 0
 var busy_priority := 0
 var pulses := 0
 
+
 # strong / weak are the large and small rumble motors (0-1); priority 0 is a background effect.
 func pulse(strong: float, weak: float, seconds: float, priority: int = 1) -> bool:
-	if not enabled: return false
+	if not enabled:
+		return false
 	var now := Time.get_ticks_msec()
-	if now < busy_until and priority < busy_priority: return false
-	busy_until = now+int(seconds*1000)
+	if now < busy_until and priority < busy_priority:
+		return false
+	busy_until = now + int(seconds * 1000)
 	busy_priority = priority
 	pulses += 1
 	for device in Input.get_connected_joypads():
-		Input.start_joy_vibration(device,clampf(weak,0,1),clampf(strong,0,1),seconds)
+		Input.start_joy_vibration(device, clampf(weak, 0, 1), clampf(strong, 0, 1), seconds)
 	if phone_buzz and OS.has_feature("web"):
-		JavaScriptBridge.eval("navigator.vibrate && navigator.vibrate(%d)" % clampi(int(seconds*1000),10,400))
+		JavaScriptBridge.eval("navigator.vibrate && navigator.vibrate(%d)" % clampi(int(seconds * 1000), 10, 400))
 	elif phone_buzz and OS.has_feature("android"):
 		# Native Android build: the phone's own motor, unless a pad is already rumbling.
-		if Input.get_connected_joypads().is_empty(): Input.vibrate_handheld(clampi(int(seconds*1000),10,400))
+		if Input.get_connected_joypads().is_empty():
+			Input.vibrate_handheld(clampi(int(seconds * 1000), 10, 400))
 	return true
+
 
 func stop() -> void:
 	busy_until = 0
 	busy_priority = 0
-	for device in Input.get_connected_joypads(): Input.stop_joy_vibration(device)
+	for device in Input.get_connected_joypads():
+		Input.stop_joy_vibration(device)

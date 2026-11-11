@@ -10,6 +10,7 @@ var visible_time := 0.0
 var active := false
 var broken := false
 
+
 func reset() -> void:
 	points = 0
 	duration = 0
@@ -20,8 +21,9 @@ func reset() -> void:
 	active = false
 	broken = false
 
+
 func step(delta: float, speed: float, slip: float, drifting: bool, grounded: bool, clean: bool) -> float:
-	visible_time = maxf(0,visible_time-delta)
+	visible_time = maxf(0, visible_time - delta)
 	if not clean:
 		if active:
 			active = false
@@ -32,7 +34,7 @@ func step(delta: float, speed: float, slip: float, drifting: bool, grounded: boo
 		return 0
 	var sliding := drifting and grounded and speed > 25 and absf(slip) >= 0.12 and absf(slip) < 1.1
 	if not sliding:
-		grace = maxf(0,grace-delta)
+		grace = maxf(0, grace - delta)
 		if active and grace <= 0:
 			active = false
 			visible_time = 1.5
@@ -41,10 +43,10 @@ func step(delta: float, speed: float, slip: float, drifting: bool, grounded: boo
 		reset()
 		active = true
 	duration += delta
-	multiplier = mini(5,1+int(duration/1.5))
-	var earned := delta*speed*2.5*multiplier
+	multiplier = mini(5, 1 + int(duration / 1.5))
+	var earned := delta * speed * 2.5 * multiplier
 	points += earned
-	hearts = mini(7,int(points/250))
+	hearts = mini(7, int(points / 250))
 	grace = 0.85
 	visible_time = 1.5
 	return earned

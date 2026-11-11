@@ -7,31 +7,42 @@ static var vehicle_body: ShaderMaterial
 # 작업 스레드에서 읽는 중인 리소스 경로. fetch()가 결과를 받아 가면 지운다.
 static var warming: Dictionary = {}
 
+
 static func acquire_owner() -> void:
 	owners += 1
+
 
 static func release_owner() -> bool:
 	assert(owners > 0)
 	owners -= 1
-	if owners != 0: return false
+	if owners != 0:
+		return false
 	quads.clear()
 	box_mesh = null
 	vehicle_body = null
-	for path in warming: ResourceLoader.load_threaded_get(path)
+	for path in warming:
+		ResourceLoader.load_threaded_get(path)
 	warming.clear()
 	return true
+
 
 # 주행 중에 만드는 구간이 처음 쓰는 텍스처·모델을 작업 스레드에서 미리 읽기 시작한다.
 static func warm(path: String) -> void:
 	# 화면 없는 실행의 더미 렌더러는 스레드에서 리소스를 만들 수 없다. 그때는 fetch()가 바로 읽는다.
-	if DisplayServer.get_name() == "headless": return
-	if warming.has(path) or ResourceLoader.has_cached(path): return
-	if ResourceLoader.load_threaded_request(path) == OK: warming[path] = true
+	if DisplayServer.get_name() == "headless":
+		return
+	if warming.has(path) or ResourceLoader.has_cached(path):
+		return
+	if ResourceLoader.load_threaded_request(path) == OK:
+		warming[path] = true
+
 
 # warm()으로 읽기 시작한 리소스는 그 결과를 받고, 아니면 바로 읽는다.
 static func fetch(path: String) -> Resource:
-	if warming.erase(path): return ResourceLoader.load_threaded_get(path)
+	if warming.erase(path):
+		return ResourceLoader.load_threaded_get(path)
 	return load(path)
+
 
 # 모든 차량의 차체·바퀴가 함께 쓰는 재질. 조각별 차이는 정점 자료에 있다.
 static func vehicle_body_material() -> ShaderMaterial:
@@ -40,9 +51,12 @@ static func vehicle_body_material() -> ShaderMaterial:
 		vehicle_body.shader = preload("res://shaders/vehicle_body.gdshader")
 	return vehicle_body
 
+
 # 미리 읽기 시작했지만 쓰이지 않은 리소스를 놓는다.
 static func release(path: String) -> void:
-	if warming.erase(path): ResourceLoader.load_threaded_get(path)
+	if warming.erase(path):
+		ResourceLoader.load_threaded_get(path)
+
 
 static func quad(size: Vector2) -> QuadMesh:
 	if not quads.has(size):
@@ -50,6 +64,7 @@ static func quad(size: Vector2) -> QuadMesh:
 		mesh.size = size
 		quads[size] = mesh
 	return quads[size]
+
 
 static func unit_box() -> ArrayMesh:
 	if box_mesh == null:
@@ -62,7 +77,11 @@ static func unit_box() -> ArrayMesh:
 			var p: Vector3 = data[Mesh.ARRAY_VERTEX][i]
 			var n: Vector3 = data[Mesh.ARRAY_NORMAL][i]
 			# 기본 BoxMesh의 3×2 펼침 대신 각 면을 0~1로 펼친다.
-			var uv := Vector2(p.z+.5,.5-p.y) if absf(n.x)>.5 else (Vector2(p.x+.5,p.z+.5) if absf(n.y)>.5 else Vector2(p.x+.5,.5-p.y))
+			var uv := (
+				Vector2(p.z + .5, .5 - p.y)
+				if absf(n.x) > .5
+				else (Vector2(p.x + .5, p.z + .5) if absf(n.y) > .5 else Vector2(p.x + .5, .5 - p.y))
+			)
 			st.set_normal(n)
 			st.set_uv(uv)
 			st.add_vertex(p)

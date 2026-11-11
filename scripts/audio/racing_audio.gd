@@ -32,6 +32,7 @@ const LAUNCH_TONE = preload("res://assets/audio/launch.wav")
 const REWARD_TONE = preload("res://assets/audio/reward.wav")
 const LAP_TONE = preload("res://assets/audio/lap.wav")
 
+
 func _ready() -> void:
 	var mode := AudioServer.PLAYBACK_TYPE_SAMPLE if OS.has_feature("web") else AudioServer.PLAYBACK_TYPE_STREAM
 	playback_type = mode
@@ -47,9 +48,12 @@ func _ready() -> void:
 	if OS.has_feature("web"):
 		var source := FileAccess.get_file_as_string("res://web/file_audio.js")
 		var recordings := FileAccess.get_file_as_string("res://assets/audio/web-loops.json")
-		JavaScriptBridge.eval(source + "\nwindow.initialsjFileAudio = new window.InitialSJFileAudio(" + recordings + ");")
+		JavaScriptBridge.eval(
+			source + "\nwindow.initialsjFileAudio = new window.InitialSJFileAudio(" + recordings + ");"
+		)
 		web_audio = JavaScriptBridge.get_interface("window").initialsjFileAudio
 	apply_vehicle()
+
 
 # Swap all four sounds to the selected vehicle. The garage runs this while silent.
 func apply_vehicle() -> void:
@@ -62,12 +66,23 @@ func apply_vehicle() -> void:
 	start_sound.volume_db = linear_to_db(VehicleAudio.start_level(vehicle))
 	boost_level = 0.0
 	drift_level = 0.0
-	if web_audio != null: web_audio.setVehicle(VehicleAudio.web_id(vehicle))
+	if web_audio != null:
+		web_audio.setVehicle(VehicleAudio.web_id(vehicle))
+
 
 func _process(delta: float) -> void:
-	if vehicle != race.selected_vehicle: apply_vehicle()
+	if vehicle != race.selected_vehicle:
+		apply_vehicle()
 	var active: bool = race.state in RaceState.DRIVING and race.sound_enabled
-	var number: int = ceili(race.countdown) if race.state == RaceState.COUNTDOWN else (ceili(race.time_left) if race.state == RaceState.RACING and race.mode == "tour" and race.time_left <= 10 else 0)
+	var number: int = (
+		ceili(race.countdown)
+		if race.state == RaceState.COUNTDOWN
+		else (
+			ceili(race.time_left)
+			if race.state == RaceState.RACING and race.mode == "tour" and race.time_left <= 10
+			else 0
+		)
+	)
 	if active:
 		var tone: AudioStream
 		if number > 0 and number != last_count:
@@ -89,12 +104,13 @@ func _process(delta: float) -> void:
 			impact_sound.pitch_scale = 1
 			impact_sound.volume_db = -15
 			impact_sound.play()
-		elif race.air.landing_flash > last_landing+0.05:
+		elif race.air.landing_flash > last_landing + 0.05:
 			impact_sound.pitch_scale = 0.72
 			impact_sound.volume_db = -21 if race.air.trick else -25
 			impact_sound.play()
 		# Each nitro shot, cell or held gauge starts with the vehicle's own ignition hit.
-		if race.state == RaceState.RACING and race.nitro_active and not last_nitro: start_sound.play()
+		if race.state == RaceState.RACING and race.nitro_active and not last_nitro:
+			start_sound.play()
 	else:
 		cue.stop()
 		impact_sound.stop()
@@ -113,7 +129,9 @@ func _process(delta: float) -> void:
 	var mixed := VehicleAudio.mix(race)
 	if OS.has_feature("web"):
 		if web_audio != null:
-			web_audio.update(active, mixed.engine_pitch, mixed.engine, mixed.boost, mixed.boost_pitch, mixed.drift, mixed.drift_pitch)
+			web_audio.update(
+				active, mixed.engine_pitch, mixed.engine, mixed.boost, mixed.boost_pitch, mixed.drift, mixed.drift_pitch
+			)
 		return
 	gain = move_toward(gain, 1.0 if active else 0.0, delta * 2)
 	if gain <= 0 and not active:
@@ -135,6 +153,7 @@ func _process(delta: float) -> void:
 		play()
 		drift_sound.play()
 		boost_sound.play()
+
 
 func _exit_tree() -> void:
 	if web_audio != null:

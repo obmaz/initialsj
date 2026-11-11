@@ -23,9 +23,11 @@ var smoke: Array[CPUParticles3D] = []
 var brake_lights: Array[StandardMaterial3D] = []
 var body: Node3D
 
+
 func mat(color: Color, metal: float = 0.0, glow: bool = false) -> StandardMaterial3D:
-	var key := "%s/%s/%s" % [color.to_html(),metal,glow]
-	if material_cache.has(key): return material_cache[key]
+	var key := "%s/%s/%s" % [color.to_html(), metal, glow]
+	if material_cache.has(key):
+		return material_cache[key]
 	var m := StandardMaterial3D.new()
 	m.albedo_color = color
 	m.metallic = metal
@@ -37,20 +39,24 @@ func mat(color: Color, metal: float = 0.0, glow: bool = false) -> StandardMateri
 	material_cache[key] = m
 	return m
 
+
 func block(pos: Vector3, size: Vector3, material: Material) -> MeshInstance3D:
-	return preload("res://models/shared/vehicle_geometry.gd").block(self,pos,size,material)
+	return preload("res://models/shared/vehicle_geometry.gd").block(self, pos, size, material)
+
 
 func _ready() -> void:
 	body = Node3D.new()
 	add_child(body)
 	model_definition = preload("res://models/vehicle_models.gd").definition(model)
-	for field in ["wheel_radius","wheel_half_track","wheel_half_base","wheel_thickness","rim_scale","ride_offset"]:
-		set(field,model_definition.parameters[field])
-	preload("res://models/vehicle_models.gd").build(self,model_definition)
+	for field in ["wheel_radius", "wheel_half_track", "wheel_half_base", "wheel_thickness", "rim_scale", "ride_offset"]:
+		set(field, model_definition.parameters[field])
+	preload("res://models/vehicle_models.gd").build(self, model_definition)
 	body.position.y = ride_offset
 	make_drift_smoke()
-	if wheels.is_empty(): make_wheels()
+	if wheels.is_empty():
+		make_wheels()
 	merge_static_body()
+
 
 func make_drift_smoke() -> void:
 	for x in [-0.8, 0.8]:
@@ -79,6 +85,7 @@ func make_drift_smoke() -> void:
 		particles.position = Vector3(x, 0.25, wheel_half_base)
 		smoke.append(particles)
 
+
 # 타이어와 림을 한 메시로 만들어 바퀴 하나를 한 번에 그린다. 좌우는 림이 붙는 면만 다르다.
 func make_wheel_mesh(side: float) -> ArrayMesh:
 	var tire := CylinderMesh.new()
@@ -88,12 +95,16 @@ func make_wheel_mesh(side: float) -> ArrayMesh:
 	tire.radial_segments = 24
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	append_baked(surface,tire,Transform3D.IDENTITY,mat(Color("131b23")))
-	var rim_pose := Transform3D(Basis.IDENTITY.scaled(Vector3.ONE*rim_scale),Vector3(0,-side*(wheel_thickness*0.5+0.015),0))
-	if side > 0: rim_pose.basis = Basis(Vector3(0,0,1),PI)*rim_pose.basis
-	append_baked(surface,make_rim_mesh(),rim_pose,mat(model_definition.parameters.rim_color, 0.85))
+	append_baked(surface, tire, Transform3D.IDENTITY, mat(Color("131b23")))
+	var rim_pose := Transform3D(
+		Basis.IDENTITY.scaled(Vector3.ONE * rim_scale), Vector3(0, -side * (wheel_thickness * 0.5 + 0.015), 0)
+	)
+	if side > 0:
+		rim_pose.basis = Basis(Vector3(0, 0, 1), PI) * rim_pose.basis
+	append_baked(surface, make_rim_mesh(), rim_pose, mat(model_definition.parameters.rim_color, 0.85))
 	surface.index()
 	return surface.commit()
+
 
 func make_wheels() -> void:
 	var axle := wheel_half_track
@@ -109,12 +120,18 @@ func make_wheels() -> void:
 			wheel.rotation.z = PI / 2
 			wheels.append(wheel)
 
-func animate(steer: float, drifting: bool, boosting: bool, delta: float, yaw: float = NAN, braking: bool = false, hit: float = 0) -> void:
+
+func animate(
+	steer: float, drifting: bool, boosting: bool, delta: float, yaw: float = NAN, braking: bool = false, hit: float = 0
+) -> void:
 	body.rotation.z = lerp(body.rotation.z, -steer * 0.06, delta * 8)
-	body.rotation.y = lerp_angle(body.rotation.y,-steer*(0.40 if drifting else 0.07),delta*6) if is_nan(yaw) else yaw
-	body.rotation.x = lerpf(body.rotation.x,0.07 if braking else 0.0,1-exp(-delta*8))
-	body.position.y = ride_offset + sin(Time.get_ticks_msec()*0.05)*hit*0.08
-	for lamp in brake_lights: lamp.emission_energy_multiplier = 4.5 if braking else 1.7
+	body.rotation.y = (
+		lerp_angle(body.rotation.y, -steer * (0.40 if drifting else 0.07), delta * 6) if is_nan(yaw) else yaw
+	)
+	body.rotation.x = lerpf(body.rotation.x, 0.07 if braking else 0.0, 1 - exp(-delta * 8))
+	body.position.y = ride_offset + sin(Time.get_ticks_msec() * 0.05) * hit * 0.08
+	for lamp in brake_lights:
+		lamp.emission_energy_multiplier = 4.5 if braking else 1.7
 	for wheel in wheels:
 		wheel.rotate_object_local(Vector3.UP, -road_speed * delta / wheel_radius)
 	for particles in smoke:
@@ -125,11 +142,14 @@ func animate(steer: float, drifting: bool, boosting: bool, delta: float, yaw: fl
 		flame.visible = boosting
 		flame.scale.y = randf_range(0.85, 1.35)
 
+
 func wedge(pos: Vector3, lower: Vector2, upper: Vector2, height: float, offset: float, material: Material) -> void:
-	preload("res://models/shared/vehicle_geometry.gd").wedge(self,pos,lower,upper,height,offset,material)
+	preload("res://models/shared/vehicle_geometry.gd").wedge(self, pos, lower, upper, height, offset, material)
+
 
 func make_body_shell(material: Material) -> void:
-	preload("res://models/shared/vehicle_geometry.gd").make_body_shell(self,material)
+	preload("res://models/shared/vehicle_geometry.gd").make_body_shell(self, material)
+
 
 func make_rim_mesh() -> ArrayMesh:
 	var st := SurfaceTool.new()
@@ -155,40 +175,56 @@ func make_rim_mesh() -> ArrayMesh:
 			st.set_normal(Vector3.UP)
 			st.add_vertex(points[index])
 	for i in range(12):
-		for p in [Vector3.ZERO, Vector3(cos(TAU * i / 12), 0, sin(TAU * i / 12)) * 0.075, Vector3(cos(TAU * (i + 1) / 12), 0, sin(TAU * (i + 1) / 12)) * 0.075]:
+		for p in [
+			Vector3.ZERO,
+			Vector3(cos(TAU * i / 12), 0, sin(TAU * i / 12)) * 0.075,
+			Vector3(cos(TAU * (i + 1) / 12), 0, sin(TAU * (i + 1) / 12)) * 0.075
+		]:
 			st.set_normal(Vector3.UP)
 			st.add_vertex(p)
 	return st.commit()
+
 
 # 재질이 다른 차체 조각도 한 메시로 합쳐 한 번에 그린다. 조각별 색·금속성·거칠기·클리어코트·발광은
 # 정점 자료로 옮긴다(shaders/vehicle_body.gdshader). 밝기가 바뀌는 브레이크등만 재질별로 따로 둔다.
 static func shared_body_material() -> ShaderMaterial:
 	return preload("res://scripts/rendering/render_resources.gd").vehicle_body_material()
 
+
 # 정점 자료로 옮겨도 모양이 같은 재질인지: 불투명·기본 음영·뒷면 제거·무텍스처.
 static func bakeable(material: Material) -> bool:
-	if not material is BaseMaterial3D: return false
-	if material.vertex_color_use_as_albedo or material.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED: return false
-	if material.shading_mode != BaseMaterial3D.SHADING_MODE_PER_PIXEL or material.cull_mode != BaseMaterial3D.CULL_BACK: return false
+	if not material is BaseMaterial3D:
+		return false
+	if material.vertex_color_use_as_albedo or material.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
+		return false
+	if material.shading_mode != BaseMaterial3D.SHADING_MODE_PER_PIXEL or material.cull_mode != BaseMaterial3D.CULL_BACK:
+		return false
 	for slot in range(BaseMaterial3D.TEXTURE_MAX):
-		if material.get_texture(slot) != null: return false
+		if material.get_texture(slot) != null:
+			return false
 	return true
+
 
 static func append_baked(surface: SurfaceTool, mesh: Mesh, pose: Transform3D, material: BaseMaterial3D) -> void:
 	var arrays: Array = mesh.surface_get_arrays(0)
 	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
 	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
-	if indices.is_empty(): indices = PackedInt32Array(range(vertices.size()))
-	var surface_data := Vector2(material.metallic,material.roughness)
-	var coat := Vector2(material.clearcoat if material.clearcoat_enabled else 0.0,material.emission_energy_multiplier if material.emission_enabled else 0.0)
+	if indices.is_empty():
+		indices = PackedInt32Array(range(vertices.size()))
+	var surface_data := Vector2(material.metallic, material.roughness)
+	var coat := Vector2(
+		material.clearcoat if material.clearcoat_enabled else 0.0,
+		material.emission_energy_multiplier if material.emission_enabled else 0.0
+	)
 	# 발광 재질은 발광색과 표면색이 같은 색으로 만들어진다(mat()).
 	surface.set_color(material.albedo_color)
 	surface.set_uv(surface_data)
 	surface.set_uv2(coat)
 	for index in indices:
-		surface.set_normal((pose.basis*normals[index]).normalized())
-		surface.add_vertex(pose*vertices[index])
+		surface.set_normal((pose.basis * normals[index]).normalized())
+		surface.add_vertex(pose * vertices[index])
+
 
 func merge_static_body() -> void:
 	var baked := SurfaceTool.new()
@@ -196,15 +232,24 @@ func merge_static_body() -> void:
 	var baked_count := 0
 	var groups := {}
 	for child in body.get_children():
-		if not child is MeshInstance3D or child in wheels or child in nitro_flames or child in nitro_glows or child in headlamp_lenses: continue
+		if (
+			not child is MeshInstance3D
+			or child in wheels
+			or child in nitro_flames
+			or child in nitro_glows
+			or child in headlamp_lenses
+		):
+			continue
 		var material: Material = child.material_override
 		# 외부 모델의 텍스처·UV·셰이더·다중 표면을 보존한다.
-		if child.mesh.get_surface_count() != 1 or not bakeable(material): continue
+		if child.mesh.get_surface_count() != 1 or not bakeable(material):
+			continue
 		if material in brake_lights:
-			if not groups.has(material): groups[material] = []
+			if not groups.has(material):
+				groups[material] = []
 			groups[material].append(child)
 			continue
-		append_baked(baked,child.mesh,child.transform,material)
+		append_baked(baked, child.mesh, child.transform, material)
 		baked_count += 1
 		body.remove_child(child)
 		child.queue_free()
@@ -222,8 +267,11 @@ func merge_static_body() -> void:
 			var arrays: Array = child.mesh.surface_get_arrays(0)
 			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 			var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
-			var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
-			if indices.is_empty(): indices = PackedInt32Array(range(vertices.size()))
+			var indices: PackedInt32Array = (
+				arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+			)
+			if indices.is_empty():
+				indices = PackedInt32Array(range(vertices.size()))
 			for index in indices:
 				surface.set_normal((child.transform.basis * normals[index]).normalized())
 				surface.add_vertex(child.transform * vertices[index])
@@ -242,19 +290,26 @@ func merge_static_body() -> void:
 		var multi := MultiMesh.new()
 		multi.transform_format = MultiMesh.TRANSFORM_3D
 		var tire := BoxMesh.new()
-		tire.size = Vector3(0.3,0.76,0.8)
+		tire.size = Vector3(0.3, 0.76, 0.8)
 		multi.mesh = tire
 		multi.instance_count = 4
-		for i in range(4): multi.set_instance_transform(i,Transform3D(Basis.IDENTITY,Vector3(-1.02 if i < 2 else 1.02,0.45,-1.35 if i % 2 == 0 else 1.35)))
+		for i in range(4):
+			multi.set_instance_transform(
+				i, Transform3D(Basis.IDENTITY, Vector3(-1.02 if i < 2 else 1.02, 0.45, -1.35 if i % 2 == 0 else 1.35))
+			)
 		traffic_wheels = MultiMeshInstance3D.new()
 		traffic_wheels.multimesh = multi
 		traffic_wheels.material_override = mat(Color("131b23"))
 		traffic_wheels.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		body.add_child(traffic_wheels)
 
+
 func set_detail(distance_to_player: float) -> void:
-	for wheel in wheels: wheel.visible = distance_to_player < 110
-	if traffic_wheels != null: traffic_wheels.visible = distance_to_player >= 110
+	for wheel in wheels:
+		wheel.visible = distance_to_player < 110
+	if traffic_wheels != null:
+		traffic_wheels.visible = distance_to_player >= 110
+
 
 func add_boost_jet(pos: Vector3, radius: float) -> void:
 	var flame := MeshInstance3D.new()
@@ -268,24 +323,25 @@ func add_boost_jet(pos: Vector3, radius: float) -> void:
 	flame.mesh = plume
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/nitro_flame.gdshader")
-	material.set_shader_parameter("tint",nitro_tint)
+	material.set_shader_parameter("tint", nitro_tint)
 	flame.material_override = material
 	body.add_child(flame)
-	flame.position = pos+Vector3(0,0,0.48)
-	flame.rotation.x = PI/2
+	flame.position = pos + Vector3(0, 0, 0.48)
+	flame.rotation.x = PI / 2
 	flame.visible = false
 	nitro_flames.append(flame)
 	var glow := MeshInstance3D.new()
-	var quad := preload("res://scripts/rendering/render_resources.gd").quad(Vector2.ONE*radius*4)
+	var quad := preload("res://scripts/rendering/render_resources.gd").quad(Vector2.ONE * radius * 4)
 	glow.mesh = quad
 	var glow_material := ShaderMaterial.new()
 	glow_material.shader = preload("res://shaders/nitro_glow.gdshader")
-	glow_material.set_shader_parameter("tint",nitro_tint)
+	glow_material.set_shader_parameter("tint", nitro_tint)
 	glow.material_override = glow_material
 	body.add_child(glow)
-	glow.position = pos+Vector3(0,0,0.08)
+	glow.position = pos + Vector3(0, 0, 0.08)
 	glow.visible = false
 	nitro_glows.append(glow)
+
 
 func add_headlight(pos: Vector3) -> void:
 	headlight = SpotLight3D.new()
@@ -299,14 +355,15 @@ func add_headlight(pos: Vector3) -> void:
 	headlight.shadow_enabled = false
 	headlight.visible = false
 	body.add_child(headlight)
-	for side in [-1.0,1.0]:
+	for side in [-1.0, 1.0]:
 		var lens := MeshInstance3D.new()
 		lens.name = "NightHeadlamp"
-		var mesh := preload("res://scripts/rendering/render_resources.gd").quad(Vector2(0.26,0.13))
+		var mesh := preload("res://scripts/rendering/render_resources.gd").quad(Vector2(0.26, 0.13))
 		lens.mesh = mesh
-		lens.position = pos+Vector3(side*0.65,0,-0.26)
-		var anchors: PackedVector3Array = model_definition.parameters.get("headlamp_positions",PackedVector3Array())
-		if anchors.size() == 2: lens.position = anchors[0 if side < 0 else 1]
+		lens.position = pos + Vector3(side * 0.65, 0, -0.26)
+		var anchors: PackedVector3Array = model_definition.parameters.get("headlamp_positions", PackedVector3Array())
+		if anchors.size() == 2:
+			lens.position = anchors[0 if side < 0 else 1]
 		lens.rotation.y = PI
 		var luminous := StandardMaterial3D.new()
 		luminous.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -320,6 +377,9 @@ func add_headlight(pos: Vector3) -> void:
 		body.add_child(lens)
 		headlamp_lenses.append(lens)
 
+
 func set_headlights(enabled: bool, illuminate_road: bool = true) -> void:
-	if headlight != null: headlight.visible = enabled and illuminate_road
-	for lens in headlamp_lenses: lens.visible = enabled
+	if headlight != null:
+		headlight.visible = enabled and illuminate_road
+	for lens in headlamp_lenses:
+		lens.visible = enabled
