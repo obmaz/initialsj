@@ -64,5 +64,5 @@ func warning(distance: float) -> String:
 	var d := fposmod(distance, track.length)
 	for fall in falls:
 		if fall.elapsed >= 0 and d > fall.distance - 280 and d < fall.distance + 35:
-			return "ARCH COLLAPSE / USE SIDE LANES"
+			return "ARCH COLLAPSE / SIDE LANES SAFE"
 	return ""

@@ -77,4 +77,4 @@ func warning(distance: float) -> String:
 	var d := fposmod(distance, section.length)
 	if d < span.x - 260 or d > span.y + 35:
 		return ""
-	return "BRIDGE DESTROYED / JUMP OR KEEP LEFT" if broken else "BRIDGE CRACKING / JUMP OR KEEP LEFT"
+	return "BRIDGE DOWN / KEEP LEFT SAFE | JUMP +750" if broken else "BRIDGE CRACKING / KEEP LEFT SAFE | JUMP +750"

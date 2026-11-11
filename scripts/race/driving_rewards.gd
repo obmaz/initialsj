@@ -1,6 +1,7 @@
 extends RefCounted
 # 실제 주행 결과만 보상한다. 코너별 지급 이력은 경기 안에서만 보유한다.
 var exit_boost := 0.0
+var boost_gain := 4.0
 var clean_exits := 0
 var message := ""
 var flash := 0.0
@@ -20,6 +21,7 @@ var passed_traffic: Dictionary = {}
 
 func reset() -> void:
 	exit_boost = 0
+	boost_gain = 4
 	clean_exits = 0
 	message = ""
 	flash = 0
@@ -103,6 +105,7 @@ func drift_step(
 	if drift_seconds >= 0.7 and drift_metres >= 18 and drift_turn >= 0.12 and not rewarded_corners.has(corner_key):
 		rewarded_corners[corner_key] = true
 		clean_exits += 1
+		boost_gain = 4
 		exit_boost = clampf(0.4 + drift_seconds * 0.08, 0.45, 0.75)
 		earned = 200 + mini(200, int(drift_turn * 150))
 		message = "CLEAN EXIT  +%d" % earned

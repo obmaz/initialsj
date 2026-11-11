@@ -22,6 +22,7 @@ const Crash = preload("res://scripts/physics/crash_state.gd")
 const Recovery = preload("res://scripts/race/recovery_state.gd")
 var crash := Crash.new()
 var recovery := Recovery.new()
+var route_challenges := preload("res://scripts/race/route_challenges.gd").new()
 var personal_run := preload("res://scripts/race/personal_run.gd").new()
 var ghost: Node3D
 var show_ghost := true
@@ -631,6 +632,7 @@ func restart(start_countdown: bool = true) -> void:
 	if record_key() != loaded_record_key:
 		load_record()
 	rewards.reset()
+	route_challenges.reset()
 	max_drift_multiplier = 1
 	surface.reset()
 	offroad_amount = 0
@@ -1059,6 +1061,7 @@ func return_to_road() -> void:
 	if not world_race.recover_player():
 		return
 	personal_run.invalidate()
+	route_challenges.invalidate()
 	crash.reset()
 	recovery.reset()
 	rewards.cancel_drift()

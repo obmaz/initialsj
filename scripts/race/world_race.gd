@@ -184,7 +184,7 @@ func step(
 		cap = race.vehicle.overdrive_speed if race.nitro_burst_left > 0 else race.vehicle.boost_speed
 		accel = race.vehicle.boost_accel
 	if race.rewards.exit_boost > 0 and race.throttling and not race.drifting:
-		cap = maxf(cap, race.vehicle.max_speed + 4)
+		cap = maxf(cap, race.vehicle.max_speed + race.rewards.boost_gain)
 		accel = maxf(accel, race.vehicle.accel * 1.25)
 	if race.pad_active:
 		cap = maxf(cap, race.pad_speed_cap())
@@ -330,6 +330,9 @@ func step(
 		clean_exit,
 		corner_key
 	)
+	if was_airborne and player_body.grounded:
+		race.route_challenges.land(race, clean_exit and not crash_flight)
+	race.route_challenges.observe(race)
 	race.max_drift_multiplier = maxi(race.max_drift_multiplier, race.coast_drift.multiplier)
 	race.personal_run.observe(race, bool(data.valid), delta)
 	var laps: int = int(data.finished_laps)
@@ -413,6 +416,7 @@ func update_air(delta: float, was_airborne: bool) -> void:
 		race.air.trick = player_body.velocity.y > 1.5 and race.speed > 20
 		if race.air.trick:
 			race.air.launches += 1
+			race.route_challenges.launch(race)
 	if was_airborne and not race.air.active:
 		player_body.turn_toward(player_body.velocity, 1.0 / delta, delta)
 		race.crash.reset()

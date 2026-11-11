@@ -46,6 +46,12 @@ static func draw_result(hud: Control) -> void:
 				seconds *= 1.16
 			target = "NEXT: %s / <= %s" % ["SILVER" if race.run_medal == 1 else "GOLD", hud.time_label(seconds)]
 	hud.text_at(Vector2(307, 626), target, 20, hud.GOLD)
+	hud.text_at(
+		Vector2(307, 658),
+		"JUMP %d / SAFE LINE %d" % [race.route_challenges.skill_jumps, race.route_challenges.safe_passes],
+		16,
+		hud.CYAN
+	)
 	if race.mode == "track" and race.state == RaceState.FINISHED:
 		hud.text_at(
 			Vector2(307, 322),
