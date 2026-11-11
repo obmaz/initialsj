@@ -1,5 +1,6 @@
 extends Node3D
 # 트랙과 투어의 공통 실제 3D 차체·접지·충돌·카메라. 도로 좌표는 계측에만 사용한다.
+const RoadRecovery = preload("res://scripts/race/road_recovery.gd")
 const RaceState = preload("res://scripts/race/race_state.gd")
 const WorldCar = preload("res://scripts/physics/world_car.gd")
 const Progress = preload("res://scripts/race/circuit_progress.gd")
@@ -704,7 +705,7 @@ func update_rivals(delta: float) -> void:
 					body.velocity *= 0.96
 		rival.boosting = rival.surface.pad_time > 0
 		if body.feet_position().y < race.track.point(d).y - 25:
-			teleport(i, d, 0, false)
+			recover_body(i, d, 0)
 
 
 # Beyond the guardrail line there is no road to drive on: after a moment the car is put
@@ -720,18 +721,6 @@ func update_outside(delta: float) -> void:
 		race.return_to_road()
 
 
-func rescue_player() -> void:
-	if not recover_player():
-		teleport(0, safe_distance, safe_lane, false)
-	race.tire_trails.reset()
-	race.cancel_nitro()
-	place_cars()
-	race.camera_offset = -player_body.forward_direction() * 7.1 + Vector3.UP * 3
-	update_camera(1)
-	race.player.reset_physics_interpolation()
-	race.camera.reset_physics_interpolation()
-
-
 func update_recovery(delta: float, data: Dictionary) -> void:
 	update_outside(delta)
 	if data.valid and player_body.grounded and absf(race.lane) < race.track.half_width(race.distance) - 1:
@@ -740,60 +729,42 @@ func update_recovery(delta: float, data: Dictionary) -> void:
 	var fallen: bool = player_body.feet_position().y < race.track.point(race.distance).y - 25
 	recovery_clock = recovery_clock + delta if fallen else 0.0
 	if recovery_clock > 0.8:
-		teleport(0, safe_distance, safe_lane, false)
-		race.tire_trails.reset()
-		race.cancel_nitro()
 		recovery_clock = 0
+		race.return_to_road()
+
+
+# 자동·수동·상대 차량 복구에 같은 실제 노면 검사를 적용한다.
+func recover_body(index: int, d: float, lane: float) -> Dictionary:
+	var site := RoadRecovery.find(race, bodies[index], d, lane)
+	if site.is_empty():
+		return {}
+	teleport(index, site.distance, site.lane, false)
+	bodies[index].reset_pose(site.feet, site.forward, site.up)
+	return site
 
 
 func recover_player() -> bool:
-	# Recovery is an explicit rescue, never part of ordinary driving. Search
-	# only the last safe road region and behind it; ordered progress is retained.
-	var space := get_world_3d().direct_space_state
-	for back in [0.0, 8.0, 16.0, 24.0]:
-		var d: float = safe_distance - back
-		var edge: float = race.track.half_width(d) - 1.5
-		for lane in [clampf(safe_lane, -edge, edge), 0.0, -edge * 0.45, edge * 0.45, -edge * 0.75, edge * 0.75]:
-			var up := road_up(d)
-			var feet: Vector3 = race.track.point(d, lane)
-			var probe := PhysicsRayQueryParameters3D.create(feet + up * 2, feet - up, 1, [player_body.get_rid()])
-			var ground := space.intersect_ray(probe)
-			if ground.is_empty() or ground.normal.y < 0.4:
-				continue
-			up = ground.normal
-			feet = ground.position + up * 0.04
-			var forward: Vector3 = (
-				(race.track.point(d + 2, lane) - race.track.point(d - 2, lane)).slide(up).normalized()
-			)
-			var pose := Transform3D(Basis.looking_at(forward, up), feet + up * WorldCar.SUPPORT_HEIGHT)
-			var query := PhysicsShapeQueryParameters3D.new()
-			query.shape = player_body.contact_shape.shape
-			query.transform = pose
-			query.margin = 0.25
-			query.collision_mask = 6
-			query.exclude = [player_body.get_rid()]
-			if not space.intersect_shape(query, 1).is_empty():
-				continue
-			teleport(0, d, lane, false)
-			# The real road mesh can include a small ramp or a banked shoulder.
-			# Land on its measured floor rather than underneath its geometry.
-			player_body.reset_pose(feet, forward, up)
-			race.lane_velocity = 0
-			race.slip_angle = 0
-			race.offroad_amount = 0
-			race.steer = 0
-			reverse_wait = 0
-			reversing = false
-			recovery_clock = 0
-			race.tire_trails.reset()
-			race.cancel_nitro()
-			place_cars()
-			race.camera_offset = -forward * 7.1 + Vector3.UP * 3
-			update_camera(1)
-			race.player.reset_physics_interpolation()
-			race.camera.reset_physics_interpolation()
-			return true
-	return false
+	# 검사가 실패하면 현재 위치를 유지하고 검증하지 않은 저장 좌표로 이동하지 않는다.
+	var site := recover_body(0, safe_distance, safe_lane)
+	if site.is_empty():
+		return false
+	safe_distance = site.distance
+	safe_lane = site.lane
+	race.lane_velocity = 0
+	race.slip_angle = 0
+	race.offroad_amount = 0
+	race.steer = 0
+	reverse_wait = 0
+	reversing = false
+	recovery_clock = 0
+	race.tire_trails.reset()
+	race.cancel_nitro()
+	place_cars()
+	race.camera_offset = -site.forward * 7.1 + Vector3.UP * 3
+	update_camera(1)
+	race.player.reset_physics_interpolation()
+	race.camera.reset_physics_interpolation()
+	return true
 
 
 func update_camera(delta: float) -> void:

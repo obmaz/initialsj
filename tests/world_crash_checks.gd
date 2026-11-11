@@ -243,7 +243,7 @@ func manual_recovery(tree: SceneTree, race: Node3D) -> Dictionary:
 	wall.collision_layer = 2
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(100, 10, 100)
+	box.size = Vector3(20000, 200, 20000)
 	shape.shape = box
 	wall.add_child(shape)
 	tree.root.add_child(wall)

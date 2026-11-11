@@ -993,7 +993,8 @@ func apply_crash_pose() -> void:
 func return_to_road() -> void:
 	if world_race == null or state != RaceState.RACING:
 		return
-	world_race.rescue_player()
+	if not world_race.recover_player():
+		return
 	crash.reset()
 	recovery.reset()
 	player.body.rotation.x = 0

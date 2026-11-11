@@ -112,6 +112,7 @@ func finish_geometry() -> void:
 	concrete.roughness = 0.96
 	for i in range(PIECES):
 		var body := StaticBody3D.new()
+		body.set_meta("recovery_unsafe", true)
 		body.collision_layer = 1
 		body.collision_mask = 4
 		var shape := ConcavePolygonShape3D.new()
