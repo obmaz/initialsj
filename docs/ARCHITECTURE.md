@@ -36,7 +36,7 @@ flowchart LR
 
 `models/<분류>/<id>/definition.tres`를 `model_catalog.gd`가 탐색합니다. ID·치수·경로 같은 작은 정의만 캐시하며 목록 조회로 모든 메시·텍스처를 불러오지 않습니다. 정렬과 ID 조회도 한 번 만든 목록·사전을 재사용합니다.
 
-- `vehicles`: 개별 차체와 시각적 바퀴 치수·림·렌즈 위치. [car.gd](../scripts/vehicles/car.gd)는 공통 휠·연기·부스터·전조등·애니메이션을 연결합니다. 차고와 주행은 같은 [vehicle_factory.gd](../scripts/vehicles/vehicle_factory.gd)를 사용합니다. 차체 조각은 재질이 달라도 한 메시로 합쳐 한 번에 그립니다. 조각별 색·금속성·거칠기·클리어코트·발광은 정점 자료에 담고 모든 차량이 `shaders/vehicle_body.gdshader` 재질 하나를 공유합니다. 밝기가 바뀌는 브레이크등만 따로 두며, 타이어와 림도 바퀴마다 한 메시입니다. 텍스처·투명·양면 재질과 외부 GLB 모델은 합치지 않고 그대로 둡니다.
+- `vehicles`: 개별 차체와 시각적 바퀴 치수·림·렌즈 위치. [car.gd](../scripts/vehicles/car.gd)는 공통 휠·연기·부스터·전조등·애니메이션을 연결합니다. 차고와 주행은 같은 [vehicle_factory.gd](../scripts/vehicles/vehicle_factory.gd)를 사용합니다. 차체 조각은 재질이 달라도 한 메시로 합쳐 한 번에 그립니다. 조각별 색·금속성·거칠기·클리어코트·발광은 정점 자료에 담고 모든 차량이 `shaders/vehicle_body.gdshader` 재질 하나를 공유합니다. 밝기가 바뀌는 브레이크등과 가동 스포일러는 따로 두며, 타이어와 림도 바퀴마다 한 메시입니다. 텍스처·투명·양면 재질과 외부 GLB 모델은 합치지 않고 그대로 둡니다.
 - `props`: 단일 표면의 메시와 전용 재질. [regional_props_3d.gd](../scripts/environment/regional_props_3d.gd)가 경계·거리별 표시·공간 배치를 처리합니다.
 - `buildings`: 도시 빌딩의 파츠 조립·치수 범위·외장 선택. [urban_architecture.gd](../scripts/environment/urban_architecture.gd)를 통해 [road_biome.gd](../scripts/environment/road_biome.gd)가 배치합니다.
 - `models/shared`: 모델 선택을 포함하지 않는 기하·파일 로더입니다. 개별 모델 제작자가 수정할 필요가 없도록 API를 유지합니다.
@@ -70,3 +70,11 @@ Compatibility 렌더러에서는 소품의 정점색을 보존하도록 MultiMes
 [app_version.gd](../scripts/platform/app_version.gd)와 `addons/app_version/`이 로딩·메인·설정 버전을 일치시킵니다. 웹은 프로젝트 버전·커밋, Android는 내보내기 프리셋의 버전명·번호를 사용합니다. 내보내기 플러그인은 작업 후 설정을 복원합니다.
 
 성능 수치·스크린샷·일회성 검토는 `build/reports/`, 배포 결과는 `build/site/`·`build/android/`에 생성합니다. 현재 동작·계약은 문서와 검사에 두고 과거 변경 이력은 Git으로 확인합니다.
+
+## 주행 효과와 입체 재질
+
+[boost_exhaust.gd](../scripts/effects/boost_exhaust.gd)는 플레이어 차량의 배기구별12~24개 CPU 파티클과 기존 불꽃·잔광을 재사용합니다. 3.2초의 부스트 유지 시간으로 색·길이·굵기를 연속 변화시키며 가동 스포일러도 같은 열 상태를 사용합니다. 부스트 해제 시 복원하고 일시정지에는 입자 시간도 멈춥니다. 공통 카메라는 열 상태에 따라 시야각·추격 거리를 조금 더 넓히고, 차체는 부스트에서 들림·제동에서 앞쪽 숙임을 작게 표현합니다. 복구·재시작은 `Car.reset_driving_effects()`로 상태를 비웁니다. 동작 줄이기는 잔광 입자를 숨기고 불꽃 맥동을 끕니다. 교통 차량·상대 차량에는 추가 방출기를 만들지 않습니다.
+
+[tire_trails.gd](../scripts/effects/tire_trails.gd)는 실제 후륜 접점 두 곳을 광선으로 확인하고 노면 법선에 맞춘 자국을1536개 순환 풀·1회 드로로 남깁니다. 공중·저속·도로 밖에서는 끊고, 드리프트와 고속 제동에서 농도를 달리합니다. 자국은18~38초에 사라지며 풀이 차면 오래된 것부터 덮어씁니다.
+
+[surface_relief.gdshaderinc](../shaders/surface_relief.gdshaderinc)는 기존 생성형 이미지의 미분으로 미세 표면 법선을 보강합니다. 추가 텍스처 샘플·SSAO·전체 화면 후처리를 만들지 않습니다. 음영은 실제 깊이 메시를 대신하지 않으며, 도시 빌딩·항만 창고의 모서리와 옥상 테두리는 [urban_architecture.gd](../scripts/environment/urban_architecture.gd)의 실제 두께 있는 부품을180m 공간별 MultiMesh로 묶습니다. 사암·현무암 팩도 같은 생성형 암석 이미지를 전용 재질로 참조하며 색·채도를 구분합니다. 근거리 건물·바위 소품은 태양 그림자를 만들고 나무·광고판의 대량 그림자는 생략합니다. 모든 그림자의 범위는 화질별75~220m입니다.
