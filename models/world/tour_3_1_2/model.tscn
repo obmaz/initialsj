@@ -65,6 +65,8 @@
 
 [ext_resource type="Material" path="res://models/shared/bridge_soffit.tres" id="MassSoffit"]
 
+[ext_resource type="Material" path="res://models/shared/bridge_soffit.tres" id="UnderpassConcrete"]
+
 [sub_resource type="Curve3D" id="Curve3D_p0vra"]
 bake_interval = 2.0
 _data = {
@@ -6829,3 +6831,7 @@ script = ExtResource("60_0ii5p")
 material_override = ExtResource("MassSoffit")
 metadata/soffit_depth = 0.95
 metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#SkywayConcreteSoffit"
+
+[node name="UrbanUnderpass" type="MeshInstance3D" parent="."]
+material_override = ExtResource("UnderpassConcrete")
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#UrbanUnderpass"
