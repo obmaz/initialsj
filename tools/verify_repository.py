@@ -13,6 +13,7 @@ ROOTS = ("project.godot", "export_presets.cfg", "web/retire-flutter-worker.js")
 MODEL_DIRECTORIES = {"models/props", "models/vehicles", "models/buildings", "models/vegetation"}
 UID_SOURCES = {".gd", ".gdshader", ".gdshaderinc"}
 IMPORTED_SOURCES = {".png", ".webp", ".svg", ".wav", ".ogg", ".ttf", ".obj", ".glb"}
+BUILD_METADATA = {"models/shared/world_vegetation/generated.json"}
 errors = []
 
 
@@ -57,6 +58,8 @@ def check_sources(reached):
                 continue
             name = path.relative_to(ROOT).as_posix()
             if path.name == "AGENTS.md":
+                continue
+            if name in BUILD_METADATA:
                 continue
             if path.suffix == ".mtl":
                 # An OBJ model's material file is read by the importer, not by res:// references.
@@ -119,6 +122,7 @@ def check_docs():
     documents.extend((ROOT / "docs").rglob("*.md"))
     documents.extend((ROOT / "assets").rglob("*.md"))
     documents.extend((ROOT / "models").rglob("*.md"))
+    documents.extend((ROOT / "model_sources").rglob("*.md"))
     documents.extend((ROOT / ".agents").rglob("*.md"))
     documents.extend((ROOT / ".claude").rglob("*.md"))
     for path in documents:
@@ -175,6 +179,12 @@ def check_audio_licences():
 
 def main():
     errors.clear()
+    if (ROOT / "model_sources").exists() or (ROOT / "models/shared/world_vegetation/generated.json").exists():
+        from optimize_models import run
+        try:
+            run(ROOT, check=True)
+        except (ValueError, OSError, KeyError) as error:
+            errors.append(str(error))
     reached = live_resources()
     check_audio_licences()
     check_sources(reached)

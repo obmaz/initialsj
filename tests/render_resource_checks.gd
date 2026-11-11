@@ -161,7 +161,14 @@ func run(tree: SceneTree) -> int:
 	b.queue_free()
 	await settle(tree)
 	check(
-		Pool.owners == 0 and Pool.quads.is_empty() and Pool.box_mesh == null and Pool.traffic_models.is_empty(),
+		(
+			Pool.owners == 0
+			and Pool.quads.is_empty()
+			and Pool.box_mesh == null
+			and Pool.traffic_models.is_empty()
+			and Pool.shared_world_scenes.is_empty()
+			and Pool.shared_world_materials.is_empty()
+		),
 		"마지막 씬이 끝나면 공유 메시의 강한 참조를 해제해야 한다"
 	)
 	check(

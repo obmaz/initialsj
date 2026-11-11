@@ -33,7 +33,7 @@ node tests/fullscreen_bridge_checks.cjs
 node tests/audio_lifecycle_checks.cjs
 ```
 
-저장소 검사기는 런타임 참조, 자동 등록 모델 팩, 누락·미사용 리소스, `.uid`·`.import` 누락·고아 파일, Markdown 상대 링크·제목 앵커, 사용하지 않는 셰이더 sampler와 음원 라이선스를 확인합니다. 모델 목록은 정의 파일에서 자동 탐색하며 별도의 중앙 등록표가 없습니다.
+저장소 검사기는 런타임 참조, 자동 등록 모델 팩, 누락·미사용 리소스, `.uid`·`.import` 누락·고아 파일, Markdown 상대 링크·제목 앵커, 사용하지 않는 셰이더 sampler와 음원 라이선스를 확인합니다. [편집 원본](../model_sources/README.md)의 누락·해시와 배포 GLB의 생성 상태도 확인합니다. 모델 목록은 정의 파일에서 자동 탐색하며 별도의 중앙 등록표가 없습니다.
 
 `race_test.gd`는 실제 차체 주행·제동·후진·충돌·점프·분기·랩·롤링 스타트, 입력·화면 상태, 지역 배치, 붕괴·낙석, 모델 계약, 렌더·오디오 수명을 검사합니다. 실제 물리 검사는 `--fixed-fps 60`으로 실행합니다. 설계 여유 계산과 실제 물리 주행 검사는 구분합니다.
 
@@ -42,6 +42,7 @@ node tests/audio_lifecycle_checks.cjs
 ## 모델만 검사·미리보기
 
 ```sh
+python3 tools/optimize_models.py --check
 ./tools/godot --headless --path . --script res://tools/check_models.gd
 ./tools/godot --headless --path . --script res://tools/check_models.gd -- --vehicle hatch
 ./tools/godot --path . --script res://tools/preview_model.gd -- --vehicle hatch

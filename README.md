@@ -37,3 +37,5 @@ Godot **4.7.2 / GL Compatibility** 기반의 가로 화면 3D 아케이드 레�
 | 요청받은 APK 빌드·Dropbox 전달 | [ANDROID.md](docs/ANDROID.md), [APK 전달 스킬](.agents/skills/dropbox-apk/SKILL.md) |
 
 `main` 푸시는 검사만 실행합니다. “배포” 요청은 APK를 로컬 빌드해 Dropbox 플러그인으로 전달하는 뜻이며, 웹·GitHub Pages는 명시 요청 시에만 게시합니다. 검사 결과·미리보기·내보내기는 Git에서 제외한 `build/`에 보관합니다.
+
+GLB 편집 원본은 [model_sources](model_sources/README.md)에 보존합니다. 원본은 미사용 리소스 정리 대상에서 제외하며 배포 파일은 `python3 tools/optimize_models.py`로 재생성합니다.

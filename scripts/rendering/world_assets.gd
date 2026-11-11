@@ -2,6 +2,7 @@ extends RefCounted
 # 기하 원본은 GLB, 배치·재질·동작 부품 연결은 코스별 PackedScene이 소유한다.
 const State = preload("res://models/shared/scene_state.gd")
 const Pool = preload("res://scripts/rendering/render_resources.gd")
+const GeometryMap = preload("res://models/shared/world_geometry_map.gd")
 const KEEP := [
 	"curve",
 	"length",
@@ -39,6 +40,7 @@ static func placement(road: Node3D) -> Transform3D:
 static func profile(road: Node3D) -> void:
 	var resource: Resource = load(folder(road) + "profile.tres")
 	road.asset_paths.assign(resource.get_meta(&"dependencies", []))
+	road.asset_paths = GeometryMap.dependencies(road.asset_paths)
 	var data: Dictionary = resource.get_meta(&"profile")
 	for key in data:
 		if key == "curve":
@@ -86,15 +88,25 @@ static func prepare(root: Node3D) -> Dictionary:
 			collect_refs(node.get_meta(State.KEY), refs)
 	var files := {}
 	for ref: String in refs:
-		files[ref.get_slice("#", 0)] = null
-	return {"root": root, "members": members, "refs": refs, "files": files, "meshes": {}, "bound": {}}
+		files[GeometryMap.resolve(ref).get_slice("#", 0)] = null
+	return {
+		"root": root, "members": members, "refs": refs, "files": files, "meshes": {}, "bound": {}, "material_keys": {}
+	}
 
 
 static func read_file(context: Dictionary, path: String) -> void:
-	var scene: Node3D = Pool.fetch(path).instantiate()
+	var packed: PackedScene
+	if GeometryMap.shared(path) and Pool.shared_world_scenes.has(path):
+		packed = Pool.shared_world_scenes[path]
+	else:
+		packed = Pool.fetch(GeometryMap.scene(path))
+		if GeometryMap.shared(path):
+			Pool.shared_world_scenes[path] = packed
+	var scene: Node3D = packed.instantiate()
 	for ref: String in context.refs:
-		if ref.get_slice("#", 0) == path:
-			context.meshes[ref] = scene.get_node(NodePath(ref.get_slice("#", 1))).mesh
+		var resolved := GeometryMap.resolve(ref)
+		if resolved.get_slice("#", 0) == path:
+			context.meshes[ref] = scene.get_node(NodePath(resolved.get_slice("#", 1))).mesh
 	scene.free()
 
 
@@ -108,12 +120,20 @@ static func bind_geometry(context: Dictionary, begin: int, end: int) -> void:
 		var materials: Array = node.get_meta(&"surface_materials", [])
 		if node is MultiMeshInstance3D:
 			if node.material_override == null and not materials.is_empty():
-				if not context.bound.has(ref):
+				var resolved := GeometryMap.resolve(ref)
+				var shared := GeometryMap.shared(resolved.get_slice("#", 0))
+				var ids: Array = materials.map(func(m: Material) -> int: return m.get_instance_id())
+				var identity := str(ids)
+				if shared and not context.material_keys.has(identity):
+					context.material_keys[identity] = GeometryMap.material_key(materials)
+				var key: String = resolved + ":" + (context.material_keys[identity] if shared else identity)
+				var bound: Dictionary = Pool.shared_world_materials if shared else context.bound
+				if not bound.has(key):
 					var copy := mesh.duplicate() as ArrayMesh
 					for i in range(materials.size()):
 						copy.surface_set_material(i, materials[i])
-					context.bound[ref] = copy
-				mesh = context.bound[ref]
+					bound[key] = copy
+				mesh = bound[key]
 			# 미터 UV를 쓰는 구조용 단위 상자는 모든 코스가 같은 GLB 자원을 공유한다.
 			if (
 				node.material_override is ShaderMaterial

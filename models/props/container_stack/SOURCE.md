@@ -1,6 +1,6 @@
 # container_stack
 
-현재 형상은 팩의 GLB 원본, 진입점은 [model.tscn](model.tscn)입니다. 치수·피벗·UV와 움직이는 부품의 연결점은 [모델 계약](../../../docs/MODEL_PIPELINE.md)을 따릅니다.
+편집 원본은 [원본 GLB](../../../model_sources/props/container_stack/model.glb)이며, 이 팩의 GLB는 재생성되는 배포 파일입니다. 원본을 삭제하거나 배포 GLB를 직접 수정하지 않습니다. 진입점은 [model.tscn](model.tscn)입니다. 치수·피벗·UV와 움직이는 부품의 연결점은 [모델 계약](../../../docs/MODEL_PIPELINE.md)을 따릅니다.
 
 40피트 컨테이너의 실제 치수2.44×2.59×12.19m를 기준으로 직접 작성한 형상입니다. 철판 골과 두께16cm의 모서리 프레임을 실제 메시로 만듭니다. 측면·쌍여닫이문·지붕은 면별 UV로 구분합니다.
 

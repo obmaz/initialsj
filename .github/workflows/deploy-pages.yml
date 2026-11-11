@@ -30,6 +30,7 @@ jobs:
           include-templates: true
       - name: Import and check game
         run: |
+          python3 tools/optimize_models.py --check
           godot --headless --path . --script res://tests/verify_engine.gd
           godot --headless --path . --editor --import --quit
           godot --headless --path . --script res://tools/check_models.gd

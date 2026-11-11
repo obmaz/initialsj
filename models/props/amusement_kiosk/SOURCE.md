@@ -1,6 +1,6 @@
 # 놀이공원 매점
 
-현재 형상은 팩의 GLB 원본, 진입점은 [model.tscn](model.tscn)입니다. 치수·피벗·UV와 움직이는 부품의 연결점은 [모델 계약](../../../docs/MODEL_PIPELINE.md)을 따릅니다.
+편집 원본은 [원본 GLB](../../../model_sources/props/amusement_kiosk/model.glb)이며, 이 팩의 GLB는 재생성되는 배포 파일입니다. 원본을 삭제하거나 배포 GLB를 직접 수정하지 않습니다. 진입점은 [model.tscn](model.tscn)입니다. 치수·피벗·UV와 움직이는 부품의 연결점은 [모델 계약](../../../docs/MODEL_PIPELINE.md)을 따릅니다.
 
 프로젝트에서 직접 작성한 미터 기준 건축 모델입니다. 본체8×4×6.5m, 두께 있는 지붕·차양·지주·판매대·환기구를 포함합니다. 원점은 바닥, 출입·판매면은+Z입니다.
 

@@ -5,6 +5,8 @@ static var quads: Dictionary = {}
 static var box_mesh: ArrayMesh
 static var vehicle_body: ShaderMaterial
 static var traffic_models := {}
+static var shared_world_scenes := {}
+static var shared_world_materials := {}
 # 작업 스레드에서 읽는 중인 리소스 경로. fetch()가 결과를 받아 가면 지운다.
 static var warming: Dictionary = {}
 
@@ -23,6 +25,9 @@ static func release_owner() -> bool:
 	preload("res://scripts/rendering/primitive_assets.gd").clear()
 	vehicle_body = null
 	traffic_models.clear()
+	shared_world_scenes.clear()
+	shared_world_materials.clear()
+	preload("res://models/shared/world_geometry_map.gd").clear()
 	for path in warming:
 		ResourceLoader.load_threaded_get(path)
 	warming.clear()

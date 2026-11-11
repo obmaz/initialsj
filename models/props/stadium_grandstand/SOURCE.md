@@ -1,6 +1,6 @@
 # 대형 경기장 관중석 모듈
 
-현재 형상은 팩의 GLB 원본, 진입점은 [model.tscn](model.tscn)입니다. 치수·피벗·UV와 움직이는 부품의 연결점은 [모델 계약](../../../docs/MODEL_PIPELINE.md)을 따릅니다.
+편집 원본은 [원본 GLB](../../../model_sources/props/stadium_grandstand/model.glb)이며, 이 팩의 GLB는 재생성되는 배포 파일입니다. 원본을 삭제하거나 배포 GLB를 직접 수정하지 않습니다. 진입점은 [model.tscn](model.tscn)입니다. 치수·피벗·UV와 움직이는 부품의 연결점은 [모델 계약](../../../docs/MODEL_PIPELINE.md)을 따릅니다.
 
 `stadium_grandstand`는 미터 단위의 GLB 모델입니다. 정면은+Z, 계단식 좌석은-Z로 올라가며, 좌석 폭74m(지붕76m)·깊이70.76m·64개 좌석 열·세 단의 관람 데크·상부 운영실·후면 지주·난간을 한 메시로 저장합니다. 전체 높이는51.35m입니다. 코스 배치·광원·물리·애니메이션은 팩에 포함하지 않습니다.
 

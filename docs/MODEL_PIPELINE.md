@@ -1,14 +1,15 @@
 # GLB 모델과 씬 제작
 
-모든 3D 시각 형상은 GLB 원본과 `.tscn` 조립 씬을 사용합니다. 차량·건물·소품·식생과 도로·지형·다리·기믹·효과용 작은 형상도 같은 방식입니다. 런타임은 파일을 읽고 배치·재질·애니메이션·물리를 연결합니다.
+모든 3D 시각 형상은 GLB와 `.tscn` 조립 씬을 사용합니다. 편집 원본은 [model_sources/](../model_sources/README.md)에 보존하고 `models/`의 GLB는 원본에서 생성합니다. 차량·건물·소품·식생과 도로·지형·다리·기믹·효과용 작은 형상도 같은 방식입니다. 런타임은 파일을 읽고 배치·재질·애니메이션·물리를 연결합니다.
 
 ## 모델 팩과 분업
 
 ```text
-models/
+model_sources/vehicles/hatch/model.glb  편집 원본, 삭제·생성물 역복사 금지
+models/                               배포 파일과 편집 가능한 조립 자료
   vehicles/hatch/         NIMORI 차량
     definition.tres      ID·치수·연결점
-    model.glb            차체·휠·가동 스포일러
+    model.glb            원본에서 생성한 차체·휠·가동 스포일러
     model.tscn           GLB 조립
     SOURCE.md            제작·이미지·라이선스
   props/neon_arcade/      네온 상가
@@ -25,7 +26,7 @@ models/
 
 차량5종, 소품69종과 예외용 `fallback`, 빌딩12종, 식생7종을 자동 탐색합니다. 선택 차량은 `hatch`·`wedge`·`muscle`·`gt`, `sport`는 교통 차량입니다. 모델 목록을 읽을 때는 경로 문자열만 읽습니다.
 
-**독립 모델 작업은 해당 팩 폴더 하나를 수정합니다.** GLB·전용 이미지·재질·씬·출처를 함께 제출하고 공용 아틀라스나 다른 모델의 파일을 수정하지 않습니다. 중앙 등록표를 추가할 필요가 없습니다. 주행 능력·음원·코스 배치·공용 셰이더 변경은 별도 통합 커밋으로 만듭니다.
+**독립 모델 작업은 해당 팩의 원본과 조립 자료를 수정합니다.** `model_sources/<분류>/<id>/`의 GLB, `models/<분류>/<id>/`의 전용 이미지·재질·씬·출처를 함께 제출하고 다른 모델의 파일은 수정하지 않습니다. 원본 해시 목록은 삭제 방지용이며 게임의 중앙 모델 등록표가 아닙니다. 주행 능력·음원·코스 배치·공용 셰이더 변경은 별도 통합 커밋으로 만듭니다.
 
 ## 외부 제작 의뢰 규격
 
@@ -87,7 +88,9 @@ GLB는 차체·타이어·림·가동 부품을 소유합니다. 네 휠은 `whe
 | `mesh_ref` 메타정보 | `GLB 경로#메시 노드 경로`로 형상을 연결 |
 | `scene_state` 메타정보 | 제어기가 사용할 노드 경로·배열·상태의 초기값 |
 
-GLB의 메시 노드 이름을 유지하면 형상만 교체할 수 있습니다. `.tscn`의 반복 배치는 정점 복사 없이 같은 GLB 메시를 참조합니다. 편집기에서는 `GLBPreview`가 형상을 연결해 배치와 재질을 보여줍니다. [world_assets.gd](../scripts/rendering/world_assets.gd)는 게임에서 같은 자료를 프레임별로 읽고 [scene_state.gd](../models/shared/scene_state.gd)가 연결점을 복원합니다.
+원본 GLB의 메시 노드 이름을 유지하면 형상만 교체할 수 있습니다. `.tscn`의 반복 배치는 정점 복사 없이 같은 GLB 메시를 참조합니다. 공통 식생은 [연결 어댑터](../models/shared/world_geometry_map.gd)가 생성된 `references.json`으로 해석합니다. 코스 `.tscn`은 기존 논리 노드 이름을 유지하고, 실제 공통 형상은 `models/shared/world_vegetation/<id>/`에서 읽습니다. 재질 슬롯의 내용이 같을 때만 바인딩 메시를 공유하고, 마지막 게임 씬이 나가면 캐시를 해제합니다. 바인딩된 공유 재질은 읽기 전용입니다. 개체별 변형은 별도 재질이나 인스턴스 자료로 표현하며 공유 재질을 나중에 직접 변경하지 않습니다.
+
+편집기에서는 `GLBPreview`가 같은 연결 자료로 형상과 배치를 보여줍니다. [world_assets.gd](../scripts/rendering/world_assets.gd)는 게임에서 같은 자료를 프레임별로 읽고 [scene_state.gd](../models/shared/scene_state.gd)가 연결점을 복원합니다. `profile.tres`의 원래 의존성은 유지하며 어댑터가 공통 식생 씬의 비동기 미리 읽기 의존성으로 확장합니다.
 
 도로를 편집할 때는 GLB 노면과 `profile.tres`의 곡선·뱅킹·폭을 함께 맞춥니다. 붕괴 조각의 위치·이름·초기 위치 배열, 충돌체·균열·잔해·통과로도 함께 유지합니다. 일반 형상 교체가 이 초기 상태나 주행 규칙을 임의로 바꾸면 안 됩니다. 투어 팩은 원점(0,6,0)·진입 방향−π/2의 기준 좌표이며 배치 어댑터가 실제 분기 위치로 이동·회전합니다.
 
@@ -96,6 +99,8 @@ GLB의 메시 노드 이름을 유지하면 형상만 교체할 수 있습니다
 ## 검사·제출
 
 ```sh
+python3 tools/optimize_models.py --accept-source-changes  # 의도한 원본 편집 후
+python3 tools/optimize_models.py --check
 ./tools/godot --headless --path . --editor --import --quit
 ./tools/godot --headless --path . --script res://tools/check_models.gd
 ./tools/godot --headless --path . --script res://tools/check_world_assets.gd
@@ -103,4 +108,4 @@ GLB의 메시 노드 이름을 유지하면 형상만 교체할 수 있습니다
 python3 tools/verify_repository.py
 ```
 
-`--prop convenience_store`, `--building city_twin_tower`로 모델을 골라 검사·미리보기 할 수 있습니다. 실척 격자에서 정면·측면·후면, 문·창·타이어·램프의 정렬을 확인합니다. 코스 변경은 실제 주행·분기·붕괴·낙석·복구 회귀 검사와 브라우저 렌더도 확인합니다. 변경한 GLB·씬·정의·재질·이미지·`.import`·`.uid`·출처만 커밋하고 보고서·캡처는 `build/reports/`에 둡니다. 라이선스와 원본의 출처는 유지합니다.
+`--prop convenience_store`, `--building city_twin_tower`로 모델을 골라 검사·미리보기 할 수 있습니다. 실척 격자에서 정면·측면·후면, 문·창·타이어·램프의 정렬을 확인합니다. 코스 변경은 실제 주행·분기·붕괴·낙석·복구 회귀 검사와 브라우저 렌더도 확인합니다. 해당 원본·해시 목록·생성물 무결성 기록·GLB·씬·정의·재질·이미지·`.import`·`.uid`·출처를 함께 커밋하고 보고서·캡처는 `build/reports/`에 둡니다. 라이선스와 원본의 출처는 유지합니다. 원본은 실행 참조가 없다는 이유로 정리하지 않습니다.

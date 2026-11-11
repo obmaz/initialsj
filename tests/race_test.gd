@@ -109,10 +109,10 @@ func run() -> void:
 		minimum = minf(minimum, race.track.half_width(d))
 		maximum = maxf(maximum, race.track.half_width(d))
 	check(maximum - minimum > 2.5, "The same road must visibly widen and narrow")
-	var mesh_arrays = race.track.road_surface.mesh.surface_get_arrays(0)
+	var road_faces: PackedVector3Array = race.track.road_surface.mesh.get_faces()
 	for segment in [0, 230, 540, 830]:
 		var d: float = race.track.length * segment / 900
-		var edge: Vector3 = mesh_arrays[Mesh.ARRAY_VERTEX][segment * 6]
+		var edge: Vector3 = road_faces[segment * 6]
 		check(
 			absf(edge.distance_to(race.track.point(d)) - race.track.half_width(d)) < 0.02,
 			"Rendered road edges must follow the same width as driving bounds"

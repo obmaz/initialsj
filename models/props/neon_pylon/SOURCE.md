@@ -1,6 +1,6 @@
 # neon_pylon
 
-현재 형상은 팩의 GLB 원본, 진입점은 [model.tscn](model.tscn)입니다. 치수·피벗·UV와 움직이는 부품의 연결점은 [모델 계약](../../../docs/MODEL_PIPELINE.md)을 따릅니다.
+편집 원본은 [원본 GLB](../../../model_sources/props/neon_pylon/model.glb)이며, 이 팩의 GLB는 재생성되는 배포 파일입니다. 원본을 삭제하거나 배포 GLB를 직접 수정하지 않습니다. 진입점은 [model.tscn](model.tscn)입니다. 치수·피벗·UV와 움직이는 부품의 연결점은 [모델 계약](../../../docs/MODEL_PIPELINE.md)을 따릅니다.
 
 이 프로젝트에서 오프라인으로 조립해 GLB로 내보낸 정적 모델입니다. 실행 중에는 `model.tscn`이 `model.glb`를 가져오며 빌더 스크립트·물리·광원을 포함하지 않습니다. 1단위=1m, 정면+Z, 피벗은 지면입니다.
 

@@ -7,6 +7,7 @@
 APK는 사용자가 명시적으로 요청한 경우에만 로컬에서 빌드합니다. 먼저 Dropbox 플러그인으로 `/앱/initialsj/latest-build.json`을 읽고 다음 번호를 프리셋에 적용합니다. 직접 API·토큰·별도 업로드 스크립트는 사용하지 않습니다.
 
 ```sh
+python3 tools/optimize_models.py --check
 python3 tools/prepare_apk_version.py --project initialsj \
   --latest build/reports/latest-build.json --preset export_presets.cfg
 tools/build_android.sh
