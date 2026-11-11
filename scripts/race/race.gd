@@ -11,6 +11,7 @@ const AirState = preload("res://scripts/physics/air_state.gd")
 const Features = preload("res://scripts/track/road_features.gd")
 const Factory = preload("res://scripts/vehicles/vehicle_factory.gd")
 const Circuit = preload("res://scripts/track/circuit_track.gd")
+const TourChallenge = preload("res://scripts/race/tour_challenge.gd")
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const Haptics = preload("res://scripts/input/haptics.gd")
 const Pad = preload("res://scripts/input/gamepad_input.gd")
@@ -206,6 +207,11 @@ var best_time := 0.0
 var previous_best := 0.0
 var new_record := false
 var save_records := true
+var loaded_record_key := ""
+var record_store := ConfigFile.new()
+var record_cache_loaded := false
+var run_medal := 0
+var tour_score_multiplier := 1.0
 # 투어와 TRACK04·05의 해안 드리프트 규칙: 쉬운 드리프트 진입·유지와 드리프트 점수를 쓴다.
 var coast_handling: bool:
 	get:
@@ -604,6 +610,10 @@ func restart(start_countdown: bool = true) -> void:
 	countdown = 3
 	time_left = Library.START_TIME
 	score = 0
+	run_medal = 0
+	tour_score_multiplier = 1
+	if record_key() != loaded_record_key:
+		load_record()
 	rewards.reset()
 	surface.reset()
 	offroad_amount = 0
@@ -718,11 +728,20 @@ func load_record() -> void:
 	best_time = 0
 	previous_best = 0
 	new_record = false
-	var saved := ConfigFile.new()
-	if saved.load("user://records.cfg") == OK:
-		best_time = float(saved.get_value(RECORD_GROUP, Catalog.record_key(selected_vehicle, mode, selected_course), 0))
+	loaded_record_key = record_key()
+	if not record_cache_loaded or state not in RaceState.DRIVING:
+		record_store = ConfigFile.new()
+		record_store.load("user://records.cfg")
+		record_cache_loaded = true
+	best_time = float(record_store.get_value(RECORD_GROUP, loaded_record_key, 0))
 	if mode == "track" and selected_course == 1:
 		track.active.speedway_board.bind(self)
+
+
+func record_key() -> String:
+	if mode == "tour":
+		return "tour_routes_v1_" + str(vehicle.id) + "_" + TourChallenge.route_id(track.history)
+	return Catalog.record_key(selected_vehicle, mode, selected_course)
 
 
 func select_vehicle(index: int) -> void:
@@ -1112,6 +1131,9 @@ func advance_route() -> void:
 	recovery_lane = 0
 	var choice := 0 if lane < 0 else 1
 	var result := track.advance(choice, distance, lane)
+	tour_score_multiplier = TourChallenge.score_multiplier(track.history)
+	if record_key() != loaded_record_key:
+		load_record()
 	completed_distance += result.old_length
 	distance = result.distance
 	lane = result.lane
@@ -1123,21 +1145,29 @@ func advance_route() -> void:
 
 
 func finish() -> void:
+	if state == RaceState.FINISHED:
+		return
+	if record_key() != loaded_record_key:
+		load_record()
 	state = RaceState.FINISHED
 	cancel_nitro()
 	drifting = false
 	boosting = false
 	if mode == "tour":
-		score += int(time_left) * 100
+		score = (score + int(time_left) * 100) * TourChallenge.score_multiplier(track.history)
+		run_medal = TourChallenge.medal(elapsed, track.history, vehicle.max_speed)
 	previous_best = best_time
 	new_record = best_time == 0 or elapsed < best_time
 	if new_record:
 		best_time = elapsed
-		if save_records:
-			var saved := ConfigFile.new()
-			saved.load("user://records.cfg")
-			saved.set_value(RECORD_GROUP, Catalog.record_key(selected_vehicle, mode, selected_course), best_time)
-			saved.save("user://records.cfg")
+	if save_records:
+		var saved := ConfigFile.new()
+		saved.load("user://records.cfg")
+		saved.set_value(RECORD_GROUP, record_key(), best_time)
+		if mode == "tour":
+			var medal_key := record_key() + "_medal"
+			saved.set_value(RECORD_GROUP, medal_key, maxi(run_medal, int(saved.get_value(RECORD_GROUP, medal_key, 0))))
+		saved.save("user://records.cfg")
 
 
 func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vector3.INF) -> void:

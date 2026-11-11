@@ -990,6 +990,20 @@ func draw_menu() -> void:
 				else ("SCORE %d" % int(race.score))
 			)
 			text_at(Vector2(307, 288), detail, 32, GOLD)
+			if race.mode == "tour":
+				text_at(
+					Vector2(307, 322),
+					(
+						"ROUTE %s / %s / SCORE x%.2f"
+						% [
+							race.TourChallenge.route_id(race.track.history),
+							race.TourChallenge.medal_label(race.run_medal),
+							race.tour_score_multiplier
+						]
+					),
+					19,
+					CYAN
+				)
 		elif race.state == RaceState.FAILED:
 			text_at(Vector2(307, 292), "SCORE %d" % int(race.score), 32, GOLD)
 		elif race.state == RaceState.PAUSED:
@@ -1360,7 +1374,9 @@ func draw_route_choice() -> void:
 			true
 		)
 		text_at(rect.position + Vector2(13, 43), "<" if side == 0 else ">", 32, accent)
-		text_at(rect.position + Vector2(44, 41), names[side], route_title_size(names[side]), WHITE)
+		text_at(rect.position + Vector2(44, 29), names[side], route_title_size(names[side]), WHITE)
+		var info: Dictionary = race.TourChallenge.choice(race, side)
+		text_at(rect.position + Vector2(44, 51), info.hint, 12, accent)
 		pad_badge(rect.position + Vector2(8, -2), "route_left" if side == 0 else "route_right")
 		if selected:
 			draw_polyline(

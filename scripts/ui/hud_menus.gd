@@ -237,7 +237,11 @@ func draw_garage() -> void:
 		hud.text_at(rect.position + Vector2(23, 66), role, 20, Color("94acbe"))
 	hud.text_at(
 		Vector2(80, 678),
-		"BEST " + (hud.time_label(race.best_time) if race.best_time > 0 else "--:--.---"),
+		(
+			"16 ROUTES / SEPARATE BESTS"
+			if race.mode == "tour"
+			else "BEST " + (hud.time_label(race.best_time) if race.best_time > 0 else "--:--.---")
+		),
 		22,
 		hud.GOLD
 	)
