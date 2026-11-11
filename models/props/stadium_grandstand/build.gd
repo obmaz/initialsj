@@ -55,4 +55,29 @@ static func build(_definition: Resource) -> ArrayMesh:
 		for x in [-36.0, -24.0, -12.0, 0.0, 12.0, 24.0, 36.0]:
 			Geometry.box(st, Vector3(x, y - .55, z), Vector3(.09, 1.1, .09), Color("89959d"))
 	st.index()
-	return st.commit()
+	var source := st.commit()
+	var arrays := source.surface_get_arrays(0)
+	var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
+	var tags: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV2]
+	var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	for i in range(vertices.size()):
+		if tags[i].x > .5:
+			continue
+		var concrete := colors[i].is_equal_approx(Color("8b9397"))
+		var operations := colors[i].is_equal_approx(Color("596773")) or colors[i].is_equal_approx(Color("293b49"))
+		if not concrete and not operations:
+			continue
+		var p := vertices[i]
+		uvs[i] = (
+			Vector2(p.z, -p.y) / 8
+			if absf(normals[i].x) > .5
+			else Vector2(p.x, p.z if absf(normals[i].y) > .5 else -p.y) / 8
+		)
+		tags[i].x = 2 if operations else 3
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_TEX_UV2] = tags
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
