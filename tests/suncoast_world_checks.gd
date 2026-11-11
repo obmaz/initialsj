@@ -1,6 +1,5 @@
 extends RefCounted
-# Suncoast uses real world bodies and colliders like Fuji. A drive around the whole banked oval
-# proves the ground, walls, gates and lap counting work end to end.
+# 외곽 뱅크와 인필드 전체를 실제 차체로 주행해 접지·방호벽·게이트·주회를 검증한다.
 const Crash = preload("res://tests/world_crash_checks.gd")
 var failures := 0
 
@@ -22,7 +21,7 @@ func run(tree: SceneTree) -> int:
 	check(race.world_race != null and collision != null, "Suncoast needs a world controller and colliders")
 	check(
 		int(collision.get_meta("ground_triangles")) > 4000 and int(collision.get_meta("barrier_triangles")) > 10000,
-		"The oval needs real road and wall triangles"
+		"The circuit needs real road and wall triangles"
 	)
 	race.open_garage()
 	race.restart()
@@ -61,15 +60,15 @@ func run(tree: SceneTree) -> int:
 			break
 	check(
 		race.laps_completed == 1,
-		"A driven lap of the oval must be counted once (laps=%d at %.0f m)" % [race.laps_completed, race.distance]
+		"A driven lap of the circuit must be counted once (laps=%d at %.0f m)" % [race.laps_completed, race.distance]
 	)
 	check(
 		race.wall_hits - walls <= 1 and recoveries == 0,
 		"A clean lap must not need rails or recovery (walls=%d)" % (race.wall_hits - walls)
 	)
-	check(peak > 55, "The oval must allow high speed (peak %.0f)" % peak)
+	check(peak > 55, "The outer banking must allow high speed (peak %.0f)" % peak)
 	check(race.state == "racing", "One lap must not end a three-lap race")
-	# A fast rail hit throws the car on the oval just like on Fuji.
+	# 고속 정면 충돌은 다른 트랙과 같은 공중 반동 규칙을 사용한다.
 	var crash := Crash.new()
 	var hit: Dictionary = await crash.rail_impact(tree, race, 72)
 	check(

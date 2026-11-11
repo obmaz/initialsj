@@ -40,6 +40,26 @@ func mesh_height(faces: PackedVector3Array, at: Vector2) -> float:
 	return NAN if highest == -INF else highest
 
 
+func check_advertisement_clearance(road: Node3D, ads: Array) -> void:
+	# 배치 기준 도로뿐 아니라 인필드의 인접 구간까지 실제 모델 외곽과 비교한다.
+	var samples: Array[Vector3] = []
+	var count := ceili(road.length / 3)
+	for i in range(count):
+		var d: float = road.length * i / count
+		var p: Vector3 = road.point(d)
+		samples.append(Vector3(p.x, p.z, road.half_width(d)))
+	var bounds := Props.model("billboard").get_aabb()
+	for ad in ads:
+		var frame := Transform3D(Basis(Vector3.UP, ad.yaw), ad.position)
+		var clearance := INF
+		for x in [bounds.position.x, 0.0, bounds.end.x]:
+			for z in [bounds.position.z, 0.0, bounds.end.z]:
+				var p := frame * Vector3(x, 0, z)
+				for sample in samples:
+					clearance = minf(clearance, Vector2(p.x - sample.x, p.z - sample.y).length() - sample.z)
+		check(clearance >= 2, "광고판 전체 외곽은 인접 인필드를 포함한 모든 도로에서2m 이상 떨어진다")
+
+
 func run(tree: SceneTree) -> int:
 	var race = load("res://scenes/race.tscn").instantiate()
 	tree.root.add_child(race)
@@ -93,6 +113,7 @@ func run(tree: SceneTree) -> int:
 		"대형 광고열은 떨어진 두 구역으로 나눈다"
 	)
 	var ads: Array = scenery.get_node("InfieldAdvertisements").placements
+	check_advertisement_clearance(race.track, ads)
 	for zone in range(2):
 		var count := 0
 		for ad in ads:
