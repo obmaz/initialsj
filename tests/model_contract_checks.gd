@@ -1,10 +1,10 @@
 extends RefCounted
 const Catalog = preload("res://models/model_catalog.gd")
-const Props = preload("res://scripts/regional_props_3d.gd")
-const Car = preload("res://scripts/car.gd")
-const Pool = preload("res://scripts/render_resources.gd")
+const Props = preload("res://scripts/environment/regional_props_3d.gd")
+const Car = preload("res://scripts/vehicles/car.gd")
+const Pool = preload("res://scripts/rendering/render_resources.gd")
 const SceneSource = preload("res://models/shared/scene_source.gd")
-const Architecture = preload("res://scripts/urban_architecture.gd")
+const Architecture = preload("res://scripts/environment/urban_architecture.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
@@ -102,6 +102,6 @@ func run(tree: SceneTree, category: String = "", id: String = "") -> int:
 		holder.free()
 	if Pool.release_owner():
 		Props.clear_cache()
-		preload("res://scripts/advertisement_library.gd").clear_cache()
+		preload("res://scripts/environment/advertisement_library.gd").clear_cache()
 	print("모델 팩 자동 등록 / 치수·휠·메시 예산 / 외부 모델 UV·재질 보존: ","PASS" if failures == 0 else "FAIL"," (",checked,"개)")
 	return failures

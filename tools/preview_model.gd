@@ -1,8 +1,8 @@
 extends SceneTree
 const Catalog = preload("res://models/model_catalog.gd")
-const Props = preload("res://scripts/regional_props_3d.gd")
-const Car = preload("res://scripts/car.gd")
-const Architecture = preload("res://scripts/urban_architecture.gd")
+const Props = preload("res://scripts/environment/regional_props_3d.gd")
+const Car = preload("res://scripts/vehicles/car.gd")
+const Architecture = preload("res://scripts/environment/urban_architecture.gd")
 var camera: Camera3D
 var focus := Vector3.ZERO
 var distance := 8.0
@@ -46,7 +46,7 @@ func build() -> void:
 	elif category == "props":
 		var node := MeshInstance3D.new()
 		node.mesh = Props.model(item.id)
-		node.material_override = preload("res://scripts/advertisement_library.gd").prop_material(0) if item.id == "billboard" else Props.material_for(item.id)
+		node.material_override = preload("res://scripts/environment/advertisement_library.gd").prop_material(0) if item.id == "billboard" else Props.material_for(item.id)
 		stage.add_child(node)
 		bounds = node.get_aabb()
 	else:

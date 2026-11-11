@@ -4,7 +4,7 @@ var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
 func run(tree: SceneTree) -> int:
-	var track = load("res://scripts/circuit_track.gd").new()
+	var track = load("res://scripts/track/circuit_track.gd").new()
 	tree.root.add_child(track)
 	var section: Node3D = track.active
 	check(track.world_collision != null,"Fuji must create actual world collision geometry")

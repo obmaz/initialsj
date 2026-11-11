@@ -15,7 +15,7 @@
 
 ## 게임에서 소리가 나는 때
 
-매핑 공식은 [vehicle_audio.gd](../scripts/vehicle_audio.gd) 한 곳에 있고, [racing_audio.gd](../scripts/racing_audio.gd)가 웹과 네이티브 양쪽에 같은 값을 전달합니다. 소리 설정이 OFF이거나 카운트다운·주행이 아니면(메뉴, 차고, 일시정지, 결과) 모든 층이 조용합니다.
+매핑 공식은 [vehicle_audio.gd](../scripts/audio/vehicle_audio.gd) 한 곳에 있고, [racing_audio.gd](../scripts/audio/racing_audio.gd)가 웹과 네이티브 양쪽에 같은 값을 전달합니다. 소리 설정이 OFF이거나 카운트다운·주행이 아니면(메뉴, 차고, 일시정지, 결과) 모든 층이 조용합니다.
 
 | 층 | 재생 조건 | 볼륨(선형) | 재생 속도(피치) |
 | --- | --- | --- | --- |
@@ -28,7 +28,7 @@
 
 ## 파일과 규칙
 
-차량 `id`는 [vehicle_catalog.gd](../scripts/vehicle_catalog.gd)의 `"id"`(소문자 영문)이며, 파일 이름·웹 키·합성 레시피 키가 모두 이 `id`입니다.
+차량 `id`는 [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd)의 `"id"`(소문자 영문)이며, 파일 이름·웹 키·합성 레시피 키가 모두 이 `id`입니다.
 
 | 파일 (`assets/audio/vehicles/`) | 내용 |
 | --- | --- |
@@ -44,7 +44,7 @@
 
 ## 카탈로그의 `audio` 항목
 
-차량마다 `vehicle_catalog.gd`의 스펙에 `"audio"` 딕셔너리가 있어야 합니다. 파일 경로 네 개는 `res://assets/audio/vehicles/<id>-...` 형태의 전체 경로이며(저장소 검사기가 도달 가능성을 확인하는 데 필요), 숫자 항목의 허용 범위는 검사로 강제합니다.
+차량마다 [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd)의 스펙에 `"audio"` 딕셔너리가 있어야 합니다. 파일 경로 네 개는 `res://assets/audio/vehicles/<id>-...` 형태의 전체 경로이며(저장소 검사기가 도달 가능성을 확인하는 데 필요), 숫자 항목의 허용 범위는 검사로 강제합니다.
 
 | 키 | 뜻 | 범위 |
 | --- | --- | --- |

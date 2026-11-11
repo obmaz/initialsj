@@ -28,6 +28,7 @@ Godot **4.7.2 / GL Compatibility** 기반의 가로 화면 3D 아케이드 레�
 
 | 작업 | 기준 문서 |
 | --- | --- |
+| 코딩 컨벤션·폴더·헬퍼·주석 | [CODING_STYLE.md](docs/CODING_STYLE.md) |
 | 환경 구성·검사·웹 배포 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) |
 | 코드 책임·주행과 시각 모델 경계·메모리 수명 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | 특정 오브젝트·차량·빌딩만 제작·검사·커밋 | [MODEL_PIPELINE.md](docs/MODEL_PIPELINE.md), [모델 제작 스킬](.agents/skills/model-authoring/SKILL.md) |

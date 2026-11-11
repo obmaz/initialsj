@@ -1,7 +1,7 @@
 extends RefCounted
 const Report = preload("res://tests/report.gd")
-const Library = preload("res://scripts/route_library.gd")
-const Catalog = preload("res://scripts/vehicle_catalog.gd")
+const Library = preload("res://scripts/track/route_library.gd")
+const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
@@ -41,7 +41,7 @@ func run(tree: SceneTree) -> int:
 	var whole_triangles := 0
 	for child in whole.get_children():
 		if child is MeshInstance3D and child.mesh != null: whole_triangles += child.mesh.get_faces().size()/3
-	var whole_collision: Vector2i = Vector2i(whole.get_node("FujiWorldCollision").get_meta("ground_triangles"),whole.get_node("FujiWorldCollision").get_meta("barrier_triangles"))
+	var whole_collision: Vector2i = Vector2i(whole.get_node("WorldCollision").get_meta("ground_triangles"),whole.get_node("WorldCollision").get_meta("barrier_triangles"))
 	race.track.advance(0,race.track.length+Library.FORK_COMMIT,0)
 	race.track.advance(1,race.track.length+Library.FORK_COMMIT,0)
 	race.track.reset(1,0)
@@ -63,16 +63,16 @@ func run(tree: SceneTree) -> int:
 	for child in staged.get_children():
 		if child is MeshInstance3D and child.mesh != null: staged_triangles += child.mesh.get_faces().size()/3
 	check(staged.visible and not staged.staged and staged.get_children().map(func(child: Node) -> String: return child.get_class()) == whole_names and staged_triangles == whole_triangles,"A fork road built over several frames must match one built at once")
-	check(Vector2i(staged.get_node("FujiWorldCollision").get_meta("ground_triangles"),staged.get_node("FujiWorldCollision").get_meta("barrier_triangles")) == whole_collision,"A staged fork road must register the same collision triangles")
+	check(Vector2i(staged.get_node("WorldCollision").get_meta("ground_triangles"),staged.get_node("WorldCollision").get_meta("barrier_triangles")) == whole_collision,"A staged fork road must register the same collision triangles")
 	race.track.reset(1,0)
 	for node in race.track.previews: race.track.retire(node)
 	race.track.previews.clear()
 	race.track.maintain(430)
 	race.track.advance(0,race.track.length+Library.FORK_COMMIT,0)
-	check(race.track.active.has_node("FujiWorldCollision") and race.track.active.visible and not race.track.sibling.build_pending(),"Entering a fork must finish any road still being built")
+	check(race.track.active.has_node("WorldCollision") and race.track.active.visible and not race.track.sibling.build_pending(),"Entering a fork must finish any road still being built")
 	rows.append({"staged_build_frames":build_frames,"longest_build_frame_ms":longest/1000.0})
 	var fastest := 0.0
-	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
+	for index in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
 		var v := Catalog.spec(index)
 		fastest = maxf(fastest,maxf(v.overdrive_speed+2,v.max_speed+21))
 	check(Library.CHECKPOINT_RUNUP/(fastest*race.GAME_PACE) >= 1.5 and Library.CHECKPOINT_RUNUP < 300,"The short approach must still leave one and a half seconds of choice time at maximum boost")
@@ -89,7 +89,7 @@ func run(tree: SceneTree) -> int:
 		race.step(race.GAME_PACE/60,0,false,false,false)
 	check(race.stage_index == 0 and race.distance < race.track.length,"One real second after checkpoint must still leave the car on the straight approach")
 	check(race.checkpoints == 1 and race.time_left < checkpoint_time,"The straight approach must not award a checkpoint twice")
-	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
+	for index in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
 		for side in [0,1]:
 			race.open_garage()
 			race.select_vehicle(index)

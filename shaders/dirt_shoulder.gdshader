@@ -1,7 +1,6 @@
 shader_type spatial;
 render_mode cull_disabled;
 uniform sampler2D dirt_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
-uniform sampler2D grass_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D terrain_variants : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 #include "res://shaders/ground_variety.gdshaderinc"
 varying float steepness;

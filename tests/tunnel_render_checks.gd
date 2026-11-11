@@ -1,6 +1,6 @@
 extends RefCounted
 const Report = preload("res://tests/report.gd")
-const Rig = preload("res://scripts/tunnel_lights.gd")
+const Rig = preload("res://scripts/rendering/tunnel_lights.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)

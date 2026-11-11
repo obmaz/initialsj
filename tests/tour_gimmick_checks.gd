@@ -1,11 +1,11 @@
 extends RefCounted
 # Tour game-feel devices: mud, parked trucks, steep drops, sudden narrowing and tall jumps.
-const Features = preload("res://scripts/road_features.gd")
-const State = preload("res://scripts/road_surface_state.gd")
-const Section = preload("res://scripts/road_section.gd")
+const Features = preload("res://scripts/track/road_features.gd")
+const State = preload("res://scripts/track/road_surface_state.gd")
+const Section = preload("res://scripts/track/road_section.gd")
 const Air = preload("res://tests/flight_envelope_model.gd")
-const Library = preload("res://scripts/route_library.gd")
-const Crash = preload("res://scripts/crash_state.gd")
+const Library = preload("res://scripts/track/route_library.gd")
+const Crash = preload("res://scripts/physics/crash_state.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
@@ -51,7 +51,7 @@ func run(tree: SceneTree) -> int:
 			section.free()
 	check(tall_total >= 6,"Most later Tour routes need a tall jump (found %d)" % tall_total)
 	# Region character: skyways over parked trucks, truck gates and the Jeju stone guardians.
-	var Regional = load("res://scripts/regional_props_3d.gd")
+	var Regional = load("res://scripts/environment/regional_props_3d.gd")
 	check(Regional.FAMILIES.jeju.has("hareubang") and Regional.model("hareubang").get_aabb().size.y > 3.0,"Jeju roadsides need stone guardians tall enough to read from the road")
 	check(Regional.model("dol_wall").get_faces().size() > 0 and Regional.model("tangerine").get_faces().size() > 0,"Jeju walls and tangerine trees must build")
 	var skyway_routes := 0

@@ -30,7 +30,7 @@ func run(tree: SceneTree) -> int:
 			if bend > 0.0001: minimum_radius_margin = minf(minimum_radius_margin,1/bend-section.half_width(d)-outer)
 		check(minimum_radius_margin > 0.5,"Inner guardrails must not fold across themselves on sharp corners")
 		check(widest > 6,"Tour and Fuji must have visibly wider roadside runoff areas")
-		check(section.has_node("FujiWorldCollision"),"투어와 트랙 모두 갓길과 장벽의 실제 충돌체가 있어야 한다")
+		check(section.has_node("WorldCollision"),"투어와 트랙 모두 갓길과 장벽의 실제 충돌체가 있어야 한다")
 		rows.append({"mode":choice[0],"course":choice[1],"maximum_setback_m":widest,"minimum_inner_radius_margin_m":minimum_radius_margin,"controller":"world-space"})
 	FileAccess.open(Report.path("shoulder-metrics.json"),FileAccess.WRITE).store_string(JSON.stringify({"cases":rows,"failures":failures},"\t")+"\n")
 	print("Curved guardrails / wider dirt shoulders / matching collisions: ","PASS" if failures == 0 else "FAIL")

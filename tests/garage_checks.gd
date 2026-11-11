@@ -1,6 +1,6 @@
 extends RefCounted
-const Catalog = preload("res://scripts/vehicle_catalog.gd")
-const Library = preload("res://scripts/route_library.gd")
+const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
+const Library = preload("res://scripts/track/route_library.gd")
 var failures := 0
 var race: Node3D
 var root: Window
@@ -78,7 +78,7 @@ func run(tree: SceneTree) -> int:
 	for viewport in [Vector2i(1280,720),Vector2i(896,414),Vector2i(2340,1080)]:
 		root.size = viewport
 		race.open_garage()
-		for i in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
+		for i in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
 			click(race.hud.garage_card(i).get_center())
 			check(race.selected_vehicle == i and race.player.model == Catalog.spec(i).model,"Card selection must update the real player model on every viewport")
 		click(race.hud.garage_card(2).get_center())
@@ -146,7 +146,7 @@ func run(tree: SceneTree) -> int:
 	# Distinct driving tuning is observable, not just descriptive UI.
 	var acceleration := []
 	var impact_speeds := []
-	for i in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
+	for i in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
 		drive(i)
 		race.speed = 0
 		for j in range(60): tick(false)

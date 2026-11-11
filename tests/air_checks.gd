@@ -1,7 +1,7 @@
 extends RefCounted
 const Report = preload("res://tests/report.gd")
 const Air = preload("res://tests/flight_envelope_model.gd")
-const Surface = preload("res://scripts/road_surface_state.gd")
+const Surface = preload("res://scripts/track/road_surface_state.gd")
 class GradeRoad:
 	extends Node3D
 	var length := 2000.0

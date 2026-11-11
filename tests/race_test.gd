@@ -1,5 +1,5 @@
 extends SceneTree
-const Library = preload("res://scripts/route_library.gd")
+const Library = preload("res://scripts/track/route_library.gd")
 var failures := 0
 func _initialize() -> void: call_deferred("run")
 func check(ok: bool, label: String) -> void:
@@ -93,7 +93,7 @@ func run() -> void:
 	check(canopies <= 2 and Library.canopy_span(0,0) == Vector2.ZERO,"Glass roofs must be rare and absent from the starting coast")
 	var city_tunnel := Library.tunnel_span(1,1)
 	check(city_tunnel.y-city_tunnel.x >= 900,"There must be a genuinely long continuous city tunnel")
-	var section = load("res://scripts/road_section.gd")
+	var section = load("res://scripts/track/road_section.gd")
 	var easy = section.new(Vector3.ZERO,-PI/2,4,0)
 	var hard = section.new(Vector3.ZERO,-PI/2,4,4)
 	var easy_width := 0.0

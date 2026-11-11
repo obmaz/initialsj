@@ -2,7 +2,7 @@
 
 노면·갓길·잔디·후지산과 호수 파노라마·원경 산맥은 이 프로젝트용으로 제작했습니다. 사용 중인 이미지의 생성 원본은 로컬 `generated_images/`에 보존하며 배포에는 포함하지 않습니다.
 
-도로·가드레일·터널·나무·소품·건물은 실제 3D 형상이며, 산 파노라마와 원경 능선은 수평선 배경입니다. 모델별 형상은 `models/`가 소유하고 도로·배치는 `scripts/road_section.gd`, `roadside_geometry.gd`, `regional_props_3d.gd`, `road_biome.gd`와 코스별 환경 스크립트가 처리합니다. 독립 모델 제작 규격은 [MODEL_PIPELINE.md](../../docs/MODEL_PIPELINE.md)를 따릅니다.
+도로·가드레일·터널·나무·소품·건물은 실제 3D 형상이며, 산 파노라마와 원경 능선은 수평선 배경입니다. 모델별 형상은 `models/`가 소유하고 도로·배치는 `scripts/track/road_section.gd`, [roadside_geometry.gd](../../scripts/track/roadside_geometry.gd), [regional_props_3d.gd](../../scripts/environment/regional_props_3d.gd), [road_biome.gd](../../scripts/environment/road_biome.gd)와 코스별 환경 스크립트가 처리합니다. 독립 모델 제작 규격은 [MODEL_PIPELINE.md](../../docs/MODEL_PIPELINE.md)를 따릅니다.
 
 후지 하늘은 약14.8픽셀/도의 같은 밀도로 세 패널을 연결합니다. `fuji-lake-panorama.png`가 후지산 방향120도, `fuji-lake-back-a.png`와 `fuji-lake-back-b.png`가 나머지240도를 덮습니다. `tools/bake_fuji_backdrop.py`는 원본의 물·해안·하늘을1:1로 재사용하고 원본 숲의 잎 디테일로 두 능선을 구성합니다. 태양·후지산은 반복하지 않으며 이음매 인근만 대칭 연결합니다. `shaders/fuji_sky.gdshader`는 확대되는 하늘에 맞춰 밉맵 없이 연결합니다.
 
@@ -10,11 +10,11 @@
 
 ## 장대교·협곡과 가상 광고
 
-`scenic_landmarks.gd`의 현수교와 층상 절벽은 이 프로젝트에서 직접 만든 절차적 3D 메시입니다. `ad-print-atlas.svg`의 가상 브랜드8종은 가상 브랜드 광고이며 `tools/bake_scenic_ads.py`로 만듭니다. 번들 Roboto Bold Italic 글꼴(Apache-2.0, `assets/fonts/Roboto-LICENSE.txt`)의 윤곽선을 사용합니다. 외부 게임의 구조물·광고·상표를 추출하거나 복사하지 않았습니다. 광고판은 주행로 밖에 고정한 실제 패널이며 카메라를 따라 회전하지 않습니다.
+[scenic_landmarks.gd](../../scripts/environment/scenic_landmarks.gd)의 현수교와 층상 절벽은 이 프로젝트에서 직접 만든 절차적 3D 메시입니다. `ad-print-atlas.svg`의 가상 브랜드8종은 가상 브랜드 광고이며 `tools/bake_scenic_ads.py`로 만듭니다. 번들 Roboto Bold Italic 글꼴(Apache-2.0, `assets/fonts/Roboto-LICENSE.txt`)의 윤곽선을 사용합니다. 외부 게임의 구조물·광고·상표를 추출하거나 복사하지 않았습니다. 광고판은 주행로 밖에 고정한 실제 패널이며 카메라를 따라 회전하지 않습니다.
 
 ## 구조물·표면 디테일
 
-현수교는 테이퍼와 모서리가 있는 주탑, 콘크리트 기초, 원형 케이블, 별도 행거·접합판·가로보 보강재와 두께 있는 교량 바닥을 사용합니다. 광고판은 16×7m로 통일하며 42cm 두께의 뒷판, 금속 테두리, 후면 트러스·독립 기초·점검 발판·조명 하우징을 사용합니다. 조명은 렌즈 재질로 표현하며 광고마다 동적 광원을 만들지 않습니다.
+현수교는 테이퍼와 모서리가 있는 주탑, 콘크리트 기초, 원형 케이블, 별도 행거·접합판·가로보 보강재와 두께 있는 교량 바닥을 사용합니다. 대형 광고판의 인쇄면은20×8.75m이며,1m 두께의 뒷판, 금속 테두리, 후면 트러스·독립 기초·점검 발판·조명 하우징을 사용합니다. 조명은 렌즈 재질로 표현하며 광고마다 동적 광원을 만들지 않습니다.
 
 `generated-material-atlas.png`는 생성형 이미지로 만든 사암·노출 콘크리트·적색 도장 철골·아연도금 강판의 색상 아틀라스입니다. 밉맵·이방성 필터링·삼면 투영으로 경사면의 늘어짐을 줄입니다. 야자수는 연속 줄기·수피 마디와 잎맥·가느다란 소엽을 사용하며 기존의 개체별 폴리곤 예산 안에서 생성합니다.
 
@@ -54,7 +54,7 @@
 
 `container-elevations.png`는 생성형 원본 `exec-c5fc9002-63b1-4504-8330-3a79c929197e.png`의4×2 아틀라스입니다. 위 행은 가상 해운사 NORDLINE·AURORA CARGO·PELAGIC FREIGHT·SUNPORT LOGISTICS의 긴 면, 아래 행은 같은 색상의 후면 문·잠금봉·경첩입니다. 실존 해운사 이름·로고를 사용하지 않고 원본의 골·도색·마모·문 구조를 UV로 입힙니다. `gorge-sunset-panorama.png`는 생성형 원본 `exec-d4b86b9c-5627-4587-bef1-12cb783f4e57.png`의2:1 노을 하늘입니다. 두 원본은 이미지 생성 도구로 제작했고 외부 사진·브랜드 에셋을 입력하지 않았습니다. 원본은 `/workspace/generated_images/`에 보존합니다.
 
-프로젝트 홍보6종과 상품 광고30종의 출처·프롬프트는 [프로젝트 홍보](project-promo-source.md)와 [상품 광고](product-ad-source.md)에 기록합니다. 경주 광고4종과 벡터8종을 포함한 전체48종 선택·순환은 `advertisement_library.gd`가 담당합니다.
+프로젝트 홍보6종과 상품 광고30종의 출처·프롬프트는 [프로젝트 홍보](project-promo-source.md)와 [상품 광고](product-ad-source.md)에 기록합니다. 경주 광고4종과 벡터8종을 포함한 전체48종 선택·순환은 [advertisement_library.gd](../../scripts/environment/advertisement_library.gd)가 담당합니다.
 
 ## 투어 도착지 5종 파노라마
 

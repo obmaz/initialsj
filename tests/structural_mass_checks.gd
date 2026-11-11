@@ -1,5 +1,5 @@
 extends RefCounted
-const Props = preload("res://scripts/regional_props_3d.gd")
+const Props = preload("res://scripts/environment/regional_props_3d.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)

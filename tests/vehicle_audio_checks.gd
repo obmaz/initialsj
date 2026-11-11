@@ -1,8 +1,8 @@
 extends RefCounted
 # Every vehicle owns its engine, boost, boost-start and drift sounds (docs/VEHICLE_AUDIO.md).
 # Adding a vehicle without them, or reusing another vehicle's file, fails here.
-const Catalog = preload("res://scripts/vehicle_catalog.gd")
-const VehicleAudio = preload("res://scripts/vehicle_audio.gd")
+const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
+const VehicleAudio = preload("res://scripts/audio/vehicle_audio.gd")
 const FILE_KEYS := ["engine","boost","boost_start","drift"]
 const TUNING_RANGES := {
 	"engine_pitch":Vector2(0.5,1.2),"engine_span":Vector2(0.1,0.8),"engine_gear":Vector2(0.0,0.15),"engine_gain":Vector2(0.5,1.6),
@@ -93,7 +93,7 @@ func run(tree: SceneTree) -> int:
 		race.state = "racing"
 	# The real player: each selected vehicle swaps in all four of its own sounds, and a nitro
 	# shot starts with that vehicle's ignition hit. (Native path; the Web path is web_audio_checks.cjs.)
-	var player = preload("res://scripts/racing_audio.gd").new()
+	var player = preload("res://scripts/audio/racing_audio.gd").new()
 	player.race = race
 	race.add_child(player)
 	race.sound_enabled = true

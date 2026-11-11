@@ -1,5 +1,5 @@
 extends RefCounted
-const Rig = preload("res://scripts/tunnel_lights.gd")
+const Rig = preload("res://scripts/rendering/tunnel_lights.gd")
 var failures := 0
 func check(value: bool, message: String) -> void:
 	if not value:

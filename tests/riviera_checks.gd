@@ -4,7 +4,7 @@ func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
 
 func run(tree: SceneTree) -> int:
-	var chain := preload("res://scripts/coast_drift.gd").new()
+	var chain := preload("res://scripts/race/coast_drift.gd").new()
 	check(chain.step(1,60,0,false,true,true) == 0,"직선 주행에는 드리프트 보상을 주지 않습니다")
 	check(chain.step(1,60,0.4,true,false,true) == 0,"공중에서는 하트가 쌓이지 않습니다")
 	for i in range(180): chain.step(1.0/60,60,0.4,true,true,true)

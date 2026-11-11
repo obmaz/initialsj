@@ -1,5 +1,5 @@
 extends RefCounted
-const Ads = preload("res://scripts/advertisement_library.gd")
+const Ads = preload("res://scripts/environment/advertisement_library.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)

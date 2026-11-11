@@ -1,5 +1,5 @@
 extends RefCounted
-const Catalog = preload("res://scripts/vehicle_catalog.gd")
+const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 var failures := 0
 func check(value: bool, message: String) -> void:
 	if not value:

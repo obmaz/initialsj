@@ -1,6 +1,6 @@
 extends RefCounted
 const Drive = preload("res://tests/tour_world_checks.gd")
-const Section = preload("res://scripts/road_section.gd")
+const Section = preload("res://scripts/track/road_section.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
@@ -10,7 +10,7 @@ func run(tree: SceneTree) -> int:
 		for node in range(stage+1):
 			var road := Section.new(Vector3(0,6,0),-PI/2,stage,node)
 			tree.root.add_child(road)
-			road.add_child(preload("res://scripts/world_collision.gd").build(road))
+			road.add_child(preload("res://scripts/physics/world_collision.gd").build(road))
 			await tree.physics_frame
 			for sample in range(80):
 				var d: float = 30+(road.length-60)*sample/79

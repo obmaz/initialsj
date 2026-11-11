@@ -49,7 +49,7 @@ static func build(car: Node3D) -> void:
 		car.nitro_flames.append(flame)
 		flame.visible = false
 		var glow := MeshInstance3D.new()
-		var glow_mesh := preload("res://scripts/render_resources.gd").quad(Vector2(0.55, 0.55))
+		var glow_mesh := preload("res://scripts/rendering/render_resources.gd").quad(Vector2(0.55, 0.55))
 		glow.mesh = glow_mesh
 		var glow_material := ShaderMaterial.new()
 		glow_material.shader = preload("res://shaders/nitro_glow.gdshader")

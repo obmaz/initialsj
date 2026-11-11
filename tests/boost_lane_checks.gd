@@ -1,5 +1,5 @@
 extends RefCounted
-const Surface=preload("res://scripts/road_surface_state.gd")
+const Surface=preload("res://scripts/track/road_surface_state.gd")
 var failures:=0
 func check(ok:bool,message:String)->void:
  if not ok: failures+=1;push_error(message)
@@ -37,7 +37,7 @@ func run(tree:SceneTree)->int:
   s.reset()
   s.contact(section,Vector2(0,pad.distance-20),Vector2(0,pad.distance+20),100)
   check(s.boosts_hit==0,"The centre line must miss the alternating pads")
- for car in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
+ for car in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
   race.open_garage()
   race.select_vehicle(car)
   race.restart()

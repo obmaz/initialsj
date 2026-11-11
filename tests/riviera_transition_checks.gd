@@ -1,5 +1,5 @@
 extends RefCounted
-const Profile = preload("res://scripts/riviera_profile.gd")
+const Profile = preload("res://scripts/track/riviera_profile.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)

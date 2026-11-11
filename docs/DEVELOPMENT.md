@@ -17,9 +17,13 @@
 - 설치 사용자와 실행 사용자가 다르면 `INITIALSJ_GODOT_BIN`과 해당 설치의 `XDG_DATA_HOME`을 지정합니다.
 - 기본 검사에는 Python 3과 Node.js가 필요합니다. 음원 재합성은 별도로 numpy·ffmpeg, 로고 제작은 fontTools를 사용합니다.
 
+코딩 규칙과 개발용 포맷터 설치는 [코딩 규칙](CODING_STYLE.md#포맷과-이름)을 따릅니다. 개발 도구 버전은 [requirements-dev.txt](../tools/requirements-dev.txt)에서 고정합니다.
+
 ## 기본 검사
 
 ```sh
+build/dev-venv/bin/gdformat --check scripts models addons tests tools
+python3 -m unittest discover -s tools -p 'test_*.py'
 python3 tools/verify_repository.py
 ./tools/godot --headless --path . --editor --import --quit
 ./tools/godot --headless --fixed-fps 60 --path . --script res://tests/race_test.gd
@@ -29,7 +33,7 @@ node tests/fullscreen_bridge_checks.cjs
 node tests/audio_lifecycle_checks.cjs
 ```
 
-저장소 검사기는 런타임 참조, 자동 등록 모델 팩, 누락·미사용 리소스, `.uid`·`.import` 짝, Markdown 링크와 음원 라이선스를 확인합니다. 모델 목록은 정의 파일에서 자동 탐색하며 별도의 중앙 등록표가 없습니다.
+저장소 검사기는 런타임 참조, 자동 등록 모델 팩, 누락·미사용 리소스, `.uid`·`.import` 누락·고아 파일, Markdown 상대 링크·제목 앵커, 사용하지 않는 셰이더 sampler와 음원 라이선스를 확인합니다. 모델 목록은 정의 파일에서 자동 탐색하며 별도의 중앙 등록표가 없습니다.
 
 `race_test.gd`는 실제 차체 주행·제동·후진·충돌·점프·분기·랩·롤링 스타트, 입력·화면 상태, 지역 배치, 붕괴·낙석, 모델 계약, 렌더·오디오 수명을 검사합니다. 실제 물리 검사는 `--fixed-fps 60`으로 실행합니다. 설계 여유 계산과 실제 물리 주행 검사는 구분합니다.
 

@@ -94,7 +94,7 @@ func run(tree: SceneTree) -> int:
 	await tree.physics_frame
 	await tree.physics_frame
 	var world_rows := []
-	for choice in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
+	for choice in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
 		world.open_garage()
 		world.select_vehicle(choice)
 		var trials := {}

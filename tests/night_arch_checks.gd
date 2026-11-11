@@ -45,7 +45,7 @@ func run(tree: SceneTree) -> int:
 	race.choose_mode("track",4)
 	var ads: Node3D = race.track.scenery.landmarks
 	check(ads.billboard_manifest.size() > riviera_ads*3 and ads.ad_spacing == 60,"협곡 광고 구역은 트랙4보다 세 배 이상 많은 간판을 촘촘히 배치해야 한다")
-	var Library = preload("res://scripts/advertisement_library.gd")
+	var Library = preload("res://scripts/environment/advertisement_library.gd")
 	for index in range(Library.count()):
 		var mat: Material = ads.advertisement_material(index)
 		var info: Dictionary = Library.selection(index)

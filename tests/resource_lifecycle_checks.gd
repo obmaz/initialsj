@@ -1,7 +1,7 @@
 extends RefCounted
 const Report = preload("res://tests/report.gd")
-const Pool = preload("res://scripts/render_resources.gd")
-const Ads = preload("res://scripts/advertisement_library.gd")
+const Pool = preload("res://scripts/rendering/render_resources.gd")
+const Ads = preload("res://scripts/environment/advertisement_library.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)

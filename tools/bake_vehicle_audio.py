@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Bake every vehicle's own engine, boost and drift sounds. No third-party samples.
 
-Each vehicle in scripts/vehicle_catalog.gd needs one entry in VEHICLES below, keyed by
+Each vehicle in scripts/vehicles/vehicle_catalog.gd needs one entry in VEHICLES below, keyed by
 its catalog "id". The bake writes, per vehicle, into assets/audio/vehicles/:
 
     <id>-engine.ogg       looping exhaust note; pitched by RPM and gear at run time
@@ -13,7 +13,7 @@ and assets/audio/web-loops.json (the three loops of every vehicle, base64, for W
 Everything is deterministic: the same table always bakes identical audio. Loops are
 exactly periodic (two seconds, every tone an exact multiple of 0.5 Hz), so they repeat
 without a seam. Levels are A-weighted and matched to the shared recordings this system
-replaced, so the playback gains in scripts/vehicle_audio.gd keep their meaning.
+replaced, so the playback gains in scripts/audio/vehicle_audio.gd keep their meaning.
 
 Usage (see docs/VEHICLE_AUDIO.md):
     python3 tools/bake_vehicle_audio.py                  bake, then check distinctness

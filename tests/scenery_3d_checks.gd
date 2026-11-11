@@ -1,7 +1,7 @@
 extends RefCounted
 const Report = preload("res://tests/report.gd")
-const Props = preload("res://scripts/regional_props_3d.gd")
-const Library = preload("res://scripts/route_library.gd")
+const Props = preload("res://scripts/environment/regional_props_3d.gd")
+const Library = preload("res://scripts/track/route_library.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
  if not ok: failures += 1; push_error(message)
@@ -40,8 +40,8 @@ func run(tree: SceneTree) -> int:
   var foreground: Node3D = section.scenery.roadside_art
   check(foreground.positions.size()+section.scenery.get_node("TourNativeVegetation").tree_count > 20,"대표 지역은 길가 오브젝트와 입체 식생으로 충분히 채워져야 한다")
   for placement in foreground.models.placements:
-   if preload("res://scripts/settlement_layout.gd").inhabited(placement.kind):
-    check(preload("res://scripts/settlement_layout.gd").allows(section,placement.distance,Props.radius(placement.kind)*placement.scale),"투어 생활 건물은 위험 지형 밖의 마을 구획에만 놓아야 한다")
+   if preload("res://scripts/environment/settlement_layout.gd").inhabited(placement.kind):
+    check(preload("res://scripts/environment/settlement_layout.gd").allows(section,placement.distance,Props.radius(placement.kind)*placement.scale),"투어 생활 건물은 위험 지형 밖의 마을 구획에만 놓아야 한다")
   for i in range(foreground.positions.size()):
    var p: Vector3 = foreground.positions[i]
    var nearest: float = section.curve.get_closest_offset(p)
@@ -80,7 +80,7 @@ func run(tree: SceneTree) -> int:
    rural_types[placement.kind] = true
    rural_count += 1
    settlements[0 if placement.distance < 950 else (1 if placement.distance < 2200 else 2)] = true
-   check(preload("res://scripts/settlement_layout.gd").allows(race.track.active,placement.distance,Props.radius(placement.kind)*placement.scale),"해안 집의 전체 크기가 안전한 마을 구획 안에 있어야 한다")
+   check(preload("res://scripts/environment/settlement_layout.gd").allows(race.track.active,placement.distance,Props.radius(placement.kind)*placement.scale),"해안 집의 전체 크기가 안전한 마을 구획 안에 있어야 한다")
   var radius: float = Props.radius(placement.kind)*float(placement.scale)
   var p: Vector3 = placement.position
   var nearest: float = race.track.active.curve.get_closest_offset(p)

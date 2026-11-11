@@ -1,6 +1,6 @@
 extends RefCounted
 # Driving juice: gamepad/phone haptics, rail scrape rumble and kerb shake.
-const Haptics = preload("res://scripts/haptics.gd")
+const Haptics = preload("res://scripts/input/haptics.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)

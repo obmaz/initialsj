@@ -1,6 +1,6 @@
 extends RefCounted
-const Section = preload("res://scripts/road_section.gd")
-const Background = preload("res://scripts/tour_goal_background.gd")
+const Section = preload("res://scripts/track/road_section.gd")
+const Background = preload("res://scripts/environment/tour_goal_background.gd")
 class RaceStub extends Node:
  var mode := "tour"
  var track: Node
@@ -11,7 +11,7 @@ var failures := 0
 func check(ok: bool, message: String) -> void:
  if not ok: failures += 1; push_error(message)
 func run(tree: SceneTree) -> int:
- var pool=preload("res://scripts/render_resources.gd")
+ var pool=preload("res://scripts/rendering/render_resources.gd")
  pool.acquire_owner()
  var road := Section.new()
  road.stage=2
@@ -19,7 +19,7 @@ func run(tree: SceneTree) -> int:
  tree.root.add_child(road)
  var park: Node3D
  for node in road.scenery.get_children():
-  if node.get_script() == preload("res://scripts/tour_amusement.gd"): park=node
+  if node.get_script() == preload("res://scripts/environment/tour_amusement.gd"): park=node
  check(park != null and park.coaster_samples == 160 and park.get_child_count() >= 19,"공원은 고저차 트랙·바이킹·상업 시설이 실제 메시여야 한다")
  var before: float = park.swing.rotation.z
  park._process(.5)
@@ -52,7 +52,7 @@ func run(tree: SceneTree) -> int:
  race.queue_free()
  await tree.process_frame
  if pool.release_owner():
-  preload("res://scripts/regional_props_3d.gd").clear_cache()
-  preload("res://scripts/advertisement_library.gd").clear_cache()
+  preload("res://scripts/environment/regional_props_3d.gd").clear_cache()
+  preload("res://scripts/environment/advertisement_library.gd").clear_cache()
  print("투어 식생7종 / 롤러코스터·바이킹 / 최종5지역 진입 방향 파노라마: ","PASS" if failures == 0 else "FAIL")
  return failures

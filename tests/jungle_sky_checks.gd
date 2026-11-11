@@ -3,17 +3,17 @@ var failures := 0
 func check(ok: bool,message: String):
  if not ok: failures+=1;push_error(message)
 func run(tree: SceneTree) -> int:
- var library=preload("res://scripts/route_library.gd")
- var metadata=preload("res://scripts/tour_region_metadata.gd")
+ var library=preload("res://scripts/track/route_library.gd")
+ var metadata=preload("res://scripts/environment/tour_region_metadata.gd")
  check(library.theme(1,0)=="jungle" and not metadata.REGIONS.has("desert"),"사막 경로를 정글로 교체")
  check(metadata.resolve("pyramid").weather=="clear","피라미드 모래 날림 제거")
- var road=preload("res://scripts/road_section.gd").new()
+ var road=preload("res://scripts/track/road_section.gd").new()
  road.stage=1
  tree.root.add_child(road)
  check(road.scenery.theme=="jungle" and road.scenery.get_node("TourNativeVegetation").tree_count>450,"정글 구릉·입체 식생 배치")
  road.queue_free()
  await tree.process_frame
- var race=preload("res://scripts/race.gd").new()
+ var race=preload("res://scripts/race/race.gd").new()
  tree.root.add_child(race)
  await tree.process_frame
  race.warming_world=true

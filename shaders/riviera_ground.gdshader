@@ -1,6 +1,5 @@
 shader_type spatial;
 render_mode diffuse_burley;
-uniform sampler2D ground_grain : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D terrain_variants : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 #include "res://shaders/ground_variety.gdshaderinc"
 uniform vec4 base_color : source_color = vec4(0.3,0.45,0.3,1.0);

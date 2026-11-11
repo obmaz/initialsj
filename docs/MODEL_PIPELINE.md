@@ -82,7 +82,7 @@ models/
 | 차량 | `static func build(car: Node3D) -> void` | `car.body` 아래의 차체, 공통 효과 연결 |
 | 빌딩 | `static func build(definition: Resource, width: float, height: float, depth: float) -> Array[Dictionary]` | `position`·`size`가 있는 유한한 양의 크기 파츠 |
 
-차량 빌더는 `car.mat()`·`block()`·`wedge()`·`add_headlight()`·`add_boost_jet()`와 `models/shared/vehicle_geometry.gd`를 사용합니다. 브레이크 재질은 `car.brake_lights`에 등록합니다. `parameters`의 휠 반경·반트랙·반휠베이스·두께·림 배율·`ride_offset`·스포크 수·림 색을 함께 맞춥니다. 이 값은 시각 모델의 제원이며 물리 능력치는 `vehicle_catalog.gd`가 소유합니다.
+차량 빌더는 `car.mat()`·`block()`·`wedge()`·`add_headlight()`·`add_boost_jet()`와 `models/shared/vehicle_geometry.gd`를 사용합니다. 브레이크 재질은 `car.brake_lights`에 등록합니다. `parameters`의 휠 반경·반트랙·반휠베이스·두께·림 배율·`ride_offset`·스포크 수·림 색을 함께 맞춥니다. 이 값은 시각 모델의 제원이며 물리 능력치는 [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd)가 소유합니다.
 
 소품 정적 씬은 메시 하나·표면 하나로 내보내고 UV·법선·재질을 포함합니다. 차량 정적 씬은 차체만 넣으면 공통 휠을 사용합니다. 자체 휠을 쓰면 `parameters.scene_wheels=true`와 MeshInstance3D 이름 `wheel_fl`, `wheel_rl`, `wheel_fr`, `wheel_rr`을 제공합니다. 휠의 로컬 `+Y`가 회전축이며 휠 노드 원점이 회전 중심이어야 합니다. 렌즈·배기구 좌표는 정의의 `headlamp_positions`·`headlight_position`·`exhaust_positions`로 연결합니다.
 
@@ -113,4 +113,4 @@ python3 tools/verify_repository.py
 
 ## 다중 표면 식생
 
-`models/vegetation/<id>/`는 SJRPG의 원본 GLB·Mesh를 보존합니다. 일반 소품과 달리 두 표면(줄기·잎)과 최대4358삼각형을 허용합니다. `tour_vegetation.gd`가 표면별 메시·재질을 한 번 만들고120m 셀·최대12개씩 공유하며, 모델 정의의 미터 높이를 적용합니다. 공통 생성형 잎·수피의 출처는 `models/shared/foliage/SOURCE.md`에 기록합니다. 검사는 전체 모델 검사에 포함합니다.
+`models/vegetation/<id>/`는 SJRPG의 원본 GLB·Mesh를 보존합니다. 일반 소품과 달리 두 표면(줄기·잎)과 최대4358삼각형을 허용합니다. [tour_vegetation.gd](../scripts/environment/tour_vegetation.gd)가 표면별 메시·재질을 한 번 만들고120m 셀·최대12개씩 공유하며, 모델 정의의 미터 높이를 적용합니다. 공통 생성형 잎·수피의 출처는 `models/shared/foliage/SOURCE.md`에 기록합니다. 검사는 전체 모델 검사에 포함합니다.

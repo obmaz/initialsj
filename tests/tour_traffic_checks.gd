@@ -1,5 +1,5 @@
 extends RefCounted
-const Crash=preload("res://scripts/crash_state.gd")
+const Crash=preload("res://scripts/physics/crash_state.gd")
 var failures:=0
 func check(ok: bool,message: String):
 	if not ok: failures+=1;push_error(message)
@@ -8,24 +8,24 @@ func run(tree: SceneTree) -> int:
 		for angle in [10.0,29.9,30.0,30.1,60.0,90.0]:
 			check(Crash.launches(speed,speed*sin(deg_to_rad(angle)))==(speed>200.0/3.6 and angle>30),"200km/h·30도 이중 임계값")
 	check(Crash.launch_up(100)<10,"최고속 충돌 비행의 상승속도 제한")
-	var pool=preload("res://scripts/render_resources.gd")
+	var pool=preload("res://scripts/rendering/render_resources.gd")
 	pool.acquire_owner()
-	var road=preload("res://scripts/road_section.gd").new()
+	var road=preload("res://scripts/track/road_section.gd").new()
 	road.stage=1
 	tree.root.add_child(road)
-	road.add_child(preload("res://scripts/world_collision.gd").build(road))
+	road.add_child(preload("res://scripts/physics/world_collision.gd").build(road))
 	var cars: Array=road.features.filter(func(f):return f.kind=="car")
 	check(cars.size()>=2,"투어 승용차 장애물 배치")
 	for feature in cars:check(absf(feature.lane)>2.5 and feature.width<=2.1,"승용차는 한 차로만 차지하고 중앙 통과 공간을 남긴다")
 	var hills:=0
 	for stage in range(5):
 		for node in range(stage+1):
-			var section=preload("res://scripts/road_section.gd").new(Vector3.ZERO,-PI/2,stage,node)
+			var section=preload("res://scripts/track/road_section.gd").new(Vector3.ZERO,-PI/2,stage,node)
 			hills+=section.hill_spans().size()
 			section.free()
 	check(hills>=5,"여러 투어 지역에 큰 추가 능선이 있어야 한다")
-	var motor=preload("res://scripts/world_car.gd").new()
-	motor.configure(preload("res://scripts/vehicle_catalog.gd").spec(0))
+	var motor=preload("res://scripts/physics/world_car.gd").new()
+	motor.configure(preload("res://scripts/vehicles/vehicle_catalog.gd").spec(0))
 	tree.root.add_child(motor)
 	var hit_car:=false
 	var feature: Dictionary=cars[0]
@@ -45,8 +45,8 @@ func run(tree: SceneTree) -> int:
 	road.queue_free()
 	await tree.process_frame
 	if pool.release_owner():
-		preload("res://scripts/regional_props_3d.gd").clear_cache()
-		preload("res://scripts/advertisement_library.gd").clear_cache()
-		preload("res://scripts/tour_vegetation.gd").clear_cache()
+		preload("res://scripts/environment/regional_props_3d.gd").clear_cache()
+		preload("res://scripts/environment/advertisement_library.gd").clear_cache()
+		preload("res://scripts/environment/tour_vegetation.gd").clear_cache()
 	print("충돌 이중 임계값 / 투어 승용차 실제 반동 / 추가 고저차: ","PASS" if failures==0 else "FAIL")
 	return failures

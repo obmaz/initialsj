@@ -1,5 +1,5 @@
 extends RefCounted
-const Library = preload("res://scripts/route_library.gd")
+const Library = preload("res://scripts/track/route_library.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
@@ -25,8 +25,8 @@ func run(tree: SceneTree) -> int:
 	race.restart()
 	race.state = "racing"
 	await tree.physics_frame
-	check(race.world_race != null and race.track.active.has_node("FujiWorldCollision"),"투어도 실제 3D 차체와 노면 충돌체를 사용해야 한다")
-	for preview in race.track.previews: check(preview.has_node("FujiWorldCollision"),"분기 양쪽 도로를 진입 전에 충돌 월드에 등록해야 한다")
+	check(race.world_race != null and race.track.active.has_node("WorldCollision"),"투어도 실제 3D 차체와 노면 충돌체를 사용해야 한다")
+	for preview in race.track.previews: check(preview.has_node("WorldCollision"),"분기 양쪽 도로를 진입 전에 충돌 월드에 등록해야 한다")
 	for frame in range(158): race.step(1.0/60,0,false,true,false)
 	check(race.speed > 38 and race.speed < 46 and race.world_race.player_body.feet_position().distance_to(race.track.point(80,-3.2)) > 45,"30% 낮춘 가속은 실제 차체를 전진시키고 이전 가속 속도에 도달하지 않아야 한다")
 	# 계측값만 변경해도 실제 차체가 도로 좌표로 순간 이동하지 않는다.
@@ -39,7 +39,7 @@ func run(tree: SceneTree) -> int:
 	for frame in range(70): race.step(1.0/60,0,false,true,true)
 	check(race.speed < 1.6 and race.braking,"브레이크는 실제 차체 속도를 줄여야 한다")
 	# 실제 체크포인트를 통과하고 모든 차량으로 좌·우 분기를 연속 주행한다.
-	for vehicle in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
+	for vehicle in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
 		for side in [0,1]:
 			race.open_garage()
 			race.select_vehicle(vehicle)

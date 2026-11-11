@@ -1,5 +1,5 @@
 extends RefCounted
-const Recovery=preload("res://scripts/recovery_state.gd")
+const Recovery=preload("res://scripts/race/recovery_state.gd")
 var failures:=0
 func check(ok:bool,message:String)->void:
  if not ok:failures+=1;push_error(message)

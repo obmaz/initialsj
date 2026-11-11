@@ -14,8 +14,8 @@ func run() -> void:
  var report := []
  var arguments := OS.get_cmdline_user_args()
  var vehicles: Array[int] = []
- vehicles.assign(range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()))
- if not arguments.is_empty(): vehicles = [clampi(int(arguments[0]),0,preload("res://scripts/vehicle_catalog.gd").SPECS.size()-1)]
+ vehicles.assign(range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()))
+ if not arguments.is_empty(): vehicles = [clampi(int(arguments[0]),0,preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()-1)]
  for index in vehicles:
   race.open_garage()
   race.select_vehicle(index)

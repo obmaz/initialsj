@@ -1,7 +1,7 @@
 extends RefCounted
-const Car = preload("res://scripts/world_car.gd")
-const Catalog = preload("res://scripts/vehicle_catalog.gd")
-const CornerResistance = preload("res://scripts/corner_resistance.gd")
+const Car = preload("res://scripts/physics/world_car.gd")
+const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
+const CornerResistance = preload("res://scripts/physics/corner_resistance.gd")
 const Report = preload("res://tests/report.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
@@ -178,7 +178,7 @@ func run(tree: SceneTree) -> int:
 	check(ramp_launch_speed > 1.5 and ramp_peak > 0.9,"A physical ramp must launch the car using slope momentum without an artificial jump impulse")
 	check(car.grounded and absf(car.feet_position().y) < 0.12,"The ramp jump must land on the physical floor")
 	var corners := []
-	for choice in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
+	for choice in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
 		var spec := Catalog.spec(choice)
 		var straight := corner_trial(car,spec,0)
 		var mild := corner_trial(car,spec,0.065)

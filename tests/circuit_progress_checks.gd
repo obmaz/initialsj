@@ -1,5 +1,5 @@
 extends RefCounted
-const Progress = preload("res://scripts/circuit_progress.gd")
+const Progress = preload("res://scripts/race/circuit_progress.gd")
 const Report = preload("res://tests/report.gd")
 var failures := 0
 var assertions := 0
@@ -66,10 +66,10 @@ func missed_gate_checks(progress: RefCounted, road: Node3D) -> Array:
 	return rows
 
 func actual_shoulder_checks() -> Dictionary:
-	var road := preload("res://scripts/road_section.gd").new()
+	var road := preload("res://scripts/track/road_section.gd").new()
 	road.closed_loop = true
 	road.course_id = 0
-	preload("res://scripts/fuji_course.gd").build(road)
+	preload("res://scripts/track/fuji_course.gd").build(road)
 	var progress := Progress.new()
 	progress.configure(road)
 	var begin: float = road.length*0.10

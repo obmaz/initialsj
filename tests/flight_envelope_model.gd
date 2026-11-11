@@ -1,6 +1,6 @@
-extends "res://scripts/air_state.gd"
+extends "res://scripts/physics/air_state.gd"
 # 도로 설계 여유를 검증하는 명목 비행 모델. 실제 차량 물리에는 사용하지 않는다.
-const Features = preload("res://scripts/road_features.gd")
+const Features = preload("res://scripts/track/road_features.gd")
 const GRAVITY := 27.0
 const MIN_TRICK_LIFT := 6.2
 const MAX_TRICK_LIFT := 7.2

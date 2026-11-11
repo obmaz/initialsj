@@ -1,7 +1,7 @@
 extends RefCounted
-const Features = preload("res://scripts/road_features.gd")
-const State = preload("res://scripts/road_surface_state.gd")
-const Section = preload("res://scripts/road_section.gd")
+const Features = preload("res://scripts/track/road_features.gd")
+const State = preload("res://scripts/track/road_surface_state.gd")
+const Section = preload("res://scripts/track/road_section.gd")
 var failures := 0
 func check(value: bool, message: String) -> void:
 	if not value:
@@ -64,7 +64,7 @@ func run(tree: SceneTree) -> int:
 	check(state.wet_time == 0 and state.grip_factor == 1 and state.lateral_factor == 1,"Grip must recover after leaving water")
 	state.contact(section,point,point,60)
 	check(state.puddles_hit == 2,"Leaving and re-entering water must create a fresh splash")
-	for index in range(preload("res://scripts/vehicle_catalog.gd").SPECS.size()):
+	for index in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
 		race.open_garage()
 		race.select_vehicle(index)
 		isolate(race)

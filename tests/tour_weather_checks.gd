@@ -1,6 +1,6 @@
 extends RefCounted
-const Metadata=preload("res://scripts/tour_region_metadata.gd")
-const Library=preload("res://scripts/route_library.gd")
+const Metadata=preload("res://scripts/environment/tour_region_metadata.gd")
+const Library=preload("res://scripts/track/route_library.gd")
 var failures:=0
 func check(ok: bool,message: String) -> void:
  if not ok: failures+=1;push_error(message)
@@ -20,7 +20,7 @@ func run(tree: SceneTree) -> int:
     previous=region.weather
     if stage < 4:node+=(route>>stage)&1
  check(rains.has("ruins") and rains.has("canyon") and rains.size()==2,"드문 오브젝트 지역2곳만 비 후보")
- var weather:=preload("res://scripts/tour_weather.gd").new()
+ var weather:=preload("res://scripts/environment/tour_weather.gd").new()
  tree.root.add_child(weather)
  weather.set_process(false)
  for kind in ["sand","snow","rain","clear"]:

@@ -30,7 +30,7 @@ func _export_begin(features: PackedStringArray, _debug: bool, path: String, _fla
 		web_path = path if path.get_extension().to_lower() in ["html","htm"] else ""
 	ProjectSettings.set_setting(KEYS[0],name)
 	ProjectSettings.set_setting(KEYS[1],number)
-	displayed_version = preload("res://scripts/app_version.gd").label()
+	displayed_version = preload("res://scripts/platform/app_version.gd").label()
 func _export_file(path: String, _type: String, _features: PackedStringArray) -> void:
 	if path.begins_with("res://addons/app_version/"): skip()
 func _export_end() -> void:

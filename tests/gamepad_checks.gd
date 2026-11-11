@@ -1,7 +1,7 @@
 extends RefCounted
 # Standard racing-pad support: synthetic pad events go through the real _input path.
-const Pad = preload("res://scripts/gamepad_input.gd")
-const Catalog = preload("res://scripts/vehicle_catalog.gd")
+const Pad = preload("res://scripts/input/gamepad_input.gd")
+const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 class BusyTransition extends CanvasLayer:
 	var busy := true
 var failures := 0

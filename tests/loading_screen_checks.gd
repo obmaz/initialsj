@@ -1,6 +1,6 @@
 extends RefCounted
 # A course rebuild freezes the frame, so the transition must show a loading card first.
-const Card = preload("res://scripts/loading_card.gd")
+const Card = preload("res://scripts/ui/loading_card.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
@@ -17,7 +17,7 @@ class Recorder extends CanvasLayer:
 func run(tree: SceneTree) -> int:
 	var version_name = ProjectSettings.get_setting("application/config/version")
 	var version_code = ProjectSettings.get_setting("application/config/build_number")
-	var Version = preload("res://scripts/app_version.gd")
+	var Version = preload("res://scripts/platform/app_version.gd")
 	ProjectSettings.set_setting("application/config/version","1.0.12")
 	ProjectSettings.set_setting("application/config/build_number",12)
 	check(Version.label() == "v1.0.12 (12)","Android 표시에는 실제 versionName과 versionCode가 함께 있어야 한다")
