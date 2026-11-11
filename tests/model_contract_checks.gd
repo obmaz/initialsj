@@ -35,48 +35,22 @@ func metadata(item: Resource) -> bool:
 	var before := failures
 	var folder: String = "res://models/" + item.category + "/" + item.id + "/"
 	check(
-		item.contract_version == 1 and RegEx.create_from_string("^[a-z][a-z0-9_]*$").search(item.id) != null,
+		item.contract_version == 2 and RegEx.create_from_string("^[a-z][a-z0-9_]*$").search(item.id) != null,
 		"모델 계약 버전·ID: " + folder
 	)
 	check(
 		FileAccess.file_exists(item.source_path) and item.source_path.begins_with(folder),
 		"팩 내부의 출처 문서가 필요하다: " + folder
 	)
-	var entry_points := (
-		int(not item.builder_path.is_empty())
-		+ int(not item.scene_path.is_empty())
-		+ int(not item.source_mesh_path.is_empty())
-	)
-	# 팔레트 변환기는 원본 메시 경로와 함께 쓴다.
-	if item.builder_path == "res://models/shared/palette_mesh.gd":
-		entry_points -= 1
-	check(entry_points == 1, "형상 진입점은 하나여야 한다: " + folder)
-	for path in [item.builder_path, item.scene_path, item.source_mesh_path, item.material_path]:
+	check(item.scene_path.ends_with(".tscn"), "모델 진입점은 GLB를 조립하는 .tscn이어야 한다: " + folder)
+	for path in [item.scene_path, item.material_path]:
 		if not path.is_empty():
 			check(ResourceLoader.exists(path), "모델 리소스 누락: " + path)
-	check(
-		item.metre_scale.is_finite() and item.metre_scale.x > 0 and item.metre_scale.y > 0 and item.metre_scale.z > 0,
-		"양의 유한한 모델 스케일: " + folder
-	)
-	if not item.builder_path.is_empty():
-		check(
-			item.builder_path.begins_with(folder) or item.builder_path.begins_with("res://models/shared/"),
-			"다른 모델의 빌더에 의존하면 안 된다: " + folder
-		)
 	for path in [item.scene_path, item.material_path]:
 		if not path.is_empty():
 			check(path.begins_with(folder), "전용 씬·재질은 자기 모델 팩에 둔다: " + folder)
 	if item.category == "vehicles":
-		for field in [
-			"wheel_radius",
-			"wheel_half_track",
-			"wheel_half_base",
-			"wheel_thickness",
-			"rim_scale",
-			"ride_offset",
-			"spoke_count",
-			"rim_color"
-		]:
+		for field in ["wheel_radius", "wheel_half_track", "wheel_half_base", "wheel_thickness", "ride_offset"]:
 			check(item.parameters.has(field), "차량 제원 누락: " + folder + field)
 	if item.category == "buildings":
 		for field in ["height_range", "width_range", "depth_range"]:
@@ -140,7 +114,7 @@ func run(tree: SceneTree, category: String = "", id: String = "") -> int:
 				car.queue_free()
 				await tree.process_frame
 			elif group == "vegetation":
-				var source: Resource = load(item.source_mesh_path)
+				var source: Resource = load(item.scene_path)
 				var mesh: Mesh
 				if source is PackedScene:
 					var scene: Node = source.instantiate()
@@ -152,7 +126,7 @@ func run(tree: SceneTree, category: String = "", id: String = "") -> int:
 				check(item.parameters.height > 0 and mesh.get_aabb().size.y > 0, "식생 실척: " + item.id)
 			else:
 				for dimensions in [Vector3(24, 20, 28), Vector3(42, 120, 48)]:
-					var parts: Array = load(item.builder_path).build(item, dimensions.x, dimensions.y, dimensions.z)
+					var parts: Array = Architecture.parts(item.order, dimensions.x, dimensions.y, dimensions.z)
 					check(not parts.is_empty() and parts.size() <= 32, "도시 빌딩의 파츠 예산: " + item.id)
 					for part in parts:
 						check(
@@ -177,27 +151,11 @@ func run(tree: SceneTree, category: String = "", id: String = "") -> int:
 			),
 			"외부 정적 씬의 UV·텍스처를 유지해야 한다"
 		)
-		var scaled := preload("res://models/shared/prop_geometry.gd").metre_mesh(mesh, Vector3(2, 3, 4))
+		var shared := SceneSource.prop_mesh("res://tests/fixtures/models/textured_prop.tscn")
 		check(
-			(
-				scaled.get_aabb().size.is_equal_approx(Vector3(4, 12, 24))
-				and scaled.surface_get_material(0) == mesh.surface_get_material(0)
-				and scaled.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV] == mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]
-			),
-			"외부 모델 단위 변환이 재질·UV를 유지해야 한다"
+			mesh == shared and mesh.get_aabb().size.is_equal_approx(Vector3(2, 4, 6)), "GLB는 미터 치수와 같은 메시 자원을 공유해야 한다"
 		)
-		var holder := Car.new()
-		holder.body = Node3D.new()
-		holder.add_child(holder.body)
-		var part := MeshInstance3D.new()
-		part.mesh = mesh
-		part.material_override = mesh.surface_get_material(0)
-		holder.body.add_child(part)
-		holder.merge_static_body()
-		check(
-			part.get_parent() == holder.body and not part.is_queued_for_deletion(), "텍스처 부품을 무텍스처 병합기로 넘겨 UV를 잃으면 안 된다"
-		)
-		holder.free()
+
 	if Pool.release_owner():
 		Props.clear_cache()
 		preload("res://scripts/environment/advertisement_library.gd").clear_cache()

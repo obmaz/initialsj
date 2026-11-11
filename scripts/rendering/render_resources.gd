@@ -5,7 +5,6 @@ static var quads: Dictionary = {}
 static var box_mesh: ArrayMesh
 static var vehicle_body: ShaderMaterial
 static var traffic_models := {}
-static var vehicle_wheels := {}
 # 작업 스레드에서 읽는 중인 리소스 경로. fetch()가 결과를 받아 가면 지운다.
 static var warming: Dictionary = {}
 
@@ -21,9 +20,9 @@ static func release_owner() -> bool:
 		return false
 	quads.clear()
 	box_mesh = null
+	preload("res://scripts/rendering/primitive_assets.gd").clear()
 	vehicle_body = null
 	traffic_models.clear()
-	vehicle_wheels.clear()
 	for path in warming:
 		ResourceLoader.load_threaded_get(path)
 	warming.clear()
@@ -62,33 +61,13 @@ static func release(path: String) -> void:
 		ResourceLoader.load_threaded_get(path)
 
 
-static func quad(size: Vector2) -> QuadMesh:
+static func quad(size: Vector2) -> ArrayMesh:
 	if not quads.has(size):
-		var mesh := QuadMesh.new()
-		mesh.size = size
-		quads[size] = mesh
+		quads[size] = preload("res://scripts/rendering/primitive_assets.gd").quad(size)
 	return quads[size]
 
 
 static func unit_box() -> ArrayMesh:
 	if box_mesh == null:
-		var source := BoxMesh.new()
-		source.size = Vector3.ONE
-		var data := source.surface_get_arrays(0)
-		var st := SurfaceTool.new()
-		st.begin(Mesh.PRIMITIVE_TRIANGLES)
-		for i in data[Mesh.ARRAY_INDEX]:
-			var p: Vector3 = data[Mesh.ARRAY_VERTEX][i]
-			var n: Vector3 = data[Mesh.ARRAY_NORMAL][i]
-			# 기본 BoxMesh의 3×2 펼침 대신 각 면을 0~1로 펼친다.
-			var uv := (
-				Vector2(p.z + .5, .5 - p.y)
-				if absf(n.x) > .5
-				else (Vector2(p.x + .5, p.z + .5) if absf(n.y) > .5 else Vector2(p.x + .5, .5 - p.y))
-			)
-			st.set_normal(n)
-			st.set_uv(uv)
-			st.add_vertex(p)
-		st.index()
-		box_mesh = st.commit()
+		box_mesh = preload("res://scripts/rendering/primitive_assets.gd").mesh("unit_box")
 	return box_mesh

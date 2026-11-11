@@ -26,7 +26,7 @@ static func all(category: String) -> Array[Resource]:
 				errors.append("모델 정의를 읽을 수 없다: " + path)
 				continue
 			if (
-				item.contract_version != 1
+				item.contract_version != 2
 				or item.id != entry.trim_suffix("/")
 				or item.category != category
 				or found.has(item.id)

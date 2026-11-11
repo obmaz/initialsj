@@ -9,29 +9,7 @@ const SAVE_KEY := "top_three_v1"
 
 
 func _ready() -> void:
-	position = road.point(80)
-	rotation.y = road.heading(80)
-	var dark: StandardMaterial3D = road.material(Color("08121e"))
-	dark.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	var frame: Material = road.material(Color("303f4e"), .55)
-	road.box(self, Vector3(0, 18, 0), Vector3(72, 18, 2.4), frame)
-	road.box(self, Vector3(0, 18, 1.24), Vector3(70.5, 16.8, .18), dark)
-	for side in [-1.0, 1.0]:
-		var x: float = side * (road.half_width(80) + road.rail_setback(80, side) + 4)
-		road.box(self, Vector3(x, 9, 0), Vector3(1.2, 18, 1.8), frame)
-		road.box(self, Vector3(x, .5, 0), Vector3(4, 1, 4), frame)
-	for row in range(5):
-		var label := Label3D.new()
-		label.font = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
-		label.font_size = 130 if row in [1, 2, 3] else 104
-		label.pixel_size = .022
-		label.outline_size = 6
-		label.modulate = Color("ffd56b") if row in [0, 4] else Color("c4edff")
-		label.position = Vector3(0, 24 - row * 3.0, 1.45)
-		label.no_depth_test = false
-		add_child(label)
-		labels.append(label)
-	refresh()
+	assert(preload("res://models/shared/scene_state.gd").bind(self), "코스 모델 씬으로 생성해야 한다")
 
 
 static func stamp(seconds: float) -> String:

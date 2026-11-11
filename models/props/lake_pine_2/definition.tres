@@ -1,18 +1,17 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" format=3]
 
 [ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
-contract_version = 1
 id = "lake_pine_2"
-category = "props"
-source_path = "res://models/props/lake_pine_2/SOURCE.md"
 order = 1
-builder_path = "res://models/shared/palette_mesh.gd"
-source_mesh_path = "res://assets/environment/props/PineTree_4.obj"
-tags = ["imported", "lake_pine", "tree", "imported_tree"]
-target_height = 20.0
-parameters = {"source_scale": 4.0}
-placement_limits = Vector2(0.9, 1.18)
+scene_path = "res://models/props/lake_pine_2/model.tscn"
+source_path = "res://models/props/lake_pine_2/SOURCE.md"
+tags = Array[String](["imported", "lake_pine", "tree", "imported_tree"])
+parameters = {
+"source_scale": 4.0,
+&"vertex_facade": true
+}
 visibility_range = 330.0
+placement_limits = Vector2(0.9, 1.18)

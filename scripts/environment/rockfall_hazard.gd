@@ -9,18 +9,14 @@ var rng := RandomNumberGenerator.new()
 var plans: Array[Dictionary] = []
 var scenic_plans: Array[Dictionary] = []
 var planned_lap := -1
-var rock_mesh: SphereMesh
+var rock_mesh: Mesh
 var rock_material: ShaderMaterial
 var rock_shape: ConvexPolygonShape3D
 
 
 func configure(road: Node3D) -> void:
 	section = road
-	rock_mesh = SphereMesh.new()
-	rock_mesh.radius = 1
-	rock_mesh.height = 2
-	rock_mesh.radial_segments = 7
-	rock_mesh.rings = 3
+	rock_mesh = preload("res://scripts/rendering/primitive_assets.gd").mesh("rockfall_rock")
 	rock_shape = rock_mesh.create_convex_shape()
 	rock_material = ShaderMaterial.new()
 	rock_material.shader = preload("res://shaders/sandstone.gdshader")
@@ -157,11 +153,7 @@ func start_fall(plan: Dictionary) -> void:
 	if scenic:
 		return
 	var marker := MeshInstance3D.new()
-	var ring := TorusMesh.new()
-	ring.inner_radius = 2.3
-	ring.outer_radius = 2.55
-	ring.rings = 16
-	ring.ring_segments = 6
+	var ring := preload("res://scripts/rendering/primitive_assets.gd").mesh("rockfall_marker")
 	marker.mesh = ring
 	marker.material_override = section.paint(Color("ffc138"))
 	marker.position = (

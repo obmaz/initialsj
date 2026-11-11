@@ -10,8 +10,7 @@ var previous_normals: Array[Vector3] = []
 
 
 func _ready() -> void:
-	var mesh := PlaneMesh.new()
-	mesh.size = Vector2(0.29, 1)
+	var mesh := preload("res://scripts/rendering/primitive_assets.gd").mesh("tire_trail")
 	instances.transform_format = MultiMesh.TRANSFORM_3D
 	instances.use_custom_data = true
 	instances.mesh = mesh

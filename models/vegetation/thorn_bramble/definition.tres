@@ -1,10 +1,15 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" format=3]
+
 [ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
 [resource]
 script = ExtResource("1")
 id = "thorn_bramble"
 category = "vegetation"
 order = 6
-source_mesh_path = "res://models/vegetation/thorn_bramble/thorn-bramble.res"
+scene_path = "res://models/vegetation/thorn_bramble/model.tscn"
 source_path = "res://models/vegetation/thorn_bramble/SOURCE.md"
-parameters = {"height": 2.0, "needles": true }
+parameters = {
+"height": 2.0,
+"needles": true
+}

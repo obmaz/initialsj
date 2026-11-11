@@ -9,6 +9,29 @@ func check(ok: bool, message: String) -> void:
 		push_error(message)
 
 
+# GLB 임포트의 정점 재정렬과 무관하게 실제 삼각형 경계·깊이를 확인한다.
+func boundary_length(mesh: Mesh) -> float:
+	var ids := {}
+	var edges := {}
+	var lengths := {}
+	var faces := mesh.get_faces()
+	for triangle in range(0, faces.size(), 3):
+		for side in range(3):
+			var a := faces[triangle + side].snapped(Vector3.ONE * .001)
+			var b := faces[triangle + (side + 1) % 3].snapped(Vector3.ONE * .001)
+			for point in [a, b]:
+				if not ids.has(point):
+					ids[point] = ids.size()
+			var key := Vector2i(mini(ids[a], ids[b]), maxi(ids[a], ids[b]))
+			edges[key] = edges.get(key, 0) + 1
+			lengths[key] = a.distance_to(b)
+	var result := 0.0
+	for key in edges:
+		if edges[key] == 1:
+			result += lengths[key]
+	return result
+
+
 func run(tree: SceneTree) -> int:
 	var race = load("res://scenes/race.tscn").instantiate()
 	tree.root.add_child(race)
@@ -23,14 +46,22 @@ func run(tree: SceneTree) -> int:
 			rail.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() > 3000,
 			"Guardrails must be indexed continuous curved ribbons"
 		)
+		check(boundary_length(rail.mesh) < 35, "레일의 긴 뒤판·상하면은 닫히고 구간 끝의 짧은 경계만 남아야 한다")
 		var vertices: PackedVector3Array = rail.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
-		check(vertices[0].distance_to(vertices[7]) < .001, "레일 단면은 뒤판과 상하 면이 닫혀 있어야 한다")
-		check(vertices[0].distance_to(vertices[6]) > .30, "레일은 종이 띠가 아닌30cm 이상의 입체 깊이를 가져야 한다")
-		var case_mesh: BoxMesh = section.get_node("CurveSignCases").multimesh.mesh
-		check(
-			case_mesh.size.z >= .2 and case_mesh.size.x > 3 and case_mesh.size.y > 1.5,
-			"화살표 인쇄면 뒤에는 두꺼운 케이스와 테두리가 있어야 한다"
-		)
+		var origin: Vector3 = section.point(0)
+		var forward: Vector3 = (section.point(2) - origin).normalized()
+		var lateral: Vector3 = (section.point(0, 1) - section.point(0)).normalized()
+		var low := INF
+		var high := -INF
+		for point in vertices:
+			var relative := point - origin
+			if absf(relative.dot(forward)) < .2 and relative.dot(lateral) < 0:
+				low = minf(low, relative.dot(lateral))
+				high = maxf(high, relative.dot(lateral))
+		check(high - low > .30, "레일은 종이 띠가 아닌30cm 이상의 입체 깊이를 가져야 한다")
+		var case_mesh: Mesh = section.get_node("CurveSignCases").multimesh.mesh
+		var size := case_mesh.get_aabb().size
+		check(size.z >= .2 and size.x > 3 and size.y > 1.5, "화살표 인쇄면 뒤에는 두꺼운 케이스와 테두리가 있어야 한다")
 		var widest := 0.0
 		var at := 0.0
 		var minimum_radius_margin := INF

@@ -76,6 +76,8 @@ func configure(region: String, points: Array[Dictionary]) -> void:
 
 
 func _ready() -> void:
+	if preload("res://models/shared/scene_state.gd").bind(self):
+		return
 	var groups: Dictionary = {}
 	var native_trees: Array[Dictionary] = []
 	for i in range(placements.size()):

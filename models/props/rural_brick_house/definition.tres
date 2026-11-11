@@ -1,17 +1,16 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" format=3]
 
 [ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
-contract_version = 1
 id = "rural_brick_house"
-category = "props"
-source_path = "res://models/props/rural_brick_house/SOURCE.md"
 order = 2
-builder_path = "res://models/props/rural_brick_house/build.gd"
-tags = ["rural", "building"]
-base_size = Vector3(12,3.9,9)
-parameters = {"variant": 2}
-visibility_range = 310.0
-metre_scale = Vector3(2, 2, 2)
+scene_path = "res://models/props/rural_brick_house/model.tscn"
+source_path = "res://models/props/rural_brick_house/SOURCE.md"
+tags = Array[String](["rural", "building"])
+parameters = {
+"variant": 2,
+&"vertex_facade": true
+}
+base_size = Vector3(12, 3.9, 9)

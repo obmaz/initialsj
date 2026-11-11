@@ -8,19 +8,51 @@ static func definition(id: String) -> Resource:
 	return item if item != null else Catalog.find("vehicles", "sport")
 
 
+# 형상·휠 피벗·가동 부품은 GLB, 재질과 연결점은 모델 씬·정의가 소유한다.
 static func build(car: Node3D, item: Resource) -> void:
-	if not item.builder_path.is_empty():
-		load(item.builder_path).build(car)
-		return
-	var model: Node3D = SceneSource.instantiate_static(item.scene_path)
+	var model := SceneSource.instantiate_static(item.scene_path)
+	var material: ShaderMaterial = car.paint_material()
 	car.body.add_child(model)
-	# 휠이 없는 차체 전용 GLB에는 공통 휠을 사용한다. 명시한 팩만 자체 휠을 연결한다.
-	if item.parameters.get("scene_wheels", false):
-		for wheel_name in ["wheel_fl", "wheel_rl", "wheel_fr", "wheel_rr"]:
-			var wheel := model.find_child(wheel_name, true, false) as MeshInstance3D
-			assert(wheel != null, "차량 휠 연결점 누락: " + wheel_name)
-			wheel.reparent(car.body, true)
-			car.wheels.append(wheel)
-	car.add_headlight(item.parameters.get("headlight_position", Vector3(0, .9, -2)))
-	for position in item.parameters.get("exhaust_positions", []):
-		car.add_boost_jet(position, .18)
+	for node in SceneSource.collect_meshes(model):
+		node.reparent(car.body, true)
+		if str(node.name).begins_with("wheel_"):
+			node.material_override = car.shared_body_material()
+		elif str(node.name).begins_with("BrakeLights"):
+			var brake := node.mesh.surface_get_material(0).duplicate() as StandardMaterial3D
+			node.material_override = brake
+			car.brake_lights.append(brake)
+		else:
+			node.material_override = material
+		if node.name == "ActiveRearAero":
+			if car.traffic:
+				continue
+			car.active_aero = node
+			car.aero_rest = node.transform
+			car.aero_drop = item.parameters.aero_drop
+			car.aero_pitch = item.parameters.aero_pitch
+	for wheel_name in ["wheel_fl", "wheel_rl", "wheel_fr", "wheel_rr"]:
+		var wheel := car.body.get_node(NodePath(wheel_name)) as MeshInstance3D
+		assert(wheel != null, "GLB 휠 피벗 누락: " + wheel_name)
+		car.wheels.append(wheel)
+	model.free()
+	for entry in item.parameters.get("labels", []):
+		var label := Label3D.new()
+		for key in entry:
+			label.set(key, entry[key])
+		label.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		car.body.add_child(label)
+	car.add_headlight(item.parameters.headlight_position)
+	for jet in item.parameters.exhausts:
+		car.add_boost_jet(jet.position, jet.radius)
+	if car.traffic:
+		var wheels := MultiMesh.new()
+		wheels.transform_format = MultiMesh.TRANSFORM_3D
+		wheels.mesh = car.wheels[0].mesh
+		wheels.instance_count = 4
+		for i in range(4):
+			wheels.set_instance_transform(i, car.wheels[i].transform)
+		car.traffic_wheels = MultiMeshInstance3D.new()
+		car.traffic_wheels.multimesh = wheels
+		car.traffic_wheels.material_override = car.shared_body_material()
+		car.traffic_wheels.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		car.body.add_child(car.traffic_wheels)

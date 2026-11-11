@@ -17,7 +17,19 @@ static func definition(style: int) -> Resource:
 
 static func parts(style: int, width: float, height: float, depth: float) -> Array[Dictionary]:
 	var item: Resource = definition(style)
-	return load(item.builder_path).build(item, width, height, depth)
+	var root := preload("res://models/shared/scene_source.gd").instantiate_static(item.scene_path)
+	var result: Array[Dictionary] = []
+	var factor: Vector3 = Vector3(width, height, depth) / item.base_size
+	var meshes := preload("res://models/shared/scene_source.gd").collect_meshes(root)
+	for i in range(meshes.size()):
+		var node: MeshInstance3D = meshes[i]
+		var size: Vector3 = node.mesh.get_aabb().size * node.scale * factor
+		var fixed: float = item.parameters.module_fixed_heights[i].fixed_height
+		if fixed > .001:
+			size.y = fixed
+		result.append({"position": node.position * factor, "size": size})
+	root.free()
+	return result
 
 
 # 조립 파츠 하나의 노출 모서리·파라펫. 창 이미지를 가리는 추가 외벽은 만들지 않는다.

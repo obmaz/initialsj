@@ -1,15 +1,15 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" format=3]
 
 [ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
-contract_version = 1
 id = "basalt"
-category = "props"
-source_path = "res://models/props/basalt/SOURCE.md"
 order = 9
-builder_path = "res://models/props/basalt/build.gd"
+scene_path = "res://models/props/basalt/model.tscn"
 material_path = "res://models/props/basalt/material.tres"
-tags = ["rock"]
-visibility_range = 310.0
+source_path = "res://models/props/basalt/SOURCE.md"
+tags = Array[String](["rock"])
+parameters = {
+&"vertex_facade": true
+}

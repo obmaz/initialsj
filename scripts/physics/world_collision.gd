@@ -67,8 +67,7 @@ static func begin(section: Node3D) -> Dictionary:
 		var truck_body := body("ParkedTruckBody", trucks, 2)
 		truck_body.set_meta("parked_truck", true)
 		root.add_child(truck_body)
-	var template := BoxMesh.new()
-	template.size = Vector3.ONE
+	var template := preload("res://scripts/rendering/render_resources.gd").unit_box()
 	# 단위 상자의 삼각형은 한 번만 꺼내 모든 장벽 조각이 재사용한다.
 	return {"root": root, "ground": ground, "walls": barriers, "unit": template.get_faces(), "distance": 0.0}
 

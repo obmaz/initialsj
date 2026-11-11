@@ -103,13 +103,13 @@ func run(tree: SceneTree) -> int:
 		check(car.headlight != null and car.headlamp_lenses.size() == 2, "캐시에서 만든 차량도 전조등·렌즈 참조를 복원해야 한다")
 		check(
 			car.body.get_node("BodyShell").material_override.get_shader_parameter("traffic_paint").is_equal_approx(
-				car.paint
+				Vector4(car.paint.r, car.paint.g, car.paint.b, car.paint.a)
 			),
 			"공유 메시를 쓰더라도 각 교통 차량의 도장색을 보존한다"
 		)
 		car.queue_free()
 	var quad := Pool.quad(Vector2(20, 8.75))
-	check(Pool.quad(quad.size) == quad and Pool.quad(Vector2.ONE) != quad, "같은 크기의 쿼드만 공유하고 다른 크기는 구분해야 한다")
+	check(Pool.quad(Vector2(20, 8.75)) == quad and Pool.quad(Vector2.ONE) != quad, "같은 크기의 쿼드만 공유하고 다른 크기는 구분해야 한다")
 	var box := Pool.unit_box()
 	var data := box.surface_get_arrays(0)
 	var face_bounds := {}
@@ -138,7 +138,12 @@ func run(tree: SceneTree) -> int:
 	a.queue_free()
 	await settle(tree)
 	check(
-		Pool.owners == 1 and Pool.unit_box() == box and Pool.quad(quad.size) == quad and not Ads.atlases.is_empty(),
+		(
+			Pool.owners == 1
+			and Pool.unit_box() == box
+			and Pool.quad(Vector2(20, 8.75)) == quad
+			and not Ads.atlases.is_empty()
+		),
 		"한 씬의 종료가 다른 활성 씬의 공유 리소스를 비우면 안 된다"
 	)
 	var unused_model: WeakRef = weakref(Props.model("rural_chalet"))
@@ -156,13 +161,7 @@ func run(tree: SceneTree) -> int:
 	b.queue_free()
 	await settle(tree)
 	check(
-		(
-			Pool.owners == 0
-			and Pool.quads.is_empty()
-			and Pool.box_mesh == null
-			and Pool.traffic_models.is_empty()
-			and Pool.vehicle_wheels.is_empty()
-		),
+		Pool.owners == 0 and Pool.quads.is_empty() and Pool.box_mesh == null and Pool.traffic_models.is_empty(),
 		"마지막 씬이 끝나면 공유 메시의 강한 참조를 해제해야 한다"
 	)
 	check(

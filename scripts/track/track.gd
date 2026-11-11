@@ -27,8 +27,7 @@ var prop_batches: Array[MultiMeshInstance3D]:
 func _ready() -> void:
 	reset()
 	var base := MeshInstance3D.new()
-	var plane := PlaneMesh.new()
-	plane.size = Vector2(50000, 50000)
+	var plane := preload("res://scripts/rendering/primitive_assets.gd").mesh("world_floor")
 	base.mesh = plane
 	var material := StandardMaterial3D.new()
 	material.albedo_color = Color("6e8563")
@@ -139,6 +138,8 @@ func build_previews(staged: bool = false) -> void:
 			Library.theme(section.stage, section.route_node), active.region_metadata.weather, weather_seed
 		)
 		section.staged = staged
+		if staged:
+			preload("res://scripts/rendering/world_assets.gd").warm(section)
 		section.visible = not staged
 		add_child(section)
 		if staged:

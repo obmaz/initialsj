@@ -1,14 +1,17 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" format=3]
+
 [ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
 [resource]
 script = ExtResource("1")
-contract_version = 1
 id = "stadium_grandstand"
-category = "props"
-source_path = "res://models/props/stadium_grandstand/SOURCE.md"
 order = 90
-builder_path = "res://models/props/stadium_grandstand/build.gd"
+scene_path = "res://models/props/stadium_grandstand/model.tscn"
 material_path = "res://models/props/stadium_grandstand/material.tres"
+source_path = "res://models/props/stadium_grandstand/SOURCE.md"
+parameters = {
+&"vertex_facade": true
+}
 base_size = Vector3(74, 53, 72)
 visibility_range = 1250.0
 placement_limits = Vector2(0.62, 1.08)

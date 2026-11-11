@@ -1,13 +1,31 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" format=3]
 
 [ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
-contract_version = 1
 id = "city_step_tower"
 category = "buildings"
 order = 6
-builder_path = "res://models/buildings/city_step_tower/build.gd"
+scene_path = "res://models/buildings/city_step_tower/model.tscn"
 source_path = "res://models/buildings/city_step_tower/SOURCE.md"
-parameters = {"height_range": Vector2(130, 220), "width_range": Vector2(48, 84), "depth_range": Vector2(56, 96), "facade_index": 6, "mesh_kind": "box", "roof_detail": ""}
+parameters = {
+"depth_range": Vector2(56, 96),
+"facade_index": 6,
+"height_range": Vector2(130, 220),
+"mesh_kind": "box",
+&"module_fixed_heights": [{
+"fixed_height": 0.0
+}, {
+"fixed_height": 0.0
+}, {
+"fixed_height": 0.0
+}, {
+"fixed_height": 0.0
+}, {
+"fixed_height": 0.0
+}],
+"roof_detail": "",
+"width_range": Vector2(48, 84)
+}
+base_size = Vector3(24, 30, 24)

@@ -61,21 +61,15 @@ func build() -> void:
 		var size := Vector3(
 			item.parameters.width_range.x, item.parameters.height_range.x, item.parameters.depth_range.x
 		)
-		var parts: Array = load(item.builder_path).build(item, size.x, size.y, size.z)
+		var parts: Array = preload("res://scripts/environment/urban_architecture.gd").parts(
+			item.order, size.x, size.y, size.z
+		)
 		var multi := MultiMesh.new()
 		multi.transform_format = MultiMesh.TRANSFORM_3D
 		multi.use_custom_data = true
-		if item.parameters.mesh_kind == "cylinder":
-			var mesh := CylinderMesh.new()
-			mesh.top_radius = .5
-			mesh.bottom_radius = .5
-			mesh.height = 1
-			mesh.radial_segments = 16
-			multi.mesh = mesh
-		else:
-			var mesh := BoxMesh.new()
-			mesh.size = Vector3.ONE
-			multi.mesh = mesh
+		var scene := preload("res://models/shared/scene_source.gd").instantiate_static(item.scene_path)
+		multi.mesh = preload("res://models/shared/scene_source.gd").collect_meshes(scene)[0].mesh
+		scene.free()
 		multi.instance_count = parts.size()
 		for i in range(parts.size()):
 			var part: Dictionary = parts[i]

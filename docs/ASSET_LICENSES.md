@@ -6,9 +6,9 @@
 
 | 에셋 | 출처 | 권리·라이선스 |
 | --- | --- | --- |
-| `models/vehicles/`, `models/buildings/`, 절차적 소품 팩 | 프로젝트에서 작성한 가상 차량·건축·형상 | 프로젝트 소유. 팩별 `SOURCE.md` 참조 |
+| `models/vehicles/`, `models/buildings/`, 소품 GLB 팩 | 프로젝트에서 작성한 가상 차량·건축·형상 | 프로젝트 소유. 팩별 `SOURCE.md` 참조 |
 | Quaternius 자연 모델14종 | [Ultimate Nature Pack](https://quaternius.com/packs/ultimatenature.html) | CC0 1.0. [원본·라이선스](../assets/environment/props/README.md) 보존 |
-| 도로·가드레일·터널·기믹 구조 | 프로젝트의 절차적 메시 | 프로젝트 소유 |
+| 도로·가드레일·터널·기믹 구조 | 프로젝트의 GLB 코스 팩 | 프로젝트 소유 |
 | 메뉴·차고·코스 카드·HUD 이미지 | 프로젝트용 생성 이미지와 자체 게임 캡처 | [UI 출처](../assets/ui/GENERATED_ART.md) 참조 |
 | 노면·지면·파노라마·능선·외벽·트럭·컨테이너·광고 이미지 | 프로젝트용 생성 이미지 | [환경 출처](../assets/environment/README.md)와 아래 제작 기록 참조 |
 | 게임 워드마크 | `tools/bake_logo.py`, 번들 Roboto 윤곽 | 프로젝트 소유. 글꼴 라이선스 함께 적용 |

@@ -38,15 +38,6 @@ static func collect_meshes(node: Node) -> Array[MeshInstance3D]:
 	return result
 
 
-static func array_mesh(source: Mesh, transform: Transform3D, material: Material) -> ArrayMesh:
-	assert(source.get_surface_count() == 1, "MultiMesh용 오브젝트는 단일 표면으로 내보낸다")
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	st.append_from(source, 0, transform)
-	st.set_material(material)
-	return st.commit()
-
-
 static func prop_mesh(path: String) -> ArrayMesh:
 	var root := instantiate_static(path)
 	var meshes := collect_meshes(root)
@@ -57,9 +48,8 @@ static func prop_mesh(path: String) -> ArrayMesh:
 	while parent is Node3D:
 		transform = parent.transform * transform
 		parent = parent.get_parent()
-	var material: Material = (
-		node.material_override if node.material_override != null else node.mesh.surface_get_material(0)
-	)
-	var result := array_mesh(node.mesh, transform, material)
+	assert(transform.is_equal_approx(Transform3D.IDENTITY), "GLB 내보내기 전에 축·원점·미터 스케일을 적용한다")
+	assert(node.mesh is ArrayMesh and node.mesh.get_surface_count() == 1, "소품 GLB는 단일 표면이다")
+	var result := node.mesh as ArrayMesh
 	root.free()
 	return result

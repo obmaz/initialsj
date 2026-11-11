@@ -91,35 +91,7 @@ func _ready() -> void:
 
 
 func build_rpm_ring() -> void:
-	var vertices := PackedVector3Array()
-	var colors := PackedColorArray()
-	var uv := PackedVector2Array()
-	for segment in range(38):
-		var tint := GOLD if segment >= 28 else CYAN
-		if segment >= 33:
-			tint = Color("ff4f69")
-		var a := lerpf(deg_to_rad(165), deg_to_rad(354), segment / 38.0)
-		var b := lerpf(deg_to_rad(165), deg_to_rad(354), (segment + 0.72) / 38.0)
-		for part in range(3):
-			var first := lerpf(a, b, part / 3.0)
-			var last := lerpf(a, b, (part + 1) / 3.0)
-			var points := [
-				Vector2.from_angle(first) * 115.5,
-				Vector2.from_angle(first) * 121.5,
-				Vector2.from_angle(last) * 115.5,
-				Vector2.from_angle(last) * 121.5
-			]
-			for i in [0, 1, 2, 1, 3, 2]:
-				vertices.append(Vector3(points[i].x, points[i].y, 0))
-				colors.append(tint)
-				uv.append(Vector2((segment + 0.5) / 38.0, 0))
-	var arrays := []
-	arrays.resize(Mesh.ARRAY_MAX)
-	arrays[Mesh.ARRAY_VERTEX] = vertices
-	arrays[Mesh.ARRAY_COLOR] = colors
-	arrays[Mesh.ARRAY_TEX_UV] = uv
-	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	var mesh := preload("res://scripts/rendering/primitive_assets.gd").mesh("rpm_ring")
 	rpm_ring = MeshInstance2D.new()
 	rpm_ring.mesh = mesh
 	rpm_material = ShaderMaterial.new()

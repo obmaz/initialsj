@@ -40,22 +40,19 @@ func run(tree: SceneTree) -> int:
 	var staged = preload("res://scripts/track/road_section.gd").new(Vector3(0, 6, 0), -PI / 2, 1, 0)
 	staged.staged = true
 	tree.root.add_child(staged)
-	var maximum_trees := 0
 	var steps := 0
 	while staged.build_pending() and steps < 1500:
-		var before := 0
-		if staged.scenery != null and staged.scenery.has_node("TourNativeVegetation"):
-			before = staged.scenery.get_node("TourNativeVegetation").tree_count
 		staged.build_some(0)
-		if staged.scenery != null and staged.scenery.has_node("TourNativeVegetation"):
-			maximum_trees = maxi(maximum_trees, staged.scenery.get_node("TourNativeVegetation").tree_count - before)
 		steps += 1
-	check(not staged.build_pending() and maximum_trees <= 72, "정글 식생 계획은 한 단계에 최대72그루까지만 처리한다")
+	check(not staged.build_pending() and steps > 50, "정글 GLB와 씬의 연결은 여러 단계로 나누어 완료해야 한다")
 	trees = staged.scenery.get_node("TourNativeVegetation")
-	check(
-		trees.planning_slices > 10 and trees.batch_slices > 20 and trees.groups.is_empty(),
-		"식생 배치를 여러 프레임으로 나누고 완료한 임시 변환 목록을 해제한다"
-	)
+	check(trees.tree_count > 450 and trees.groups.is_empty(), "GLB 식생과 완성된 배치를 읽고 임시 계획 목록을 남기지 않는다")
+	for node in trees.get_children():
+		if node is MultiMeshInstance3D:
+			check(
+				node.multimesh.instance_count <= 12 and node.multimesh.mesh.get_surface_count() == 2,
+				"식생은 작은 배치와 줄기·잎 표면을 유지한다"
+			)
 	staged.queue_free()
 	await tree.process_frame
 	var race = preload("res://scripts/race/race.gd").new()

@@ -1,10 +1,15 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" format=3]
+
 [ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
 [resource]
 script = ExtResource("1")
 id = "spire_cypress"
 category = "vegetation"
 order = 4
-source_mesh_path = "res://models/vegetation/spire_cypress/spire-cypress.res"
+scene_path = "res://models/vegetation/spire_cypress/model.tscn"
 source_path = "res://models/vegetation/spire_cypress/SOURCE.md"
-parameters = {"height": 22, "needles": true }
+parameters = {
+"height": 22,
+"needles": true
+}

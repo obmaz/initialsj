@@ -12,7 +12,6 @@ var nitro_tint := Color("56dfff")
 var wheel_radius := 0.43
 var road_speed := 0.0
 var traffic := false
-var material_cache := {}
 var headlight: SpotLight3D
 var headlamp_lenses: Array[MeshInstance3D] = []
 var traffic_wheels: MultiMeshInstance3D
@@ -32,27 +31,10 @@ var effects_quality := 0
 var reduced_motion := false
 
 
-func mat(color: Color, metal: float = 0.0, glow: bool = false) -> StandardMaterial3D:
-	var key := "%s/%s/%s" % [color.to_html(), metal, glow]
-	if material_cache.has(key):
-		return material_cache[key]
-	var m := StandardMaterial3D.new()
-	m.albedo_color = color
-	m.metallic = metal
-	m.roughness = 0.27
-	if glow:
-		m.emission_enabled = true
-		m.emission = color
-		m.emission_energy_multiplier = 2.0
-	material_cache[key] = m
-	return m
-
-
-func block(pos: Vector3, size: Vector3, material: Material) -> MeshInstance3D:
-	return preload("res://models/shared/vehicle_geometry.gd").block(self, pos, size, material)
-
-
 func _ready() -> void:
+	if preload("res://models/shared/scene_state.gd").bind(self):
+		restore_paint()
+		return
 	model_definition = preload("res://models/vehicle_models.gd").definition(model)
 	for field in ["wheel_radius", "wheel_half_track", "wheel_half_base", "wheel_thickness", "rim_scale", "ride_offset"]:
 		set(field, model_definition.parameters[field])
@@ -71,9 +53,7 @@ func _ready() -> void:
 				traffic_wheels = child
 			elif not part.is_empty():
 				get(part).append(child)
-		var shell: MeshInstance3D = body.get_node("BodyShell")
-		shell.material_override = shell.material_override.duplicate()
-		shell.material_override.set_shader_parameter("traffic_paint", paint)
+		restore_paint()
 		return
 	body = Node3D.new()
 	add_child(body)
@@ -81,9 +61,7 @@ func _ready() -> void:
 	body.position.y = ride_offset
 	if not traffic:
 		make_drift_smoke()
-	if wheels.is_empty():
-		make_wheels()
-	merge_static_body()
+	assert(wheels.size() == 4, "차량 GLB에는 네 휠 피벗이 필요하다")
 	if not traffic:
 		boost_fx = preload("res://scripts/effects/boost_exhaust.gd").new()
 		body.add_child(boost_fx)
@@ -134,47 +112,6 @@ func make_drift_smoke() -> void:
 		smoke.append(particles)
 
 
-# 타이어와 림을 한 메시로 만들어 바퀴 하나를 한 번에 그린다. 좌우는 림이 붙는 면만 다르다.
-func make_wheel_mesh(side: float) -> ArrayMesh:
-	var resources = preload("res://scripts/rendering/render_resources.gd")
-	var key := model + ":" + str(side)
-	if resources.vehicle_wheels.has(key):
-		return resources.vehicle_wheels[key]
-	var tire := CylinderMesh.new()
-	tire.top_radius = wheel_radius
-	tire.bottom_radius = wheel_radius
-	tire.height = wheel_thickness
-	tire.radial_segments = 24
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	append_baked(surface, tire, Transform3D.IDENTITY, mat(Color("131b23")))
-	var rim_pose := Transform3D(
-		Basis.IDENTITY.scaled(Vector3.ONE * rim_scale), Vector3(0, -side * (wheel_thickness * 0.5 + 0.015), 0)
-	)
-	if side > 0:
-		rim_pose.basis = Basis(Vector3(0, 0, 1), PI) * rim_pose.basis
-	append_baked(surface, make_rim_mesh(), rim_pose, mat(model_definition.parameters.rim_color, 0.85))
-	surface.index()
-	var mesh := surface.commit()
-	resources.vehicle_wheels[key] = mesh
-	return mesh
-
-
-func make_wheels() -> void:
-	var axle := wheel_half_track
-	var wheelbase := wheel_half_base
-	for x in [-axle, axle]:
-		var mesh := make_wheel_mesh(signf(x))
-		for z in [-wheelbase, wheelbase]:
-			var wheel := MeshInstance3D.new()
-			wheel.mesh = mesh
-			wheel.material_override = shared_body_material()
-			body.add_child(wheel)
-			wheel.position = Vector3(x, wheel_radius + 0.02, z)
-			wheel.rotation.z = PI / 2
-			wheels.append(wheel)
-
-
 func animate(
 	steer: float, drifting: bool, boosting: bool, delta: float, yaw: float = NAN, braking: bool = false, hit: float = 0
 ) -> void:
@@ -205,30 +142,6 @@ func animate(
 			flame.visible = boosting
 
 
-# 가동 부품을 한 표면으로 묶고 정적 차체 병합에서 제외한다. 실제 주행 능력에는 관여하지 않는다.
-func add_active_aero(parts: Array[MeshInstance3D], pivot: Vector3, drop: float, pitch: float) -> void:
-	if traffic:
-		return
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for part in parts:
-		var pose := part.transform
-		pose.origin -= pivot
-		append_baked(surface, part.mesh, pose, part.material_override)
-		body.remove_child(part)
-		part.queue_free()
-	surface.index()
-	active_aero = MeshInstance3D.new()
-	active_aero.name = "ActiveRearAero"
-	active_aero.mesh = surface.commit()
-	active_aero.material_override = shared_body_material()
-	body.add_child(active_aero)
-	active_aero.position = pivot
-	aero_rest = active_aero.transform
-	aero_drop = drop
-	aero_pitch = pitch
-
-
 func reset_driving_effects() -> void:
 	if boost_fx != null:
 		boost_fx.reset()
@@ -240,178 +153,8 @@ func reset_driving_effects() -> void:
 		particles.emitting = false
 
 
-func wedge(pos: Vector3, lower: Vector2, upper: Vector2, height: float, offset: float, material: Material) -> void:
-	preload("res://models/shared/vehicle_geometry.gd").wedge(self, pos, lower, upper, height, offset, material)
-
-
-func make_body_shell(material: Material) -> void:
-	preload("res://models/shared/vehicle_geometry.gd").make_body_shell(self, material)
-
-
-func make_rim_mesh() -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for i in range(32):
-		var a := TAU * i / 32.0
-		var b := TAU * (i + 1) / 32.0
-		var u := Vector3(cos(a), 0, sin(a))
-		var v := Vector3(cos(b), 0, sin(b))
-		var points := [u * 0.235, u * 0.285, v * 0.235, v * 0.285]
-		for index in [0, 1, 2, 1, 3, 2]:
-			st.set_normal(Vector3.UP)
-			st.add_vertex(points[index])
-	var spoke_count := int(model_definition.parameters.spoke_count)
-	for i in range(spoke_count):
-		var angle := TAU * i / spoke_count
-		var direction := Vector3(cos(angle), 0, sin(angle))
-		var width := Vector3(-direction.z, 0, direction.x) * 0.028
-		var root_point := direction * 0.055
-		var tip := direction * 0.25 + width * 0.5
-		var points := [root_point - width, tip - width, root_point + width, tip + width]
-		for index in [0, 1, 2, 1, 3, 2]:
-			st.set_normal(Vector3.UP)
-			st.add_vertex(points[index])
-	for i in range(12):
-		for p in [
-			Vector3.ZERO,
-			Vector3(cos(TAU * i / 12), 0, sin(TAU * i / 12)) * 0.075,
-			Vector3(cos(TAU * (i + 1) / 12), 0, sin(TAU * (i + 1) / 12)) * 0.075
-		]:
-			st.set_normal(Vector3.UP)
-			st.add_vertex(p)
-	return st.commit()
-
-
-# 재질이 다른 차체 조각도 한 메시로 합쳐 한 번에 그린다. 조각별 색·금속성·거칠기·클리어코트·발광은
-# 정점 자료로 옮긴다(shaders/vehicle_body.gdshader). 밝기가 바뀌는 브레이크등만 재질별로 따로 둔다.
 static func shared_body_material() -> ShaderMaterial:
 	return preload("res://scripts/rendering/render_resources.gd").vehicle_body_material()
-
-
-# 정점 자료로 옮겨도 모양이 같은 재질인지: 불투명·기본 음영·뒷면 제거·무텍스처.
-static func bakeable(material: Material) -> bool:
-	if not material is BaseMaterial3D:
-		return false
-	if material.vertex_color_use_as_albedo or material.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
-		return false
-	if material.shading_mode != BaseMaterial3D.SHADING_MODE_PER_PIXEL or material.cull_mode != BaseMaterial3D.CULL_BACK:
-		return false
-	for slot in range(BaseMaterial3D.TEXTURE_MAX):
-		if material.get_texture(slot) != null:
-			return false
-	return true
-
-
-static func append_baked(
-	surface: SurfaceTool, mesh: Mesh, pose: Transform3D, material: BaseMaterial3D, paint_mask: bool = false
-) -> void:
-	var arrays: Array = mesh.surface_get_arrays(0)
-	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
-	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
-	if indices.is_empty():
-		indices = PackedInt32Array(range(vertices.size()))
-	var surface_data := Vector2(material.metallic, material.roughness)
-	var coat := Vector2(
-		material.clearcoat if material.clearcoat_enabled else 0.0,
-		material.emission_energy_multiplier if material.emission_enabled else 0.0
-	)
-	# 발광 재질은 발광색과 표면색이 같은 색으로 만들어진다(mat()).
-	var color := material.albedo_color
-	if paint_mask:
-		color.a = .5
-	surface.set_color(color)
-	surface.set_uv(surface_data)
-	surface.set_uv2(coat)
-	for index in indices:
-		surface.set_normal((pose.basis * normals[index]).normalized())
-		surface.add_vertex(pose * vertices[index])
-
-
-func merge_static_body() -> void:
-	var baked := SurfaceTool.new()
-	baked.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var baked_count := 0
-	var groups := {}
-	for child in body.get_children():
-		if (
-			not child is MeshInstance3D
-			or child in wheels
-			or child in nitro_flames
-			or child in nitro_glows
-			or child in headlamp_lenses
-			or child == active_aero
-		):
-			continue
-		var material: Material = child.material_override
-		# 외부 모델의 텍스처·UV·셰이더·다중 표면을 보존한다.
-		if child.mesh.get_surface_count() != 1 or not bakeable(material):
-			continue
-		if material in brake_lights:
-			if not groups.has(material):
-				groups[material] = []
-			groups[material].append(child)
-			continue
-		append_baked(
-			baked, child.mesh, child.transform, material, traffic and material.albedo_color.is_equal_approx(paint)
-		)
-		baked_count += 1
-		body.remove_child(child)
-		child.queue_free()
-	if baked_count > 0:
-		var shell := MeshInstance3D.new()
-		shell.name = "BodyShell"
-		baked.index()
-		shell.mesh = baked.commit()
-		var material := shared_body_material()
-		if traffic:
-			material = material.duplicate()
-			material.set_shader_parameter("repaint_traffic", true)
-			material.set_shader_parameter("traffic_paint", paint)
-		shell.material_override = material
-		body.add_child(shell)
-	for material in groups:
-		var surface := SurfaceTool.new()
-		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-		for child in groups[material]:
-			var arrays: Array = child.mesh.surface_get_arrays(0)
-			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-			var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
-			var indices: PackedInt32Array = (
-				arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
-			)
-			if indices.is_empty():
-				indices = PackedInt32Array(range(vertices.size()))
-			for index in indices:
-				surface.set_normal((child.transform.basis * normals[index]).normalized())
-				surface.add_vertex(child.transform * vertices[index])
-			body.remove_child(child)
-			child.queue_free()
-		surface.index()
-		var merged := MeshInstance3D.new()
-		merged.name = "BrakeLights"
-		merged.mesh = surface.commit()
-		merged.material_override = material
-		merged.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		body.add_child(merged)
-	if traffic:
-		for wheel in wheels:
-			wheel.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		var multi := MultiMesh.new()
-		multi.transform_format = MultiMesh.TRANSFORM_3D
-		var tire := BoxMesh.new()
-		tire.size = Vector3(0.3, 0.76, 0.8)
-		multi.mesh = tire
-		multi.instance_count = 4
-		for i in range(4):
-			multi.set_instance_transform(
-				i, Transform3D(Basis.IDENTITY, Vector3(-1.02 if i < 2 else 1.02, 0.45, -1.35 if i % 2 == 0 else 1.35))
-			)
-		traffic_wheels = MultiMeshInstance3D.new()
-		traffic_wheels.multimesh = multi
-		traffic_wheels.material_override = mat(Color("131b23"))
-		traffic_wheels.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		body.add_child(traffic_wheels)
 
 
 func set_detail(distance_to_player: float) -> void:
@@ -423,13 +166,7 @@ func set_detail(distance_to_player: float) -> void:
 
 func add_boost_jet(pos: Vector3, radius: float) -> void:
 	var flame := MeshInstance3D.new()
-	var plume := CylinderMesh.new()
-	plume.top_radius = 0.015
-	plume.bottom_radius = radius
-	plume.height = 1.2
-	plume.radial_segments = 12
-	plume.cap_top = false
-	plume.cap_bottom = false
+	var plume := preload("res://scripts/rendering/primitive_assets.gd").mesh("plume_%d" % roundi(radius * 100000))
 	flame.mesh = plume
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/nitro_flame.gdshader")
@@ -493,3 +230,24 @@ func set_headlights(enabled: bool, illuminate_road: bool = true) -> void:
 		headlight.visible = enabled and illuminate_road
 	for lens in headlamp_lenses:
 		lens.visible = enabled
+
+
+# vec4 유니폼에는 Vector4를 저장한다. Color를 저장하면 엔진의 재질 복제가 원본 캐시까지 비운다.
+func paint_material() -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = shared_body_material().shader
+	material.set_shader_parameter("repaint_traffic", true)
+	material.set_shader_parameter("traffic_paint", Vector4(paint.r, paint.g, paint.b, paint.a))
+	return material
+
+
+func restore_paint() -> void:
+	var material := paint_material()
+	for node in body.get_children():
+		if (
+			node is MeshInstance3D
+			and not node in wheels
+			and node.material_override is ShaderMaterial
+			and node.material_override.shader == material.shader
+		):
+			node.material_override = material

@@ -42,8 +42,7 @@ func _ready() -> void:
 		fill.light_energy = 0.35
 		viewport.add_child(fill)
 		var platform := MeshInstance3D.new()
-		var mesh := PlaneMesh.new()
-		mesh.size = Vector2(3.4, 5.3)
+		var mesh := preload("res://scripts/rendering/primitive_assets.gd").mesh("garage_shadow")
 		platform.mesh = mesh
 		var gradient := Gradient.new()
 		gradient.set_color(0, Color(0.01, 0.02, 0.03, 0.7))

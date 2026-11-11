@@ -8,6 +8,8 @@ var models: Node3D
 
 
 func _ready() -> void:
+	if preload("res://models/shared/scene_state.gd").bind(self):
+		return
 	var theme: String = scenery.theme
 	var road: Node3D = scenery.track
 	var random := RandomNumberGenerator.new()

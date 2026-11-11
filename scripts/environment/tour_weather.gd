@@ -6,6 +6,8 @@ var current_weather := ""
 
 
 func _ready() -> void:
+	if preload("res://models/shared/scene_state.gd").bind(self):
+		return
 	particles = CPUParticles3D.new()
 	particles.emitting = false
 	particles.local_coords = false
@@ -47,8 +49,8 @@ func configure(weather: String) -> void:
 	particles.color = (
 		Color(.64, .76, .86, .7) if rain else (Color(.95, .98, 1, .8) if snow else Color(.78, .63, .37, .26))
 	)
-	var mesh := QuadMesh.new()
-	mesh.size = Vector2(.085, 1.7) if rain else (Vector2(.16, .16) if snow else Vector2(.7, .3))
+	var size := Vector2(.085, 1.7) if rain else (Vector2(.16, .16) if snow else Vector2(.7, .3))
+	var mesh := preload("res://scripts/rendering/render_resources.gd").quad(size)
 	particles.mesh = mesh
 	particles.restart()
 

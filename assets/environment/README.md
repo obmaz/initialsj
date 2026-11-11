@@ -2,7 +2,7 @@
 
 노면·갓길·잔디·후지산과 호수 파노라마·원경 산맥은 이 프로젝트용으로 제작했습니다. 사용 중인 이미지의 생성 원본은 로컬 `generated_images/`에 보존하며 배포에는 포함하지 않습니다.
 
-도로·가드레일·터널·나무·소품·건물은 실제 3D 형상이며, 산 파노라마와 원경 능선은 수평선 배경입니다. 모델별 형상은 `models/`가 소유하고 도로·배치는 `scripts/track/road_section.gd`, [roadside_geometry.gd](../../scripts/track/roadside_geometry.gd), [regional_props_3d.gd](../../scripts/environment/regional_props_3d.gd), [road_biome.gd](../../scripts/environment/road_biome.gd)와 코스별 환경 스크립트가 처리합니다. 독립 모델 제작 규격은 [MODEL_PIPELINE.md](../../docs/MODEL_PIPELINE.md)를 따릅니다.
+도로·가드레일·터널·나무·소품·건물은 실제 3D 형상이며, 산 파노라마와 원경 능선은 수평선 배경입니다. 모델별 형상은 `models/`가 소유하고 도로·배치는 `scripts/track/road_section.gd`, [world_assets.gd](../../scripts/rendering/world_assets.gd), [regional_props_3d.gd](../../scripts/environment/regional_props_3d.gd), [road_biome.gd](../../scripts/environment/road_biome.gd)와 코스별 GLB·조립 씬이 처리합니다. 독립 모델 제작 규격은 [MODEL_PIPELINE.md](../../docs/MODEL_PIPELINE.md)를 따릅니다.
 
 후지 하늘은 약14.8픽셀/도의 같은 밀도로 세 패널을 연결합니다. `fuji-lake-panorama.png`가 후지산 방향120도, `fuji-lake-back-a.png`와 `fuji-lake-back-b.png`가 나머지240도를 덮습니다. `tools/bake_fuji_backdrop.py`는 원본의 물·해안·하늘을1:1로 재사용하고 원본 숲의 잎 디테일로 두 능선을 구성합니다. 태양·후지산은 반복하지 않으며 이음매 인근만 대칭 연결합니다. `shaders/fuji_sky.gdshader`는 확대되는 하늘에 맞춰 밉맵 없이 연결합니다.
 

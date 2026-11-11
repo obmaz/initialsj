@@ -23,6 +23,11 @@ def text(path):
         return ""
 
 
+def resource_refs(source):
+    """GLB의 메시 노드 연결점은 # 뒤에 있고 파일 검사는 원본 경로에 적용합니다."""
+    return [ref.partition("#")[0] if ".glb#" in ref else ref for ref in RESOURCE.findall(source)]
+
+
 def live_resources():
     pending = list(ROOTS)
     reached = set()
@@ -32,13 +37,16 @@ def live_resources():
             continue
         reached.add(name)
         path = ROOT / name
+        if name.rstrip("/") == "models/world" and path.is_dir():
+            pending.extend(p.relative_to(ROOT).as_posix() for pattern in ("*/model.tscn", "*/profile.tres") for p in path.glob(pattern))
+            continue
         if name in MODEL_DIRECTORIES and path.is_dir():
             pending.extend(p.relative_to(ROOT).as_posix() for p in path.glob("*/definition.tres"))
             continue
         if not path.is_file():
             errors.append(f"Missing runtime resource: {name}")
             continue
-        pending.extend(RESOURCE.findall(text(path)))
+        pending.extend(resource_refs(text(path)))
     return reached
 
 
@@ -70,8 +78,11 @@ def check_sources(reached):
                 errors.append(f"Unreferenced runtime asset: {name}")
             if folder == "models" and path.suffix not in (".txt", ".md") and name not in reached:
                 errors.append(f"Unreferenced model resource: {name}")
+            if folder in ("scripts", "models") and path.suffix == ".gd":
+                if re.search(r"\b(?:SurfaceTool|ArrayMesh|BoxMesh|PlaneMesh|QuadMesh|CylinderMesh|SphereMesh|TorusMesh|PrismMesh|CapsuleMesh|TextMesh)\.new\s*\(", text(path)):
+                    errors.append(f"Runtime geometry generator must use GLB assets: {name}")
             if path.suffix in (".gd", ".tscn", ".tres", ".gdshader"):
-                for ref in RESOURCE.findall(text(path)):
+                for ref in resource_refs(text(path)):
                     if ref == "build/reports" or ref.startswith("build/reports/"):
                         continue
                     if not (ROOT / ref).exists():

@@ -1,14 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" format=3]
 
 [ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
-contract_version = 1
 id = "bridge"
-category = "props"
-source_path = "res://models/props/bridge/SOURCE.md"
 order = 33
-builder_path = "res://models/props/bridge/build.gd"
-tags = []
-visibility_range = 310.0
+scene_path = "res://models/props/bridge/model.tscn"
+source_path = "res://models/props/bridge/SOURCE.md"
+parameters = {
+&"vertex_facade": true
+}

@@ -1,6 +1,5 @@
 extends RefCounted
 const Catalog = preload("res://models/model_catalog.gd")
-const Geometry = preload("res://models/shared/prop_geometry.gd")
 const SceneSource = preload("res://models/shared/scene_source.gd")
 static var TREES: Array[String] = ids_with_tag("imported_tree")
 static var PINES: Array[String] = ids_with_tag("lake_pine")
@@ -33,12 +32,7 @@ static func definition(id: String) -> Resource:
 
 static func build(id: String) -> ArrayMesh:
 	var item: Resource = definition(id)
-	var mesh: ArrayMesh
-	if not item.builder_path.is_empty():
-		mesh = load(item.builder_path).build(item)
-	elif not item.scene_path.is_empty():
-		mesh = SceneSource.prop_mesh(item.scene_path)
-	else:
-		var source: Mesh = load(item.source_mesh_path)
-		mesh = SceneSource.array_mesh(source, Transform3D.IDENTITY, source.surface_get_material(0))
-	return Geometry.metre_mesh(mesh, item.metre_scale, item.target_height)
+	var mesh := SceneSource.prop_mesh(item.scene_path)
+	if item.parameters.get("vertex_facade", false):
+		mesh.surface_set_material(0, null)
+	return mesh

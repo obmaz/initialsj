@@ -1,13 +1,45 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" format=3]
 
 [ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
-contract_version = 1
 id = "hatch"
 category = "vehicles"
+scene_path = "res://models/vehicles/hatch/model.tscn"
 source_path = "res://models/vehicles/hatch/SOURCE.md"
-order = 0
-builder_path = "res://models/vehicles/hatch/build.gd"
-parameters = {"wheel_radius": 0.37, "wheel_half_track": 0.82, "wheel_half_base": 1.25, "wheel_thickness": 0.22, "rim_scale": 0.86, "ride_offset": -0.12, "spoke_count": 8, "rim_color": Color(0.45098039215686275, 0.4823529411764706, 0.4980392156862745, 1), "headlamp_positions": PackedVector3Array(-0.55, 1.13, -1.967, 0.55, 1.13, -1.967)}
+parameters = {
+"aero_drop": 0.07,
+"aero_pitch": -0.10471975511965978,
+"brakes": ["BrakeLights6"],
+"exhausts": [{
+"position": Vector3(-0.61, 0.32, 2.23),
+"radius": 0.13
+}],
+"headlamp_positions": PackedVector3Array(-0.55, 1.13, -1.967, 0.55, 1.13, -1.967),
+"headlight_position": Vector3(0, 1.1, -1.95),
+"labels": [{
+"font_size": 40,
+"modulate": Color(0.14901961, 0.19215687, 0.16470589, 1),
+"outline_size": 0,
+"pixel_size": 0.002,
+"text": "NIMORI",
+"transform": Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.64, 2.273)
+}, {
+"font_size": 40,
+"modulate": Color(0.1254902, 0.15686275, 0.16862746, 1),
+"outline_size": 0,
+"pixel_size": 0.0015,
+"text": "N-H",
+"transform": Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.52, 1.006, 2.1)
+}],
+"ride_offset": -0.12,
+"rim_color": Color(0.4509804, 0.48235294, 0.49803922, 1),
+"rim_scale": 0.86,
+&"scene_wheels": true,
+"spoke_count": 8,
+"wheel_half_base": 1.25,
+"wheel_half_track": 0.82,
+"wheel_radius": 0.37,
+"wheel_thickness": 0.22
+}

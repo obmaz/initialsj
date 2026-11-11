@@ -266,47 +266,7 @@ func _init(
 	surface_lift = 0.004 if side > 0 else 0.0
 	curve.up_vector_enabled = false
 	curve.bake_interval = 2
-	var p := origin
-	var span := Library.section_length(stage, route_node)
-	for i in range(int(span / 5) + 1):
-		var d := i * 5.0
-		var t := d / span
-		var envelope := (
-			smoothstep(200, 360, d)
-			* (1 - smoothstep(span - Library.CHECKPOINT_RUNUP - 160, span - Library.CHECKPOINT_RUNUP - 20, d))
-		)
-		var severity := 1.12 * (1.0 + route_node * 0.18)
-		var wave := (0.42 + stage * 0.025) * severity * sin(TAU * (2.0 + route_node * 0.18) * t)
-		wave += (0.14 + route_node * 0.025) * sin(TAU * (4.0 + route_node * 0.28) * t) * pow(sin(PI * t), 2)
-		var angle := start_heading - side * 0.38 * smoothstep(0, 180, d) + wave * envelope
-		if i > 0:
-			p += Vector3(-sin(angle), 0, -cos(angle)) * 5
-		p.y = origin.y + tour_elevation(d, span)
-		curve.add_point(p)
-	limit_tour_grade()
-	length = curve.get_baked_length()
-
-
-func limit_tour_grade() -> void:
-	# 큰 능선·터널 절개·평탄부를 합쳐도 실제 도로의 종단 경사는32%를 넘지 않는다.
-	var count := curve.point_count
-	for direction in [1, -1]:
-		for step in range(1, count):
-			var index: int = step if direction > 0 else count - 1 - step
-			var neighbor := curve.get_point_position(index - direction)
-			var point := curve.get_point_position(index)
-			point.y = clampf(point.y, neighbor.y - 1.6, neighbor.y + 1.6)
-			curve.set_point_position(index, point)
-	var heights := PackedFloat32Array()
-	for i in range(count):
-		var height := 0.0
-		for offset in range(-2, 3):
-			height += curve.get_point_position(clampi(i + offset, 0, count - 1)).y * (3 - abs(offset))
-		heights.append(height / 9)
-	for i in range(count):
-		var point := curve.get_point_position(i)
-		point.y = heights[i]
-		curve.set_point_position(i, point)
+	preload("res://scripts/rendering/world_assets.gd").profile(self)
 
 
 func point(distance: float, lane: float = 0) -> Vector3:
@@ -590,72 +550,6 @@ func material(color: Color, metallic: float = 0.0) -> StandardMaterial3D:
 	return m
 
 
-func box(parent: Node3D, pos: Vector3, size: Vector3, mat: Material) -> MeshInstance3D:
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	var node := MeshInstance3D.new()
-	node.mesh = mesh
-	node.material_override = mat
-	parent.add_child(node)
-	node.position = pos
-	return node
-
-
-func strip(left: float, right: float, height: float, mat: Material, begin: float = 0.0) -> MeshInstance3D:
-	if collapse != null:
-		return collapse.make_strip(left, right, height, mat, begin)
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var segments := int(ceil((length - begin) / 2)) if closed_loop else 900
-	var n := MeshInstance3D.new()
-	n.material_override = mat
-	add_child(n)
-	var steps: Array[Callable] = []
-	for from in range(1, segments + 1, 300):
-		steps.append(func(): strip_part(st, left, right, height, begin, segments, from, mini(segments + 1, from + 300)))
-	steps.append(
-		func():
-			st.generate_normals()
-			n.mesh = st.commit()
-	)
-	queue_next(steps)
-	return n
-
-
-func strip_edges(left: float, right: float, height: float, d: float) -> Array[Vector3]:
-	# 도로 안은 선형이며 스피드웨이의 바깥 갓길은 경사를 끝내 평탄하게 잇는다.
-	var origin := point(d)
-	var lateral := point(d, 1) - origin
-	var lift := Vector3.UP * (height + surface_lift)
-	var points: Array[Vector3] = []
-	for reference in [left, right]:
-		var lane := surface_lane(reference, d)
-		var p := origin + lateral * lane + lift
-		if closed_loop and course_id == 1:
-			p.y = origin.y + lateral.y * clampf(lane, -half_width(d), half_width(d)) + lift.y
-		points.append(p)
-	return points
-
-
-func strip_part(
-	st: SurfaceTool, left: float, right: float, height: float, begin: float, segments: int, from: int, to: int
-) -> void:
-	var a := begin + (length - begin) * (from - 1) / segments
-	var near := strip_edges(left, right, height, a)
-	for i in range(from, to):
-		var b := begin + (length - begin) * i / segments
-		var far := strip_edges(left, right, height, b)
-		var points := [near[0], near[1], far[0], far[1]]
-		var uvs := [
-			Vector2(left / 6, a / 6), Vector2(right / 6, a / 6), Vector2(left / 6, b / 6), Vector2(right / 6, b / 6)
-		]
-		for index in [0, 2, 1, 1, 2, 3]:
-			st.set_uv(uvs[index])
-			st.add_vertex(points[index])
-		a = b
-		near = far
-
-
 func paint(color: Color) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = PAINT_SHADER
@@ -665,11 +559,12 @@ func paint(color: Color) -> ShaderMaterial:
 	return mat
 
 
-# 투어의 다음 구간은 주행 중에 만들어진다. staged이면 단계를 쌓아만 두고 Track이
-# 프레임마다 조금씩 실행해, 한 프레임에 구간 전체를 만드는 멈춤을 없앤다.
+# staged 구간은 GLB 읽기·씬 연결을 쌓고 Track이 프레임마다 예산 안에서 실행한다.
 var staged := false
 var draining := false
 var warmed: Array[String] = []
+var asset_paths: Array[String] = []
+var asset_context: Dictionary = {}
 var build_queue: Array[Callable] = []
 
 
@@ -679,12 +574,16 @@ func build_pending() -> bool:
 
 # budget_usec < 0이면 남은 단계를 모두 실행한다. 완료되면 true.
 func build_some(budget_usec: int = -1) -> bool:
+	if budget_usec >= 0 and not preload("res://scripts/rendering/world_assets.gd").available(self):
+		return false
 	var started := Time.get_ticks_usec()
+	var completed := 0
 	draining = true
 	while not build_queue.is_empty():
 		var step: Callable = build_queue.pop_front()
 		step.call()
-		if budget_usec >= 0 and Time.get_ticks_usec() - started >= budget_usec:
+		completed += 1
+		if budget_usec >= 0 and (Time.get_ticks_usec() - started >= budget_usec or completed >= 3):
 			break
 	draining = false
 	if build_queue.is_empty():
@@ -692,8 +591,7 @@ func build_some(budget_usec: int = -1) -> bool:
 	return build_queue.is_empty()
 
 
-# 실행 중인 단계가 자신을 나눈 하위 단계를 바로 다음 순서에 끼워 넣는다. 긴 메시와 풍경이 사용한다.
-# 완성된 구간에 나중에 추가하는 형상은 곧바로 실행한다.
+# 실행 중인 단계의 하위 작업을 다음 순서에 끼워 넣는다. 즉시 생성 구간은 남은 작업을 모두 실행한다.
 func queue_next(steps: Array[Callable]) -> void:
 	for i in range(steps.size() - 1, -1, -1):
 		build_queue.push_front(steps[i])
@@ -702,133 +600,14 @@ func queue_next(steps: Array[Callable]) -> void:
 
 
 func _ready() -> void:
+	if preload("res://models/shared/scene_state.gd").bind(self):
+		return
 	if region_metadata.is_empty():
 		region_metadata = preload("res://scripts/environment/tour_region_metadata.gd").resolve(
 			Library.theme(stage, route_node)
 		)
-	var Roadside := preload("res://scripts/track/roadside_geometry.gd")
-	var ribbons := {}
-	build_queue.append(
-		func():
-			if not closed_loop:
-				warmed = Scenery.warm_paths(Library.theme(stage, route_node))
-				for path in warmed:
-					preload("res://scripts/rendering/render_resources.gd").warm(path)
-			if not closed_loop and stage == 0:
-				bridge_span = Vector2(850, 1380)
-			if closed_loop and course_id == 4:
-				collapse = preload("res://scripts/environment/bridge_collapse.gd").new()
-				collapse.configure(self)
-				add_child(collapse)
-			features = Features.layout(self)
-			rng.seed = 8417
-			strip(-10.5, 10.5, -0.15, material(Color("7e8477"))).name = "RoadBase"
-	)
-	build_queue.append(
-		func():
-			var asphalt := ShaderMaterial.new()
-			asphalt.shader = ASPHALT_SHADER
-			asphalt.set_shader_parameter(
-				"rain_wetness", 1.0 if region_metadata.get("weather", "") == "rain" and not closed_loop else 0.0
-			)
-			asphalt.set_shader_parameter("harbor_corridor", closed_loop and course_id == 2)
-			if closed_loop and course_id == 2:
-				asphalt.set_shader_parameter("yard_gravel", preload("res://assets/environment/dirt-shoulder.png"))
-			asphalt.set_shader_parameter("asphalt_texture", ASPHALT)
-			asphalt.set_shader_parameter("asphalt_variants", preload("res://assets/environment/asphalt-variants.png"))
-			road_surface = strip(-9, 9, 0, asphalt)
-			road_surface.name = "TexturedAsphalt"
-	)
-	build_queue.append(func(): Features.build(self))
-	build_queue.append(func(): strip(-8.6, -8.4, 0.025, paint(Color("e7e6d6")), 150 if entry_side > 0 else 0))
-	build_queue.append(func(): strip(8.4, 8.6, 0.025, paint(Color("e7e6d6")), 150 if entry_side < 0 else 0))
-	build_queue.append(func(): Roadside.frames(self, ribbons))
-	build_queue.append(func(): Roadside.rail(self, ribbons))
-	build_queue.append(func(): Roadside.curbs(self, ribbons))
-	build_queue.append(func(): Roadside.lane_marks(self, ribbons))
-	build_queue.append(func(): Roadside.road_mass(self))
-	build_queue.append(
-		func():
-			var post_transforms: Array[Transform3D] = []
-			for i in range(0, int(length / 5), 2):
-				var d := i * 5.0
-				for side in [-1, 1]:
-					if d < 150 and side == -entry_side:
-						continue
-					post_transforms.append(
-						Transform3D(
-							Basis.IDENTITY, point(d, side * (half_width(d) + rail_setback(d, side))) + Vector3.UP * 0.6
-						)
-					)
-			box_batch(Vector3(0.24, 1.2, 0.28), material(Color("8d9c9c"), 0.6), post_transforms)
-			make_curve_markers()
-	)
-	build_queue.append(make_skid_marks)
-	build_queue.append(
-		func():
-			if course_id == 1:
-				scenery = preload("res://scripts/environment/speedway_environment.gd").new()
-			elif closed_loop and course_id == 2:
-				scenery = preload("res://scripts/environment/night_environment.gd").new()
-			elif closed_loop and course_id == 3:
-				scenery = preload("res://scripts/environment/riviera_environment.gd").new()
-			elif closed_loop and course_id == 4:
-				scenery = preload("res://scripts/environment/gorge_environment.gd").new()
-			else:
-				scenery = (
-					preload("res://scripts/environment/circuit_environment.gd").new() if closed_loop else Scenery.new()
-				)
-			scenery.track = self
-			add_child(scenery)
-	)
-	build_queue.append(func(): Roadside.shoulders(self))
-	build_queue.append(
-		func():
-			if course_id == 0 or not closed_loop:
-				make_course_banners()
-			var stripe_d := 80.0 if stage == 0 else length - 10
-			if stage == 0 or stage == 4:
-				make_finish_stripe(stripe_d)
-	)
-	build_queue.append(
-		func():
-			if closed_loop:
-				if course_id == 1:
-					speedway_board = preload("res://scripts/ui/speedway_scoreboard.gd").new()
-					speedway_board.road = self
-					add_child(speedway_board)
-				else:
-					make_gantry(
-						80,
-						(
-							["FUJI LAKESIDE", "SUNCOAST SPEEDWAY", "MIDNIGHT HARBOR", "AZURE RIVIERA", "SCARLET GORGE"][clampi(
-								course_id, 0, 4
-							)]
-							+ " / START - FINISH"
-						)
-					)
-			elif stage < 4:
-				make_gantry(checkpoint_distance(), "CHECKPOINT", Color("e3ad38"))
-				make_checkpoint_stripe(checkpoint_distance())
-				var titles := Library.next_titles(stage, route_node)
-				make_gantry(length - 55, "< " + titles[0] + "     " + titles[1] + " >")
-				make_fork_guides()
-			else:
-				make_gantry(length - 10, "GRAND TOUR / GOAL")
-			if collapse != null:
-				collapse.finish_geometry()
-			if closed_loop and course_id == 4:
-				rockfall = preload("res://scripts/environment/rockfall_hazard.gd").new()
-				rockfall.configure(self)
-				add_child(rockfall)
-				rockfall.reset_effect()
-	)
-	# 미리 읽었지만 이 구간이 쓰지 않은 리소스는 놓는다.
-	build_queue.append(
-		func():
-			for path in warmed:
-				preload("res://scripts/rendering/render_resources.gd").release(path)
-	)
+	preload("res://scripts/rendering/world_assets.gd").profile(self)
+	build_queue.append(func(): preload("res://scripts/rendering/world_assets.gd").queue(self))
 	if not staged:
 		build_some()
 
@@ -837,313 +616,5 @@ func checkpoint_distance() -> float:
 	return maxf(80, length - Library.CHECKPOINT_RUNUP)
 
 
-func make_finish_stripe(at: float) -> MeshInstance3D:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var columns := int(ceil(half_width(at) * 2))
-	for row in range(2):
-		var a := at - 0.6 + row * 1.2
-		var b := a + 1.2
-		for i in range(columns):
-			var left := -1.0 + 2.0 * i / columns
-			var right := -1.0 + 2.0 * (i + 1) / columns
-			var points := [
-				point(a, left * half_width(a)),
-				point(a, right * half_width(a)),
-				point(b, left * half_width(b)),
-				point(b, right * half_width(b))
-			]
-			var uv := [Vector2(i, row), Vector2(i + 1, row), Vector2(i, row + 1), Vector2(i + 1, row + 1)]
-			for index in [0, 2, 1, 1, 2, 3]:
-				st.set_uv(uv[index])
-				st.add_vertex(points[index] + Vector3.UP * 0.035)
-	st.generate_normals()
-	var node := MeshInstance3D.new()
-	node.name = "FinishStripe"
-	node.mesh = st.commit()
-	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://shaders/finish_stripe.gdshader")
-	mat.set_shader_parameter("asphalt_texture", ASPHALT)
-	node.material_override = mat
-	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(node)
-	return node
-
-
-# A gantry sized to the road: slim posts just outside the rails, a dark lit panel with big, high
-# contrast lettering, a chequered or hazard edge strip and a beacon on each post. Start/finish is
-# navy with white lettering and a chequered strip; the checkpoint is amber with dark lettering.
-func make_gantry(at: float, title: String, tint: Color = Color("173d46")) -> void:
-	var checkpoint := title == "CHECKPOINT"
-	var gantry := Node3D.new()
-	add_child(gantry)
-	gantry.position = point(at)
-	gantry.rotation.y = heading(at)
-	var reach := half_width(at) + maxf(rail_setback(at, 1.0), rail_setback(at, -1.0)) + 2.2
-	var steel := material(Color("56626b"), 0.5)
-	var panel_color := (
-		Color("f2b632")
-		if checkpoint
-		else (Color("0d1b2a") if title.ends_with("START - FINISH") or title.ends_with("GOAL") else tint)
-	)
-	var glow := StandardMaterial3D.new()
-	glow.albedo_color = panel_color
-	glow.emission_enabled = true
-	glow.emission = panel_color
-	glow.emission_energy_multiplier = 0.35
-	var beacon_color := Color("ffcf4a") if checkpoint else Color("5fe3ff")
-	var beacon := StandardMaterial3D.new()
-	beacon.albedo_color = beacon_color
-	beacon.emission_enabled = true
-	beacon.emission = beacon_color
-	beacon.emission_energy_multiplier = 2.2
-	for side in [-1, 1]:
-		box(gantry, Vector3(side * reach, 4.3, 0), Vector3(0.45, 8.6, 0.45), steel)
-		box(gantry, Vector3(side * reach, 0.25, 0), Vector3(1.2, 0.5, 1.2), material(Color("2b3239")))
-		box(gantry, Vector3(side * reach, 8.85, 0), Vector3(0.7, 0.5, 0.7), beacon)
-	var width := reach * 2.0
-	box(gantry, Vector3(0, 8.1, 0), Vector3(width, 0.35, 0.5), steel)
-	var panel_width := minf(width - 1.2, maxf(20.0, title.length() * 0.72))
-	box(gantry, Vector3(0, 7.2, 0), Vector3(panel_width, 2.0, 0.4), glow)
-	box(gantry, Vector3(0, 7.2, -0.01), Vector3(panel_width + 0.25, 2.25, 0.3), material(Color("e8ecee")))
-	# Edge strip under the panel: chequered for start/finish, hazard orange/dark for checkpoints.
-	# 24칸을 칸마다 따로 그리지 않고 밝은 칸·어두운 칸 두 묶음으로 그린다.
-	var cells := 24
-	var unit := BoxMesh.new()
-	unit.size = Vector3.ONE
-	for shade in range(2):
-		var strip: Color
-		if checkpoint:
-			strip = Color("1b1f24") if shade == 0 else Color("f2b632")
-		else:
-			strip = Color("f7f7f2") if shade == 0 else Color("14181c")
-		var batch := MultiMesh.new()
-		batch.transform_format = MultiMesh.TRANSFORM_3D
-		batch.mesh = unit
-		batch.instance_count = cells / 2
-		for n in range(cells / 2):
-			var i := n * 2 + shade
-			batch.set_instance_transform(
-				n,
-				Transform3D(
-					Basis.IDENTITY.scaled(Vector3(panel_width / cells, 0.4, 0.25)),
-					Vector3(-panel_width * 0.5 + panel_width * (i + 0.5) / cells, 5.95, 0.05)
-				)
-			)
-		var cells_node := MultiMeshInstance3D.new()
-		cells_node.name = "EdgeStripLight" if shade == 0 else "EdgeStripDark"
-		cells_node.multimesh = batch
-		cells_node.material_override = material(strip)
-		gantry.add_child(cells_node)
-	var label := Label3D.new()
-	label.text = title
-	label.font_size = 110
-	label.pixel_size = minf(0.0095, (panel_width - 1.6) / (maxf(title.length(), 8) * 62.0))
-	label.outline_size = 0
-	label.position = Vector3(0, 7.2, 0.24)
-	label.modulate = Color("14181c") if checkpoint else Color("f7fbff")
-	gantry.add_child(label)
-
-
-# A bright band across the road under the checkpoint gantry.
-func make_checkpoint_stripe(at: float) -> void:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for row in range(2):
-		var a := at - 1.3 + row * 1.4
-		var b := a + 1.2
-		var points := [
-			point(a, -half_width(a)), point(a, half_width(a)), point(b, -half_width(b)), point(b, half_width(b))
-		]
-		for index in [0, 2, 1, 1, 2, 3]:
-			st.add_vertex(points[index] + Vector3.UP * 0.04)
-	st.generate_normals()
-	var node := MeshInstance3D.new()
-	node.name = "CheckpointStripe"
-	node.mesh = st.commit()
-	node.material_override = paint(Color("f2b632"))
-	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(node)
-
-
-func make_fork_guides() -> void:
-	var mesh := SurfaceTool.new()
-	mesh.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for remaining in [180.0, 95.0, 30.0]:
-		var d: float = length - remaining
-		var forward := (point(d + 2) - point(d - 2)).normalized()
-		var right := Vector3(-forward.z, 0, forward.x).normalized()
-		for side in [-1.0, 1.0]:
-			var origin := point(d, side * half_width(d) * 0.52) + Vector3.UP * 0.05
-			var direction: Vector3 = (forward + right * side * 0.38).normalized()
-			var across := Vector3(-direction.z, 0, direction.x).normalized()
-			var points := [
-				Vector2(-0.4, -3),
-				Vector2(0.4, -3),
-				Vector2(-0.4, 1),
-				Vector2(0.4, 1),
-				Vector2(-1.6, 1),
-				Vector2(1.6, 1),
-				Vector2(0, 4)
-			]
-			for index in [0, 2, 1, 1, 2, 3, 4, 6, 5]:
-				mesh.add_vertex(origin + across * points[index].x + direction * points[index].y)
-	mesh.generate_normals()
-	var node := MeshInstance3D.new()
-	node.name = "ForkRoadArrows"
-	node.mesh = mesh.commit()
-	node.material_override = paint(Color("f1eee4"))
-	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(node)
-
-
-func make_skid_marks() -> void:
-	var mat := ShaderMaterial.new()
-	mat.shader = SKID_SHADER
-	mat.set_shader_parameter("asphalt_texture", ASPHALT)
-	for run in range(12):
-		var start := length * (0.012 + run * 0.078)
-		var run_length := 65.0 + 20.0 * sin(run * 2.1)
-		var direction := -1.0 if run % 2 == 0 else 1.0
-		for wheel in [-1, 1]:
-			var st := SurfaceTool.new()
-			st.begin(Mesh.PRIMITIVE_TRIANGLES)
-			for segment in range(36):
-				var t0 := segment / 36.0
-				var t1 := (segment + 1) / 36.0
-				var a := start + t0 * run_length
-				var b := start + t1 * run_length
-				var lane_a: float = direction * (1.1 + sin(t0 * PI) * 2.7) + wheel * 0.79
-				var lane_b: float = direction * (1.1 + sin(t1 * PI) * 2.7) + wheel * 0.79
-				var vertices := [
-					point(a, lane_a - 0.14), point(a, lane_a + 0.14), point(b, lane_b - 0.14), point(b, lane_b + 0.14)
-				]
-				var uvs := [Vector2(0, t0), Vector2(1, t0), Vector2(0, t1), Vector2(1, t1)]
-				for index in [0, 2, 1, 1, 2, 3]:
-					st.set_uv(uvs[index])
-					st.set_normal(Vector3.UP)
-					st.add_vertex(vertices[index] + Vector3.UP * 0.038)
-			var node := MeshInstance3D.new()
-			node.mesh = st.commit()
-			node.material_override = mat
-			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			add_child(node)
-			skid_meshes.append(node)
-
-
-func box_batch(size: Vector3, mat: Material, transforms: Array[Transform3D]) -> void:
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	var instances := MultiMesh.new()
-	instances.transform_format = MultiMesh.TRANSFORM_3D
-	instances.mesh = mesh
-	instances.instance_count = transforms.size()
-	for i in range(transforms.size()):
-		instances.set_instance_transform(i, transforms[i])
-	var node := MultiMeshInstance3D.new()
-	node.multimesh = instances
-	node.material_override = mat
-	add_child(node)
-	prop_batches.append(node)
-
-
-func make_curve_markers() -> void:
-	var mat := StandardMaterial3D.new()
-	mat.albedo_texture = preload("res://assets/environment/curve-chevron.svg")
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	var mesh := QuadMesh.new()
-	mesh.size = Vector2(3, 1.5)
-	var poses: Array[Transform3D] = []
-	var cases: Array[Transform3D] = []
-	var supports: Array[Transform3D] = []
-	for i in range(int(length / 65)):
-		var d := 35.0 + i * 65
-		var bend := wrapf(heading(d + 40) - heading(d), -PI, PI)
-		if closed_loop and course_id in [1, 4] and absf(bend) < 0.10:
-			continue
-		var side := 1.0 if bend > 0 else -1.0
-		if d < 150 and side == -entry_side:
-			continue
-		var wall_mounted := in_tunnel(d) or excavation_depth(d) > 0.05
-		var offset := rail_setback(d, side) + 1.8
-		var angle := heading(d)
-		if wall_mounted:
-			# Exterior boards cross the shell when placed across the road. Mount
-			# these parallel to the inside face, with a real gap from the wall.
-			offset = 0.75 if closed_loop else 1.80
-			angle -= side * PI / 2
-		poses.append(
-			Transform3D(
-				Basis(Vector3.UP, angle).scaled_local(Vector3(side, 1, 1)),
-				point(d, side * (half_width(d) + offset)) + Vector3.UP * 1.9
-			)
-		)
-		var pose: Transform3D = poses[-1]
-		cases.append(pose * Transform3D(Basis.IDENTITY, Vector3(0, 0, -.13)))
-		if wall_mounted:
-			for y in [-.38, .38]:
-				supports.append(
-					pose * Transform3D(Basis.IDENTITY.scaled_local(Vector3(2.6, .12, .10)), Vector3(0, y, -.30))
-				)
-		else:
-			supports.append(
-				pose * Transform3D(Basis.IDENTITY.scaled_local(Vector3(.20, 1.60, .24)), Vector3(0, -1.10, -.16))
-			)
-		curve_marker_distances.append(d)
-		curve_marker_tunnel.append(wall_mounted)
-	var multi := MultiMesh.new()
-	multi.transform_format = MultiMesh.TRANSFORM_3D
-	multi.mesh = mesh
-	multi.instance_count = poses.size()
-	for i in range(poses.size()):
-		multi.set_instance_transform(i, poses[i])
-	curve_marker_transforms.assign(poses)
-	curve_markers = MultiMeshInstance3D.new()
-	curve_markers.name = "CurveDirectionSigns"
-	curve_markers.multimesh = multi
-	curve_markers.material_override = mat
-	curve_markers.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(curve_markers)
-
-	box_batch(Vector3(3.16, 1.66, .24), material(Color("343f49"), .5), cases)
-	prop_batches[-1].name = "CurveSignCases"
-	prop_batches[-1].cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	box_batch(Vector3.ONE, material(Color("809097"), .65), supports)
-	prop_batches[-1].name = "CurveSignSupports"
-	prop_batches[-1].cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-
-
-func make_course_banners() -> void:
-	var poles: Array[Transform3D] = []
-	var poses: Array[Transform3D] = []
-	for i in range(int(length / 95)):
-		var d := 55.0 + i * 95
-		if in_tunnel(d) or excavation_depth(d) > 0.05:
-			continue
-		if bridge_span.y > bridge_span.x and d > bridge_span.x - 50 and d < bridge_span.y + 50:
-			continue
-		for side in [-1.0, 1.0]:
-			if d < 150 and side == -entry_side:
-				continue
-			var base: Vector3 = roadside_point(d, side * (half_width(d) + rail_setback(d, side) + 3.3))
-			poles.append(Transform3D(Basis.IDENTITY, base + Vector3.UP * 3.8))
-			var center := point(d, side * (half_width(d) + rail_setback(d, side) + 2.5))
-			center.y = base.y + 4.3
-			poses.append(Transform3D(Basis(Vector3.UP, heading(d)).scaled_local(Vector3(-side, 1, 1)), center))
-	box_batch(Vector3(0.16, 7.6, 0.16), material(Color("899aa1"), 0.6), poles)
-	var flags := MultiMesh.new()
-	flags.transform_format = MultiMesh.TRANSFORM_3D
-	var mesh := QuadMesh.new()
-	mesh.size = Vector2(1.6, 6.4)
-	mesh.subdivide_depth = 10
-	flags.mesh = mesh
-	flags.instance_count = poses.size()
-	for i in range(poses.size()):
-		flags.set_instance_transform(i, poses[i])
-	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://shaders/course_banner.gdshader")
-	var node := MultiMeshInstance3D.new()
-	node.multimesh = flags
-	node.material_override = mat
-	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(node)
+func _exit_tree() -> void:
+	preload("res://scripts/rendering/world_assets.gd").cancel(self)

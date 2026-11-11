@@ -12,8 +12,7 @@ func _ready() -> void:
 	var spark_mesh := preload("res://scripts/rendering/render_resources.gd").quad(Vector2(0.11, 0.52))
 	var spark_material := ShaderMaterial.new()
 	spark_material.shader = preload("res://shaders/impact_spark.gdshader")
-	var chip_mesh := BoxMesh.new()
-	chip_mesh.size = Vector3(0.055, 0.035, 0.11)
+	var chip_mesh := preload("res://scripts/rendering/primitive_assets.gd").mesh("impact_chip")
 	var chip_material := StandardMaterial3D.new()
 	chip_material.albedo_color = Color("9daeb8")
 	chip_material.metallic = 0.35

@@ -21,7 +21,7 @@ build/dev-venv/bin/gdformat --check scripts models addons tests tools
 | --- | --- |
 | [scripts/race/](../scripts/race/) | 경기 상태·주행 조정·상대 차량·순위·복구·니트로 |
 | [scripts/physics/](../scripts/physics/) | 공통 실제 차체·충돌체·접지·충돌·조향 저항 |
-| [scripts/track/](../scripts/track/) | 코스 곡선·도로 생성·기믹·노면·투어 분기 구간 |
+| [scripts/track/](../scripts/track/) | 코스 프로필·거리 계측·기믹·노면·투어 분기 구간 |
 | [scripts/environment/](../scripts/environment/) | 지역 메타정보·풍경·배치·날씨·구조물·광고·시각 모델 어댑터 |
 | [scripts/vehicles/](../scripts/vehicles/) | 차량 시각 어댑터·카탈로그·생성 |
 | [scripts/rendering/](../scripts/rendering/) | 공용 렌더 자원·화질·조명 |
@@ -37,7 +37,7 @@ build/dev-venv/bin/gdformat --check scripts models addons tests tools
 
 같은 계약을 실제로 공유하는 동작은 소유 영역의 헬퍼로 옮깁니다. 화면 입력은 `RaceInput`, 조명은 `RaceLighting`, 브라우저는 `WebShell`이 담당하고 경기 흐름은 [race.gd](../scripts/race/race.gd)에 남깁니다. 모든 보조 함수를 모으는 `helpers/`·`utils/` 폴더는 만들지 않습니다.
 
-순수 모델 기하는 [models/shared/](../models/shared/), 공유 메시·미리 읽기·해제는 [render_resources.gd](../scripts/rendering/render_resources.gd)에 둡니다. 메시의 축·원점·UV, 재질·충돌층·캐시 소유권이 다르면 이름만 비슷하다고 합치지 않습니다. 예를 들어 구조물의 보와 놀이기구의 원통은 서로 다른 길이 축을 사용합니다.
+GLB 모델 로더와 연결 계약은 [models/shared/](../models/shared/), 공유 메시·미리 읽기·해제는 [render_resources.gd](../scripts/rendering/render_resources.gd)에 둡니다. 메시의 축·원점·UV, 재질·충돌층·캐시 소유권이 다르면 이름만 비슷하다고 합치지 않습니다. 예를 들어 구조물의 보와 놀이기구의 원통은 서로 다른 길이 축을 사용합니다.
 
 사용하지 않는 `preload`·셰이더 sampler·바인딩을 제거하고, 다른 런타임 참조가 사라진 리소스만 사이드카와 함께 삭제합니다. 자동 탐색 모델 팩, 출처·라이선스, 이전 서비스 워커 해제 파일은 일반적인 문자열 참조 수만 보고 지우지 않습니다.
 

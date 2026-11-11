@@ -28,7 +28,7 @@ static func warm_paths(region: String) -> Array[String]:
 	for variant in variants:
 		var item: Resource = definitions[variant]
 		if not piece_cache.has(item.id):
-			paths.append(item.source_mesh_path)
+			paths.append(item.scene_path)
 	paths.append_array([LEAVES, BARK, NEEDLES])
 	return paths
 
@@ -41,6 +41,8 @@ var batch_slices := 0
 
 
 func _ready() -> void:
+	if preload("res://models/shared/scene_state.gd").bind(self):
+		return
 	definitions = Catalog.all("vegetation")
 	if not plantings.is_empty():
 		for p in plantings:
@@ -173,7 +175,7 @@ func queue_batches() -> void:
 
 func prepare_variant(item: Resource) -> void:
 	if not piece_cache.has(item.id):
-		var resource: Resource = RenderResources.fetch(item.source_mesh_path)
+		var resource: Resource = RenderResources.fetch(item.scene_path)
 		var mesh: Mesh
 		if resource is PackedScene:
 			var scene: Node = resource.instantiate()

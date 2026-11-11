@@ -12,14 +12,14 @@
 | 경기·CPU 차량 | [world_race.gd](../scripts/race/world_race.gd): 차체 생성, 조향·속도 판단, 순위·복구·카메라. 상대 차량 상태는 [rival_state.gd](../scripts/race/rival_state.gd)의 타입 있는 객체 |
 | 투어 | [tour_world_race.gd](../scripts/race/tour_world_race.gd), [tour_progress.gd](../scripts/race/tour_progress.gd), [track.gd](../scripts/track/track.gd): 열린 도로 계측·분기·체크포인트·제한시간 |
 | 서킷 | [circuit_track.gd](../scripts/track/circuit_track.gd), 코스별 `*_course.gd`, [circuit_progress.gd](../scripts/race/circuit_progress.gd): 코스 형상과 순서 있는 게이트·랩 |
-| 도로 | [road_section.gd](../scripts/track/road_section.gd), [roadside_geometry.gd](../scripts/track/roadside_geometry.gd), [world_collision.gd](../scripts/physics/world_collision.gd): 공통 좌표·폭·뱅킹과 실제 충돌체 |
+| 도로 | [road_section.gd](../scripts/track/road_section.gd), [world_assets.gd](../scripts/rendering/world_assets.gd), [world_collision.gd](../scripts/physics/world_collision.gd): GLB·씬 연결, 공통 좌표·폭·뱅킹과 실제 충돌체 |
 | 기믹 | [road_features.gd](../scripts/track/road_features.gd), [bridge_collapse.gd](../scripts/environment/bridge_collapse.gd), [rockfall_hazard.gd](../scripts/environment/rockfall_hazard.gd), [rock_arches.gd](../scripts/environment/rock_arches.gd) |
 | 시각 모델 | `models/`의 개별 팩과 [car.gd](../scripts/vehicles/car.gd)·[regional_props_3d.gd](../scripts/environment/regional_props_3d.gd)·[urban_architecture.gd](../scripts/environment/urban_architecture.gd) 어댑터 |
 | 배치·풍경 | [roadside_art.gd](../scripts/environment/roadside_art.gd), [settlement_layout.gd](../scripts/environment/settlement_layout.gd), 코스별 `*_environment.gd`, [scenic_landmarks.gd](../scripts/environment/scenic_landmarks.gd) |
 | 차량 규칙·소리 | [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd), [nitro_system.gd](../scripts/race/nitro_system.gd), [vehicle_audio.gd](../scripts/audio/vehicle_audio.gd), [racing_audio.gd](../scripts/audio/racing_audio.gd) |
 | 공용 렌더 | [render_resources.gd](../scripts/rendering/render_resources.gd), [render_budget.gd](../scripts/rendering/render_budget.gd), [tunnel_lights.gd](../scripts/rendering/tunnel_lights.gd) |
 
-투어의 다음 분기 도로 두 개는 주행 중에 만들어집니다. [track.gd](../scripts/track/track.gd)는 지나온 구간을 먼저 해제한 뒤(진입 420m 이후) 한 프레임에 한 구간의 곡선만 만들고, 메시·풍경·충돌체는 [road_section.gd](../scripts/track/road_section.gd)의 단계 큐(`build_queue`)에 쌓아 `maintain()`이 프레임마다 약 1.5ms씩 실행합니다. 완성 전 구간은 숨겨 두며 충돌체 등록 뒤에 표시합니다. 긴 띠 메시는 표본 범위별로, 협곡은16개 거리 구간씩 만들고 색인·법선·메시 제출도 나눕니다. 절벽의 도로 기준점·폭·곡률은 같은 거리 표본에서 재사용하고 완성 후 임시 표를 비웁니다. 도로 기믹·교통 차량은 하나씩, 식생은 작은 배치별로, 충돌체는 수집·장벽 구간·등록으로 나눕니다. 갈림길 1,200m 앞이나 분기 진입 시점까지 남은 단계는 한 번에 끝냅니다. 처음 출발과 코스 전환은 로딩 화면 뒤에서 같은 단계를 한 번에 실행합니다.
+투어의 다음 두 분기는 `models/world/`의 GLB·씬·주행 프로필을 읽습니다. 진입420m 이후 지나온 구간을 먼저 해제하고 GLB·씬의 읽기를 미리 요청합니다. 읽는 동안 기다리지 않고, 메시 연결·상태 복원·자식 배치를8개 노드 단위 작업으로 나눕니다. [road_section.gd](../scripts/track/road_section.gd)의 큐를 `maintain()`이 프레임별 약1.5ms 예산으로 진행하며 실제 충돌체 등록 후 표시합니다. 갈림길1,200m 앞이나 분기 진입 시 남은 단계를 마칩니다. 준비 중 취소한 구간의 임시 씬과 미리 읽은 참조도 해제합니다. 처음 출발과 코스 전환은 로딩 화면 뒤에서 같은 단계를 한 번에 실행합니다.
 
 투어와 트랙은 같은 `CharacterBody3D`와 실제 노면·장벽 물리를 사용합니다. 도로 곡선은 경기 계측과 CPU 판단에 사용하며 플레이어 차체를 매 프레임 곡선 위로 강제 이동시키지 않습니다. 실제 차체 중력은 [drive_tuning.gd](../scripts/physics/drive_tuning.gd)의 `WORLD_GRAVITY`를 공유하며 명목 점프 설계용 중력과 구분합니다. 단위는 미터·초이고 차량 충돌 기준은 약2.1×1.3×4.3m입니다.
 
@@ -36,10 +36,12 @@ flowchart LR
 
 `models/<분류>/<id>/definition.tres`를 `model_catalog.gd`가 탐색합니다. ID·치수·경로 같은 작은 정의만 캐시하며 목록 조회로 모든 메시·텍스처를 불러오지 않습니다. 정렬과 ID 조회도 한 번 만든 목록·사전을 재사용합니다.
 
-- `vehicles`: 개별 차체와 시각적 바퀴 치수·림·렌즈 위치. [car.gd](../scripts/vehicles/car.gd)는 공통 휠·연기·부스터·전조등·애니메이션을 연결합니다. 차고와 주행은 같은 [vehicle_factory.gd](../scripts/vehicles/vehicle_factory.gd)를 사용합니다. 차체 조각은 재질이 달라도 한 메시로 합쳐 한 번에 그립니다. 조각별 색·금속성·거칠기·클리어코트·발광은 정점 자료에 담고 모든 차량이 `shaders/vehicle_body.gdshader` 재질 하나를 공유합니다. 밝기가 바뀌는 브레이크등과 가동 스포일러는 따로 두며, 타이어와 림도 바퀴마다 한 메시입니다. 텍스처·투명·양면 재질과 외부 GLB 모델은 합치지 않고 그대로 둡니다.
-- `props`: 단일 표면의 메시와 전용 재질. [regional_props_3d.gd](../scripts/environment/regional_props_3d.gd)가 경계·거리별 표시·공간 배치를 처리합니다.
-- `buildings`: 도시 빌딩의 파츠 조립·치수 범위·외장 선택. [urban_architecture.gd](../scripts/environment/urban_architecture.gd)를 통해 [road_biome.gd](../scripts/environment/road_biome.gd)가 배치합니다.
-- `models/shared`: 모델 선택을 포함하지 않는 기하·파일 로더입니다. 개별 모델 제작자가 수정할 필요가 없도록 API를 유지합니다.
+- `vehicles`: GLB 차체·네 휠 피벗·브레이크등·가동 스포일러. [car.gd](../scripts/vehicles/car.gd)는 주행 효과·전조등·애니메이션을 연결합니다. 차고와 주행은 같은 [vehicle_factory.gd](../scripts/vehicles/vehicle_factory.gd)를 사용합니다. 형상과 정점 표면 자료는 미리 저장되어 있으며 도장·브레이크 상태만 차량별로 구분합니다.
+- `props`: 단일 표면 GLB와 전용 재질. [regional_props_3d.gd](../scripts/environment/regional_props_3d.gd)가 공간별 MultiMesh·표시 거리·재질을 연결합니다.
+- `buildings`: GLB 조립 파츠·치수 범위·외장 선택. 실제 도시 배치는 코스 씬이 소유합니다.
+- `vegetation`: SJRPG에서 가져온 GLB와 두 표면·LOD. 생성형 수피·잎 재질을 공유합니다.
+- `world`: 서킷5개와 투어 진입 변형43개. `geometry.glb`·`model.tscn`·`profile.tres`가 형상·배치·주행 자료를 함께 소유합니다.
+- `models/shared`: 정적 씬 로더·상태 연결 계약과 효과용 GLB입니다. 런타임에 정점을 생성하는 빌더는 없습니다.
 
 모델 팩은 주행 파라미터·순위·오디오·코스 배치를 소유하지 않습니다. 새 시각 모델은 자동 등록되고 단독 검사·미리보기가 가능하며, 플레이 가능한 차량 추가나 새 지역 배치는 해당 시스템의 통합 커밋에서 수행합니다. 구체적인 계약과 분업 절차는 [MODEL_PIPELINE.md](MODEL_PIPELINE.md)를 따릅니다.
 
@@ -55,10 +57,10 @@ flowchart LR
 
 - 쿼드와 면별 UV가 있는 단위 상자는 [render_resources.gd](../scripts/rendering/render_resources.gd)에서 공유합니다. 인스턴스는 공유 메시의 크기나 재질을 수정하지 않습니다.
 - 소품은180m 공간 단위·배치당12개 이하로 나눕니다. 무제한 크기의 MultiMesh AABB로 화면 밖 전체 월드를 제출하지 않습니다.
-- [car.gd](../scripts/vehicles/car.gd)는 무텍스처 정적 부품만 재질별로 병합합니다. 외부 모델의 UV·텍스처·ShaderMaterial·다중 표면은 유지합니다.
+- 차체·타이어·림의 조립은 GLB에 저장합니다. 실행 중 메시를 병합하거나 UV·정점 자료를 다시 굽지 않습니다.
 - 일반 교통 차량은 차종별 완성된 시각 씬과 좌우 바퀴 메시를 재사용합니다. 색은 셰이더의 차량별 도장 유니폼으로 구분하며 주행하지 않는 교통 차량에는 드리프트 파티클을 생성하지 않습니다. 캐시는 차종 수에 한정하고 마지막 게임 씬 종료 때 비웁니다.
 - 코스 전환 때 전용 광고·모델 캐시를 비웁니다. 게임 씬이 여러 개면 공유 캐시를 유지하고 마지막 씬 종료 때 메시·광고·소품 캐시의 강한 참조를 해제합니다.
-- 스키드 자국160개, 충돌 파티클4세트, 물보라6개는 고정 풀입니다. 도로 밖 낙석은 지점별24개를 한 MultiMesh로 그리고 도로 안24개 중9개만 잔해와 실제 충돌체를 유지합니다. 착지 후에는 변환 갱신을 멈춥니다.
+- 타이어 자국1536개, 충돌 파티클4세트, 물보라6개는 고정 풀입니다. 도로 밖 낙석은 지점별24개를 한 MultiMesh로 그리고 도로 안24개 중9개만 잔해와 실제 충돌체를 유지합니다. 착지 후에는 변환 갱신을 멈춥니다.
 - 차량 물리 LOD는 가까운 차를 매 틱, 중거리를 번갈아, 원거리를 간소화합니다. 공중·충돌 차량은 실제 시뮬레이션을 유지합니다. 터널은 가까운 광원6개까지만 켭니다.
 
 큰 재질·외벽은 GPU 압축과 밉맵을 사용합니다. 웹은 S3TC·ETC2를 함께, Android는 ETC2만 포함합니다. 하늘·메뉴의 그라데이션은 손실 WebP로 가져옵니다. 상자형 강재·콘크리트는 실제 미터 크기로 보정한 면별 UV를 쓰고 암벽·곡면은 삼면 투영을 사용합니다.

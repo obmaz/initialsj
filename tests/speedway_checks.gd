@@ -29,6 +29,7 @@ func run(tree: SceneTree) -> int:
 	check(race.track.length > 5500 and race.track.length < 6100, "Speedway must have a full-size high speed lap")
 	check(race.track.previews.is_empty(), "A circuit must never spawn Tour forks")
 	var max_bank := 0.0
+	var steepest := 0.0
 	var min_bank := INF
 	var max_step := 0.0
 	var radius := INF
@@ -38,6 +39,8 @@ func run(tree: SceneTree) -> int:
 	for i in range(1600):
 		var d: float = race.track.length * i / 1600
 		var bank: float = race.track.active.bank_at(d)
+		if absf(bank) > max_bank:
+			steepest = d
 		max_bank = maxf(max_bank, absf(bank))
 		min_bank = minf(min_bank, absf(bank))
 		max_step = maxf(max_step, absf(bank - race.track.active.bank_at(d - 1)))
@@ -84,17 +87,23 @@ func run(tree: SceneTree) -> int:
 		"RaceControlTower"
 	]:
 		check(race.track.scenery.has_node(path), "Missing actual speedway geometry: " + path)
-	var stripe_d: float = preload("res://scripts/track/speedway_course.gd").offset(race.track.active, 4)
-	var stripe: MeshInstance3D = race.track.active.make_finish_stripe(stripe_d)
+	var stripe_d := 80.0
+	var stripe: MeshInstance3D = race.track.active.get_node("FinishStripe")
 	var stripe_vertices: PackedVector3Array = stripe.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 	var lowest_stripe := INF
 	var highest_stripe := -INF
 	for p in stripe_vertices:
 		lowest_stripe = minf(lowest_stripe, p.y)
 		highest_stripe = maxf(highest_stripe, p.y)
-	check(
-		highest_stripe - lowest_stripe > 6, "Full-width finish stripe must follow a real steep bank without flat tiles"
-	)
+	var heights: Array[float] = []
+	var surface: TriangleMesh = race.track.active.road_surface.mesh.generate_triangle_mesh()
+	for side in [-1.0, 1.0]:
+		var p: Vector3 = race.track.point(steepest, side * race.track.half_width(steepest) * .9)
+		var hit: Dictionary = surface.intersect_ray(p + Vector3.UP * 8, Vector3.DOWN)
+		check(not hit.is_empty() and absf(hit.position.y - p.y) < .08, "GLB 뱅크의 실제 노면과 주행 곡선이 일치해야 한다")
+		if not hit.is_empty():
+			heights.append(hit.position.y)
+	check(heights.size() == 2 and absf(heights[0] - heights[1]) > 6, "양쪽 차선 사이의 실제 뱅킹 높이 차이를 보존해야 한다")
 	var center: Vector3 = race.track.point(stripe_d)
 	var right: Vector3 = race.track.point(stripe_d, 1) - race.track.point(stripe_d, -1)
 	right.y = 0
@@ -109,7 +118,7 @@ func run(tree: SceneTree) -> int:
 		left_edge <= -race.track.half_width(stripe_d) + .05 and right_edge >= race.track.half_width(stripe_d) - .05,
 		"출발선은 실제 도로의 양 끝까지 빈틈 없이 이어진다"
 	)
-	stripe.free()
+
 	for index in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
 		check(
 			Catalog.record_key(index, "track", 1).begins_with("track_suncoast_"),
