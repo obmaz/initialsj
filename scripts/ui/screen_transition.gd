@@ -59,6 +59,7 @@ func play(action: Callable) -> void:
 	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	if race.warming_world:
+		await preload("res://scripts/rendering/material_warmup.gd").prepare_course(race)
 		await race.impacts.prewarm(race.camera)
 		await preload("res://scripts/rendering/tunnel_lights.gd").prewarm_scene(race)
 	race.warming_world = false

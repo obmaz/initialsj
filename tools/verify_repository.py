@@ -38,6 +38,9 @@ def live_resources():
             continue
         reached.add(name)
         path = ROOT / name
+        # 공간 셰이더 준비용 열거 경로다. 폴더만 허용하고 미사용 셰이더를 참조된 것으로 만들지 않는다.
+        if name.rstrip("/") == "shaders" and path.is_dir():
+            continue
         if name.rstrip("/") == "models/world" and path.is_dir():
             pending.extend(p.relative_to(ROOT).as_posix() for pattern in ("*/model.tscn", "*/profile.tres") for p in path.glob(pattern))
             continue

@@ -1,5 +1,7 @@
 extends RefCounted
 # 한 게임 씬의 수명 동안 기본 메시를 공유한다. 마지막 씬이 나가면 강한 참조를 비운다.
+static var spatial_shaders_warmed := false
+static var warmed_spatial_shaders: Array[Shader] = []
 static var owners := 0
 static var quads: Dictionary = {}
 static var box_mesh: ArrayMesh
@@ -20,6 +22,8 @@ static func release_owner() -> bool:
 	owners -= 1
 	if owners != 0:
 		return false
+	spatial_shaders_warmed = false
+	warmed_spatial_shaders.clear()
 	quads.clear()
 	box_mesh = null
 	preload("res://scripts/rendering/primitive_assets.gd").clear()

@@ -53,6 +53,19 @@ void fragment() { ALBEDO = surface(); }
         verify.check_shader_samplers()
         self.assertEqual(verify.errors, [])
 
+    def test_shader_directory_does_not_hide_unused_sources(self):
+        self.write("project.godot", 'warm="res://shaders/"\nshader="res://shaders/used.gdshader"\n')
+        self.write("export_presets.cfg", "")
+        self.write("web/retire-flutter-worker.js", "")
+        for name in ("used", "unused"):
+            self.write(f"shaders/{name}.gdshader", "shader_type spatial;\n")
+            self.write(f"shaders/{name}.gdshader.uid", "uid://test\n")
+        reached = verify.live_resources()
+        self.assertEqual(verify.errors, [])
+        self.assertNotIn("shaders/unused.gdshader", reached)
+        verify.check_sources(reached)
+        self.assertIn("Unreferenced runtime source: shaders/unused.gdshader", verify.errors)
+
     def test_unused_sampler_is_not_kept_alive_by_comments(self):
         self.write("shaders/ground.gdshader", '''shader_type spatial;
 uniform sampler2D retired;

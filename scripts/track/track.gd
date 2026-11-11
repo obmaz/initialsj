@@ -99,8 +99,19 @@ func stage_world_collision(section: Section) -> void:
 		steps.append(func(): Collision.walls(section, state, 400.0))
 	steps.append(func(): state.ground_body = Collision.body("RoadSurfaceBody", state.ground, 1))
 	steps.append(func(): section.add_child(Collision.finish(state)))
-	steps.append(func(): section.visible = true)
+	steps.append(func(): warm_section(section))
 	section.queue_next(steps)
+
+
+func warm_section(section: Section) -> void:
+	if DisplayServer.get_name() == "headless":
+		section.visible = true
+		return
+	var worker := preload("res://scripts/rendering/material_warmup.gd").new()
+	section.add_child(worker)
+	worker.collect(section)
+	worker.completed.connect(func(): section.visible = true)
+	worker.begin(2)
 
 
 # 주행 중 다음 구간 생성에 한 프레임이 쓸 수 있는 시간. 한 단계는 끝까지 실행한다.
