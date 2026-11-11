@@ -19,7 +19,7 @@
 | 차량 규칙·소리 | [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd), [nitro_system.gd](../scripts/race/nitro_system.gd), [vehicle_audio.gd](../scripts/audio/vehicle_audio.gd), [racing_audio.gd](../scripts/audio/racing_audio.gd) |
 | 공용 렌더 | [render_resources.gd](../scripts/rendering/render_resources.gd), [render_budget.gd](../scripts/rendering/render_budget.gd), [tunnel_lights.gd](../scripts/rendering/tunnel_lights.gd) |
 
-투어의 다음 분기 도로 두 개는 주행 중에 만들어집니다. [track.gd](../scripts/track/track.gd)는 지나온 구간을 먼저 해제한 뒤(진입 420m 이후) 한 프레임에 한 구간의 곡선만 만들고, 메시·풍경·충돌체는 [road_section.gd](../scripts/track/road_section.gd)의 단계 큐(`build_queue`)에 쌓아 `maintain()`이 프레임마다 약 1.5ms씩 실행합니다. 완성 전 구간은 숨겨 두며 충돌체 등록 뒤에 표시합니다. 긴 띠 메시는 표본 범위별로, 도로 기믹·교통 차량은 하나씩, 식생은 작은 배치별로, 충돌체는 수집·장벽 구간·등록으로 나눕니다. 갈림길 1,200m 앞이나 분기 진입 시점까지 남은 단계는 한 번에 끝냅니다. 처음 출발과 코스 전환은 로딩 화면 뒤에서 같은 단계를 한 번에 실행합니다.
+투어의 다음 분기 도로 두 개는 주행 중에 만들어집니다. [track.gd](../scripts/track/track.gd)는 지나온 구간을 먼저 해제한 뒤(진입 420m 이후) 한 프레임에 한 구간의 곡선만 만들고, 메시·풍경·충돌체는 [road_section.gd](../scripts/track/road_section.gd)의 단계 큐(`build_queue`)에 쌓아 `maintain()`이 프레임마다 약 1.5ms씩 실행합니다. 완성 전 구간은 숨겨 두며 충돌체 등록 뒤에 표시합니다. 긴 띠 메시는 표본 범위별로, 협곡은16개 거리 구간씩 만들고 색인·법선·메시 제출도 나눕니다. 절벽의 도로 기준점·폭·곡률은 같은 거리 표본에서 재사용하고 완성 후 임시 표를 비웁니다. 도로 기믹·교통 차량은 하나씩, 식생은 작은 배치별로, 충돌체는 수집·장벽 구간·등록으로 나눕니다. 갈림길 1,200m 앞이나 분기 진입 시점까지 남은 단계는 한 번에 끝냅니다. 처음 출발과 코스 전환은 로딩 화면 뒤에서 같은 단계를 한 번에 실행합니다.
 
 투어와 트랙은 같은 `CharacterBody3D`와 실제 노면·장벽 물리를 사용합니다. 도로 곡선은 경기 계측과 CPU 판단에 사용하며 플레이어 차체를 매 프레임 곡선 위로 강제 이동시키지 않습니다. 실제 차체 중력은 [drive_tuning.gd](../scripts/physics/drive_tuning.gd)의 `WORLD_GRAVITY`를 공유하며 명목 점프 설계용 중력과 구분합니다. 단위는 미터·초이고 차량 충돌 기준은 약2.1×1.3×4.3m입니다.
 

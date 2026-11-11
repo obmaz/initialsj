@@ -115,13 +115,7 @@ func _ready() -> void:
 	paving_material.albedo_texture = load("res://assets/environment/asphalt.png")
 	paving_material.uv1_scale = Vector3(24, 24, 24)
 	boxes(paving_material, paving)
-	for i in range(12):
-		var at := Vector3(-75 + i * 13, 0, 72)
-		var kiosk: Array[Transform3D] = [
-			Transform3D(Basis.IDENTITY.scaled(Vector3(8, 4, 7)), at + Vector3.UP * 2),
-			Transform3D(Basis.IDENTITY.scaled(Vector3(9, .6, 8)), at + Vector3.UP * 4.2)
-		]
-		boxes(scenery.mat(Color.from_hsv(i / 12.0, .42, .78)), kiosk)
+	make_kiosks()
 	var benches: Array[Transform3D] = []
 	for i in range(16):
 		var p := Vector3(-76 + i * 10, .8, 60)
@@ -129,6 +123,23 @@ func _ready() -> void:
 		benches.append(Transform3D(Basis.IDENTITY.scaled(Vector3(4, 1.0, .2)), p + Vector3(0, .5, .6)))
 	boxes(wood, benches)
 	add_shops()
+
+
+func make_kiosks() -> void:
+	var props := preload("res://scripts/environment/regional_props_3d.gd").new()
+	props.name = "AmusementKiosks"
+	var placements: Array[Dictionary] = []
+	for i in range(12):
+		placements.append(
+			{
+				"kind": "amusement_kiosk",
+				"position": to_global(Vector3(-75 + i * 13, .45, 72)),
+				"yaw": rotation.y + PI,
+				"scale": 1.0
+			}
+		)
+	props.configure("amusement", placements)
+	scenery.add_child(props)
 
 
 func add_shops() -> void:

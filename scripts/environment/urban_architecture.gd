@@ -1,5 +1,8 @@
 extends RefCounted
 const Catalog = preload("res://models/model_catalog.gd")
+const RenderResources = preload("res://scripts/rendering/render_resources.gd")
+const FACADE_IMAGES := "res://assets/environment/urban-harbor-facades.png"
+const FACADE_EXTRA := "res://assets/environment/urban-truck-elevations.png"
 
 
 static func count() -> int:
@@ -21,8 +24,8 @@ static func material(style: int, theme: String) -> Material:
 		return load(definition.material_path)
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/building_facade.gdshader")
-	material.set_shader_parameter("facade_images", load("res://assets/environment/urban-harbor-facades.png"))
-	material.set_shader_parameter("facade_extra", load("res://assets/environment/urban-truck-elevations.png"))
+	material.set_shader_parameter("facade_images", RenderResources.fetch(FACADE_IMAGES))
+	material.set_shader_parameter("facade_extra", RenderResources.fetch(FACADE_EXTRA))
 	material.set_shader_parameter("ruined", theme == "ruins")
 	material.set_shader_parameter("facade_style", definition.parameters.facade_index)
 	material.set_shader_parameter("night_city", theme == "neon")

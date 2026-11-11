@@ -24,12 +24,21 @@ void fragment() {
 	pane *= smoothstep(0.18,0.23,cell.y) * (1.0-smoothstep(0.70,0.75,cell.y));
 	pane *= 1.0-step(0.5,abs(local_normal.y));
 	float floor_line = 1.0-smoothstep(0.015,0.045,abs(cell.y-0.02));
+	float module = industrial_facade ? 6.0+min(5.0,floor(dimensions.a*6.0)) : float(facade_style);
+	bool extra=facade_style>=6 && !industrial_facade;
+	if(extra) module-=6.0;
+	vec2 tile=vec2(mod(module,4.0),floor(module/4.0));
+	float width=side ? dimensions.z : dimensions.x;
+	vec2 q=vec2(fract((u+width*.5)/max(16.0,min(width,28.0))),fract((.5-local_point.y)*max(1.0,dimensions.y/12.0)));
+	if (industrial_facade) q=vec2(fract((u+width*.5)/width),clamp(.5-local_point.y,0.0,1.0));
+	vec2 uv=tile*vec2(.25,1.0/3.0)+vec2(.002,.004)+q*vec2(.246,1.0/3.0-.008);
+	vec3 photographed=extra ? texture(facade_extra,uv).rgb : texture(facade_images,uv).rgb;
 	if (ruined) {
 		float seed = fract(sin(floor(u/3.2)*12.9898+dimensions.a*77.0)*43758.5453);
 		float top = dimensions.y*(0.28+seed*0.20);
 		if (v > top || (pane > 0.3 && seed > 0.18)) { discard; }
 		float grime = fract(sin(dot(floor(vec2(u,v)*2.0),vec2(12.9,78.2)))*43758.5);
-		ALBEDO = vec3(0.24,0.23,0.20)*(0.7+grime*0.6);
+		ALBEDO = photographed*vec3(.53,.50,.44)*(0.8+grime*0.35);
 		ROUGHNESS = 0.95;
 		METALLIC = 0.0;
 	} else {
@@ -49,15 +58,7 @@ void fragment() {
 	}
 	if (regional_style == 2) { concrete *= vec3(0.65,0.71,0.84); }
 	vec3 glass = mix(vec3(0.12,0.24,0.32),vec3(0.41,0.60,0.69),fract(floor(u/3.2)*0.37+floor(v/4.0)*0.21+dimensions.a));
-	float module = industrial_facade ? 6.0+min(5.0,floor(dimensions.a*6.0)) : float(facade_style);
-	bool extra=facade_style>=6 && !industrial_facade;
-	if(extra) module-=6.0;
-	vec2 tile=vec2(mod(module,4.0),floor(module/4.0));
-	float width=side ? dimensions.z : dimensions.x;
-	vec2 q=vec2(fract((u+width*.5)/max(16.0,min(width,28.0))),fract((.5-local_point.y)*max(1.0,dimensions.y/12.0)));
-	if (industrial_facade) q=vec2(fract((u+width*.5)/width),clamp(.5-local_point.y,0.0,1.0));
-	vec2 uv=tile*vec2(.25,1.0/3.0)+vec2(.002,.004)+q*vec2(.246,1.0/3.0-.008);
-	vec3 photographed=extra ? texture(facade_extra,uv).rgb : texture(facade_images,uv).rgb;
+
 	vec3 variant_tint=mix(vec3(1.12,.93,.81),vec3(.79,.97,1.14),dimensions.a);
 	ALBEDO = photographed*variant_tint;
 	if(abs(local_normal.y)>.5) ALBEDO=concrete;

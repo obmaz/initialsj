@@ -28,7 +28,7 @@ static func build(section: Node3D) -> PackedVector2Array:
 		var edge := Vector2.ZERO
 		for side in [-1.0, 1.0]:
 			var base := .35 if section.course_id == 1 and side > 0 else 1.5
-			var extra := 6.5
+			var extra := 0.0 if section.course_id == 1 and side > 0 else 6.5
 			if curvature * side < 0:
 				extra = minf(extra, maxf(2, .65 / maxf(.001, absf(curvature)) - section.half_width(d) - base - 2))
 			edge[0 if side < 0 else 1] = base + amount * extra

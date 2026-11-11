@@ -44,6 +44,8 @@ static func warm_paths(region: String) -> Array[String]:
 	if preload("res://scripts/environment/distant_ridges.gd").THEMES.has(region):
 		paths.append(preload("res://scripts/environment/distant_ridges.gd").ATLAS_PATH)
 	paths.append_array(preload("res://scripts/environment/tour_vegetation.gd").warm_paths(region))
+	if region in ["city", "seoul", "ruins", "neon"]:
+		paths.append_array([Architecture.FACADE_IMAGES, Architecture.FACADE_EXTRA])
 	if region == "jungle":
 		paths.append(preload("res://scripts/environment/jungle_overgrowth.gd").ROCK)
 	return paths
@@ -513,16 +515,20 @@ func make_seoul() -> void:
 	batch(hill, mat(Color("4e7250")), hill_poses)
 	p += Vector3.UP * 26
 	track.box(self, p + Vector3.UP * 50, Vector3(4, 100, 4), mat(Color("cbd5df"), 0.4))
-	var deck := MeshInstance3D.new()
 	var mesh := CylinderMesh.new()
-	mesh.top_radius = 11
-	mesh.bottom_radius = 8
-	mesh.height = 8
+	mesh.top_radius = .5
+	mesh.bottom_radius = 8.0 / 22.0
+	mesh.height = 1
 	mesh.radial_segments = 12
-	deck.mesh = mesh
-	deck.material_override = mat(Color("657f95"), 0.5)
-	add_child(deck)
-	deck.position = p + Vector3.UP * 100
+	var empty: Array[Transform3D] = []
+	var deck := batch(mesh, Architecture.material(3, "seoul"), empty)
+	deck.name = "SeoulObservationDeck"
+	deck.multimesh.use_custom_data = true
+	deck.multimesh.instance_count = 1
+	deck.multimesh.set_instance_transform(
+		0, Transform3D(Basis.IDENTITY.scaled(Vector3(22, 8, 22)), p + Vector3.UP * 100)
+	)
+	deck.multimesh.set_instance_custom_data(0, Color(22, 8, 22, .5))
 	track.box(self, p + Vector3.UP * 119, Vector3(1, 30, 1), mat(Color("e9e3dd")))
 
 

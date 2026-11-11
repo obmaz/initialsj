@@ -36,9 +36,19 @@ func run(tree: SceneTree) -> int:
 		if node.get_script() == preload("res://scripts/environment/tour_amusement.gd"):
 			park = node
 	check(
-		park != null and park.coaster_samples == 160 and park.get_child_count() >= 19,
+		park != null and park.coaster_samples == 160 and park.get_child_count() >= 10,
 		"공원은 고저차 트랙·바이킹·상업 시설이 실제 메시여야 한다"
 	)
+	var kiosks: Node3D = road.scenery.get_node("AmusementKiosks")
+	check(kiosks.placements.size() == 12 and kiosks.kinds == ["amusement_kiosk"], "공원의12개 매점은 전용 외장 모델을 사용해야 한다")
+	for batch in kiosks.batches:
+		check(
+			(
+				batch.material_override.get_shader_parameter("building_fronts") is Texture2D
+				and batch.material_override.get_shader_parameter("building_sides") is Texture2D
+			),
+			"공원 매점의 정면·측면 생성형 이미지가 실제 렌더 재질에 연결되어야 한다"
+		)
 	var before: float = park.swing.rotation.z
 	park._process(.5)
 	check(not is_equal_approx(before, park.swing.rotation.z), "바이킹 선체가 실제 회전축에서 움직여야 한다")

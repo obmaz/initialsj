@@ -25,6 +25,8 @@ func run(tree: SceneTree) -> int:
 			var d: float = road.length * i / 240
 			for bank in [-1.0, 1.0]:
 				var offset: float = road.rail_setback(d, bank)
+				if course == 1 and bank > 0:
+					check(is_equal_approx(offset, .35), "트랙2 오른쪽 콘크리트벽은 전 구간 도로에 밀착하고 갓길은 왼쪽만 넓힌다")
 				minimum = minf(minimum, offset)
 				wide += 1 if offset > 4 else 0
 				if offset > maximum and not road.on_bridge(d) and not road.in_tunnel(d):
@@ -34,6 +36,16 @@ func run(tree: SceneTree) -> int:
 		check(maximum - minimum > 3 and wide > 0 and wide < 240, "트랙%d는 밀착 경계와 일부 넓은 여유 구간을 함께 갖는다" % (course + 1))
 		await tree.physics_frame
 		var space := tree.root.get_world_3d().direct_space_state
+		if course == 1:
+			for sample in range(24):
+				var at: float = road.length * sample / 24.0
+				var edge: Vector3 = road.point(at, road.half_width(at)) + Vector3.UP * .7
+				var outside: Vector3 = road.point(at, road.half_width(at) + .8) + Vector3.UP * .7
+				var wall := space.intersect_ray(PhysicsRayQueryParameters3D.create(edge, outside, 2))
+				check(
+					not wall.is_empty() and wall.position.distance_to(edge) < .2,
+					"트랙2 오른쪽 벽의 실제 충돌면도 차도 가장자리에 붙어 있어야 한다"
+				)
 		var lane: float = side * (road.half_width(distance) + maximum * .5)
 		var p: Vector3 = road.point(distance, lane)
 		var floor := space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP, p - Vector3.UP, 1))
