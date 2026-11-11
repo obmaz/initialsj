@@ -4,7 +4,7 @@ const WorldCar = preload("res://scripts/physics/world_car.gd")
 const SEARCH_STEP := 8.0
 const SURFACE_MARGIN := .2
 const RUNOUT := 100.0
-const RESUME_SPEED := 100.0 / 3.6
+const RESUME_SPEED := 150.0 / 3.6
 
 
 static func stable_hit(space: PhysicsDirectSpaceState3D, at: Vector3, up: Vector3, reach: float) -> Dictionary:

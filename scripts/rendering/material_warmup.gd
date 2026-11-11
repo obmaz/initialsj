@@ -130,6 +130,16 @@ func begin(limit: int = 8) -> void:
 	var light := DirectionalLight3D.new()
 	light.rotation_degrees = Vector3(-30, -20, 0)
 	viewport.add_child(light)
+	var spot := SpotLight3D.new()
+	spot.position = Vector3(0, 4, 9)
+	spot.rotation_degrees.x = -20
+	spot.spot_range = 60
+	spot.spot_angle = 80
+	viewport.add_child(spot)
+	var omni := OmniLight3D.new()
+	omni.position = Vector3(0, 3, 4)
+	omni.omni_range = 40
+	viewport.add_child(omni)
 	call_deferred("render_batches")
 
 

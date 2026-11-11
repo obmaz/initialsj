@@ -55,6 +55,7 @@ var stage := 0
 var route_node := 0
 var entry_side := 0
 var start_heading := -PI / 2
+var tour_underpass := Vector2.ZERO
 var start_point := Vector3(0, 6, 0)
 var surface_lift := 0.0
 
@@ -522,6 +523,13 @@ func on_bridge(distance: float) -> bool:
 
 
 func in_tunnel(distance: float) -> bool:
+	if (
+		not closed_loop
+		and tour_underpass.y > tour_underpass.x
+		and distance >= tour_underpass.x
+		and distance <= tour_underpass.y
+	):
+		return true
 	if course_id >= 1:
 		return false
 	if closed_loop:

@@ -215,7 +215,7 @@ func manual_recovery(tree: SceneTree, race: Node3D) -> Dictionary:
 	check(race.recovery_available, "Staying within the stuck movement window must expose manual recovery")
 	race.recover_car()
 	check(
-		not race.recovery_available and is_equal_approx(body.velocity.length() * 3.6, 100) and not race.crash.active,
+		not race.recovery_available and is_equal_approx(body.velocity.length() * 3.6, 150) and not race.crash.active,
 		"수동 복구는 구르기·버튼 상태를 초기화하고 시속50km로 주행해야 한다"
 	)
 	check(

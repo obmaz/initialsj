@@ -346,8 +346,17 @@ func advance(
 					and collider.get_collision_layer_value(2)
 					and not collider.get_collision_layer_value(1)
 				)
+				var rail_wall := barrier
+				var road_lip: bool = (
+					can_step
+					and collider is CollisionObject3D
+					and collider.get_collision_layer_value(1)
+					and absf(normal.y) < .35
+					and road_heading.length_squared() > .5
+				)
+				barrier = barrier or road_lip
 				var severe: bool = (
-					barrier
+					rail_wall
 					and collision_layer != 16
 					and closing >= 1.2
 					and Crash.launches(incoming_speed, closing)
@@ -384,6 +393,21 @@ func advance(
 							tangent * Tuning.glide_keep(hardness)
 							+ away * clampf(closing * GLIDE_REBOUND, 0.85, GLIDE_REBOUND_MAX)
 						)
+						var road := road_heading.slide(surface_normal).normalized()
+						if road.length_squared() > .5:
+							var current := forward_direction()
+							var error := current.signed_angle_to(road, surface_normal)
+							var aligned := (
+								road
+								if current.dot(road) < 0
+								else current.rotated(surface_normal, clampf(error * .65, -.5, .5))
+							)
+							global_basis = Basis.looking_at(aligned, surface_normal)
+							# 반복 접촉은 전진 성분을 매번 투영해 없애지 않는다.
+							var pace := maxf(before.dot(road), incoming_speed * .65)
+							var direction := road.slide(away).normalized()
+							velocity = direction * pace + away * clampf(closing * GLIDE_REBOUND, 1.5, GLIDE_REBOUND_MAX)
+							move_and_collide(away * .35, false, .012)
 						realign_time = REALIGN_TIME
 				elif collider.has_method("receive_debris_hit"):
 					collider.receive_debris_hit()

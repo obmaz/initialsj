@@ -39,6 +39,7 @@ static func placement(road: Node3D) -> Transform3D:
 
 static func profile(road: Node3D) -> void:
 	var resource: Resource = load(folder(road) + "profile.tres")
+	road.tour_underpass = resource.get_meta("tour_underpass", Vector2.ZERO)
 	road.asset_paths.assign(resource.get_meta(&"dependencies", []))
 	road.asset_paths = GeometryMap.dependencies(road.asset_paths)
 	var data: Dictionary = resource.get_meta(&"profile")

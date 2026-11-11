@@ -179,7 +179,7 @@ func maintain(distance: float) -> void:
 			previous = null
 		else:
 			build_previews(true)
-	var budget := BUILD_BUDGET_USEC if distance < active.length - BUILD_DEADLINE else -1
+	var budget := BUILD_BUDGET_USEC if distance < active.length - BUILD_DEADLINE else BUILD_BUDGET_USEC * 2
 	for section in previews:
 		if section.build_pending():
 			section.build_some(budget)

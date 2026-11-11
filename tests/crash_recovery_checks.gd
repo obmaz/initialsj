@@ -52,7 +52,7 @@ func run(tree: SceneTree) -> int:
 		await tree.physics_frame
 		r.recover_car()
 		check(
-			not r.recovery_available and is_equal_approx(r.speed, 100.0 / 3.6) and not r.crash.active,
+			not r.recovery_available and is_equal_approx(r.speed, 150.0 / 3.6) and not r.crash.active,
 			"Manual recovery must restore an upright stopped car and clear its button"
 		)
 		check(absf(r.lane - r.rivals[0].lane) > 2.6, "Recovery must select a road lane clear of the occupied car")
