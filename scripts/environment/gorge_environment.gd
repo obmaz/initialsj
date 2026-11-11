@@ -6,13 +6,9 @@ var landmarks: Node3D
 
 
 func make_sky() -> Sky:
-	var sky := Sky.new()
-	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://shaders/riviera_sky.gdshader")
-	mat.set_shader_parameter("panorama", load("res://assets/environment/gorge-sunset-panorama.png"))
-	sky.sky_material = mat
-	sky.radiance_size = Sky.RADIANCE_SIZE_128
-	return sky
+	return preload("res://scripts/environment/track_background.gd").create(
+		"res://assets/environment/gorge-sunset-panorama.png"
+	)
 
 
 func terrain_point(d: float, lane: float) -> Vector3:

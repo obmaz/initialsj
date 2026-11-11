@@ -13,12 +13,9 @@ var drift_gates: Array[float] = []
 
 
 func make_sky() -> Sky:
-	var sky := Sky.new()
-	var material := ShaderMaterial.new()
-	material.shader = preload("res://shaders/night_sky.gdshader")
-	sky.sky_material = material
-	sky.radiance_size = Sky.RADIANCE_SIZE_128
-	return sky
+	return preload("res://scripts/environment/track_background.gd").create(
+		"res://assets/environment/harbor-panorama.png"
+	)
 
 
 func set_ground_enabled(_enabled: bool) -> void:

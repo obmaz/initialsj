@@ -10,16 +10,9 @@ const INNER_SLOPE_END := 180.0
 
 
 func make_sky() -> Sky:
-	var sky := Sky.new()
-	var material := ProceduralSkyMaterial.new()
-	material.sky_top_color = Color("317dcc")
-	material.sky_horizon_color = Color("c5e9f4")
-	material.ground_horizon_color = Color("b5d2cb")
-	material.ground_bottom_color = Color("50786b")
-	material.sky_curve = 0.16
-	sky.sky_material = material
-	sky.radiance_size = Sky.RADIANCE_SIZE_128
-	return sky
+	return preload("res://scripts/environment/track_background.gd").create(
+		"res://assets/environment/speedway-panorama.png"
+	)
 
 
 func outer_ground_height(d: float, lane: float) -> float:
@@ -375,18 +368,22 @@ func set_shadow_quality(enabled: bool) -> void:
 		)
 
 
-# 관중석 반대편 안쪽 평지를 향한 광고열. 각 패널은 도로 접근 방향을 향한다.
+# 피트 출입 구간(약650m 이전)을 비우고 도로 안쪽 레일 바깥에 촘촘한 상업 광고열을 둔다.
 func make_infield_ads() -> void:
 	var props := preload("res://scripts/environment/regional_props_3d.gd").new()
 	var placements: Array[Dictionary] = []
-	for i in range(14):
-		var d: float = 300 + i * 115
-		var lane := -65.0
+	for i in range(42):
+		var d: float = 700 + i * (115.0 / 3)
+		# 회전한 패널의 전체 반경까지 계산해 레일과 최소2m 간격을 남긴다.
+		var radius: float = preload("res://scripts/environment/regional_props_3d.gd").radius("billboard")
+		var lane: float = -(track.half_width(d) + track.rail_setback(d, -1) + radius + 2)
 		placements.append(
 			{
 				"kind": "billboard",
 				"position": terrain_point(d, lane),
-				"yaw": preload("res://scripts/environment/billboard_facing.gd").yaw(track, d, lane),
+				"distance": d,
+				"lane": lane,
+				"yaw": preload("res://scripts/environment/billboard_facing.gd").yaw(track, d, lane, 40, .60),
 				"scale": 1.0
 			}
 		)

@@ -60,7 +60,8 @@ func apply_course() -> void:
 			race.atmosphere.ambient_light_color = Color("5a78b8")
 			race.atmosphere.ambient_light_energy = 0.55
 			race.atmosphere.tonemap_exposure = 1.0
-			race.sun_light.rotation_degrees = Vector3(-38, 150, 0)
+			# 원경 달 U=.72,V=.395와 같은 방위·고도의 차가운 주광.
+			race.sun_light.rotation_degrees = Vector3(-19, 79, 0)
 			race.sun_light.light_energy = 0.32
 			race.sun_light.light_color = Color("a8c0ff")
 			race.rim_light.light_energy = 0.18
@@ -74,6 +75,12 @@ func apply_course() -> void:
 			race.sun_light.light_color = Color("ffe4be")
 			race.rim_light.light_energy = 0.10
 			race.atmosphere.ambient_light_energy = 0.28
+		if race.selected_course == 1:
+			# 생성형 해안 하늘의 태양 U=.118,V=.355.
+			race.sun_light.rotation_degrees = Vector3(-26, -137, 0)
+		if race.selected_course == 3:
+			# 지중해 하늘의 높은 태양 U=.695,V=.182.
+			race.sun_light.rotation_degrees = Vector3(-57, 70, 0)
 		if race.selected_course in [3, 4]:
 			race.atmosphere.fog_light_color = Color("87bdcf")
 			race.atmosphere.fog_density = 0.00022
@@ -96,21 +103,8 @@ func apply_course() -> void:
 
 
 func update(delta: float) -> void:
-	if race.mode == "track" and race.selected_course == 2:
-		# The moon stays low in the sky ahead and slightly to the left, whichever way the road turns.
-		var look: Vector3 = -race.camera.global_transform.basis.z
-		look.y = 0
-		if (
-			look.length_squared() > 0.01
-			and race.atmosphere.sky != null
-			and race.atmosphere.sky.sky_material is ShaderMaterial
-		):
-			var heading := look.normalized().rotated(Vector3.UP, deg_to_rad(24))
-			(race.atmosphere.sky.sky_material as ShaderMaterial).set_shader_parameter(
-				"moon_direction", Vector3(heading.x, 0.115, heading.z)
-			)
-		return
-	if race.mode == "track" and race.selected_course == 4:
+	# 항만의 달과 협곡의 태양은 원경 이미지의 고정 방위에 있으므로 매 프레임 재계산하지 않는다.
+	if race.mode == "track" and race.selected_course in [2, 4]:
 		return
 	if race.mode == "track":
 		var sheltered: bool = race.track.active.in_tunnel(race.distance)

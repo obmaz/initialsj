@@ -52,7 +52,7 @@
 
 `riviera-sky-panorama.png`는 생성형 원본 `exec-13deda8f-bac7-4414-8a83-12f783041785.png`의2:1 위경도 하늘입니다. 푸른 하늘과 구름만 요청했고 시선 경도/위도로 매핑해 정면 사진을 늘리는 왜곡을 피합니다. 세 원본은 이미지 생성 도구로 제작했고 외부 사진·게임 에셋·실존 브랜드를 입력하지 않았습니다. 생성 원본은 `/workspace/generated_images/`에 보존합니다.
 
-`container-elevations.png`는 생성형 원본 `exec-c5fc9002-63b1-4504-8330-3a79c929197e.png`의4×2 아틀라스입니다. 위 행은 가상 해운사 NORDLINE·AURORA CARGO·PELAGIC FREIGHT·SUNPORT LOGISTICS의 긴 면, 아래 행은 같은 색상의 후면 문·잠금봉·경첩입니다. 실존 해운사 이름·로고를 사용하지 않고 원본의 골·도색·마모·문 구조를 UV로 입힙니다. `gorge-sunset-panorama.png`는 생성형 원본 `exec-d4b86b9c-5627-4587-bef1-12cb783f4e57.png`의2:1 노을 하늘입니다. 두 원본은 이미지 생성 도구로 제작했고 외부 사진·브랜드 에셋을 입력하지 않았습니다. 원본은 `/workspace/generated_images/`에 보존합니다.
+`container-elevations.png`는 생성형 원본 `exec-c5fc9002-63b1-4504-8330-3a79c929197e.png`의4×2 아틀라스입니다. 위 행은 가상 해운사 NORDLINE·AURORA CARGO·PELAGIC FREIGHT·SUNPORT LOGISTICS의 긴 면, 아래 행은 같은 색상의 후면 문·잠금봉·경첩입니다. 실존 해운사 이름·로고를 사용하지 않고 원본의 골·도색·마모·문 구조를 UV로 입힙니다. 원본은 이미지 생성 도구로 제작했고 외부 사진·브랜드 에셋을 입력하지 않았습니다. 원본은 `/workspace/generated_images/`에 보존합니다.
 
 프로젝트 홍보6종과 상품 광고30종의 출처·프롬프트는 [프로젝트 홍보](project-promo-source.md)와 [상품 광고](product-ad-source.md)에 기록합니다. 경주 광고4종과 벡터8종을 포함한 전체48종 선택·순환은 [advertisement_library.gd](../../scripts/environment/advertisement_library.gd)가 담당합니다.
 
@@ -79,3 +79,16 @@ image_gen.imagegen으로 생성한 2:1 위경도 이미지입니다. 외부 입�
 `tour-snow-variants.png`: image_gen.imagegen 원본 `exec-d7305e91-c360-4e1f-9b13-49ff28c42772.png`. 같은 재료의 서로 다른 결4종을 2×2 정면·균일 조명·무문자·무소품·무발자국으로 요청했습니다. 원본을 재편집하지 않고 셰이더에서 셀을 혼합합니다.
 
 `tour-grass-variants.png`: image_gen.imagegen 원본 `exec-b0b7479f-1cfb-483a-9b65-dbffa861315a.png`. 같은 재료의 서로 다른 결4종을 2×2 정면·균일 조명·무문자·무소품·무발자국으로 요청했습니다. 원본을 재편집하지 않고 셰이더에서 셀을 혼합합니다.
+
+## 트랙2~5의360도 하늘·원경
+
+image_gen.imagegen으로 제작한1774×887(2:1) 위경도 원본을 편집·확대하지 않고 복사했습니다. 각 원본에360도 수평 시야, 중앙 수평선, 방향마다 다른 풍경, 먼 지형, 자연스러운 구름, 무도로·무차량·무문자·실존 브랜드 제외를 요청했습니다. 외부 이미지를 입력하지 않았으며 원본은 `/workspace/generated_images/`에 보존합니다.
+
+| 배포 이미지 | 생성 원본 | 방향별 원경 |
+| --- | --- | --- |
+| `speedway-panorama.png` | `exec-91bccf60-d2e8-434d-ac57-9b687bc399b6.png` | 바다·녹색 구릉·해안 도시·경기장 |
+| `harbor-panorama.png` | `exec-2e298e2d-4ecd-44b9-85b5-fd480d8c613c.png` | 야간 도시·항만 크레인·화물선·해안 산맥 |
+| `track-riviera-panorama.png` | `exec-49f9750e-df18-4376-9257-6d660938b467.png` | 청록 바다·섬·사암 능선·마을·녹색 산맥 |
+| `gorge-sunset-panorama.png` | `exec-935341f2-e969-44b5-a8f4-90a4d96574ce.png` | 적색 메사·깊은 협곡·강 계곡·노을 |
+
+[track_background.gd](../../scripts/environment/track_background.gd)와 [track_panorama.gdshader](../../shaders/track_panorama.gdshader)는 시선의 실제 경도·위도로 이미지를 읽습니다. 수평 양 끝의 좁은 영역만 혼합하며, 랩·카메라 방향에 따른 평면 회전이나 수평 늘이기를 하지 않습니다. 원경 하나만 현재 코스의 하늘이 소유하고 코스 해제 시 놓습니다. 원본은 손실 품질0.9·밉맵으로 임포트합니다. 태양·달의 이미지 내 위치에 맞춰 주광 방위·고도도 고정합니다. 기존 `riviera-sky-panorama.png`는 투어의 구름 전용 이미지로 계속 사용합니다.
