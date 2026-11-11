@@ -3,15 +3,24 @@ shader_type spatial;
 uniform sampler2D container_skins : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D building_fronts : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D building_sides : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+uniform sampler2D building_fronts_alt : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+uniform sampler2D building_sides_alt : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D restaurant_facades : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D rural_fronts : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D rural_sides : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 varying float style;
 varying float variant;
 varying float front;
-void vertex() { style=UV2.x;front=UV2.y;variant=INSTANCE_CUSTOM.r; }
+varying float skin;
+void vertex() { style=UV2.x;front=UV2.y;variant=INSTANCE_CUSTOM.r;skin=INSTANCE_CUSTOM.b; }
 void fragment() {
  ALBEDO=COLOR.rgb;ROUGHNESS=.94;SPECULAR=.05;
+ // 대체 상점의 청색 띠와 실제 입체 처마·캐노피의 도장색을 맞춘다.
+ if(skin>.5 && style<.5) {
+  bool green=COLOR.g>COLOR.r*1.25 && COLOR.g>COLOR.b*1.1;
+  bool red=COLOR.r>.6 && COLOR.r>COLOR.g*1.8 && COLOR.r>COLOR.b*1.5;
+  if(green || red) ALBEDO=vec3(.025,.10,.23);
+ }
  if(style>59.5 && style<63.5) {
   float index=floor(style+.5)-60.0;
   vec2 cell=vec2(.25,.5);
@@ -39,6 +48,8 @@ void fragment() {
   vec2 uv=tile*cell+margin+clamp(q,vec2(0),vec2(1))*(cell-2.0*margin);
   vec3 surface;
   if(index>11.5) surface=textureGrad(restaurant_facades,uv,dFdx(q)*cell,dFdy(q)*cell).rgb;
+  else if(skin>.5 && front>.5) surface=textureGrad(building_fronts_alt,uv,dFdx(q)*cell,dFdy(q)*cell).rgb;
+  else if(skin>.5) surface=textureGrad(building_sides_alt,uv,dFdx(q)*cell,dFdy(q)*cell).rgb;
   else if(front>.5) surface=textureGrad(building_fronts,uv,dFdx(q)*cell,dFdy(q)*cell).rgb;
   else surface=textureGrad(building_sides,uv,dFdx(q)*cell,dFdy(q)*cell).rgb;
   vec3 warm=vec3(1.04,.98,.91);vec3 cool=vec3(.93,.99,1.04);

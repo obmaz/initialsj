@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "neon_arcade"
+category = "props"
+order = 94
+scene_path = "res://models/props/neon_arcade/model.tscn"
+material_path = "res://models/props/neon_arcade/material.tres"
+source_path = "res://models/props/neon_arcade/SOURCE.md"
+tags = ["building", "neon"]
+base_size = Vector3(22, 11, 22)
+visibility_range = 420.0
+placement_limits = Vector2(0.97, 1.06)

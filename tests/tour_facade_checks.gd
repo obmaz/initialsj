@@ -31,10 +31,18 @@ func run(tree: SceneTree) -> int:
 					continue
 				textured_kinds[kind] = true
 				var material: Material = Props.material_for(kind)
+				if not Props.Models.definition(kind).material_path.is_empty():
+					check(
+						material.get_shader_parameter("facades") is Texture2D,
+						"전용 GLB 건물의 외벽 이미지가 실제 재질에 연결돼야 한다: " + kind
+					)
+					continue
 				check(
 					(
 						material.get_shader_parameter("building_fronts") is Texture2D
 						and material.get_shader_parameter("building_sides") is Texture2D
+						and material.get_shader_parameter("building_fronts_alt") is Texture2D
+						and material.get_shader_parameter("building_sides_alt") is Texture2D
 					),
 					"투어의 실제 배치 건물은 정면·측면 이미지를 함께 사용해야 한다: " + kind
 				)
@@ -51,6 +59,8 @@ func run(tree: SceneTree) -> int:
 							(
 								material.get_shader_parameter("facade_images") is Texture2D
 								and material.get_shader_parameter("facade_extra") is Texture2D
+								and material.get_shader_parameter("facade_alternate_a") is Texture2D
+								and material.get_shader_parameter("facade_alternate_b") is Texture2D
 							),
 							"도시·폐허 빌딩의 실제 렌더 재질에 생성형 외벽을 연결한다"
 						)

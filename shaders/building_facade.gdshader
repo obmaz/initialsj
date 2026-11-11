@@ -2,6 +2,8 @@ shader_type spatial;
 #include "res://shaders/surface_relief.gdshaderinc"
 uniform sampler2D facade_images : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D facade_extra : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+uniform sampler2D facade_alternate_a : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+uniform sampler2D facade_alternate_b : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform bool ruined = false;
 uniform bool night_city = false;
 uniform bool industrial_facade = false;
@@ -30,10 +32,19 @@ void fragment() {
 	if(extra) module-=6.0;
 	vec2 tile=vec2(mod(module,4.0),floor(module/4.0));
 	float width=side ? dimensions.z : dimensions.x;
-	vec2 q=vec2(fract((u+width*.5)/max(16.0,min(width,28.0))),fract((.5-local_point.y)*max(1.0,dimensions.y/12.0)));
-	if (industrial_facade) q=vec2(fract((u+width*.5)/width),clamp(.5-local_point.y,0.0,1.0));
+	vec2 projected=vec2((u+width*.5)/max(16.0,min(width,28.0)),(.5-local_point.y)*max(1.0,dimensions.y/12.0));
+	if (industrial_facade) projected=vec2((u+width*.5)/width,.5-local_point.y);
+	vec2 q=industrial_facade ? vec2(fract(projected.x),clamp(projected.y,0.,1.)) : fract(projected);
 	vec2 uv=tile*vec2(.25,1.0/3.0)+vec2(.002,.004)+q*vec2(.246,1.0/3.0-.008);
-	vec3 photographed=extra ? texture(facade_extra,uv).rgb : texture(facade_images,uv).rgb;
+	float skin=industrial_facade ? 0. : min(2.,floor(dimensions.a*3.));
+	vec2 alternate_tile=vec2(mod(float(facade_style),4.),floor(float(facade_style)/4.));
+	vec2 alternate_uv=alternate_tile*vec2(.25,1./3.)+vec2(.002,.004)+q*vec2(.246,1./3.-.008);
+	vec2 gradient_x=dFdx(projected)*vec2(.246,1./3.-.008),gradient_y=dFdy(projected)*vec2(.246,1./3.-.008);
+	vec3 photographed;
+	if(skin>.5 && skin<1.5) photographed=textureGrad(facade_alternate_a,alternate_uv,gradient_x,gradient_y).rgb;
+	else if(skin>1.5) photographed=textureGrad(facade_alternate_b,alternate_uv,gradient_x,gradient_y).rgb;
+	else if(extra) photographed=textureGrad(facade_extra,uv,gradient_x,gradient_y).rgb;
+	else photographed=textureGrad(facade_images,uv,gradient_x,gradient_y).rgb;
 	if (ruined) {
 		float seed = fract(sin(floor(u/3.2)*12.9898+dimensions.a*77.0)*43758.5453);
 		float top = dimensions.y*(0.28+seed*0.20);

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contract_version = 1
+id = "neon_pylon"
+category = "props"
+order = 95
+scene_path = "res://models/props/neon_pylon/model.tscn"
+material_path = "res://models/props/neon_pylon/material.tres"
+source_path = "res://models/props/neon_pylon/SOURCE.md"
+tags = ["neon", "neon_sign"]
+base_size = Vector3(3.7, 13.95, 3.6)
+visibility_range = 420.0
+placement_limits = Vector2(0.97, 1.06)

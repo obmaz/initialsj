@@ -74,8 +74,9 @@ func make_urban_skyline() -> void:
 	for cluster in range(4):
 		var d: float = road.length * (0.14 + cluster * 0.23)
 		var side := -1.0 if cluster % 2 == 0 else 1.0
-		for i in range(30):
-			var at: float = d + (i - 15) * 38
+		var count := 42 if scenery.theme != "ruins" else 30
+		for i in range(count):
+			var at: float = d + (i - count * .5) * 32
 			var lane: float = side * (530 + random.randf_range(0, 210))
 			var p: Vector3 = road.point(at, lane)
 			var radius := 60.0
@@ -94,6 +95,7 @@ func make_urban_skyline() -> void:
 			p.y = -5
 			var tiers := 3 if style == 2 else 1
 			var base := 0.0
+			var appearance := random.randf()
 			for tier in range(tiers):
 				var h := height * (0.5 if tier == 0 else 0.25) if tiers > 1 else height
 				var size := Vector3(width * (1 - tier * 0.22), h, depth * (1 - tier * 0.22))
@@ -102,7 +104,7 @@ func make_urban_skyline() -> void:
 						Basis(Vector3.UP, road.heading(at)).scaled_local(size), p + Vector3.UP * (base + h * 0.5)
 					)
 				)
-				dimensions[style].append(Color(size.x, size.y, size.z, random.randf()))
+				dimensions[style].append(Color(size.x, size.y, size.z, appearance))
 				base += h
 			positions.append(p)
 			widths.append(width)
@@ -123,8 +125,7 @@ func make_urban_skyline() -> void:
 			mesh = cube
 		var material := ShaderMaterial.new()
 		material.shader = preload("res://shaders/building_facade.gdshader")
-		material.set_shader_parameter("facade_images", load("res://assets/environment/urban-harbor-facades.png"))
-		material.set_shader_parameter("facade_extra", load("res://assets/environment/urban-truck-elevations.png"))
+		preload("res://scripts/environment/urban_architecture.gd").bind_images(material)
 		material.set_shader_parameter("facade_style", [0, 3, 6, 8][style])
 		material.set_shader_parameter("night_city", scenery.theme == "neon")
 		var empty: Array[Transform3D] = []

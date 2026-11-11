@@ -46,6 +46,7 @@ static func warm_paths(region: String) -> Array[String]:
 	paths.append_array(preload("res://scripts/environment/tour_vegetation.gd").warm_paths(region))
 	if region in ["city", "seoul", "ruins", "neon"]:
 		paths.append_array([Architecture.FACADE_IMAGES, Architecture.FACADE_EXTRA, Architecture.STRUCTURE_IMAGES])
+		paths.append_array([Architecture.Variants.URBAN_A, Architecture.Variants.URBAN_B])
 	if region == "jungle":
 		paths.append(preload("res://scripts/environment/jungle_overgrowth.gd").ROCK)
 	return paths
@@ -315,14 +316,15 @@ func make_city() -> void:
 	var roof_details: Array[Transform3D] = []
 	var rubble: Array[Transform3D] = []
 	var mass: Array[Transform3D] = []
-	# Downtown roads are lined twice as densely, with a second row of towers behind.
+	# 도심은 세 줄, 서울은 두 줄의 건물 군집을 만들고 구조물 주변은 비운다.
 	var downtown: bool = theme in ["city", "neon"]
-	var count := int(track.length / (48 if downtown else 65))
+	var count := int(track.length / (38 if downtown else (48 if theme == "seoul" else 65)))
 	var accepted := 0
-	for slot in range(count * (2 if downtown else 1)):
+	for slot in range(count * (3 if downtown else (2 if theme == "seoul" else 1))):
 		var i: int = slot % count
-		var back_row: bool = slot >= count
-		var d: float = 250 + i * (track.length - 430) / count + (32.0 if back_row else 0.0)
+		var row := slot / count
+		var back_row: bool = row > 0
+		var d: float = 250 + i * (track.length - 430) / count + row * 19.0
 		var side := -1.0 if i % 2 == 0 else 1.0
 		if back_row:
 			side = -side
@@ -345,11 +347,24 @@ func make_city() -> void:
 			side * (track.half_width(d) + track.rail_setback(d, side) + 4 + radius + rng.randf_range(0, 32))
 		)
 		if back_row:
-			lane = side * (track.half_width(d) + track.rail_setback(d, side) + 120 + radius + rng.randf_range(0, 30))
-			height *= 1.35
+			lane = (
+				side
+				* (
+					track.half_width(d)
+					+ track.rail_setback(d, side)
+					+ 120
+					+ (row - 1) * 110
+					+ radius
+					+ rng.randf_range(0, 30)
+				)
+			)
+			height *= 1.2 + row * .15
+		var skin := Architecture.Variants.city_skin(accepted, Architecture.count(), track.route_node)
 		accepted += 1
-		building_manifest.append({"distance": d, "lane": lane, "radius": radius, "style": style, "height": height})
-		var variant := rng.randf()
+		building_manifest.append(
+			{"distance": d, "lane": lane, "radius": radius, "style": style, "height": height, "skin": skin}
+		)
+		var variant := Architecture.Variants.encode_city(skin, rng.randf())
 		for part in Architecture.parts(style, width, height, depth):
 			var size: Vector3 = part.size
 			var pose: Transform3D = transform_at(d, lane, 0, Vector3.ONE)

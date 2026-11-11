@@ -145,12 +145,13 @@ func run(tree: SceneTree) -> int:
 			peak > Features.SKYWAY_HEIGHT - 0.2 and not air.active,
 			"Driving up the ramp must carry the car onto the deck"
 		)
-		var events: Array = air.advance(city, Vector2(deck.lane, d), Vector2(deck.lane + 4.0, d + 1), 40, 1.0 / 40)
+		var edge: float = deck.width * .5 + 1.0
+		var events: Array = air.advance(city, Vector2(deck.lane, d), Vector2(deck.lane + edge, d + 1), 40, 1.0 / 40)
 		check(events.has("drop") and air.active, "Steering off the deck must drop the car")
 		var landed := false
 		for frame in range(120):
 			d += 1
-			if air.advance(city, Vector2(deck.lane + 4.0, d), Vector2(deck.lane + 4.0, d + 1), 40, 1.0 / 40).has(
+			if air.advance(city, Vector2(deck.lane + edge, d), Vector2(deck.lane + edge, d + 1), 40, 1.0 / 40).has(
 				"settle"
 			):
 				landed = true

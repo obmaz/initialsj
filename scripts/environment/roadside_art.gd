@@ -17,9 +17,17 @@ func _ready() -> void:
 	var building_sites: Array[Vector3] = []
 	var building_radii: Array[float] = []
 	var spacing := (
-		44.0
-		if theme in ["city", "seoul", "neon", "harbor"]
-		else (72.0 if theme in ["ruins", "canyon"] else (24.0 if theme == "jungle" else 36.0))
+		32.0
+		if theme == "neon"
+		else (
+			38.0
+			if theme in ["city", "seoul"]
+			else (
+				44.0
+				if theme == "harbor"
+				else (72.0 if theme in ["ruins", "canyon"] else (24.0 if theme == "jungle" else 36.0))
+			)
+		)
 	)
 	var count := int((road.length - 500) / spacing)
 	for i in range(count):
@@ -86,18 +94,7 @@ func _ready() -> void:
 			if kind == "hareubang"
 			else road.heading(d) + random.randf_range(-0.35, 0.35)
 		)
-		if (
-			kind
-			in [
-				"coffee_shop",
-				"souvenir_shop",
-				"street_shop",
-				"convenience_store",
-				"apartment",
-				"gas_station",
-				"warehouse_shed"
-			]
-		):
+		if Props.Models.definition(kind).tags.has("building") or Props.Models.definition(kind).tags.has("neon"):
 			yaw = road.heading(d) - side * PI * .5
 		if kind == "billboard":
 			yaw = preload("res://scripts/environment/billboard_facing.gd").yaw(road, d, lane)

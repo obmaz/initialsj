@@ -147,7 +147,10 @@ func run() -> void:
 		"Glass roofs must be rare and absent from the starting coast"
 	)
 	var city_tunnel := Library.tunnel_span(1, 1)
-	check(city_tunnel.y - city_tunnel.x >= 900, "There must be a genuinely long continuous city tunnel")
+	check(
+		city_tunnel.y - city_tunnel.x >= 200 and city_tunnel.y - city_tunnel.x <= 400,
+		"도시 터널은 시야를 오래 가리지 않는 짧은 연결 구간이어야 한다"
+	)
 	var section = load("res://scripts/track/road_section.gd")
 	var easy = section.new(Vector3.ZERO, -PI / 2, 4, 0)
 	var hard = section.new(Vector3.ZERO, -PI / 2, 4, 4)
@@ -162,8 +165,8 @@ func run() -> void:
 		easy_bends += absf(easy.curvature(easy.length * t))
 		hard_bends += absf(hard.curvature(hard.length * t))
 	check(
-		hard.length > easy.length + 500 and hard_width < easy_width - 100 and hard_bends > easy_bends * 1.25,
-		"Right choices must produce longer, narrower and more demanding roads"
+		hard.length > easy.length + 500 and hard_width < easy_width * .92 and hard_bends > easy_bends * 1.25,
+		"오른쪽 경로는 더 길고 평균 폭이8% 이상 좁으며 굴곡이 커야 한다"
 	)
 	easy.free()
 	hard.free()
@@ -209,6 +212,7 @@ func run() -> void:
 	failures += await preload("res://tests/runoff_checks.gd").new().run(self)
 	failures += await preload("res://tests/loading_screen_checks.gd").new().run(self)
 	failures += await preload("res://tests/tour_gimmick_checks.gd").new().run(self)
+	failures += await preload("res://tests/tour_comfort_checks.gd").new().run(self)
 	failures += await preload("res://tests/result_screen_checks.gd").new().run(self)
 	failures += await preload("res://tests/juice_checks.gd").new().run(self)
 	failures += await preload("res://tests/driving_effect_checks.gd").new().run(self)
@@ -234,6 +238,7 @@ func run() -> void:
 	failures += await preload("res://tests/model_contract_checks.gd").new().run(self)
 	failures += await preload("res://tests/tour_scenery_checks.gd").new().run(self)
 	failures += await preload("res://tests/tour_facade_checks.gd").new().run(self)
+	failures += await preload("res://tests/facade_variant_checks.gd").new().run(self)
 	failures += await preload("res://tests/tour_weather_checks.gd").new().run(self)
 	failures += await preload("res://tests/jungle_sky_checks.gd").new().run(self)
 	failures += await preload("res://tests/tour_traffic_checks.gd").new().run(self)

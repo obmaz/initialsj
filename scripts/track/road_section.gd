@@ -27,6 +27,7 @@ const TOUR_ELEVATION := {
 	"volcano": Vector4(4, 0.95, 0.54, 0.37)
 }
 var features: Array[Dictionary] = []
+var skyway_spans: Array[Vector2] = []
 var closed_loop := false
 var course_id := 0
 var bank_samples := PackedFloat32Array()
@@ -424,7 +425,21 @@ func width_scale() -> float:
 
 
 func half_width(distance: float) -> float:
-	return authored_half_width(distance) * width_scale()
+	var width := authored_half_width(distance) * width_scale()
+	if not closed_loop:
+		for span in skyway_spans:
+			var blend := (
+				smoothstep(span.x - 100, span.x - 20, distance) * (1 - smoothstep(span.y + 20, span.y + 100, distance))
+			)
+			width = lerpf(width, maxf(width, 11.5), blend)
+	return width
+
+
+# 기믹 배치가 확정된 뒤 한 번 저장한다. 폭 샘플마다 전체 기믹 목록을 훑지 않는다.
+func configure_skyways(decks: Array) -> void:
+	skyway_spans.clear()
+	for deck in decks:
+		skyway_spans.append(Vector2(deck.distance - deck.length * .5, deck.distance + deck.length * .5))
 
 
 func authored_half_width(distance: float) -> float:

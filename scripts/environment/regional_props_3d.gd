@@ -24,7 +24,20 @@ const FAMILIES := {
 	],
 	"seoul":
 	["apartment", "ginkgo", "convenience_store", "billboard", "bus_shelter", "street_shop", "gas_station", "pine"],
-	"neon": ["billboard", "convenience_store", "apartment", "plane_tree", "gas_station", "street_shop", "bus_shelter"],
+	"neon":
+	[
+		"neon_arcade",
+		"billboard",
+		"neon_pylon",
+		"neon_arcade",
+		"apartment",
+		"neon_pylon",
+		"convenience_store",
+		"neon_arcade",
+		"billboard",
+		"neon_pylon",
+		"bus_shelter"
+	],
 	"ruins": ["broken_column", "charred", "basalt"],
 	"harbor":
 	[
@@ -48,6 +61,7 @@ static var shared_materials: Dictionary = {}
 static var material_keys: Dictionary = {}
 static var texture_needs: Dictionary = {}
 const RenderResources = preload("res://scripts/rendering/render_resources.gd")
+const Variants = preload("res://scripts/environment/facade_variants.gd")
 var theme := "hawaii"
 var placements: Array[Dictionary] = []
 var batches: Array[MultiMeshInstance3D] = []
@@ -88,13 +102,27 @@ func _ready() -> void:
 		if kind == "billboard":
 			group += ":ad" + str(ad_index)
 		if not groups.has(group):
-			groups[group] = {"kind": kind, "poses": [], "ad_index": ad_index, "print_fills": []}
+			groups[group] = {
+				"kind": kind,
+				"poses": [],
+				"ad_index": ad_index,
+				"print_fills": [],
+				"skins": [],
+				"has_skins": textures_for(kind).has("building_fronts")
+			}
 		var scale: float = p.get("scale", 1.0)
 		var transform := Transform3D(
 			Basis(Vector3.UP, float(p.get("yaw", 0))).scaled_local(Vector3.ONE * scale), p.position
 		)
 		groups[group].poses.append(transform)
 		groups[group].print_fills.append(float(p.get("print_fill", 0)))
+		groups[group].skins.append(
+			(
+				clampi(int(p.get("skin", Variants.prop_skin(p.position, kind))), 0, Variants.PROP_COUNT - 1)
+				if groups[group].has_skins
+				else 0
+			)
+		)
 		var bounds: AABB = transform * model(kind).get_aabb()
 		world_bounds.append(bounds)
 		if Models.definition(kind).tags.has("tree"):
@@ -118,7 +146,10 @@ func _ready() -> void:
 				var origin: Vector3 = poses[start + i].origin
 				var appearance := posmod(floori(origin.x * .017) + floori(origin.z * .031), 8)
 				multi.set_instance_custom_data(
-					i, Color(float(appearance) / 7, groups[group].print_fills[start + i], 0, 1)
+					i,
+					Color(
+						float(appearance) / 7, groups[group].print_fills[start + i], groups[group].skins[start + i], 1
+					)
 				)
 			var node := MultiMeshInstance3D.new()
 			node.name = "Regional3D_" + kind + "_" + str(start)
@@ -195,6 +226,8 @@ static func textures_for(kind: String) -> Dictionary:
 			elif mark.x > 9.5:
 				needed["building_fronts"] = "res://assets/environment/building-front-elevations.png"
 				needed["building_sides"] = "res://assets/environment/building-side-elevations.png"
+				needed["building_fronts_alt"] = Variants.PROP_FRONT
+				needed["building_sides_alt"] = Variants.PROP_SIDE
 	texture_needs[kind] = needed
 	return needed
 

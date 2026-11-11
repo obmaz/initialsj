@@ -6,8 +6,8 @@ const Library = preload("res://scripts/track/route_library.gd")
 # Each region leans on different devices so every route has its own feel. Extra counts are added
 # to the shared base layout; a device that does not fit is simply left out.
 #   jumps: extra ramps, chains: extra pad pairs, lane: a boost lane, water / mud: extra patches,
-#   trucks: extra single trucks, gates: pairs of trucks to thread between, skyway: a narrow
-#   elevated deck over parked trucks that drops you back onto the road if you steer off it.
+#   trucks: extra single trucks, gates: pairs of trucks to thread between.
+# 고가 통로는 주차된 트럭 위를 지나며 옆으로 벗어나면 아래 도로로 내려온다.
 const THEME_FEEL := {
 	"hawaii": {"label": "COAST CRUISE"},
 	"jungle": {"label": "CANOPY JUMPS", "jumps": 2},
@@ -25,9 +25,10 @@ const THEME_FEEL := {
 	"snow": {"label": "ICE ROAD", "water": 3},
 	"volcano": {"label": "LAVA JUMPS", "jumps": 2, "gates": 1}
 }
-const SKYWAY_LENGTH := 240.0
-const SKYWAY_RAMP := 50.0
+const SKYWAY_LENGTH := 300.0
+const SKYWAY_RAMP := 75.0
 const SKYWAY_HEIGHT := 6.0
+const SKYWAY_WIDTH := 9.0
 
 
 static func feel(section: Node3D) -> Dictionary:
@@ -93,6 +94,7 @@ static func tour_patch(
 
 
 static func tour_layout(section: Node3D) -> Array[Dictionary]:
+	section.configure_skyways([])
 	var side := -1.0 if (section.stage + section.route_node) % 2 == 0 else 1.0
 	var occupied: Array[Vector2] = []
 	var crests: Array[Dictionary] = []
@@ -125,10 +127,10 @@ static func tour_layout(section: Node3D) -> Array[Dictionary]:
 	var profile := feel(section)
 	var skyways: Array[Dictionary] = []
 	if int(profile.get("skyway", 0)) > 0:
-		var sky_d := tour_slot(section, section.length * 0.62, SKYWAY_LENGTH + 40, "skyway", occupied)
+		var sky_d := tour_slot(section, section.length * 0.62, SKYWAY_LENGTH + 200, "skyway", occupied)
 		if sky_d >= 0:
 			var sky_fraction := side * 0.5
-			var deck := tour_patch(section, "skyway", sky_d, sky_fraction, SKYWAY_LENGTH, 4.4)
+			var deck := tour_patch(section, "skyway", sky_d, sky_fraction, SKYWAY_LENGTH, SKYWAY_WIDTH)
 			deck["height"] = SKYWAY_HEIGHT
 			skyways.append(deck)
 			# Parked trucks block the lane underneath: drive over them on the deck or go round.
@@ -240,6 +242,7 @@ static func tour_layout(section: Node3D) -> Array[Dictionary]:
 	out.append_array(skyways)
 	for i in range(out.size()):
 		out[i]["id"] = "%d:%d:%d" % [section.stage, section.route_node, i]
+	section.configure_skyways(skyways)
 	return out
 
 
@@ -681,7 +684,7 @@ static func skyway_height(feature: Dictionary, distance: float) -> float:
 	var t: float = distance - (float(feature.distance) - float(feature.length) * 0.5)
 	if t < 0 or t > float(feature.length):
 		return 0.0
-	return float(feature.height) * clampf(minf(t, float(feature.length) - t) / SKYWAY_RAMP, 0, 1)
+	return float(feature.height) * smoothstep(0, 1, clampf(minf(t, float(feature.length) - t) / SKYWAY_RAMP, 0, 1))
 
 
 static func build_skyway(section: Node3D, feature: Dictionary) -> void:

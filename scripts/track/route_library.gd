@@ -82,27 +82,17 @@ static func canopy_span(stage: int, node: int) -> Vector2:
 static func tunnel_span(stage: int, node: int) -> Vector2:
 	match theme(stage, node):
 		"jungle":
-			return Vector2(1080, 1510)
-		"city", "neon":
-			return Vector2(1420, 2370)
-		"hawaii":
-			return Vector2(1500, 1900)
-		"amusement":
-			return Vector2(1900, 2300)
+			return Vector2(1080, 1300)
+		"city":
+			return Vector2(1640, 1960)
 		"bamboo":
-			return Vector2(1700, 2150)
+			return Vector2(1760, 1980)
 		"canyon":
-			return Vector2(1800, 2250)
-		"harbor":
-			return Vector2(1500, 2050)
+			return Vector2(1820, 2080)
 		"seoul":
-			return Vector2(1500, 2600)
-		"ruins":
-			return Vector2(1750, 2210)
-		"jeju", "snow":
-			return Vector2(1850, 2250)
-		"pyramid", "volcano":
-			return Vector2(1980, 2240)
+			return Vector2(1680, 2060)
+		"snow":
+			return Vector2(1900, 2120)
 	return Vector2.ZERO
 
 

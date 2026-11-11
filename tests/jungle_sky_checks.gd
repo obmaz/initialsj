@@ -22,7 +22,7 @@ func run(tree: SceneTree) -> int:
 	var trees: Node = road.scenery.get_node("TourNativeVegetation")
 	check(trees.bank_counts[-1] > 200 and trees.bank_counts[1] > 200, "정글 숲은 양옆을 모두 촘촘하게 채운다")
 	var growth: Node = road.scenery.get_node("JungleOvergrowth")
-	check(growth.vine_count > 150 and growth.roof_sections >= 6, "정글에는 덩굴과 지면 위로 이어지는 실제 터널 덮개가 있어야 한다")
+	check(growth.vine_count > 150 and growth.roof_sections >= 3, "정글에는 덩굴과 지면 위로 이어지는 실제 터널 덮개가 있어야 한다")
 	check(
 		growth.hanging_clearance > 5.5 and growth.has_node("JungleEntrance") and growth.has_node("JungleExit"),
 		"늘어진 덩굴은 차량 머리 위 여유를 남기고 양쪽 포털을 감싼다"

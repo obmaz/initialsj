@@ -10,7 +10,7 @@ const REGIONS := {
 	"ruins": {"concept": "드문 유적과 비에 젖은 외곽 숲", "weather": "rain", "time_of_day": "dawn", "difficulty": 4},
 	"seoul": {"concept": "도심 간선도로와 상가", "weather": "clear", "time_of_day": "day", "difficulty": 4},
 	"fuji": {"concept": "호수와 산기슭", "weather": "clear", "time_of_day": "day", "difficulty": 4},
-	"neon": {"concept": "네온 야간 도심", "weather": "clear", "time_of_day": "night", "difficulty": 4},
+	"neon": {"concept": "야간 전자상가·아케이드와 네온 간판 거리", "weather": "clear", "time_of_day": "night", "difficulty": 4},
 	"canyon": {"concept": "넓은 협곡과 외딴 암벽", "weather": "rain", "time_of_day": "dawn", "difficulty": 5},
 	"harbor": {"concept": "항만과 해운 물류 단지", "weather": "clear", "time_of_day": "day", "difficulty": 5},
 	"bamboo": {"concept": "대나무 계곡과 침엽수 숲", "weather": "clear", "time_of_day": "day", "difficulty": 5},

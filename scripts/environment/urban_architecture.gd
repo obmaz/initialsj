@@ -1,6 +1,7 @@
 extends RefCounted
 const Catalog = preload("res://models/model_catalog.gd")
 const RenderResources = preload("res://scripts/rendering/render_resources.gd")
+const Variants = preload("res://scripts/environment/facade_variants.gd")
 const FACADE_IMAGES := "res://assets/environment/urban-harbor-facades.png"
 const FACADE_EXTRA := "res://assets/environment/urban-truck-elevations.png"
 const STRUCTURE_IMAGES := "res://assets/environment/generated-structure-variants.png"
@@ -73,14 +74,20 @@ static func add_mass(parent: Node3D, poses: Array[Transform3D]) -> void:
 		parent.add_child(node)
 
 
+static func bind_images(material: ShaderMaterial) -> void:
+	material.set_shader_parameter("facade_images", RenderResources.fetch(FACADE_IMAGES))
+	material.set_shader_parameter("facade_extra", RenderResources.fetch(FACADE_EXTRA))
+	material.set_shader_parameter("facade_alternate_a", RenderResources.fetch(Variants.URBAN_A))
+	material.set_shader_parameter("facade_alternate_b", RenderResources.fetch(Variants.URBAN_B))
+
+
 static func material(style: int, theme: String) -> Material:
 	var definition: Resource = definition(style)
 	if not definition.material_path.is_empty():
 		return load(definition.material_path)
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/building_facade.gdshader")
-	material.set_shader_parameter("facade_images", RenderResources.fetch(FACADE_IMAGES))
-	material.set_shader_parameter("facade_extra", RenderResources.fetch(FACADE_EXTRA))
+	bind_images(material)
 	material.set_shader_parameter("ruined", theme == "ruins")
 	material.set_shader_parameter("facade_style", definition.parameters.facade_index)
 	material.set_shader_parameter("night_city", theme == "neon")

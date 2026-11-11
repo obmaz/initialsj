@@ -103,6 +103,10 @@ image_gen.imagegen으로 제작한1774×887(2:1) 위경도 원본을 편집·확
 
 `speedway-facades.png`는 image_gen.imagegen 생성 원본 `exec-5a334adc-862b-4fc4-9771-e4e6413e5462.png`를 편집 없이 복사했습니다. 동일한 크기의2×2 영역은 순서대로 피트 차고 출입면, 운영동 외벽, 관중석 통로 벽, 콘크리트 기초입니다. 가상 경기장의 미장·줄눈·금속 차고문·관람 창·환기구를 정면·균일 광원·무문자·무상표로 요청했습니다. 피트와 관중석은 이 전용 UV를 사용하며 원본은 `/workspace/generated_images/`에 보존합니다.
 
+## 네온 전자상가
+
+`neon-district-elevations.png`는 image_gen.imagegen 생성 원본 `exec-9cc48afb-eb02-4675-a670-5207756ba1b4.png`를 편집 없이 복사한 2열×2행 이미지입니다. 가상의 야간 전자상가·아케이드 STARCADE와 VOLTWORKS의 정면·측면을 같은 UV 규격으로 요청했습니다. [아케이드 건물](../../models/props/neon_arcade/SOURCE.md)과 [입체 간판](../../models/props/neon_pylon/SOURCE.md)의 GLB 메시가 이를 공유하고, 셰이더가 인스턴스별 업종과 발광을 선택합니다. 원본은 `/workspace/generated_images/`에 보존합니다.
+
 ## 정글 터널 암석
 
 `jungle-moss-stone.png`는 image_gen.imagegen 생성 원본 `exec-d864443b-6e56-490b-9033-1cc81eec2d91.png`를 편집 없이 복사한 전용 이끼 암석 재질입니다. 습한 회색 암석·불규칙한 균열·미세한 덩굴 뿌리·짙은 이끼를 정면·균일광·무격자·무상표의 반복 표면으로 요청했습니다. 정글 터널 내벽·포털·흙덮개의 UV에 사용하며 원본은 `/workspace/generated_images/`에 보존합니다.
@@ -110,3 +114,18 @@ image_gen.imagegen으로 제작한1774×887(2:1) 위경도 원본을 편집·확
 ### 항만 화물 컨테이너
 
 `harbor-cargo-surfaces.png`는2026-11-11 이미지 생성 도구로 제작한 TIDEMARK·NORTHWAKE·PORTLINE 가상 도색3종의 측면·쌍여닫이문·지붕 아틀라스입니다. 원본 생성 결과를 편집 없이 복사했고 소금 얼룩·녹·긁힘·잠금장치·강철 골이 포함됩니다. 모델과 야적장이 같은 이미지·면별 UV를 공유합니다. 실재 운송업체의 로고는 사용하지 않습니다.
+
+## 동일 형상의 건물 외벽 스킨
+
+2026-11-11 이미지 생성 도구로 기존 프로젝트 아틀라스를 참조해 제작했습니다. 원본을 편집·재단·확대하지 않고 복사했으며 외부 사진·실존 브랜드는 입력하지 않았습니다. 동일한4열×3행·문·창 위치·층수를 유지하면서 재료와 프레임을 바꿉니다.
+
+| 배포 이미지 | 생성 원본 | 용도 |
+| --- | --- | --- |
+| `urban-facades-limestone.png` | `exec-5be44341-7256-47c3-911d-4d686b8c2c22.png` | 석회암·녹색 유리·푸른 회벽·청동 프레임 등12종 도시 외벽 |
+| `urban-facades-clinker.png` | `exec-57a21b69-bbb5-4a3a-bd2c-037a4b133ee6.png` | 적벽돌·청색 유리·검은 석재·민트 회벽 등12종 도시 외벽 |
+| `building-front-alternate.png` | `exec-3e503897-f34f-4ddc-a9a5-e92d792e5b76.png` | 상점·편의점·서비스동·아파트 등12개 전면 영역의 대체 테마 |
+| `building-side-alternate.png` | `exec-f5e1f975-c92f-4ec7-bef2-f567d995e88f.png` | 대체 전면과 같은 재료·띠·층수의12개 측면 영역 |
+
+도시 이미지는 기존 도시 아틀라스의 격자만 참고하고12개 영역을 모두 도시 외벽으로 요청했습니다. 두 번째 이미지의 낮은 층·반사·석재 패널도 정면 투영이며 별도 지붕·하늘·지면·식생을 넣지 않았습니다. 일반 건물 전면은 기존 정면의 개구부를 유지한 채 HARBOR CAFE·DAY MART·BAY INN 등의 가상 점포와 재료를 바꿨습니다. 측면은 기존 측면의 UV 격자와 새 전면을 함께 입력해 서로 맞췄습니다.
+
+[facade_variants.gd](../../scripts/environment/facade_variants.gd)가 도시3세트·일반 외벽2세트를 선택합니다. 정면과 측면은 한 개체의 같은 스킨 번호를 공유하며, 선택 때문에 메시·충돌체·실척·드로 배치를 복제하지 않습니다. 일반 상점의 녹색·적색 입체 처마는 대체 스킨에서 청색 도장으로 맞춥니다. 기존 식생·바위·광고에는 이 도장 변형을 적용하지 않습니다. 새 이미지도 VRAM 압축·밉맵을 사용합니다. 원본은 `/workspace/generated_images/`에 보존합니다.
