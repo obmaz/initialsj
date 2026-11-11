@@ -12,6 +12,7 @@ var clock: Node
 
 
 func _ready() -> void:
+	collision_mask = 15
 	clock = road
 	while clock != null and not clock.is_in_group("tour_traffic_clock"):
 		clock = clock.get_parent()
@@ -58,10 +59,13 @@ func _physics_process(delta: float) -> void:
 		move_toward(velocity.dot(forward), target, delta * 5),
 		false
 	)
-	visual.global_transform = visual_frame(visual.ride_offset)
-	visual.animate(steering, false, false, delta)
-	visual.road_speed = velocity.length()
-	visual.set_detail(camera.global_position.distance_to(global_position) if camera != null else 0)
+	visual.global_transform = visual_frame(
+		float(visual.get("ride_offset")) if visual.get("ride_offset") != null else 0.0
+	)
+	if visual.has_method("animate"):
+		visual.animate(steering, false, false, delta)
+		visual.road_speed = velocity.length()
+		visual.set_detail(camera.global_position.distance_to(global_position) if camera != null else 0)
 
 
 func receive_traffic_push(impulse: Vector3) -> void:

@@ -57,16 +57,11 @@ static func begin(section: Node3D) -> Dictionary:
 		):
 			append_mesh(ground, child.mesh, relative * child.global_transform)
 	collect_scenery(section.scenery, section, ground, barriers)
-	var trucks := PackedVector3Array()
 	for child in section.get_children():
-		if child.get_meta("parked_truck", false):
-			for part in child.get_children():
-				if part is MeshInstance3D:
-					append_mesh(trucks, part.mesh, relative * part.global_transform)
-	if not trucks.is_empty():
-		var truck_body := body("ParkedTruckBody", trucks, 2)
-		truck_body.set_meta("parked_truck", true)
-		root.add_child(truck_body)
+		if child.get_meta("parked_truck", false) and not child.get_meta("traffic_converted", false):
+			if child is CharacterBody3D:
+				continue
+			make_truck_traffic(section, child)
 	var template := preload("res://scripts/rendering/render_resources.gd").unit_box()
 	# 단위 상자의 삼각형은 한 번만 꺼내 모든 장벽 조각이 재사용한다.
 	return {"root": root, "ground": ground, "walls": barriers, "unit": template.get_faces(), "distance": 0.0}
@@ -133,3 +128,29 @@ static func collect_scenery(node: Node, section: Node3D, ground: PackedVector3Ar
 			append_mesh(walls, node.multimesh.mesh, parent_frame * instance_frame)
 	for child in node.get_children():
 		collect_scenery(child, section, ground, walls)
+
+
+# 기존 GLB 트럭 외형을 유지하고 차체·이동·충격은 일반 교통 차량과 공유한다.
+static func make_truck_traffic(section: Node3D, visual: Node3D) -> void:
+	visual.set_meta("traffic_converted", true)
+	var motor := preload("res://scripts/race/tour_traffic.gd").new()
+	motor.name = "TruckTrafficBody"
+	motor.set_meta("parked_truck", true)
+	motor.road = section
+	motor.visual = visual
+	motor.cruise_speed = 12
+	motor.distance = section.curve.get_closest_offset(visual.global_position)
+	var right: Vector3 = (section.point(motor.distance, 1) - section.point(motor.distance)).normalized()
+	motor.lane = (visual.global_position - section.point(motor.distance)).dot(right)
+	motor.contact_shape.shape.size = Vector3(2.7, 3.5, 11.0)
+	motor.contact_shape.position.y = 1.1
+	var nearest := INF
+	for feature in section.features:
+		if feature.kind == "truck" and absf(float(feature.distance) - motor.distance) < 30:
+			var score := absf(float(feature.distance) - motor.distance) + absf(float(feature.lane) - motor.lane) * 8
+			if score < nearest:
+				nearest = score
+				motor.feature_record = feature
+	section.add_child(motor)
+	motor.configure(preload("res://scripts/vehicles/vehicle_catalog.gd").spec(0))
+	motor.reset_pose(visual.global_position, -visual.global_basis.z, visual.global_basis.y)

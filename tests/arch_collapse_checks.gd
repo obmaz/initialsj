@@ -28,7 +28,7 @@ func run(tree: SceneTree) -> int:
 		var car := BoxShape3D.new()
 		car.size = Vector3(2.1, 1.4, 4.5)
 		query.shape = car
-		query.collision_mask = 2
+		query.collision_mask = 8
 		for lane in [-8.0, 0.0, 8.0]:
 			query.transform = Transform3D(
 				Basis(Vector3.UP, race.track.heading(fall.distance)),

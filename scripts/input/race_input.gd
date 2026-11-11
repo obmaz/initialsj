@@ -4,7 +4,7 @@ const RaceState = preload("res://scripts/race/race_state.gd")
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const Pad = preload("res://scripts/input/gamepad_input.gd")
 # 설정 화면에서 패드로 고를 수 있는 줄 수.
-const SETTINGS_ROWS := 7
+const SETTINGS_ROWS := 8
 var race: Node3D
 
 
@@ -241,8 +241,10 @@ func settings_activate(index: int) -> void:
 		3:
 			race.toggle_fps()
 		4:
-			race.shell.toggle_fullscreen()
+			race.toggle_auto_accelerate()
 		5:
+			race.shell.toggle_fullscreen()
+		6:
 			race.hud.install_game()
 		_:
 			race.navigate(race.close_settings)

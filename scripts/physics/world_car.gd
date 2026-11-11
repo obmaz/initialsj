@@ -24,6 +24,8 @@ const REALIGN_RATE := 7.0
 const REALIGN_MAX_ERROR := 1.3
 const GLIDE_REBOUND := Tuning.GLIDE_REBOUND
 const GLIDE_REBOUND_MAX := Tuning.GLIDE_REBOUND_MAX
+var rescue_floor: Dictionary = {}
+var rescue_floor_used := false
 var flight_time := 0.0
 var specification: Dictionary = {}
 var grounded := false
@@ -52,7 +54,7 @@ var coast_direction := 0.0
 
 func _init() -> void:
 	collision_layer = 4
-	collision_mask = 7
+	collision_mask = 15
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	contact_shape = CollisionShape3D.new()
 	var box := BoxShape3D.new()
@@ -153,6 +155,13 @@ func _support() -> Dictionary:
 		points.append(hit.position)
 		normal += hit.normal
 	if points.is_empty():
+		if not rescue_floor.is_empty():
+			var plane: Vector3 = rescue_floor.position
+			var up: Vector3 = rescue_floor.normal
+			var gap := (global_position - plane).dot(up) - SUPPORT_HEIGHT
+			if gap < .3 and gap > -2:
+				rescue_floor_used = true
+				return {"position": plane, "normal": up, "gap": gap, "rescue": true}
 		return {}
 	var at := Vector3.ZERO
 	for point in points:
@@ -213,6 +222,7 @@ func advance(
 		-12,
 		maxf(float(specification.get("overdrive_speed", 112)) + 10, float(specification.get("max_speed", 80)) + 24)
 	)
+	rescue_floor_used = false
 	var support := _support()
 	grounded = not support.is_empty() and velocity.dot(support.normal) <= 2.0
 	if not grounded:
@@ -225,6 +235,10 @@ func advance(
 	if grounded:
 		surface_normal = surface_normal.lerp(support.normal, 1 - exp(-delta * 18)).normalized()
 		ground_height = support.position.y
+		if support.get("rescue", false):
+			global_position += (
+				support.normal * (SUPPORT_HEIGHT - (global_position - support.position).dot(support.normal))
+			)
 	var speed := velocity.slide(surface_normal).length()
 	var high_speed_scale := steering_scale(speed)
 	var input_rate: float = float(specification.get("steer_rate", 7.0)) * high_speed_scale
@@ -291,7 +305,7 @@ func advance(
 		)
 		last_corner_loss *= lerpf(1.0, 0.48, coast_slide)
 		planar = planar.move_toward(Vector3.ZERO, last_corner_loss * delta)
-		velocity = planar - surface_normal * 2.0
+		velocity = planar - surface_normal * (0.0 if rescue_floor_used else 2.0)
 	else:
 		# No road heading, throttle snap or lateral reset during a jump.
 		velocity.y -= GRAVITY * delta
@@ -333,7 +347,11 @@ func advance(
 					and not collider.get_collision_layer_value(1)
 				)
 				var severe: bool = (
-					barrier and closing >= 1.2 and Crash.launches(incoming_speed, closing) and absf(normal.y) < 0.65
+					barrier
+					and collision_layer != 16
+					and closing >= 1.2
+					and Crash.launches(incoming_speed, closing)
+					and absf(normal.y) < 0.65
 				)
 				last_contacts.append(
 					{
@@ -367,6 +385,11 @@ func advance(
 							+ away * clampf(closing * GLIDE_REBOUND, 0.85, GLIDE_REBOUND_MAX)
 						)
 						realign_time = REALIGN_TIME
+				elif collider.has_method("receive_debris_hit"):
+					collider.receive_debris_hit()
+					velocity = before * .88
+					remaining = collision.get_remainder()
+					continue
 				elif collider.has_method("receive_traffic_push"):
 					var incoming := before.slide(surface_normal)
 					var side := global_basis.x.slide(surface_normal).normalized()
@@ -375,7 +398,13 @@ func advance(
 						side_sign = -1.0 if get_instance_id() % 2 else 1.0
 					var strength := clampf(closing / maxf(incoming.length(), 1), 0, 1)
 					velocity = incoming * lerpf(.92, .58, strength) + side * side_sign * clampf(closing * .13, .5, 8)
-					collider.receive_traffic_push(-normal.slide(surface_normal).normalized() * minf(closing * .48, 24))
+					var push := (
+						incoming.normalized() * minf(closing * .65, 28) - side * side_sign * clampf(closing * .16, 2, 7)
+					)
+					collider.receive_traffic_push(push)
+					# 실제 스윕으로 상대에게 옆 공간을 만들고, 플레이어도 전진하며 비켜간다.
+					collider.move_and_collide(push.normalized() * minf(.65, closing * delta), false, .012)
+					realign_time = REALIGN_TIME
 				else:
 					velocity = tangent * 0.90 + normal * clampf(closing * 0.16, 0.8, 5.0)
 				if can_step and not severe:

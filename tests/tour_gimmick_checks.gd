@@ -208,7 +208,7 @@ func run(tree: SceneTree) -> int:
 	for frame in range(40):
 		race.step(1.0 / 60, 0, false, true, false)
 	check(race.speed < 50, "A car driving through mud must lose clear speed (%.1f)" % race.speed)
-	# A parked truck is a wall: heavy speed loss and a push to the open side.
+	# 트럭은 고정 벽이 아니라 감속·밀어내기 후에도 전진할 수 있는 교통 차량이다.
 	var truck := first_of(active, "truck")
 	race.restart()
 	race.state = "racing"
@@ -216,16 +216,18 @@ func run(tree: SceneTree) -> int:
 		rival.active = false
 	preload("res://tests/tour_world_checks.gd").new().set_car(race, truck.distance - 14, truck.lane, 55)
 	race.bump_cooldown = 0
-	for frame in range(20):
+	var minimum_speed: float = race.speed
+	var hit_truck := false
+	for frame in range(80):
+		await tree.physics_frame
 		race.step(1.0 / 60, 0, false, true, false)
-	check(
-		race.speed < 38 and race.traffic_hits >= 1,
-		"Hitting a parked truck must cost most of the speed (%.1f)" % race.speed
-	)
-	check(
-		not race.world_race.player_body.last_contacts.is_empty() or race.crash.active,
-		"주차 트럭은 실제 차체 접촉이나 충돌 비행을 일으켜야 한다"
-	)
+		for hit in race.world_race.player_body.last_contacts:
+			if hit.collider.get_meta("parked_truck", false):
+				hit_truck = true
+				check(hit.collider.has_method("receive_traffic_push"), "트럭 충격은 상대의 실제 차체에 전달한다")
+		minimum_speed = minf(minimum_speed, race.speed)
+	check(hit_truck and minimum_speed > 10 and minimum_speed < 55, "트럭 충돌은 감속해도 정지·강제 후진을 만들면 안 된다")
+	check(race.distance > truck.distance - 10 and not race.crash.active, "트럭 뒤에 고정되지 않고 전진을 계속한다")
 	race.queue_free()
 	await tree.process_frame
 	print(

@@ -1,5 +1,6 @@
 shader_type spatial;
 uniform bool repaint_traffic = false;
+uniform bool protection = false;
 uniform vec4 traffic_paint = vec4(1.);
 // 차체 조각 전체를 한 번에 그린다. 조각마다 다른 색·금속성·거칠기·클리어코트·발광은
 // 재질 대신 정점 자료에 담는다: COLOR=색, UV=(금속성, 거칠기), UV2=(클리어코트, 발광 세기).
@@ -16,4 +17,5 @@ void fragment() {
 	CLEARCOAT = UV2.x;
 	CLEARCOAT_ROUGHNESS = 0.5;
 	EMISSION = base*UV2.y;
+	if(protection) { ALBEDO=mix(base,vec3(.12,.55,.72),.65); EMISSION+=vec3(.03,.4,.6)*(.6+.15*sin(TIME*8.)); }
 }

@@ -29,6 +29,8 @@ func run() -> void:
 	root.add_child(race)
 	race.set_physics_process(false)
 	race.save_records = false
+	race.auto_accelerate = false
+	race.hud.configure_pedals()
 	await process_frame
 	check(
 		race.track.point(0).distance_to(race.track.point(race.track.length)) > 1200,
@@ -244,4 +246,5 @@ func run() -> void:
 	failures += await preload("res://tests/tour_traffic_checks.gd").new().run(self)
 	failures += await preload("res://tests/track_background_checks.gd").new().run(self)
 	failures += await preload("res://tests/road_recovery_checks.gd").new().run(self)
+	failures += await preload("res://tests/drive_revision_checks.gd").new().run(self)
 	quit(1 if failures else 0)

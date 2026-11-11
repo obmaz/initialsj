@@ -19,8 +19,8 @@ func reset(r: Node3D) -> void:
 func run(tree: SceneTree) -> int:
 	var detector = Recovery.new()
 	detector.advance(0.1, Vector3.ZERO)
-	detector.advance(3.9, Vector3(2, 0, 0))
-	check(not detector.available, "Recovery must not appear before four seconds of little movement")
+	detector.advance(1.9, Vector3(2, 0, 0))
+	check(not detector.available, "Recovery must not appear before two seconds of little movement")
 	detector.advance(0.11, Vector3(2, 0, 0))
 	check(detector.available, "A car trapped within three metres must get a recovery action")
 	detector.advance(0.1, Vector3(4, 0, 0))
@@ -52,7 +52,7 @@ func run(tree: SceneTree) -> int:
 		await tree.physics_frame
 		r.recover_car()
 		check(
-			not r.recovery_available and is_equal_approx(r.speed, 50.0 / 3.6) and not r.crash.active,
+			not r.recovery_available and is_equal_approx(r.speed, 100.0 / 3.6) and not r.crash.active,
 			"Manual recovery must restore an upright stopped car and clear its button"
 		)
 		check(absf(r.lane - r.rivals[0].lane) > 2.6, "Recovery must select a road lane clear of the occupied car")

@@ -9,6 +9,10 @@ var shared_rock_material: ShaderMaterial
 
 func _ready() -> void:
 	assert(preload("res://models/shared/scene_state.gd").bind(self), "코스 모델 씬으로 생성해야 한다")
+	for fall in falls:
+		for piece in fall.pieces:
+			if piece.get_script() == null:
+				piece.set_script(preload("res://scripts/physics/road_debris.gd"))
 
 
 func reset_effect() -> void:
@@ -16,6 +20,9 @@ func reset_effect() -> void:
 		fall.elapsed = -1.0
 		fall.landed = false
 		for i in range(fall.pieces.size()):
+			if fall.pieces[i].get_script() == null:
+				fall.pieces[i].set_script(preload("res://scripts/physics/road_debris.gd"))
+			fall.pieces[i].reset_debris()
 			fall.pieces[i].position = fall.origins[i]
 			fall.pieces[i].rotation = Vector3.ZERO
 			fall.pieces[i].collision_layer = 0
@@ -33,11 +40,13 @@ func advance(delta: float, distance: float, lap: int) -> void:
 		fall.elapsed += delta
 		var landed := true
 		for i in range(fall.pieces.size()):
+			if fall.pieces[i].get("broken") == true:
+				continue
 			var t := clampf((fall.elapsed - .35 - i * .035) / 1.65, 0, 1)
 			fall.pieces[i].position = fall.origins[i].lerp(fall.targets[i], t * t)
 			fall.pieces[i].rotation.y = sin(i * 2.7) * t * .12
 			if t >= 1:
-				fall.pieces[i].collision_layer = 2
+				fall.pieces[i].collision_layer = 8
 			else:
 				landed = false
 		fall.landed = landed

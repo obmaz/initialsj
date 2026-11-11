@@ -30,7 +30,8 @@ const GARAGE_BACK := Rect2(60, 24, 220, 84)
 const SETTINGS_SOUND := Rect2(365, 98, 550, 77)
 const SETTINGS_MOTION := Rect2(365, 178, 550, 77)
 const SETTINGS_GRAPHICS := Rect2(365, 258, 550, 77)
-const SETTINGS_FPS := Rect2(365, 338, 550, 77)
+const SETTINGS_FPS := Rect2(365, 338, 265, 77)
+const SETTINGS_AUTO := Rect2(650, 338, 265, 77)
 const SETTINGS_FULLSCREEN := Rect2(365, 418, 550, 77)
 const SETTINGS_INSTALL := Rect2(365, 498, 550, 77)
 const SETTINGS_CLOSE := Rect2(365, 592, 550, 77)
@@ -160,7 +161,14 @@ func pause_touch_rect() -> Rect2:
 	return PAUSE_BUTTON.grow(12)
 
 
+func configure_pedals() -> void:
+	buttons.brake = Rect2(1090, 557, 120, 120) if race.auto_accelerate else Rect2(955, 562, 110, 110)
+
+
 func hit_button(action: String, pos: Vector2) -> bool:
+	configure_pedals()
+	if action == "gas" and race.auto_accelerate:
+		return false
 	if action == "cell" and race.vehicle.mode != "hybrid":
 		return false
 	if not buttons.has(action):
@@ -211,6 +219,8 @@ func handle_pointer(event: InputEvent) -> void:
 			race.toggle_motion()
 		elif SETTINGS_GRAPHICS.has_point(p):
 			race.cycle_graphics()
+		elif SETTINGS_AUTO.has_point(p):
+			race.toggle_auto_accelerate()
 		elif SETTINGS_FPS.has_point(p):
 			race.toggle_fps()
 		elif SETTINGS_FULLSCREEN.has_point(p):
@@ -354,6 +364,8 @@ func draw_pad_badges() -> void:
 	if not pad_on() or race.state not in [RaceState.RACING, RaceState.COUNTDOWN, RaceState.PAUSED]:
 		return
 	for action in ["gas", "brake", "drift", "nitro"]:
+		if action == "gas" and race.auto_accelerate:
+			continue
 		var rect: Rect2 = buttons[action]
 		pad_badge(rect.get_center() + Vector2(-1, -1) * rect.size.x * 0.36, action)
 	if race.vehicle.mode == "hybrid":
@@ -565,6 +577,9 @@ func _draw() -> void:
 	draw_nitro()
 	draw_route_choice()
 	draw_recovery()
+	if race.protection_left > 0 and race.state == RaceState.RACING:
+		slant(Rect2(15, 184, 224, 40), INK, 7)
+		centered(Vector2(127, 212), "INVINCIBLE  %.1fs" % race.protection_left, 22, CYAN)
 	draw_menu()
 	draw_pad_hints()
 	draw_pad_badges()
@@ -797,7 +812,10 @@ func draw_controls() -> void:
 		var cell: Vector2 = buttons.cell.get_center()
 		centered(cell + Vector2(0, 1), str(race.nitro_charges), 30, Color(race.vehicle.accent))
 		centered(cell + Vector2(0, 28), "CELL", 17)
+	configure_pedals()
 	for action in ["brake", "gas"]:
+		if action == "gas" and race.auto_accelerate:
+			continue
 		round_button(action, true)
 		c = buttons[action].get_center()
 		pedal_icon(c + Vector2(0, -9), action == "gas")

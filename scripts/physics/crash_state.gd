@@ -1,6 +1,6 @@
 extends RefCounted
-# 벽 충돌 비행은 200km/h 초과이면서 벽의 접선에 대한 진입각이 30도 초과일 때만 허용한다.
-const LAUNCH_SPEED := 200.0 / 3.6
+# 벽 충돌 비행은 300km/h 이상이면서 벽의 접선에 대한 진입각이 30도 초과일 때만 허용한다.
+const LAUNCH_SPEED := 300.0 / 3.6
 const MAX_SPEED := 100.0
 var active := false
 var elapsed := 0.0
@@ -18,7 +18,7 @@ static func severity(speed: float) -> float:
 
 
 static func launches(incoming_speed: float, closing_speed: float = 0.0) -> bool:
-	return incoming_speed > LAUNCH_SPEED and closing_speed > incoming_speed * 0.5 + 0.001
+	return incoming_speed >= LAUNCH_SPEED and closing_speed > incoming_speed * 0.5 + 0.001
 
 
 # Upward launch speed for a hit; the hang time follows from gravity.

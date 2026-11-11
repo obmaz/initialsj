@@ -138,6 +138,7 @@ func draw_settings() -> void:
 		hud.SETTINGS_MOTION,
 		hud.SETTINGS_GRAPHICS,
 		hud.SETTINGS_FPS,
+		hud.SETTINGS_AUTO,
 		hud.SETTINGS_FULLSCREEN,
 		hud.SETTINGS_INSTALL
 	]:
@@ -150,8 +151,10 @@ func draw_settings() -> void:
 	hud.text_at(
 		hud.SETTINGS_GRAPHICS.position + Vector2(430, 49), ["AUTO", "HIGH", "FAST"][race.graphics_mode], 28, hud.CYAN
 	)
-	hud.text_at(hud.SETTINGS_FPS.position + Vector2(28, 49), "SHOW FPS", 28)
-	hud.text_at(hud.SETTINGS_FPS.position + Vector2(450, 49), "ON" if race.show_fps else "OFF", 30, hud.CYAN)
+	hud.text_at(hud.SETTINGS_FPS.position + Vector2(18, 49), "SHOW FPS", 22)
+	hud.text_at(hud.SETTINGS_FPS.position + Vector2(190, 49), "ON" if race.show_fps else "OFF", 25, hud.CYAN)
+	hud.text_at(hud.SETTINGS_AUTO.position + Vector2(18, 49), "AUTO GAS", 22)
+	hud.text_at(hud.SETTINGS_AUTO.position + Vector2(190, 49), "ON" if race.auto_accelerate else "OFF", 25, hud.CYAN)
 	var fullscreen_label: String = (
 		race.shell.fullscreen_label() if race.has_method("fullscreen_label") else "ENTER FULLSCREEN"
 	)
@@ -169,6 +172,7 @@ func draw_settings() -> void:
 			hud.SETTINGS_MOTION,
 			hud.SETTINGS_GRAPHICS,
 			hud.SETTINGS_FPS,
+			hud.SETTINGS_AUTO,
 			hud.SETTINGS_FULLSCREEN,
 			hud.SETTINGS_INSTALL,
 			hud.SETTINGS_CLOSE

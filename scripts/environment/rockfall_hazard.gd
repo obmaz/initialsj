@@ -141,7 +141,9 @@ func start_fall(plan: Dictionary) -> void:
 		plan.targets.append(target)
 		# 도로 밖 연출에는 물리 노드가 없다. 도로 안 장애물만 같은 충돌 모양을 공유한다.
 		if not scenic and i < ROAD_REMAINS:
-			var body := StaticBody3D.new()
+			var body := preload("res://scripts/physics/road_debris.gd").new()
+			body.batch = batch
+			body.slot = i
 			body.collision_layer = 0
 			body.collision_mask = 4
 			body.transform = pose
@@ -180,6 +182,8 @@ func advance(delta: float, distance: float, lap: int) -> void:
 		if is_instance_valid(plan.marker):
 			plan.marker.visible = float(plan.elapsed) < 3.5 and fposmod(float(plan.elapsed), .3) < .2
 		for i in range(plan.targets.size()):
+			if i < plan.bodies.size() and plan.bodies[i].broken:
+				continue
 			var target: Vector3 = plan.targets[i]
 			var t := clampf((float(plan.elapsed) - .75 - i * .055) / 1.4, 0, 1)
 			var bounce := sin(clampf((float(plan.elapsed) - 2.15 - i * .055) / .5, 0, 1) * PI) * .65
@@ -196,7 +200,7 @@ func advance(delta: float, distance: float, lap: int) -> void:
 			if not scenic and i < plan.bodies.size():
 				plan.bodies[i].transform = pose
 				if t >= 1:
-					plan.bodies[i].collision_layer = 2
+					plan.bodies[i].collision_layer = 8
 			if t < 1 or float(plan.elapsed) < 2.65 + i * .055:
 				all_landed = false
 		if all_landed:

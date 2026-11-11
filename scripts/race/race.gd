@@ -21,6 +21,8 @@ const Crash = preload("res://scripts/physics/crash_state.gd")
 const Recovery = preload("res://scripts/race/recovery_state.gd")
 var crash := Crash.new()
 var recovery := Recovery.new()
+var protection_left := 0.0
+var auto_accelerate := true
 var recovery_distance := 80.0
 var recovery_lane := -3.2
 var recovery_available: bool:
@@ -503,12 +505,14 @@ func load_preferences() -> void:
 			motion_user_set = true
 		graphics_mode = clampi(int(config.get_value("preferences", "graphics", 0)), 0, 2)
 		show_fps = bool(config.get_value("preferences", "show_fps", false))
+		auto_accelerate = bool(config.get_value("preferences", "auto_accelerate", true))
 
 
 func save_preferences() -> void:
 	if not save_records:
 		return
 	var config := ConfigFile.new()
+	config.set_value("preferences", "auto_accelerate", auto_accelerate)
 	config.set_value("preferences", "sound", sound_enabled)
 	config.set_value("preferences", "show_fps", show_fps)
 	if motion_user_set:
@@ -521,6 +525,12 @@ func save_preferences() -> void:
 # the pause or result dialog survives a reload like one made in Settings.
 func toggle_sound() -> void:
 	sound_enabled = not sound_enabled
+	save_preferences()
+
+
+func toggle_auto_accelerate() -> void:
+	auto_accelerate = not auto_accelerate
+	hud.fingers.clear()
 	save_preferences()
 
 
@@ -564,6 +574,8 @@ func restart(start_countdown: bool = true) -> void:
 	edge_rumble = 0
 	crash.reset()
 	recovery.reset()
+	protection_left = 0
+	player.set_protection(false)
 	player.body.rotation.x = 0
 	player.body.rotation.z = 0
 	player.body.position = Vector3(0, player.ride_offset, 0)
@@ -813,7 +825,8 @@ func _physics_process(delta: float) -> void:
 		var nitro_input := Input.is_physical_key_pressed(KEY_SHIFT) or hud.held("nitro") or pad.nitro()
 		var cell_input := Input.is_physical_key_pressed(KEY_E) or hud.held("cell") or pad.cell()
 		var gas := (
-			Input.is_physical_key_pressed(KEY_W)
+			auto_accelerate
+			or Input.is_physical_key_pressed(KEY_W)
 			or Input.is_physical_key_pressed(KEY_UP)
 			or hud.held("gas")
 			or pad.gas()
@@ -854,6 +867,8 @@ func _physics_process(delta: float) -> void:
 	player.road_speed = speed if state == RaceState.RACING else 0.0
 	player.effects_quality = render_budget.level
 	player.reduced_motion = motion_reduced
+	player.boost_shot = nitro_burst_left > 0
+	player.set_protection(protection_left > 0)
 	player.animate(
 		steer,
 		drifting and not air.active and state == RaceState.RACING,
@@ -981,7 +996,9 @@ func pad_speed_cap() -> float:
 
 
 func update_recovery(delta: float) -> void:
-	recovery.advance(delta, world_race.player_body.feet_position())
+	var forward: Vector3 = (track.point(distance + 3) - track.point(distance - 3)).slide(Vector3.UP).normalized()
+	var heading: Vector3 = world_race.player_body.forward_direction().slide(Vector3.UP).normalized()
+	recovery.advance(delta, world_race.player_body.feet_position(), forward, acos(clampf(heading.dot(forward), -1, 1)))
 
 
 func apply_crash_pose() -> void:
@@ -1115,8 +1132,6 @@ func finish() -> void:
 			saved.load("user://records.cfg")
 			saved.set_value(RECORD_GROUP, Catalog.record_key(selected_vehicle, mode, selected_course), best_time)
 			saved.save("user://records.cfg")
-	if mode == "track" and selected_course == 1:
-		track.active.speedway_board.add_result(elapsed, str(vehicle.name), save_records)
 
 
 func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vector3.INF) -> void:

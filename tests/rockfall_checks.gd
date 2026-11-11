@@ -64,7 +64,7 @@ func run(tree: SceneTree) -> int:
 	var box := BoxShape3D.new()
 	box.size = Vector3(2.1, 1.3, 4.3)
 	query.shape = box
-	query.collision_mask = 2
+	query.collision_mask = 8
 	query.transform = Transform3D(Basis(Vector3.UP, section.heading(first)), hit_at)
 	check(
 		not section.get_world_3d().direct_space_state.intersect_shape(query).is_empty(),
@@ -75,7 +75,7 @@ func run(tree: SceneTree) -> int:
 	var clearance: PackedFloat32Array = section.get_world_3d().direct_space_state.cast_motion(query)
 	check(clearance[0] == 1.0, "중앙에는 실제 차체가 지나갈 안전 통로가 남아야 한다")
 	hazard.advance(.1, section.length + 80, 1)
-	check(hazard.plans[0].landed and hazard.plans[0].bodies[0].collision_layer == 2, "이전 주회 낙석이 다음 주회에도 남아야 한다")
+	check(hazard.plans[0].landed and hazard.plans[0].bodies[0].collision_layer == 8, "이전 주회 낙석이 다음 주회에도 남아야 한다")
 	var scenic: Dictionary = hazard.scenic_plans[0]
 	hazard.advance(1.0, scenic.distance - 200, 0)
 	check(scenic.poses.size() == 24 and scenic.bodies.is_empty(), "도로 밖에는 한 번에24개의 바위가 떨어져야 한다")

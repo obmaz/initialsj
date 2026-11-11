@@ -4,7 +4,7 @@ const WorldCar = preload("res://scripts/physics/world_car.gd")
 const SEARCH_STEP := 8.0
 const SURFACE_MARGIN := .2
 const RUNOUT := 100.0
-const RESUME_SPEED := 50.0 / 3.6
+const RESUME_SPEED := 100.0 / 3.6
 
 
 static func stable_hit(space: PhysicsDirectSpaceState3D, at: Vector3, up: Vector3, reach: float) -> Dictionary:
@@ -41,7 +41,7 @@ static func candidate(race: Node3D, body: CharacterBody3D, d: float, lane: float
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = body.contact_shape.shape
 	query.margin = .25
-	query.collision_mask = 6
+	query.collision_mask = 14
 	query.exclude = [body.get_rid()]
 	# 복구 지점뿐 아니라 전방100m의 차체 폭·장애물을 검사해 가속할 여유를 보장한다.
 	for ahead in range(0, int(RUNOUT) + 1, 5):

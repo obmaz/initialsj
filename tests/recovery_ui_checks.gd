@@ -21,6 +21,8 @@ func run(tree: SceneTree) -> int:
 	tree.root.add_child(race)
 	race.set_physics_process(false)
 	race.save_records = false
+	race.auto_accelerate = false
+	race.hud.configure_pedals()
 	race.sound_enabled = false
 	var original_size := tree.root.size
 	for choice in [["tour", 0], ["track", 0], ["track", 1]]:

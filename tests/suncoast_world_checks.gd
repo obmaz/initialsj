@@ -70,7 +70,7 @@ func run(tree: SceneTree) -> int:
 	check(race.state == "racing", "One lap must not end a three-lap race")
 	# 고속 정면 충돌은 다른 트랙과 같은 공중 반동 규칙을 사용한다.
 	var crash := Crash.new()
-	var hit: Dictionary = await crash.rail_impact(tree, race, 72)
+	var hit: Dictionary = await crash.rail_impact(tree, race, 95)
 	check(
 		bool(hit.contact.get("severe", false)) and bool(hit.triggered),
 		"A fast rail hit on Suncoast must launch the car"

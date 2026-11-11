@@ -25,35 +25,31 @@ func run(tree: SceneTree) -> int:
 		)
 		for frame in range(30):
 			car.animate(0, false, true, 1.0 / 60, 0)
-		var cold: Color = effect.tint
 		var short: float = car.nitro_flames[0].scale.y
 		var paused: float = effect.held
 		car.animate(0, false, true, 0, 0)
-		check(effect.held == paused and effect.emitters[0].speed_scale == 0, "일시정지 중 부스트 시간·파티클을 진행시키면 안 된다")
+		check(effect.held == paused, "일시정지 중 부스트 시간을 진행시키면 안 된다")
 		for frame in range(210):
 			car.animate(0, false, true, 1.0 / 60, 0)
-		check(
-			(
-				effect.heat > .95
-				and (
-					Vector3(cold.r, cold.g, cold.b).distance_to(Vector3(effect.tint.r, effect.tint.g, effect.tint.b))
-					> .25
-				)
-			),
-			"연속 부스트는 유지 시간에 따라 실제 배기색이 달라져야 한다"
-		)
-		check(car.nitro_flames[0].scale.y > short * 1.7, "오래 유지한 부스트는 불꽃이 더 길어져야 한다")
+		check(effect.heat > .95, "부스트 열량은 유지 시간에 따라 누적된다")
+		check(car.active_aero.position.y < car.aero_rest.origin.y - car.aero_drop * .9, "지속 부스트 중 스포일러는 차체 쪽으로 내려가야 한다")
+		if index != 1:
+			check(car.nitro_flames[0].scale.y > short * 1.2, "연속형은 배기구에 붙은 화염·빔이 길어진다")
+		else:
+			car.reset_driving_effects()
+			car.animate(0, false, true, .1, 0)
+			var peak: float = car.nitro_flames[0].scale.y
+			for frame in range(60):
+				car.animate(0, false, true, 1.0 / 60, 0)
+			check(peak > car.nitro_flames[0].scale.y * 2, "단발형은 발동 순간 대형 화염이 터지고 안정된다")
 		var flame: MeshInstance3D = car.nitro_flames[0]
 		var mouth: Vector3 = flame.position - flame.basis.y * .6
 		var rest: Transform3D = effect.rests[0]
 		check(mouth.distance_to(rest.origin - rest.basis.y * .6) < .001, "불꽃이 자라도 배기구 접점은 차량에 고정되어야 한다")
-		check(car.active_aero.position.y < car.aero_rest.origin.y - car.aero_drop * .9, "지속 부스트 중 스포일러는 차체 쪽으로 내려가야 한다")
-		check(effect.emitters[0].emitting and effect.emitters[0].amount <= 24, "부스트 파티클은 상한이 있는 재사용 방출기여야 한다")
+		check(effect.find_children("*", "CPUParticles3D", true, false).is_empty(), "니트로는 뒤에 남는 발사체형 입자를 방출하지 않는다")
 		car.reduced_motion = true
 		car.effects_quality = 2
 		car.animate(0, false, true, .1, 0)
-		check(not effect.emitters[0].emitting and not effect.emitters[0].visible, "동작 줄이기는 추가 잔광 파티클을 숨겨야 한다")
-		check(effect.emitters[0].amount == 12, "빠른 화질은 배기 파티클 예산을 절반으로 제한해야 한다")
 		for frame in range(100):
 			car.animate(0, false, false, 1.0 / 60, 0)
 		check(
@@ -62,7 +58,7 @@ func run(tree: SceneTree) -> int:
 		)
 		check(car.find_children("*", "", true, false).size() == nodes, "반복 부스트가 노드 수를 늘리면 안 된다")
 		car.reset_driving_effects()
-		for particles in effect.emitters + car.smoke:
+		for particles in car.smoke:
 			check(not particles.emitting, "입자 재시작 API가 다시 켠 방출도 복구 마지막에 확실히 꺼야 한다")
 		check(
 			effect.heat == 0 and effect.held == 0 and car.active_aero.transform == car.aero_rest,

@@ -57,6 +57,8 @@ func run(tree: SceneTree) -> int:
 	tree.root.add_child(race)
 	race.set_physics_process(false)
 	race.save_records = false
+	race.auto_accelerate = false
+	race.hud.configure_pedals()
 	var pad: RefCounted = race.pad
 	# Stick dead zone and scaling, D-pad steering, trigger thresholds.
 	axis(JOY_AXIS_LEFT_X, 0.1)

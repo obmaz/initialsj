@@ -63,6 +63,11 @@ func reset() -> void:
 	safe_distance = 80
 	safe_lane = -3.2
 	outside_time = 0
+	race.protection_left = 0
+	race.player.set_protection(false)
+	player_body.collision_layer = 4
+	player_body.collision_mask = 15
+	player_body.rescue_floor.clear()
 	for i in range(bodies.size()):
 		var d: float = 80 if i == 0 else race.rivals[i - 1].distance
 		var lane: float = -3.2 if i == 0 else race.rivals[i - 1].lane
@@ -135,7 +140,8 @@ func step(
 		var layer := 4 if race.rivals[i - 1].active else 0
 		if bodies[i].collision_layer != layer:
 			bodies[i].collision_layer = layer
-			bodies[i].collision_mask = 7 if layer else 0
+			bodies[i].collision_mask = 15 if layer else 0
+	update_protection(delta)
 	var old_position := Vector2(race.lane, race.distance)
 	var old_gaps: Array[float] = []
 	for i in range(bodies.size() - 1):
@@ -300,6 +306,8 @@ func step(
 	if laps > race.laps_completed:
 		race.laps_completed = laps
 		race.last_lap = race.elapsed - race.lap_started
+		if race.selected_course == 1 and race.mode == "track":
+			race.track.active.speedway_board.add_result(race.last_lap, str(race.vehicle.name), race.save_records)
 		race.lap_started = race.elapsed
 		race.checkpoint_flash = 2
 		race.nitro = minf(100, race.nitro + 15)
@@ -378,6 +386,8 @@ func update_air(delta: float, was_airborne: bool) -> void:
 	if was_airborne and not race.air.active:
 		player_body.turn_toward(player_body.velocity, 1.0 / delta, delta)
 		race.crash.reset()
+		race.player.body.rotation = Vector3.ZERO
+		race.player.body.position = Vector3(0, race.player.ride_offset, 0)
 		race.air.landings += 1
 		if airborne_time > 0.12 and landing_velocity < -1.5:
 			race.air.landing_flash = 0.65
@@ -783,12 +793,47 @@ func recover_player() -> bool:
 	race.tire_trails.reset()
 	race.player.reset_driving_effects()
 	race.cancel_nitro()
+	race.protection_left = 3.0
+	player_body.collision_layer = 16
+	player_body.collision_mask = 3
+	race.player.set_protection(true)
 	place_cars()
 	race.camera_offset = -site.forward * 7.1 + Vector3.UP * 3
 	update_camera(1)
 	race.player.reset_physics_interpolation()
 	race.camera.reset_physics_interpolation()
 	return true
+
+
+func update_protection(delta: float) -> void:
+	var was: bool = race.protection_left > 0
+	race.protection_left = maxf(0, race.protection_left - delta)
+	if was and race.protection_left <= 0:
+		var query := PhysicsShapeQueryParameters3D.new()
+		query.shape = player_body.contact_shape.shape
+		query.transform = player_body.global_transform
+		query.collision_mask = 12
+		query.exclude = [player_body.get_rid()]
+		# 보호 종료 순간 장애물 내부나 사라진 노면 위에 남겨 두지 않는다.
+		if player_body.rescue_floor_used or not get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty():
+			if recover_body(0, race.distance, race.lane).is_empty():
+				race.protection_left = .1
+	var active: bool = race.protection_left > 0
+	var layer := 16 if active else 4
+	var mask := 3 if active else 15
+	if player_body.collision_layer != layer:
+		player_body.collision_layer = layer
+	if player_body.collision_mask != mask:
+		player_body.collision_mask = mask
+	player_body.rescue_floor.clear()
+	if active:
+		var side := signf(race.lane)
+		var edge: float = race.track.half_width(race.distance) + race.track.active.rail_setback(race.distance, side)
+		if absf(race.lane) < edge - 1.05:
+			player_body.rescue_floor = {
+				"position": race.track.point(race.distance, race.lane), "normal": road_up(race.distance)
+			}
+	race.player.set_protection(active)
 
 
 func update_camera(delta: float) -> void:

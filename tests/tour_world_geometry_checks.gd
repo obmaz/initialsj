@@ -18,6 +18,7 @@ func run(tree: SceneTree) -> int:
 			tree.root.add_child(road)
 			road.add_child(preload("res://scripts/physics/world_collision.gd").build(road))
 			await tree.physics_frame
+			await tree.physics_frame
 			for sample in range(80):
 				var d: float = 30 + (road.length - 60) * sample / 79
 				var on_device := false
@@ -41,11 +42,11 @@ func run(tree: SceneTree) -> int:
 				var front: Vector3 = road.point(truck.distance - truck.length * 0.5 - 2, truck.lane) + Vector3.UP * 1.8
 				var middle: Vector3 = road.point(truck.distance, truck.lane) + Vector3.UP * 1.8
 				var hit: Dictionary = tree.root.get_world_3d().direct_space_state.intersect_ray(
-					PhysicsRayQueryParameters3D.create(front, middle, 2)
+					PhysicsRayQueryParameters3D.create(front, middle, 4)
 				)
 				check(
 					not hit.is_empty() and hit.collider.get_meta("parked_truck", false),
-					"주차 트럭은 첫 차량뿐 아니라 모든 차량에 실제 충돌체가 있어야 한다: %s" % truck.id
+					"모든 트럭은 밀려날 수 있는 실제 교통 차체를 가져야 한다: %s" % truck.id
 				)
 			road.queue_free()
 			await tree.process_frame

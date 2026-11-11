@@ -176,7 +176,7 @@ func run(tree: SceneTree) -> int:
 		contacts > 0 and car.feet_position().z > -78,
 		"High-speed physical sweeps must hit the actual wall without tunnelling"
 	)
-	var head_on := collision_trial(car, Vector3(0, 0, -65), Vector3.FORWARD, 80)
+	var head_on := collision_trial(car, Vector3(0, 0, -65), Vector3.FORWARD, 95)
 	check(
 		(
 			head_on.get("barrier", false)
@@ -228,7 +228,7 @@ func run(tree: SceneTree) -> int:
 		),
 		"A hit below the launch speed must glance off instead of bouncing back"
 	)
-	var ground_edge := collision_trial(car, Vector3(-180, 0, 0), Vector3.FORWARD, 80)
+	var ground_edge := collision_trial(car, Vector3(-180, 0, 0), Vector3.FORWARD, 95)
 	check(
 		(
 			ground_edge.get("layer", 0) == 1
@@ -243,7 +243,7 @@ func run(tree: SceneTree) -> int:
 	opponent.reset_pose(Vector3(250, 0, -15), Vector3.FORWARD)
 	await tree.physics_frame
 	await tree.physics_frame
-	var car_hit := collision_trial(car, Vector3(250, 0, 0), Vector3.FORWARD, 80)
+	var car_hit := collision_trial(car, Vector3(250, 0, 0), Vector3.FORWARD, 95)
 	check(
 		(
 			car_hit.get("layer", 0) == 4

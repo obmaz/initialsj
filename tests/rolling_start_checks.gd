@@ -109,7 +109,7 @@ func run(tree: SceneTree) -> int:
 		board.records.size() == 3 and board.records[0].time == 131.5 and board.records[2].time == 143.2,
 		"전광판의1·2·3위는 실제 완주 시간 오름차순이어야 한다"
 	)
-	race.best_time = 131.5
+	board.personal[str(race.vehicle.name)] = 131.5
 	board.refresh()
 	check(board.labels[4].text.contains("02:11.500"), "개인 베스트도 실제 기록을 표시해야 한다")
 	var heading_trials := [{"vehicle": race.selected_vehicle, "max_error_degrees": peak_heading}]

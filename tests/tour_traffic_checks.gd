@@ -10,11 +10,11 @@ func check(ok: bool, message: String):
 
 
 func run(tree: SceneTree) -> int:
-	for speed in [30.0, 200.0 / 3.6, 56.0, 80.0, 100.0]:
+	for speed in [30.0, 299.9 / 3.6, 300.0 / 3.6, 84.0, 100.0]:
 		for angle in [10.0, 29.9, 30.0, 30.1, 60.0, 90.0]:
 			check(
-				Crash.launches(speed, speed * sin(deg_to_rad(angle))) == (speed > 200.0 / 3.6 and angle > 30),
-				"200km/h·30도 이중 임계값"
+				Crash.launches(speed, speed * sin(deg_to_rad(angle))) == (speed >= 300.0 / 3.6 and angle > 30),
+				"300km/h·30도 이중 임계값"
 			)
 	check(Crash.launch_up(100) < 10, "최고속 충돌 비행의 상승속도 제한")
 	var pool = preload("res://scripts/rendering/render_resources.gd")

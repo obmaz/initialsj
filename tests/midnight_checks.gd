@@ -96,7 +96,7 @@ func run(tree: SceneTree) -> int:
 	check(race.state == "racing", "One lap must not end a three-lap race")
 	# A fast rail hit throws the car on the circuit just like on Fuji.
 	var crash := Crash.new()
-	var hit: Dictionary = await crash.rail_impact(tree, race, 72)
+	var hit: Dictionary = await crash.rail_impact(tree, race, 95)
 	check(
 		bool(hit.contact.get("severe", false)) and bool(hit.triggered),
 		"A fast rail hit on Midnight Harbor must launch the car"

@@ -16,6 +16,8 @@ func run(tree: SceneTree) -> int:
 	tree.root.add_child(race)
 	race.set_physics_process(false)
 	race.save_records = false
+	race.auto_accelerate = false
+	race.hud.configure_pedals()
 	var rows := []
 	# Visual chips are small, but hit areas retain a phone-sized target. Neither
 	# target may steal pause/map touches or cover the central forward road view.

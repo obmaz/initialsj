@@ -59,8 +59,8 @@ func fall(tree: SceneTree, race: Node3D, d: float, lane: float, label: String) -
 	world.update_recovery(.2, {"valid": false})
 	check(supported(tree, world.player_body), label + ": 자동 낙하 복구는 차체 전체가 남은 도로 위에 놓여야 한다")
 	check(
-		is_equal_approx(race.speed * 3.6, 50) and is_equal_approx(world.player_body.velocity.length() * 3.6, 50),
-		label + ": 시속50km로 달리며 복구한다"
+		is_equal_approx(race.speed * 3.6, 100) and is_equal_approx(world.player_body.velocity.length() * 3.6, 100),
+		label + ": 시속100km로 달리며 복구한다"
 	)
 	for ahead in range(5, 101, 5):
 		var at: Vector3 = race.track.point(race.distance + ahead, race.lane)
@@ -141,8 +141,8 @@ func run(tree: SceneTree) -> int:
 			await tree.physics_frame
 			world.update_recovery(.2, {"valid": false})
 			check(
-				supported(tree, world.player_body) and is_equal_approx(race.speed * 3.6, 50),
-				"낙하선8m에 닿기 전에도 화면 밖으로 내려가면 시속50km로 복구한다"
+				supported(tree, world.player_body) and is_equal_approx(race.speed * 3.6, 100),
+				"낙하선8m에 닿기 전에도 화면 밖으로 내려가면 시속100km로 복구한다"
 			)
 		if course == 0:
 			for d in [

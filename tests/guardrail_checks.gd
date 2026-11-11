@@ -60,7 +60,7 @@ func run(tree: SceneTree) -> int:
 	for frame in range(4):
 		world.step(1.0 / 60, 0, false, false, false, false, false)
 	check(absf(r.lane) < r.track.half_width(r.distance) + 1.0, "The returned car must be on the road, not beside it")
-	check(r.speed > 10 and r.speed < 16 and r.state == "racing", "복구한 차는 시속50km 부근에서 달리며 경기를 계속해야 한다")
+	check(r.speed > 25 and r.speed < 30 and r.state == "racing", "복구한 차는 시속100km 부근에서 달리며 경기를 계속해야 한다")
 	check(
 		absf(r.distance - 900.0) < 40.0,
 		"The car must return to its last safe stretch (got %.0f, expected near 900)" % r.distance
@@ -76,14 +76,14 @@ func run(tree: SceneTree) -> int:
 	var Crash = preload("res://scripts/physics/crash_state.gd")
 	check(
 		(
-			not Crash.launches(Crash.LAUNCH_SPEED, Crash.LAUNCH_SPEED)
+			not Crash.launches(Crash.LAUNCH_SPEED - .01, Crash.LAUNCH_SPEED)
 			and Crash.launches(Crash.LAUNCH_SPEED + 1, Crash.LAUNCH_SPEED + 1)
 			and not Crash.launches(80, 40)
 		),
-		"200km/h 이하 또는30도 이하는 벽 충돌 비행 금지"
+		"300km/h 미만 또는30도 이하는 벽 충돌 비행 금지"
 	)
 	var tiers := []
-	for incoming in [46.0, 60.0, 75.0, 95.0]:
+	for incoming in [84.0, 89.0, 94.0, 99.0]:
 		var c = Crash.new()
 		c.start(incoming, Vector2(1, 0), 0.0, 2.0 * Crash.launch_up(incoming) / 24.0)
 		tiers.append({"up": Crash.launch_up(incoming), "duration": c.duration, "rolls": c.rolls, "flips": c.flips})

@@ -21,6 +21,11 @@ var nitro_glows: Array[MeshInstance3D] = []
 var smoke: Array[CPUParticles3D] = []
 var brake_lights: Array[StandardMaterial3D] = []
 var body: Node3D
+var boost_shot := false
+var protection_active := false
+var protection_parts: Array[MeshInstance3D] = []
+var protection_originals: Array[Material] = []
+var protection_materials: Dictionary = {}
 var boost_fx: Node3D
 var active_aero: MeshInstance3D
 var aero_rest := Transform3D.IDENTITY
@@ -129,7 +134,7 @@ func animate(
 	for particles in smoke:
 		particles.emitting = drifting
 	if boost_fx != null:
-		boost_fx.advance(boosting, delta, reduced_motion, effects_quality)
+		boost_fx.advance(boosting, delta, reduced_motion, effects_quality, boost_shot)
 		if active_aero != null:
 			aero_blend = lerpf(aero_blend, smoothstep(.2, .85, boost_fx.heat), 1 - exp(-delta * 5))
 			active_aero.transform = aero_rest
@@ -251,3 +256,23 @@ func restore_paint() -> void:
 			and node.material_override.shader == material.shader
 		):
 			node.material_override = material
+
+
+# 불투명한 청록 차체로 보호 상태를 표시한다. 공유 재질은 바꾸지 않는다.
+func set_protection(active: bool) -> void:
+	if active == protection_active:
+		return
+	protection_active = active
+	if protection_parts.is_empty():
+		for node in body.find_children("*", "MeshInstance3D", true, false):
+			var material: Material = node.material_override
+			if material is ShaderMaterial and material.shader == shared_body_material().shader:
+				protection_parts.append(node)
+				protection_originals.append(material)
+				if not protection_materials.has(material):
+					var copy: ShaderMaterial = material.duplicate()
+					copy.set_shader_parameter("protection", true)
+					protection_materials[material] = copy
+	for i in range(protection_parts.size()):
+		var original: Material = protection_originals[i]
+		protection_parts[i].material_override = protection_materials[original] if active else original

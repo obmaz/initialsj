@@ -63,10 +63,10 @@ func rail_impact(
 		peak = maxf(peak, body.feet_position().y)
 		if not body.grounded:
 			airborne_frames += 1
-		if not first.is_empty() and (speed <= 200.0 / 3.6 or glancing):
+		if not first.is_empty() and (speed < 300.0 / 3.6 or glancing):
 			break
 	check(not first.is_empty(), "The crash fixture must hit Fuji's actual outer guardrail collider")
-	if speed > 200.0 / 3.6 and not glancing:
+	if speed >= 300.0 / 3.6 and not glancing:
 		check(triggered and first.severe, "A severe high-speed real guardrail hit must start the tumble state")
 		check(
 			(
@@ -199,10 +199,10 @@ func manual_recovery(tree: SceneTree, race: Node3D) -> Dictionary:
 	tracker.reposition(d)
 	tracker.lane = parked_lane
 	race.recovery.reset(body.feet_position())
-	for frame in range(239):
+	for frame in range(119):
 		await tree.physics_frame
 		race.step(1.0 / 60, 0, false, false, false)
-	check(not race.recovery_available, "A recovery button must wait for four seconds of insufficient movement")
+	check(not race.recovery_available, "A recovery button must wait for two seconds of insufficient movement")
 	var stuck_at: Vector3 = body.feet_position()
 	race.recover_car()
 	check(
@@ -215,7 +215,7 @@ func manual_recovery(tree: SceneTree, race: Node3D) -> Dictionary:
 	check(race.recovery_available, "Staying within the stuck movement window must expose manual recovery")
 	race.recover_car()
 	check(
-		not race.recovery_available and is_equal_approx(body.velocity.length() * 3.6, 50) and not race.crash.active,
+		not race.recovery_available and is_equal_approx(body.velocity.length() * 3.6, 100) and not race.crash.active,
 		"수동 복구는 구르기·버튼 상태를 초기화하고 시속50km로 주행해야 한다"
 	)
 	check(
@@ -304,9 +304,9 @@ func run(tree: SceneTree) -> int:
 	for choice in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
 		race.open_garage()
 		race.select_vehicle(choice)
-		impacts.append(await rail_impact(tree, race, 72))
+		impacts.append(await rail_impact(tree, race, 95))
 	impacts.append(await rail_impact(tree, race, 40))
-	impacts.append(await rail_impact(tree, race, 80, true))
+	impacts.append(await rail_impact(tree, race, 95, true))
 	await traffic_and_floor(tree, race)
 	var recovery := await manual_recovery(tree, race)
 	await tunnel_camera(tree, race)
