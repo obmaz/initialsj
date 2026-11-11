@@ -98,3 +98,15 @@ image_gen.imagegen으로 제작한1774×887(2:1) 위경도 원본을 편집·확
 `speedway-wall-ads.png`는 image_gen.imagegen 원본 `exec-5b61f14e-cc14-4118-bfa0-c4bf886adb98.png`를 그대로 복사한1774×887 이미지입니다. BRISK COLA·VELOX TIRES·SKYLINK MOBILE·CLOUDREST·PIXELBOX·SUNCOAST의 가상 광고6개를 낮고 긴 벽 부착 규격으로 요청했습니다. 각 행의 실제 높이 비율은 `speedway_environment.gd`의 `WALL_AD_EDGES`가 지정하며, 물리 높이1.18m와 원본 종횡비에 맞춰 폭을 정합니다. 이미지 자체를 잘라내거나 늘리지 않고 전용 UV로 인쇄면을 선택합니다. 실존 기업·회로·로고는 사용하지 않았으며 원본은 `/workspace/generated_images/`에 보존합니다. VRAM 압축·밉맵·이방성 필터링을 적용합니다.
 
 대형 관중석의 형상·전용 관중 이미지 출처는 [모델 팩](../../models/props/stadium_grandstand/SOURCE.md)이 소유합니다. 경기장 잔디는 기존 생성형 지면 변형을 사용하고, 호수는 기존 `ocean-ripples.png`의 질감과 현재 하늘의 환경 반사를 사용합니다.
+
+## 경기장 전용 외벽
+
+`speedway-facades.png`는 image_gen.imagegen 생성 원본 `exec-5a334adc-862b-4fc4-9771-e4e6413e5462.png`를 편집 없이 복사했습니다. 동일한 크기의2×2 영역은 순서대로 피트 차고 출입면, 운영동 외벽, 관중석 통로 벽, 콘크리트 기초입니다. 가상 경기장의 미장·줄눈·금속 차고문·관람 창·환기구를 정면·균일 광원·무문자·무상표로 요청했습니다. 피트와 관중석은 이 전용 UV를 사용하며 원본은 `/workspace/generated_images/`에 보존합니다.
+
+## 정글 터널 암석
+
+`jungle-moss-stone.png`는 image_gen.imagegen 생성 원본 `exec-d864443b-6e56-490b-9033-1cc81eec2d91.png`를 편집 없이 복사한 전용 이끼 암석 재질입니다. 습한 회색 암석·불규칙한 균열·미세한 덩굴 뿌리·짙은 이끼를 정면·균일광·무격자·무상표의 반복 표면으로 요청했습니다. 정글 터널 내벽·포털·흙덮개의 UV에 사용하며 원본은 `/workspace/generated_images/`에 보존합니다.
+
+### 항만 화물 컨테이너
+
+`harbor-cargo-surfaces.png`는2026-11-11 이미지 생성 도구로 제작한 TIDEMARK·NORTHWAKE·PORTLINE 가상 도색3종의 측면·쌍여닫이문·지붕 아틀라스입니다. 원본 생성 결과를 편집 없이 복사했고 소금 얼룩·녹·긁힘·잠금장치·강철 골이 포함됩니다. 모델과 야적장이 같은 이미지·면별 UV를 공유합니다. 실재 운송업체의 로고는 사용하지 않습니다.
