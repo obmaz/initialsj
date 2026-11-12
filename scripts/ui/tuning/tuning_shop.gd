@@ -2,6 +2,7 @@ extends CanvasLayer
 const VehicleFactory = preload("res://scripts/vehicles/vehicle_factory.gd")
 const VehicleCatalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const CustomizationStore = preload("res://scripts/vehicles/customization_store.gd")
+const Effects = preload("res://scripts/vehicles/effect_items.gd")
 const Customization = preload("res://scripts/vehicles/vehicle_customization.gd")
 const MenuLayout = preload("res://scripts/ui/menu_layout.gd")
 const TuningTheme = preload("res://scripts/ui/tuning/tuning_theme.gd")
@@ -31,6 +32,7 @@ var selected_tab := 0
 var tab_buttons: Array[Button] = []
 var is_comparing := false
 var boost_preview_active := false
+var effect_preview_time := 0.0
 var vehicle_index := 0
 var mouse_drag_active := false
 var active_touch_index := -1
@@ -143,14 +145,14 @@ func build_layout() -> void:
 	title.add_theme_font_override("font", preload("res://assets/fonts/Roboto-BlackItalic.ttf"))
 	var name_label := add_label(str(VehicleCatalog.spec(vehicle_index).name), Rect2(958, 20, 276, 68), 28)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	for i in range(4):
+	for i in range(5):
 		var tab_button := add_button(
-			["PAINT", "LIVERY", "WHEELS", "REAR WING"][i],
-			Rect2(34 + i * 306, 106, 294, 80),
+			["PAINT", "LIVERY", "WHEELS", "REAR WING", "EFFECTS"][i],
+			Rect2(34 + i * 244, 106, 232, 80),
 			func():
 				selected_tab = i
 				rebuild_options(),
-			28
+			24
 		)
 		var selected_style := TuningTheme.create_panel_style(TuningTheme.AQUA, Color.WHITE, 2)
 		tab_button.add_theme_stylebox_override("pressed", selected_style)
@@ -242,7 +244,9 @@ func rebuild_options() -> void:
 	for child in options_panel.get_children():
 		child.free()
 	options_scroll.scroll_vertical = 0
-	options_panel.custom_minimum_size = Vector2(344, 854 if selected_tab == 0 else (570 if selected_tab == 2 else 454))
+	options_panel.custom_minimum_size = Vector2(
+		344, 854 if selected_tab == 0 else (720 if selected_tab == 4 else (570 if selected_tab == 2 else 454))
+	)
 	if selected_tab == 0:
 		build_color_options("paint", "BODY COLOR", 0, PAINT_COLORS)
 		build_color_options("secondary", "ACCENT COLOR", 370, PAINT_COLORS)
@@ -266,9 +270,27 @@ func rebuild_options() -> void:
 		for i in range(3):
 			add_choice_button(WHEEL_LABELS[i], Rect2(0, i * 92, 344, 80), "wheel", i, 23)
 		build_color_options("rim", "RIM COLOR", 280, ["b7bec4", "dfb65a", "252c35", "edf1ef", "20cbd0"])
-	else:
+	elif selected_tab == 3:
 		for i in range(4):
 			add_choice_button(WING_LABELS[i], Rect2(0, i * 109, 344, 94), "wing", i, 23)
+	else:
+		var slots := add_label("", Rect2(4, 0, 336, 50), 24, TuningTheme.INK, options_panel)
+		slots.name = "EffectSlots"
+		for i in range(Effects.IDS.size()):
+			var id: String = Effects.IDS[i]
+			var button := add_button(
+				Effects.LABELS[i], Rect2(0, 64 + i * 158, 344, 76), func(): toggle_effect(id), 25, options_panel
+			)
+			button.toggle_mode = true
+			button.set_meta("effect_id", id)
+			var help := add_label(
+				Effects.HELP[i] if Effects.supported(id, vehicle_index) else "Not available for this vehicle.",
+				Rect2(6, 142 + i * 158, 330, 72),
+				20,
+				TuningTheme.MUTED,
+				options_panel
+			)
+			help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	refresh_customization()
 
 
@@ -293,12 +315,27 @@ func refresh_customization() -> void:
 			child.set_pressed_no_signal(
 				draft_customization[child.get_meta("selection_key")] == child.get_meta("selection_value")
 			)
+		elif child is Button and child.has_meta("effect_id"):
+			var id: String = child.get_meta("effect_id")
+			var equipped: bool = id in draft_customization.effects
+			child.set_pressed_no_signal(equipped)
+			child.disabled = (
+				not Effects.supported(id, vehicle_index)
+				or (not equipped and draft_customization.effects.size() >= Effects.slots(vehicle_index))
+			)
 		elif child.has_meta("color_key"):
 			var color := Color(draft_customization[child.get_meta("color_key")])
 			TuningTheme.apply_swatch_style(child, color)
 			child.add_theme_color_override("font_color", TuningTheme.INK if color.get_luminance() > .4 else Color.WHITE)
+	var count_label := options_panel.get_node_or_null("EffectSlots") as Label
+	if count_label != null:
+		count_label.text = (
+			tr("EFFECT SLOTS %d / %d") % [draft_customization.effects.size(), Effects.slots(vehicle_index)]
+		)
 	var data: Dictionary = saved_customization if is_comparing else draft_customization
 	Customization.apply(preview_car, data, vehicle_index)
+	effect_preview_time = 0
+	preview_car.set_presentation_rotation(Vector3.ZERO)
 	compare_button.set_pressed_no_signal(is_comparing)
 	apply_button.disabled = draft_customization == saved_customization
 	save_status_label.text = (
@@ -314,6 +351,15 @@ func refresh_customization() -> void:
 	request_preview_render()
 
 
+func toggle_effect(id: String) -> void:
+	var equipped: Array = draft_customization.effects.duplicate()
+	if id in equipped:
+		equipped.erase(id)
+	elif Effects.supported(id, vehicle_index) and equipped.size() < Effects.slots(vehicle_index):
+		equipped.append(id)
+	set_customization_value("effects", equipped)
+
+
 func reset_draft() -> void:
 	draft_customization = CustomizationStore.defaults(vehicle_index)
 	is_comparing = false
@@ -326,6 +372,8 @@ func toggle_compare() -> void:
 
 
 func toggle_boost() -> void:
+	effect_preview_time = 0
+	preview_car.set_presentation_rotation(Vector3.ZERO)
 	boost_preview_active = not boost_preview_active
 	boost_button.set_pressed_no_signal(boost_preview_active)
 
@@ -363,8 +411,14 @@ func _process(delta: float) -> void:
 	content_root.position = MenuLayout.origin_for(safe)
 	if boost_preview_active:
 		preview_car.animate(0, false, true, delta)
+		var rotation := Vector3.ZERO
+		if "air_spin" in preview_car.equipped_effects and not race.motion_reduced:
+			effect_preview_time += delta
+			rotation = Vector3.FORWARD * TAU * smoothstep(0, .8, minf(effect_preview_time, .8))
+		preview_car.set_presentation_rotation(rotation)
 		request_preview_render()
 	elif preview_car.boost_fx != null and preview_car.boost_fx.heat > 0:
+		preview_car.set_presentation_rotation(Vector3.ZERO)
 		preview_car.animate(0, false, false, delta)
 		request_preview_render()
 

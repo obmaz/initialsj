@@ -16,3 +16,7 @@ road-gravel.ogg, road-wet.ogg, traffic-draft.ogg, traffic-pass.wav, web-loops.js
   부스터·점화·타이어 음원과 공통 자갈·물 접촉 소리, 근접 통과·슬립스트림 공기 소리를 생성합니다.
   외부 녹음은 포함하지 않으며 web-loops.json은 같은 파일의 웹 재생 포장입니다.
   차량 추가·조정 규칙은 docs/VEHICLE_AUDIO.md를 따릅니다.
+
+distant-thunder.ogg
+  Initial SJ 전용 저역 잡음·잔향 합성 천둥. 외부 녹음은 사용하지 않았습니다.
+  tools/bake_effect_audio.py의 고정 시드로 오프라인 합성했으며 차량별 음원과 공유하지 않습니다.

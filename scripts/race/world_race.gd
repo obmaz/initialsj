@@ -110,6 +110,9 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		crash_flight = false
 		race.player.reset_physics_interpolation()
 		race.player.body_motion.reset()
+		race.equipped_effects.reset()
+		if race.player.presentation != null:
+			race.player.set_presentation_rotation(Vector3.ZERO)
 		race.driving_feedback.reset()
 		race.sound_state.reset()
 		race.proximity_audio.reset()

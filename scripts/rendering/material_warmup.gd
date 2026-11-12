@@ -18,13 +18,15 @@ static func prepare_course(race: Node3D) -> void:
 	race.add_child(worker)
 	worker.collect(race.track)
 	worker.collect(race.player)
+	worker.collect(race.thunderstorm)
 	if race.mode == "tour" and not Pool.spatial_shaders_warmed:
 		worker.collect_library()
 	worker.begin(16)
 	await worker.completed
 	if race.mode == "tour":
 		Pool.spatial_shaders_warmed = true
-	if race.track.active.closed_loop and not race.track.has_meta("render_views_warmed"):
+	var storm_pending: bool = race.thunderstorm.eligible() and not race.track.has_meta("storm_views_warmed")
+	if race.track.active.closed_loop and (not race.track.has_meta("render_views_warmed") or storm_pending):
 		await prepare_views(race)
 
 
@@ -34,12 +36,25 @@ static func prepare_views(race: Node3D) -> void:
 	var saved := camera.global_transform
 	var processing: bool = race.is_physics_processing()
 	race.set_physics_process(false)
+	# 번개가 추가하는 조명 변형도 로딩 화면 뒤에서 한 번 렌더한다.
+	var storm_light: DirectionalLight3D = race.thunderstorm.light if race.thunderstorm.eligible() else null
+	var light_visible := false
+	var light_energy := 0.0
+	if storm_light != null:
+		light_visible = storm_light.visible
+		light_energy = storm_light.light_energy
+		storm_light.light_energy = .02
+		storm_light.visible = true
 	for distance in range(80, ceili(race.track.length), 180):
 		camera.global_position = race.track.point(distance) + Vector3.UP * 3.4
 		camera.look_at(race.track.point(distance + 55) + Vector3.UP * 2)
 		camera.reset_physics_interpolation()
 		await race.get_tree().process_frame
 		await RenderingServer.frame_post_draw
+	if storm_light != null:
+		storm_light.visible = light_visible
+		storm_light.light_energy = light_energy
+		race.track.set_meta("storm_views_warmed", true)
 	camera.global_transform = saved
 	camera.reset_physics_interpolation()
 	race.set_physics_process(processing)

@@ -57,9 +57,13 @@ func run(tree: SceneTree) -> int:
 		var cpu: CharacterBody3D = race.world_race.bodies[1]
 		cpu.velocity = cpu.forward_direction() * 80
 		cpu.grounded = true
-		await tree.physics_frame
-		race.world_race.update_rivals(1.0 / 60)
-		check(cpu.velocity.length() < 79.8, "상대 차량은 관성 중에도 앞차·실제 곡률에 제동한다")
+		# 중거리 상대는 두 틱에 한 번 갱신하므로 두 위상을 모두 관측한다.
+		for tick in range(2):
+			await tree.physics_frame
+			race.world_race.update_rivals(1.0 / 60)
+		check(
+			cpu.velocity.length() < 79.8, "상대 차량은 관성 중에도 앞차·실제 곡률에 제동한다: 곡률=%s 속도=%s" % [curve, cpu.velocity.length()]
+		)
 	var speed := 100.0
 	for tick in range(3600):
 		speed = Power.target(speed, 72, 16, 1.0 / 60, true)

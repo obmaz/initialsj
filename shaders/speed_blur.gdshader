@@ -1,6 +1,8 @@
 shader_type canvas_item;
 render_mode unshaded;
 uniform sampler2D scene : hint_screen_texture, filter_linear;
+uniform float storm_flash = 0.0;
+uniform float rush = 0.0;
 uniform float strength = 0.0;
 uniform bool high_quality = true;
 uniform float lens_amount = 0.0;
@@ -39,10 +41,11 @@ void fragment() {
 	vec2 ray = uv - vec2(0.5, 0.42);
 	float edge = smoothstep(0.20, 0.62, length(ray));
 	vec4 sharp = texture(scene, uv);
-	if (edge * strength < 0.01) {
+	float power = max(strength, rush * 2.6);
+	if (edge * power < 0.01) {
 		COLOR = sharp;
 	} else {
-		vec2 offset = ray * edge * strength * 0.042;
+		vec2 offset = ray * edge * power * 0.042;
 		if (!high_quality) {
 			vec4 blur = sharp*0.5+texture(scene,uv-offset*0.45)*0.3+texture(scene,uv-offset)*0.2;
 			COLOR = mix(sharp,blur,edge*0.85);
@@ -57,5 +60,6 @@ void fragment() {
 	}
 	// 반투명 굴절과 얇은 가장자리 반사만 더한다. HUD는 이 패스 뒤에서 그린다.
 	COLOR.rgb=COLOR.rgb*(1.0-drop.w*.07)+vec3(.62,.76,.85)*drop.z*.30;
+	COLOR.rgb=mix(COLOR.rgb,vec3(.65,.77,1.0),storm_flash*.22*(1.0-smoothstep(.25,.72,SCREEN_UV.y)));
 
 }

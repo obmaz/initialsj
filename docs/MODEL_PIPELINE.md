@@ -68,6 +68,12 @@ GLB는 차체·타이어·림·가동 부품을 소유합니다. 네 휠은 `whe
 
 `parameters`의 휠 반경·반트랙·반휠베이스·`ride_offset`, `headlamp_positions`, `headlight_position`, `exhausts`, `aero_drop`, `aero_pitch`를 형상에 맞춥니다. 브레이크 재질과 도장 유니폼은 차량별로 독립적입니다. 셰이더의 `vec4` 도장 유니폼에는 `Vector4`를 전달해 재질 복제 시 자료형과 값을 유지합니다. 부스트·연기·전조등·휠 회전은 [car.gd](../scripts/vehicles/car.gd)가, 능력치는 [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd)가 소유합니다. 차량 전체 예산은2만 삼각형 미만입니다.
 
+### 차량 이펙트 장착 계약
+
+플레이 가능한 차량의 `parameters.effect_slots`는1~3입니다(기본1). `open_top`은 실제 오픈카 변형이 있는 모델만 `true`로 둡니다. 형상 제작자는 같은 GLB 안에 `OpenPaintShell`·`OpenTrimShell`·`OpenCabin`을 제공하며 원래 `BodyShell`·`PaintShell`·`TrimShell`의 면·UV·휠·가동 에어로는 보존합니다. `vehicle_models.gd`가 변형의 공유 메시를 기록하고 장착 어댑터가 기존 도장·트림의 메시 참조를 전환합니다. 차량 물리 규격은 바뀌지 않습니다. 현재 STRAUD만 실내를 갖춘 오픈카를 지원합니다.
+
+효과 ID와 슬롯 검증은 [effect_items.gd](../scripts/vehicles/effect_items.gd), 영구 선택은 [customization_store.gd](../scripts/vehicles/customization_store.gd)가 소유합니다. 새 차량은 슬롯 수·지원 변형을 정의하고 [이펙트 검사](../tests/effect_item_checks.gd)에 호환성을 추가합니다. 회전은 별도 Presentation 피벗에서 시각적으로만 적용합니다.
+
 ## 빌딩·식생·재질
 
 빌딩은 GLB의 조립 파츠32개 이하를 사용합니다. 기준 치수는 `base_size`, 고정 높이의 층 띠는 `parameters.module_fixed_heights`에 기록합니다. 파츠 수·순서를 바꾸면 이 자료도 함께 맞춥니다. 도시의 실제 배치는 코스 씬에 저장됩니다.

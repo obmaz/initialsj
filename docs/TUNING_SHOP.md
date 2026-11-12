@@ -21,7 +21,7 @@
 
 ## 소유권과 저장
 
-- [customization_store.gd](../scripts/vehicles/customization_store.gd)는 `user://vehicle_customization.cfg`의 스키마1과 차량 ID별 선택을 소유합니다. ID는 `nimori`·`veltrix`·`ironvale`·`straud`입니다. 임의 파일 경로 대신 검증한 선택 번호·색상만 저장합니다.
+- [customization_store.gd](../scripts/vehicles/customization_store.gd)는 `user://vehicle_customization.cfg`의 스키마2과 차량 ID별 선택을 소유합니다. ID는 `nimori`·`veltrix`·`ironvale`·`straud`입니다. 임의 파일 경로 대신 검증한 선택 번호·색상만 저장합니다.
 - 적용 시 임시 파일을 쓴 뒤 원본으로 교체합니다. 성공한 뒤에만 메모리의 저장값을 교체합니다. 잘못된 색·선택 번호는 순정값으로 제한하고 알 수 없는 미래 스키마는 덮어쓰지 않습니다. 기존 완주·해금·번호판 기록은 삭제하지 않습니다.
 - [vehicle_customization.gd](../scripts/vehicles/vehicle_customization.gd)는 같은 선택을 주행차·차고·샵 미리보기에 적용합니다. 색 변경은 기존 재질의 유니폼만 갱신하고 휠·윙 종류가 바뀔 때만 노드를 교체합니다.
 - [tuning_shop.gd](../scripts/ui/tuning/tuning_shop.gd)는 편집값·비교·확인 창과 단일 미리보기를 소유합니다. 샵이 열려 있을 때 기존 차고의 키보드·패드·터치 동작을 실행하지 않습니다.
@@ -55,3 +55,16 @@
 튜닝샵은 Godot의 `auto_translate_mode`를 켜고 Label·Button·확인 창에 영어 원문을 유지합니다. TranslationServer에 등록한 번역은 언어 변경 알림으로 표시하며, 번역 후 문자열로 원문을 덮어쓰지 않습니다. 제목·브랜드도 실제 텍스트입니다. 번역문이 길어지면 정해진 영역 안에서 글자 크기를 조정하고 버튼의 터치 영역은 유지합니다. 번역자가 사용할 원문 목록은 [튜닝 번역 템플릿](../localization/tuning_shop.pot)에 있습니다. 이 변경은 튜닝샵의 번역 기반이며 전체 게임 번역·언어 선택 메뉴를 추가하는 것은 별도 작업입니다. 새 언어는 해당 문자 글꼴과 실제 모바일 화면을 함께 검증합니다. 현재 번들 서체는 라틴 문자 중심이므로 한국어 등은 특히 웹에서 시스템 글꼴에 의존하지 않는 대체 글꼴 번들도 준비해야 합니다.
 
 튜닝샵과 다른 메뉴의 기본 색은 [공용 UI 기준](UI_DESIGN.md)을 따릅니다. `tuning_theme.gd`는 네이티브 컨트롤 스타일을 소유하고 색 상수는 공용 `menu_theme.gd`를 참조합니다.
+
+## 이펙트 슬롯
+
+EFFECTS 탭에서 장착·해제하며 적용·저장·비교·취소는 기존 외형과 같은 초안을 사용합니다. NIMORI는1개, VELTRIX·IRONVALE는2개, STRAUD는3개입니다. 슬롯이 차면 먼저 기존 아이템을 해제합니다. 지원하지 않는 OPEN TOP은 설명과 함께 비활성화합니다. 저장 스키마1은 기존 도장·부품을 유지한 채 빈 효과 목록으로 읽고, 중복·알 수 없는 ID·초과 슬롯·미지원 오픈카를 제거합니다.
+
+| 아이템 | 동작 |
+| --- | --- |
+| NITRO RUSH | 실제 니트로 사용 중 화면 가장자리 방사형 블러. 중앙 주행 시야와 HUD는 보존하며 저사양·동작 감소 설정을 따릅니다. |
+| MEGA EXHAUST | 차종 고유 GLB 불꽃·빔의 크기를 확대합니다. 입자 수·주행 출력은 늘리지 않습니다. |
+| AIR SPIN 360 | 노면 기준4m 이상의 상승 점프에서 차종에 맞춰 롤 또는 플립을 한 번 수행합니다. 예상 착지 시간 안에서 시각 피벗만 돌리고 실제 방향·속도·충돌은 바꾸지 않습니다. |
+| OPEN TOP | STRAUD의 지붕 없는 도장·트림 메시와 좌석·롤오버 바·대시보드·운전대를 장착합니다. 해제 시 원래 메시로 돌아갑니다. |
+
+부스트 시연에서는 대형 배기와 공중 회전을 확인할 수 있습니다. 강한 블러는 실제 주행에서 니트로를 사용할 때 적용합니다. 모델 원본 제작은 [author_effect_models.py](../tools/author_effect_models.py)이며 기존 원본은 해시별로 백업한 뒤 변형을 추가합니다.
