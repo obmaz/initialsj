@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-		<meta name="theme-color" content="#07111e">
+		<meta name="theme-color" content="#e8f7fc">
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 		<title>$GODOT_PROJECT_NAME</title>
@@ -12,7 +12,7 @@
 :root { color-scheme: dark; font-family: Arial, Helvetica, sans-serif; }
 html, body, #canvas { margin: 0; padding: 0; border: 0; }
 html, body { width: 100%; height: 100%; }
-body { color: #f3f8ff; background: #07111e; overflow: hidden; touch-action: none; }
+body { color: #173454; background: #e8f7fc; overflow: hidden; touch-action: none; }
 #canvas { display: block; }
 #canvas:focus { outline: none; }
 html:fullscreen, html:-webkit-full-screen { width:100%; height:100%; }
@@ -33,21 +33,21 @@ html.installed-game, html.installed-game body { height:100dvh; }
 #landscape-guide p { margin: 0; max-width: 290px; color: #bad1df; font-size: 15px; line-height: 1.6; }
 @media (orientation: portrait) { #landscape-guide { display: flex; } }
 #status-splash { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index:0; }
-#status::after { content:""; position:absolute; inset:0 0 auto; height:38%; background:linear-gradient(#03101eb0,#03101e00); pointer-events:none; }
+#status::after { content:""; position:absolute; inset:0 0 auto; height:25%; background:linear-gradient(#e8f7fc55,#e8f7fc00); pointer-events:none; }
 #status-splash.show-image--false { display: none; }
 #status-splash.use-filter--false { image-rendering: pixelated; }
-.loading-brand { position:absolute; top:max(24px,env(safe-area-inset-top)); left:5vw; z-index:1; color:#f7fbff;  }
-.loading-logo { display:block; width:clamp(240px,36vw,480px); max-width:82vw; height:auto; }
-#loading-card { position: absolute; z-index:1; bottom: max(20px, env(safe-area-inset-bottom)); width: min(420px, 76vw); padding: 18px 22px; border: 1px solid #76dfff40; border-radius: 4px; background: #07111ee8; box-shadow: 0 10px 36px #0008; }
-.app-version { margin-top:12px; color:#b2cbd8; font-size:13px; letter-spacing:.04em; }
+.loading-brand { position:absolute; top:max(24px,env(safe-area-inset-top)); right:5vw; z-index:1; color:#173454;  }
+.loading-logo { display:block; width:clamp(240px,36vw,480px); max-width:82vw; height:auto; filter:drop-shadow(1px 2px 2px #17345480); }
+#loading-card { position: absolute; z-index:1; bottom: max(20px, env(safe-area-inset-bottom)); width: min(420px, 76vw); padding: 18px 22px; border: 1px solid #b8e5ec; border-radius: 12px; background: #fffffff0; box-shadow: 0 10px 36px #17465c30; }
+.app-version { margin-top:12px; color:#536e83; font-size:13px; letter-spacing:.04em; }
 .loading-meta { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 12px; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
-#loading-percent { color: #66e5ff; font-variant-numeric: tabular-nums; white-space: nowrap; }
-#status-progress { display: block; width: 100%; height: 4px; border: 0; border-radius: 1px; overflow: hidden; background: #263c51; color: #36dfff; accent-color: #36dfff; }
-#status-progress::-webkit-progress-bar { background: #263c51; border-radius: 1px; }
-#status-progress::-webkit-progress-value { background: linear-gradient(90deg,#168aff,#35dbff,#b2faff); border-radius: 1px; }
-#status-progress::-moz-progress-bar { background: linear-gradient(90deg,#168aff,#35dbff,#b2faff); border-radius: 1px; }
-#status-progress:indeterminate { background: linear-gradient(90deg,#263c51 0%,#36dfff 50%,#263c51 100%); background-size: 200% 100%; animation: load-sweep 1.6s linear infinite; }
-#status-notice { display: none; position: relative; z-index: 1; max-width: 560px; margin: 24px; padding: 22px; border: 1px solid #ff987080; border-radius: 12px; color: #f5f8ff; background: #07111ef5; line-height: 1.5; overflow-wrap: anywhere; }
+#loading-percent { color: #187f97; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#status-progress { display: block; width: 100%; height: 4px; border: 0; border-radius: 1px; overflow: hidden; background: #c9e3eb; color: #17b8c7; accent-color: #17b8c7; }
+#status-progress::-webkit-progress-bar { background: #c9e3eb; border-radius: 1px; }
+#status-progress::-webkit-progress-value { background: linear-gradient(90deg,#17b8c7,#20cbd0,#ffdf45); border-radius: 1px; }
+#status-progress::-moz-progress-bar { background: linear-gradient(90deg,#17b8c7,#20cbd0,#ffdf45); border-radius: 1px; }
+#status-progress:indeterminate { background: linear-gradient(90deg,#c9e3eb 0%,#17b8c7 50%,#c9e3eb 100%); background-size: 200% 100%; animation: load-sweep 1.6s linear infinite; }
+#status-notice { display: none; position: relative; z-index: 1; max-width: 560px; margin: 24px; padding: 22px; border: 1px solid #ff987080; border-radius: 12px; color: #173454; background: #fffffff5; line-height: 1.5; overflow-wrap: anywhere; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 noscript { position: fixed; z-index: 3; bottom: 20px; left: 20px; right: 20px; padding: 16px; background: #07111e; text-align: center; }
 @keyframes load-sweep { to { background-position: -200% 0; } }

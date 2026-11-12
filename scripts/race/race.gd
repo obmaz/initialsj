@@ -594,6 +594,13 @@ func toggle_passport() -> void:
 func cycle_cosmetic(plate: bool = false) -> void:
 	if state != RaceState.READY:
 		return
+	var choices: Array = passport.unlocked_plates() if plate else passport.unlocked_paints()
+	var current := customization.selection(selected_vehicle, passport)
+	if choices.size() <= 1 and (plate or current.paint == Color(vehicle.paint).to_html(false)):
+		hud.show_garage_notice(
+			"FINISH A TOUR TO UNLOCK PLATES" if plate else "TOUR COLORS: REACH A DESTINATION / CUSTOM COLORS: TUNING"
+		)
+		return
 	var previous := passport.paints.duplicate()
 	passport.cycle(selected_vehicle, plate)
 	var id: String = Catalog.spec(selected_vehicle).id
@@ -604,12 +611,14 @@ func cycle_cosmetic(plate: bool = false) -> void:
 		if save_records:
 			if customization.save(selected_vehicle, data) != OK:
 				passport.paints = previous
+				hud.show_garage_notice("COULD NOT SAVE THE PAINT. PLEASE TRY AGAIN.")
 				return
 		else:
 			customization.selections[id] = data
 	apply_cosmetics()
 	if save_records:
 		passport.save_progress()
+	hud.show_garage_notice("NUMBER PLATE APPLIED" if plate else "PAINT APPLIED")
 
 
 func apply_cosmetics() -> void:

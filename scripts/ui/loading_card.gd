@@ -6,7 +6,7 @@ const LOGO = preload("res://assets/ui/initialsj-logo.svg")
 const ART = preload("res://assets/ui/drive-loading.png")
 const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
 const CYAN := Color("19dcff")
-const WHITE := Color("f6f7fa")
+const INK := Color("173454")
 const STEPS := ["PREPARING THE TRACK", "BUILDING THE WORLD", "WARMING UP THE ENGINE", "READY"]
 const TIPS := [
 	"DRIFT THROUGH CORNERS TO FILL THE NITRO BAR",
@@ -61,32 +61,33 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color("07111e"))
+	draw_rect(Rect2(Vector2.ZERO, size), Color("e8f7fc"))
 	if illustrated:
 		var factor := maxf(size.x / ART.get_width(), size.y / ART.get_height())
 		var art_size := ART.get_size() * factor
 		draw_texture_rect(ART, Rect2((size - art_size) * .5, art_size), false)
-		draw_rect(Rect2(Vector2.ZERO, size), Color(0, .02, .05, .35))
 	var scale_factor := minf(size.x / 1280.0, size.y / 720.0)
 	var origin := (size - Vector2(1280, 720) * scale_factor) * 0.5
 	draw_set_transform(origin, 0, Vector2.ONE * scale_factor)
 	if illustrated:
+		draw_rect(Rect2(0, 540, 1280, 180), Color(.97, 1, 1, .93))
+		draw_line(Vector2(0, 540), Vector2(1280, 540), Color("20cbd0"), 3)
 		draw_texture_rect(LOGO, Rect2(720, 85, 480, LOGO.get_height() * 480.0 / LOGO.get_width()), false)
 	else:
 		draw_arc(Vector2(640, 285), 26, spin, spin + TAU * .72, 40, CYAN, 4, true)
 	if title != "":
-		_centered(Vector2(640, 556 if illustrated else 356), title, 30, WHITE, FONT)
-	var bar := Rect2(Vector2(340, 580 if illustrated else 386), Vector2(600, 10))
-	draw_rect(bar, Color(0.15, 0.24, 0.32, 0.9))
-	draw_rect(Rect2(bar.position, Vector2(bar.size.x * progress, bar.size.y)), CYAN)
+		_centered(Vector2(640, 581 if illustrated else 356), title, 30, INK, FONT)
+	var bar := Rect2(Vector2(300, 602 if illustrated else 386), Vector2(680, 10))
+	draw_rect(bar, Color("c9e3eb"))
+	draw_rect(Rect2(bar.position, Vector2(bar.size.x * progress, bar.size.y)), Color("17b8c7"))
 	draw_rect(
 		Rect2(bar.position + Vector2(bar.size.x * progress - 26, 0), Vector2(26, bar.size.y)).intersection(bar),
-		Color(0.8, 0.98, 1, 0.9)
+		Color("ffdf45")
 	)
-	_centered(Vector2(640, 620 if illustrated else 430), STEPS[step], 18, CYAN, FONT)
+	_centered(Vector2(640, 644 if illustrated else 430), STEPS[step], 18, Color("187f97"), FONT)
 	if illustrated:
-		_centered(Vector2(640, 665), TIPS[tip], 16, Color(.72, .8, .88), FONT)
-	_centered(Vector2(1140, 700), AppVersion.label(), 18, Color("b2cbd8"), FONT)
+		_centered(Vector2(640, 681), TIPS[tip], 16, Color("536e83"), FONT)
+	_centered(Vector2(1140, 706), AppVersion.label(), 18, Color("536e83"), FONT)
 
 
 func _centered(pos: Vector2, value: String, size_px: int, color: Color, face: Font) -> void:
@@ -98,7 +99,7 @@ func _centered(pos: Vector2, value: String, size_px: int, color: Color, face: Fo
 		HORIZONTAL_ALIGNMENT_LEFT,
 		-1,
 		size_px,
-		3,
-		Color(0.02, 0.04, 0.07, 0.7)
+		2,
+		Color(1, 1, 1, .75)
 	)
 	draw_string(face, pos - Vector2(width * 0.5, 0), value, HORIZONTAL_ALIGNMENT_LEFT, -1, size_px, color)

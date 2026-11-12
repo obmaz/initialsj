@@ -53,6 +53,8 @@ var recovery_touches: Dictionary = {}
 var bottle_texture: Texture2D
 var drift_texture: Texture2D
 var install_note := ""
+var garage_notice := ""
+var garage_notice_left := 0.0
 var previous_vehicle := 0
 var selection_blend := 1.0
 var shown_abilities := PackedFloat32Array()
@@ -415,9 +417,16 @@ func touch_axis() -> float:
 	return float(held("right")) - float(held("left"))
 
 
+func show_garage_notice(value: String) -> void:
+	garage_notice = value
+	garage_notice_left = 4
+	queue_redraw()
+
+
 func _process(delta: float) -> void:
 	if race == null:
 		return
+	garage_notice_left = maxf(0, garage_notice_left - delta) if race.state == RaceState.READY else 0
 	menus.sync_menu_art()
 	if race.state != RaceState.RACING:
 		recovery_touches.clear()

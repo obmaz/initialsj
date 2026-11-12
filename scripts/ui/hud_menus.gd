@@ -258,36 +258,36 @@ func draw_garage() -> void:
 	hud.text_at(
 		Vector2(80, 637),
 		(
-			"16 ROUTES / SEPARATE BESTS"
-			if race.mode == "tour"
-			else "BEST " + (hud.time_label(race.best_time) if race.best_time > 0 else "--:--.---")
+			hud.garage_notice
+			if hud.garage_notice_left > 0
+			else (
+				"16 ROUTES / SEPARATE BESTS"
+				if race.mode == "tour"
+				else "BEST " + (hud.time_label(race.best_time) if race.best_time > 0 else "--:--.---")
+			)
 		),
-		22,
+		18 if hud.garage_notice_left > 0 else 22,
 		hud.GOLD
 	)
+	var paint := garage_paint_label()
+	var plate: int = race.passport.plate_index(race.selected_vehicle)
 	for entry in [
-		[
-			hud.GARAGE_PAINT,
-			(
-				"PAINT "
-				+ str(race.passport.PAINTS[race.passport.paint_index(race.selected_vehicle)].name)
-				+ " / "
-				+ (race.pad.label("alt") if hud.pad_on() else "C")
-			)
-		],
-		[
-			hud.GARAGE_PLATE,
-			(
-				"PLATE "
-				+ str(race.passport.PLATES[race.passport.plate_index(race.selected_vehicle)])
-				+ " / "
-				+ (race.pad.label("restart") if hud.pad_on() else "N")
-			)
-		]
+		[hud.GARAGE_PAINT, paint],
+		[hud.GARAGE_PLATE, "PLATE: " + ("STANDARD" if plate == 0 else str(race.passport.PLATES[plate]))]
 	]:
 		hud.slant(entry[0], Color("20374a"), 8)
 		hud.centered(entry[0].get_center() + Vector2(0, 7), entry[1], 19, hud.CYAN)
 	hud.slant(hud.GARAGE_TUNING, Color("183d4c"), 8)
-	hud.centered(hud.GARAGE_TUNING.get_center() + Vector2(0, 7), "TUNING / T", 22, hud.CYAN)
+	hud.centered(hud.GARAGE_TUNING.get_center() + Vector2(0, 7), "TUNING", 22, hud.CYAN)
 	hud.slant(hud.GARAGE_START, color, 8)
 	hud.centered(Vector2(hud.GARAGE_START.get_center().x, 680), "DRIVE", 34, Color("07111e"))
+
+
+func garage_paint_label() -> String:
+	var data: Dictionary = race.customization.selection(race.selected_vehicle, race.passport)
+	if data.paint == Color(race.vehicle.paint).to_html(false):
+		return "PAINT: ORIGINAL"
+	var reward: Dictionary = race.passport.PAINTS[race.passport.paint_index(race.selected_vehicle)]
+	if not str(reward.color).is_empty() and data.paint == Color(reward.color).to_html(false):
+		return "PAINT: " + str(reward.name)
+	return "PAINT: CUSTOM"

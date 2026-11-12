@@ -3,13 +3,25 @@ const Factory = preload("res://scripts/vehicles/vehicle_factory.gd")
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const Store = preload("res://scripts/vehicles/customization_store.gd")
 const Custom = preload("res://scripts/vehicles/vehicle_customization.gd")
+const Style = preload("res://scripts/ui/tuning_style.gd")
+const BACKGROUND := "res://assets/ui/tuning-bay.png"
+const DESIGN := Vector2(1280, 720)
+const PALETTE := ["edf1ef", "20cbd0", "fb686e", "ffdc48", "173454", "b7bec4", "777e89", "509bed", "aa80d3", "252c35"]
+const LIVERIES := ["ORIGINAL", "HERITAGE STRIPES", "COAST WAVES", "CIRCUIT GRAPHIC"]
+const WHEELS := ["ORIGINAL WHEELS", "FORGED FIVE SPOKE", "SPLIT SPOKE"]
+const WINGS := ["ORIGINAL AERO", "LOW DUCKTAIL", "GT REAR WING", "NO WING"]
 var race: Node3D
 var frame: Control
 var options: Control
 var viewport: SubViewport
+var camera: Camera3D
+var preview_view: TextureRect
 var car: Node3D
 var summary: Label
 var status: Label
+var apply_button: Button
+var compare_button: Button
+var boost_button: Button
 var draft: Dictionary = {}
 var saved: Dictionary = {}
 var tab := 0
@@ -18,121 +30,36 @@ var comparing := false
 var boost_demo := false
 var vehicle := 0
 var dragging := false
+var drag_finger := -1
 var closing_dialog: ConfirmationDialog
 
 
 func _ready() -> void:
 	layer = 30
 	var background := ColorRect.new()
-	background.color = Color("07121f")
+	background.color = Color("e6f5fa")
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(background)
 	frame = Control.new()
-	frame.size = Vector2(1280, 720)
+	frame.size = DESIGN
+	frame.theme = Style.theme()
 	add_child(frame)
-	label("COAST CUSTOMS", Vector2(310, 25), 30)
-	label("PAINT / LIVERY / WHEELS / REAR WING", Vector2(310, 65), 17)
-	var back := button("< GARAGE", Rect2(30, 25, 230, 76), request_close)
-	back.call_deferred("grab_focus")
-	for i in range(4):
-		var tab_button := button(
-			["PAINT", "LIVERY", "WHEELS", "REAR WING"][i],
-			Rect2(30 + (i % 2) * 134, 120 + (i / 2) * 82, 126, 76),
-			func():
-				tab = i
-				build_options(),
-			14
-		)
-		tab_button.toggle_mode = true
-		tabs.append(tab_button)
+	var art := TextureRect.new()
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.texture = load(BACKGROUND)
+	art.size = DESIGN
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(art)
+	create_preview()
+	build_chrome()
 	options = Control.new()
-	options.position = Vector2(30, 292)
+	options.position = Vector2(38, 182)
+	options.size = Vector2(274, 412)
 	frame.add_child(options)
-	viewport = SubViewport.new()
-	viewport.size = Vector2i(640, 420) if race.lite_graphics else Vector2i(960, 630)
-	viewport.own_world_3d = true
-	viewport.msaa_3d = Viewport.MSAA_DISABLED if race.lite_graphics else Viewport.MSAA_2X
-	viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
-	frame.add_child(viewport)
-	var world := WorldEnvironment.new()
-	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color("101e2c")
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("bcd5e8")
-	env.ambient_light_energy = .65
-	world.environment = env
-	viewport.add_child(world)
-	for pose in [Vector3(-40, -35, 0), Vector3(-15, 145, 0)]:
-		var light := DirectionalLight3D.new()
-		light.rotation_degrees = pose
-		light.light_energy = 1.3 if pose.y < 0 else .5
-		viewport.add_child(light)
-	var camera := Camera3D.new()
-	camera.position = Vector3(-4, 2.2, -5.5)
-	camera.fov = 35
-	viewport.add_child(camera)
-	camera.look_at(Vector3(0, .7, 0))
-	car = Factory.create(vehicle)
-	viewport.add_child(car)
-	race.passport.apply_car(car, vehicle)
-	car.reduced_motion = race.motion_reduced
-	car.effects_quality = race.player.effects_quality
-	var view := TextureRect.new()
-	view.position = Vector2(315, 120)
-	view.size = Vector2(650, 400)
-	view.texture = viewport.get_texture()
-	view.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	view.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	view.gui_input.connect(drag_preview)
-	frame.add_child(view)
-	summary = label("", Vector2(990, 160), 20)
-	label("DRAG TO ROTATE", Vector2(510, 524), 17)
-	button(
-		"FRONT",
-		Rect2(330, 548, 145, 76),
-		func():
-			car.rotation.y = 0
-			redraw()
-	)
-	button(
-		"SIDE",
-		Rect2(485, 548, 145, 76),
-		func():
-			car.rotation.y = PI * .5
-			redraw()
-	)
-	button(
-		"REAR",
-		Rect2(640, 548, 145, 76),
-		func():
-			car.rotation.y = PI
-			redraw()
-	)
-	button("BOOST DEMO", Rect2(795, 548, 170, 76), func(): boost_demo = not boost_demo)
-	button("CANCEL", Rect2(30, 634, 180, 76), discard)
-	button(
-		"FACTORY",
-		Rect2(225, 634, 190, 76),
-		func():
-			draft = Store.defaults(vehicle)
-			comparing = false
-			build_options()
-			refresh()
-	)
-	button(
-		"COMPARE",
-		Rect2(430, 634, 240, 76),
-		func():
-			comparing = not comparing
-			refresh()
-	)
-	button("APPLY TO CAR", Rect2(930, 634, 320, 76), apply_changes)
-	status = label("VISUAL TUNING / SAME DRIVING PERFORMANCE", Vector2(330, 100), 16)
 	closing_dialog = ConfirmationDialog.new()
-	closing_dialog.title = "Unsaved customization"
-	closing_dialog.dialog_text = "Discard your changes and return to the garage?"
-	closing_dialog.ok_button_text = "DISCARD"
+	closing_dialog.title = "Leave Coast Customs?"
+	closing_dialog.dialog_text = "Your changes have not been applied."
+	closing_dialog.ok_button_text = "DISCARD CHANGES"
 	closing_dialog.cancel_button_text = "KEEP EDITING"
 	closing_dialog.confirmed.connect(discard)
 	frame.add_child(closing_dialog)
@@ -140,14 +67,126 @@ func _ready() -> void:
 	refresh()
 
 
-func label(text: String, at: Vector2, size_px: int) -> Label:
+func create_preview() -> void:
+	# 배경은 샵 인스턴스만 소유하고, 독립 뷰포트는 변경·회전·시연 중에만 갱신한다.
+	var shadow := TextureRect.new()
+	var gradient := Gradient.new()
+	gradient.colors = PackedColorArray([Color(.04, .1, .16, .32), Color(.04, .1, .16, 0)])
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.fill_from = Vector2(.5, .5)
+	texture.fill_to = Vector2(1, .5)
+	texture.width = 256
+	texture.height = 64
+	shadow.texture = texture
+	shadow.position = Vector2(555, 470)
+	shadow.size = Vector2(610, 90)
+	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(shadow)
+	viewport = SubViewport.new()
+	viewport.size = Vector2i(720, 344) if race.lite_graphics else Vector2i(1080, 516)
+	viewport.own_world_3d = true
+	viewport.transparent_bg = true
+	viewport.msaa_3d = Viewport.MSAA_DISABLED if race.lite_graphics else Viewport.MSAA_2X
+	viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	frame.add_child(viewport)
+	var world := WorldEnvironment.new()
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_COLOR
+	environment.background_color = Color.TRANSPARENT
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color("e4f3ff")
+	environment.ambient_light_energy = .85
+	world.environment = environment
+	viewport.add_child(world)
+	for pose in [Vector3(-40, -35, 0), Vector3(-15, 145, 0)]:
+		var light := DirectionalLight3D.new()
+		light.rotation_degrees = pose
+		light.light_energy = 1.15 if pose.y < 0 else .55
+		viewport.add_child(light)
+	camera = Camera3D.new()
+	camera.position = Vector3(-3.7, 1.7, -4.5)
+	camera.fov = 27
+	viewport.add_child(camera)
+	camera.look_at(Vector3(0, .65, 0))
+	car = Factory.create(vehicle)
+	viewport.add_child(car)
+	race.passport.apply_car(car, vehicle)
+	car.reduced_motion = race.motion_reduced
+	car.effects_quality = race.player.effects_quality
+	preview_view = TextureRect.new()
+	preview_view.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	preview_view.position = Vector2(345, 154)
+	preview_view.texture = viewport.get_texture()
+	preview_view.size = Vector2(915, 414)
+	preview_view.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	preview_view.gui_input.connect(drag_preview)
+	frame.add_child(preview_view)
+
+
+func build_chrome() -> void:
+	panel(Rect2(0, 0, 1280, 82), Color("ffffffed"))
+	var back := button("<", Rect2(20, 17, 68, 50), request_close, 30)
+	Style.accent(back, Style.CORAL)
+	back.call_deferred("grab_focus")
+	label("COAST CUSTOMS", Rect2(110, 11, 700, 42), 34)
+	label("MAKE IT YOURS", Rect2(113, 51, 440, 23), 14, Style.MUTED)
+	panel(Rect2(1025, 17, 235, 50), Style.YELLOW)
+	var name_label := label(str(Catalog.spec(vehicle).name), Rect2(1035, 19, 215, 46), 25)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	for i in range(4):
+		var tab_button := button(
+			["PAINT", "LIVERY", "WHEELS", "REAR WING"][i],
+			Rect2(20 + i * 310, 96, 300, 52),
+			func():
+				tab = i
+				build_options(),
+			21
+		)
+		tab_button.toggle_mode = true
+		tabs.append(tab_button)
+	panel(Rect2(20, 166, 310, 450), Color("ffffffed"))
+	panel(Rect2(350, 164, 910, 32), Color("ffffffd9"))
+	summary = label("", Rect2(360, 166, 885, 28), 14, Style.INK)
+	summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	panel(Rect2(350, 568, 910, 48), Color("fffffff0"))
+	for i in range(3):
+		button(["FRONT", "SIDE", "REAR"][i], Rect2(360 + i * 105, 570, 98, 44), func(): set_view(i), 15)
+	label("DRAG TO ROTATE", Rect2(688, 580, 290, 27), 16, Style.MUTED)
+	boost_button = button("BOOST PREVIEW", Rect2(1040, 570, 210, 44), toggle_boost, 16)
+	boost_button.toggle_mode = true
+	panel(Rect2(0, 634, 1280, 86), Color("fffffff5"))
+	button("RESET", Rect2(20, 651, 120, 50), reset_draft, 17)
+	compare_button = button("COMPARE", Rect2(152, 651, 150, 50), toggle_compare, 17)
+	compare_button.toggle_mode = true
+	button("CANCEL", Rect2(314, 651, 120, 50), request_close, 17)
+	status = label("", Rect2(460, 653, 535, 46), 17)
+	status.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	apply_button = button("APPLY", Rect2(1020, 649, 240, 54), apply_changes, 25)
+	Style.accent(apply_button, Style.YELLOW)
+
+
+func panel(rect: Rect2, color: Color) -> void:
+	var node := Panel.new()
+	node.position = rect.position
+	node.size = rect.size
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	node.add_theme_stylebox_override("panel", Style.box(color, Color("ffffff55"), 1, 8))
+	frame.add_child(node)
+
+
+func label(text: String, rect: Rect2, size_px: int, color: Color = Style.INK, parent: Control = null) -> Label:
 	var node := Label.new()
 	node.text = text
-	node.position = at
-	node.add_theme_font_override("font", preload("res://assets/fonts/Roboto-BoldItalic.ttf"))
+	node.position = rect.position
+	node.size = rect.size
+	node.clip_text = true
+	node.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	node.add_theme_font_size_override("font_size", size_px)
-	node.add_theme_color_override("font_color", Color("b5d4e6"))
-	frame.add_child(node)
+	node.add_theme_color_override("font_color", color)
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	(parent if parent != null else frame).add_child(node)
 	return node
 
 
@@ -157,15 +196,46 @@ func button(text: String, rect: Rect2, action: Callable, size_px: int = 18, pare
 	node.position = rect.position
 	node.size = rect.size
 	node.add_theme_font_size_override("font_size", size_px)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color("183447")
-	style.border_color = Color("28d5db")
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(5)
-	node.add_theme_stylebox_override("normal", style)
+	node.clip_text = true
+	node.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	node.pressed.connect(action)
 	(parent if parent != null else frame).add_child(node)
 	return node
+
+
+func color_options(key: String, title: String, y: float, colors: Array) -> void:
+	label(title, Rect2(0, y, 183, 26), 18, Style.INK, options)
+	var picker := ColorPickerButton.new()
+	picker.position = Vector2(194, y)
+	picker.size = Vector2(80, 28)
+	picker.text = "CUSTOM"
+	picker.add_theme_font_size_override("font_size", 12)
+	picker.edit_alpha = false
+	picker.color = Color(draft[key])
+	picker.set_meta("color_key", key)
+	picker.color_changed.connect(func(color: Color): choose(key, color.to_html(false)))
+	options.add_child(picker)
+	var mark := Label.new()
+	mark.name = "CustomMark"
+	mark.text = "+"
+	mark.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mark.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	picker.add_child(mark)
+	picker.tooltip_text = "CUSTOM COLOR"
+	picker.get_picker().presets_visible = false
+	picker.get_picker().color_modes_visible = false
+	for i in range(colors.size()):
+		var color := Color(colors[i])
+		var node := button(
+			"", Rect2((i % 5) * 55, y + 35 + (i / 5) * 50, 44, 44), func(): choose(key, colors[i]), 14, options
+		)
+		node.toggle_mode = true
+		node.tooltip_text = "#" + str(colors[i]).to_upper()
+		node.set_meta("selection_key", key)
+		node.set_meta("selection_value", colors[i])
+		Style.swatch(node, color)
 
 
 func build_options() -> void:
@@ -174,34 +244,15 @@ func build_options() -> void:
 	for child in options.get_children():
 		child.free()
 	if tab == 0:
-		for i in range(2):
-			var picker := ColorPickerButton.new()
-			picker.position = Vector2(0, i * 86)
-			picker.size = Vector2(260, 78)
-			picker.text = "BODY COLOR" if i == 0 else "ACCENT COLOR"
-			picker.edit_alpha = false
-			picker.color = Color(draft.paint if i == 0 else draft.secondary)
-			picker.color_changed.connect(
-				func(color: Color): choose("paint" if i == 0 else "secondary", color.to_html(false))
-			)
-			options.add_child(picker)
-		var finish := OptionButton.new()
-		finish.position = Vector2(0, 182)
-		finish.size = Vector2(260, 78)
-		finish.add_theme_font_size_override("font_size", 20)
-		for text in ["GLOSS PAINT", "MATTE PAINT", "METALLIC PAINT"]:
-			finish.add_item(text)
-		finish.selected = draft.finish
-		finish.item_selected.connect(func(index: int): choose("finish", index))
-		options.add_child(finish)
+		color_options("paint", "BODY COLOR", 0, PALETTE)
+		color_options("secondary", "ACCENT COLOR", 153, PALETTE)
+		label("FINISH", Rect2(0, 305, 274, 25), 18, Style.INK, options)
+		for i in range(3):
+			choice_button(["GLOSS", "MATTE", "METALLIC"][i], Rect2(i * 93, 341, 88, 48), "finish", i, 14)
 	elif tab == 1:
+		var notes := ["Clean factory finish", "Classic racing lines", "A little ocean motion", "Race-day graphics"]
 		for i in range(4):
-			var choice := choice_button(
-				["FACTORY PAINT", "HERITAGE STRIPES", "COAST WAVES", "CIRCUIT GRAPHIC"][i],
-				Rect2(0, i * 82, 260, 76),
-				"livery",
-				i
-			)
+			var choice := choice_button(LIVERIES[i] + "\n" + notes[i], Rect2(0, i * 91, 274, 80), "livery", i, 16)
 			if i > 0:
 				var atlas := AtlasTexture.new()
 				atlas.atlas = load(Custom.ATLAS)
@@ -211,33 +262,23 @@ func build_options() -> void:
 				)
 				choice.icon = atlas
 				choice.expand_icon = true
-				choice.add_theme_constant_override("icon_max_width", 65)
+				choice.add_theme_constant_override("icon_max_width", 56)
 	elif tab == 2:
 		for i in range(3):
-			choice_button(
-				["FACTORY WHEELS", "FORGED FIVE SPOKE", "SPLIT SPOKE"][i], Rect2(0, i * 88, 260, 78), "wheel", i
-			)
-		var picker := ColorPickerButton.new()
-		picker.position = Vector2(0, 254)
-		picker.size = Vector2(260, 78)
-		picker.text = "RIM COLOR"
-		picker.edit_alpha = false
-		picker.color = Color(draft.rim)
-		picker.color_changed.connect(func(color: Color): choose("rim", color.to_html(false)))
-		options.add_child(picker)
+			choice_button(WHEELS[i], Rect2(0, i * 80, 274, 68), "wheel", i, 17)
+		color_options("rim", "RIM COLOR", 259, ["b7bec4", "dfb65a", "252c35", "edf1ef", "20cbd0"])
 	else:
+		var notes := ["The original silhouette", "Low and clean", "A proper racing profile", "Keep it simple"]
 		for i in range(4):
-			choice_button(
-				["FACTORY AERO", "LOW DUCKTAIL", "GT REAR WING", "NO WING"][i], Rect2(0, i * 82, 260, 76), "wing", i
-			)
+			choice_button(WINGS[i] + "\n" + notes[i], Rect2(0, i * 91, 274, 80), "wing", i, 17)
+	refresh()
 
 
-func choice_button(text: String, rect: Rect2, key: String, value: int) -> Button:
-	var node := button(text, rect, func(): choose(key, value), 18, options)
+func choice_button(text: String, rect: Rect2, key: String, value: int, size_px: int = 18) -> Button:
+	var node := button(text, rect, func(): choose(key, value), size_px, options)
 	node.toggle_mode = true
 	node.set_meta("selection_key", key)
 	node.set_meta("selection_value", value)
-	node.set_pressed_no_signal(draft[key] == value)
 	return node
 
 
@@ -252,21 +293,50 @@ func refresh() -> void:
 	for child in options.get_children():
 		if child is Button and child.has_meta("selection_key"):
 			child.set_pressed_no_signal(draft[child.get_meta("selection_key")] == child.get_meta("selection_value"))
+		elif child is ColorPickerButton:
+			# 색상 선택 창을 다시 열어도 팔레트에서 고른 현재 색을 보여준다.
+			var color := Color(draft[child.get_meta("color_key")])
+			if not child.color.is_equal_approx(color):
+				child.color = color
+			var ink := Style.INK if color.get_luminance() > .4 else Color.WHITE
+			child.get_node("CustomMark").add_theme_color_override("font_color", ink)
+			for state in ["font_color", "font_hover_color", "font_pressed_color"]:
+				child.add_theme_color_override(state, ink)
 	var data: Dictionary = saved if comparing else draft
 	Custom.apply(car, data, vehicle)
 	summary.text = (
-		str(Catalog.spec(vehicle).name)
-		+ "\n\n"
-		+ ["GLOSS", "MATTE", "METALLIC"][data.finish]
-		+ "\n\nLIVERY "
-		+ str(data.livery)
-		+ "\n\n"
-		+ Custom.WHEELS[data.wheel].to_upper().replace("_", " ")
-		+ "\n\n"
-		+ Custom.WINGS[data.wing].to_upper().replace("_", " ")
-		+ "\n\n"
-		+ ("SAVED COMPARISON" if comparing else ("UNSAVED CHANGES" if draft != saved else "APPLIED"))
+		"%s  /  %s  /  %s  /  %s"
+		% [["GLOSS", "MATTE", "METALLIC"][data.finish], LIVERIES[data.livery], WHEELS[data.wheel], WINGS[data.wing]]
 	)
+	compare_button.set_pressed_no_signal(comparing)
+	apply_button.disabled = draft == saved
+	status.text = (
+		"SHOWING SAVED LOOK" if comparing else ("CHANGES NOT SAVED" if draft != saved else "YOUR LOOK IS APPLIED")
+	)
+	status.add_theme_color_override("font_color", Style.CORAL if draft != saved and not comparing else Style.MUTED)
+	redraw()
+
+
+func reset_draft() -> void:
+	draft = Store.defaults(vehicle)
+	comparing = false
+	build_options()
+
+
+func toggle_compare() -> void:
+	comparing = not comparing
+	refresh()
+
+
+func toggle_boost() -> void:
+	boost_demo = not boost_demo
+	boost_button.set_pressed_no_signal(boost_demo)
+
+
+func set_view(index: int) -> void:
+	car.rotation.y = 0
+	camera.position = [Vector3(0, 1.6, -6.4), Vector3(-6.4, 1.6, 0), Vector3(0, 1.6, 6.4)][index]
+	camera.look_at(Vector3(0, .65, 0))
 	redraw()
 
 
@@ -278,17 +348,20 @@ func drag_preview(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		dragging = event.pressed
 	if event is InputEventScreenTouch:
-		dragging = event.pressed
-	if (event is InputEventMouseMotion and dragging) or event is InputEventScreenDrag:
+		if event.pressed and drag_finger < 0:
+			drag_finger = event.index
+		elif not event.pressed and event.index == drag_finger:
+			drag_finger = -1
+	if (event is InputEventMouseMotion and dragging) or (event is InputEventScreenDrag and event.index == drag_finger):
 		car.rotation.y += event.relative.x * .008
 		redraw()
 
 
 func _process(delta: float) -> void:
 	var size := get_viewport().get_visible_rect().size
-	var factor := minf(size.x / 1280, size.y / 720)
+	var factor := minf(size.x / DESIGN.x, size.y / DESIGN.y)
 	frame.scale = Vector2.ONE * factor
-	frame.position = (size - Vector2(1280, 720) * factor) * .5
+	frame.position = (size - DESIGN * factor) * .5
 	if boost_demo:
 		car.animate(0, false, true, delta)
 		redraw()
@@ -306,7 +379,7 @@ func request_close() -> void:
 		closing_dialog.hide()
 		return
 	if draft != saved:
-		closing_dialog.popup_centered(Vector2i(430, 200))
+		closing_dialog.popup_centered(Vector2i(480, 220))
 	else:
 		discard()
 
@@ -320,13 +393,13 @@ func discard() -> void:
 func apply_changes() -> void:
 	var error: Error = race.customization.save(vehicle, draft)
 	if error != OK:
-		status.text = "SAVE FAILED / CHANGES KEPT FOR RETRY"
+		status.text = "COULD NOT SAVE. PLEASE TRY AGAIN."
+		status.add_theme_color_override("font_color", Style.CORAL)
 		return
 	saved = draft.duplicate(true)
 	comparing = false
 	race.apply_cosmetics()
 	refresh()
-	status.text = "CUSTOMIZATION SAVED"
 
 
 func handle_input(event: InputEvent) -> void:
