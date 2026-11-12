@@ -26,6 +26,8 @@ var wrong_way_time := 0.0
 var crash_flight := false
 var outside_time := 0.0
 var contact_flow := preload("res://scripts/race/contact_flow.gd").new()
+var warning_clock := 0.0
+var warning_speed_limit := 80.0
 var camera_state := preload("res://scripts/effects/chase_camera_state.gd").new()
 
 
@@ -59,6 +61,7 @@ func road_up(d: float) -> Vector3:
 func reset() -> void:
 	camera_state.reset()
 	contact_flow.reset()
+	warning_clock = 0
 	reverse_wait = 0
 	reversing = false
 	recovery_clock = 0
@@ -91,6 +94,7 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		trackers[index].reposition(d)
 	trackers[index].lane = lane
 	if index == 0:
+		warning_clock = 0
 		contact_flow.reset()
 		race.rewards.cancel_drift()
 		race.rewards.cancel_grip()
@@ -411,10 +415,32 @@ func step(
 		if laps >= 3:
 			race.finish()
 	update_recovery(delta, data)
-	var curve: float = absf(race.track.curvature(race.distance + 35))
-	race.recommended_speed = minf(race.vehicle.max_speed, sqrt(race.vehicle.grip * 1.4 / maxf(curve, 0.0001)))
+	update_corner_warning(delta)
+
+
+func update_corner_warning(delta: float) -> void:
+	warning_clock -= delta
+	if warning_clock <= 0:
+		warning_clock = .1
+		warning_speed_limit = INF
+		race.recommended_speed = race.vehicle.max_speed
+		var horizon: float = clampf(race.speed * 2.8, 60, 240)
+		if not race.track.active.closed_loop:
+			horizon = minf(horizon, maxf(0, race.track.length - race.distance - 14))
+		for fraction in [0.0, .2, .4, .6, .8, 1.0]:
+			var ahead: float = horizon * fraction
+			if not race.track.active.closed_loop and race.distance + ahead > race.track.length - 14:
+				continue
+			var curve: float = absf(race.track.curvature(race.distance + ahead))
+			var corner_speed: float = sqrt(race.vehicle.grip * race.surface.grip_factor * 1.4 / maxf(curve, .0001))
+			var braking_distance: float = maxf(0, ahead - race.speed * .65)
+			var allowed: float = sqrt(corner_speed * corner_speed + 2 * race.vehicle.brake * .7 * braking_distance)
+			if allowed < warning_speed_limit:
+				warning_speed_limit = allowed
+				race.recommended_speed = minf(race.vehicle.max_speed, corner_speed)
+	# 제동 거리는 미리 알리기 위한 값이며 실제 조향·감속에는 개입하지 않는다.
 	race.corner_warning = move_toward(
-		race.corner_warning, clampf((race.speed - race.recommended_speed - 4) / 15, 0, 1), delta * 3
+		race.corner_warning, clampf((race.speed - warning_speed_limit - 2) / 15, 0, 1), delta * 3
 	)
 
 

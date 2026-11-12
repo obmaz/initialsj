@@ -36,7 +36,7 @@ func preview_angle(race: Node3D, forward: Vector3) -> float:
 	var d: float = (
 		fposmod(race.distance, section.length) if section.closed_loop else clampf(race.distance, 0, section.length)
 	)
-	var ahead: float = d + clampf(race.speed * .65, 18, 65)
+	var ahead: float = d + clampf(race.speed * 1.15, 25, 110)
 	if not section.closed_loop:
 		# 아직 선택하지 않은 두 갈래의 평균 위치를 시선 목표로 쓰지 않는다.
 		ahead = minf(ahead, section.length)

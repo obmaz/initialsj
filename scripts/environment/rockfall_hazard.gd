@@ -60,6 +60,16 @@ func allowed_site(d: float) -> bool:
 	return true
 
 
+func flow_score(d: float) -> float:
+	# 계획 단계에서만 계산한다. 진입·회피 후 도로가 완만한 위치를 우선한다.
+	var score := 0.0
+	for offset in [-100.0, 0.0, 120.0]:
+		score += absf(section.curvature(d + offset))
+		if section.in_tunnel(d + offset) or section.on_bridge(d + offset):
+			score += .1
+	return score
+
+
 func plan_lap(lap: int) -> void:
 	if lap <= planned_lap or lap >= 3:
 		return
@@ -74,7 +84,12 @@ func plan_lap(lap: int) -> void:
 				candidates.append(float(d))
 	if candidates.is_empty():
 		return
-	var d: float = candidates[rng.randi_range(0, candidates.size() - 1)]
+	var ranked: Array[Dictionary] = []
+	for candidate in candidates:
+		ranked.append({"distance": candidate, "score": flow_score(candidate)})
+	ranked.sort_custom(func(a: Dictionary, b: Dictionary): return a.score < b.score)
+	# 기존 이격·장애물 조건은 그대로 두고 완만한 후보 절반에서 무작위 선택한다.
+	var d: float = ranked[rng.randi_range(0, maxi(0, ceili(ranked.size() * .5) - 1))].distance
 	var side := -1.0 if rng.randf() < .5 else 1.0
 	plans.append(
 		{

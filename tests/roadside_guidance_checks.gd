@@ -46,7 +46,7 @@ func inspect_marks(road: Node3D, guide: Node3D) -> void:
 		var before: float = marker.corner - marker.distance
 		if road.closed_loop:
 			before = fposmod(before, road.length)
-		check(before >= 59 and before <= 151, "노면 화살표는 급커브60~150m 전에 표시한다")
+		check(before >= 79 and before <= 241, "노면 화살표는 급커브80~240m 전에 표시한다")
 		check(marker.angle in [45, 60, 75], "실제 코너 회전량에 따라 세 강도를 사용한다")
 		var pose: Transform3D = guide.surface_pose(marker.distance, marker.lane, marker.side)
 		var bounds: AABB = Props.model("bend_arrow_" + str(marker.angle)).get_aabb()

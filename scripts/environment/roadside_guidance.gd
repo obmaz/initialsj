@@ -205,11 +205,15 @@ func install_markings() -> void:
 		var angle: int = corner.angle
 		if not groups.has(angle):
 			groups[angle] = []
-		for ahead in [150, 105, 60]:
+		for ahead in [240, 160, 80]:
 			var d: float = corner.distance - ahead
 			if road.closed_loop:
 				d = fposmod(d, road.length)
 			elif d < 65:
+				continue
+			# 바로 앞의 반대 방향 코너 안에는 다음 커브 안내를 겹치지 않는다.
+			var local_curve: float = road.curvature(d)
+			if absf(local_curve) > .004 and signf(local_curve) != -corner.side:
 				continue
 			if not clear_marking(d, 0):
 				continue
