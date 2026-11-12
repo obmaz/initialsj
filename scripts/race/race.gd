@@ -30,6 +30,7 @@ var ghost: Node3D
 var show_ghost := true
 var max_drift_multiplier := 1
 var rewards := preload("res://scripts/race/driving_rewards.gd").new()
+var driving_feedback := preload("res://scripts/effects/driving_feedback.gd").new()
 var sound_state := preload("res://scripts/audio/vehicle_sound_state.gd").new()
 var proximity_audio := preload("res://scripts/audio/proximity_audio_state.gd").new()
 var slipstream := preload("res://scripts/race/slipstream_state.gd").new()
@@ -737,6 +738,7 @@ func restart(start_countdown: bool = true) -> void:
 	if record_key() != loaded_record_key:
 		load_record()
 	rewards.reset()
+	driving_feedback.reset()
 	sound_state.reset()
 	proximity_audio.reset()
 	slipstream.reset()
@@ -1182,6 +1184,7 @@ func step(
 	world_race.step(delta, axis, drift_input, gas, brake, nitro_input, cell_input)
 	var physical: CharacterBody3D = world_race.player_body
 	player.body_motion.sample(delta, physical.velocity, physical.global_basis, physical.grounded and not crash.active)
+	driving_feedback.advance(self, delta)
 	sound_state.advance(self, delta)
 	proximity_audio.update(self, delta)
 	if track.active.collapse != null:

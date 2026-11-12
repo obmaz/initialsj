@@ -46,4 +46,6 @@ func advance(race: Node3D, delta: float) -> void:
 		reward_pitch = 1.0 + .07 * (race.rewards.event_chain - 1)
 		race.boost_kick = maxf(race.boost_kick, .28 if race.rewards.event_boost else .12)
 		race.haptics.pulse(.18, .42, .1, 2)
+		if race.rewards.event_boost and not race.motion_reduced:
+			race.player.body_motion.clean_exit()
 	last_reward = race.rewards.event_id

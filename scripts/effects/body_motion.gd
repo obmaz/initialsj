@@ -42,6 +42,11 @@ func land(strength: float) -> void:
 	spring_velocity.y -= clampf(strength, 0, 1) * 1.5
 
 
+func clean_exit() -> void:
+	# 가속 페달을 다시 밟는 순간의 작은 차체 반응이며 실제 속도에는 영향을 주지 않는다.
+	spring_velocity.x = clampf(spring_velocity.x + .16, -.3, .3)
+
+
 func advance(delta: float, model: String, reduced: bool, shift: float = 0.0) -> void:
 	var profile: Vector4 = PROFILES.get(model, PROFILES.hatch)
 	var scale := .25 if reduced else 1.0

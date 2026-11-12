@@ -59,6 +59,17 @@ static func mix(race: Node3D) -> Dictionary:
 			1.0 if race.nitro_active else (BOOST_PAD_SHARE if race.pad_active or race.reward_boost_active() else 0.0)
 		)
 	var contact: bool = not race.air.active and not race.crash.active
+	if (
+		race.state == RaceState.RACING
+		and race.throttling
+		and not race.braking
+		and not race.drifting
+		and not race.air.active
+		and not race.crash.active
+		and race.protection_left <= 0
+		and race.impact < .15
+	):
+		boost_share = maxf(boost_share, race.driving_feedback.boost_envelope * .55)
 	var demand := 0.0
 	if race.world_race != null:
 		var body: CharacterBody3D = race.world_race.player_body

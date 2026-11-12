@@ -106,6 +106,7 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		crash_flight = false
 		race.player.reset_physics_interpolation()
 		race.player.body_motion.reset()
+		race.driving_feedback.reset()
 		race.sound_state.reset()
 		race.proximity_audio.reset()
 		race.slipstream.cancel()
@@ -1080,7 +1081,7 @@ func update_camera(delta: float) -> void:
 		if not obstruction.is_empty() and origin.distance_to(obstruction.position) > 1:
 			race.camera.position = obstruction.position + obstruction.normal * 0.2
 	race.camera.look_at(race.player.position + sight * (5.0 + pace * 3.0) + up * 0.8, up)
-	var fov: float = 68 if race.motion_reduced else 66 + pace * 17 + (6 if race.boosting else 0)
+	var fov: float = 68 if race.motion_reduced else 66 + pace * 17 + 6 * race.driving_feedback.boost_envelope
 	if not race.motion_reduced and race.boosting and race.player.boost_fx != null:
 		fov += race.player.boost_fx.heat * 2.5
 	race.camera.fov = lerpf(race.camera.fov, fov, 1 - exp(-delta * 5))
