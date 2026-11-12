@@ -9,7 +9,7 @@ const PAPER := Color("f6fbff")
 const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
 
 
-static func box(fill: Color, border: Color, width: int = 1, radius: int = 8) -> StyleBoxFlat:
+static func create_panel_style(fill: Color, border: Color, width: int = 1, radius: int = 8) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill
 	style.border_color = border
@@ -22,7 +22,7 @@ static func box(fill: Color, border: Color, width: int = 1, radius: int = 8) -> 
 	return style
 
 
-static func theme() -> Theme:
+static func create_theme() -> Theme:
 	var result := Theme.new()
 	result.default_font = FONT
 	result.default_font_size = 18
@@ -30,7 +30,7 @@ static func theme() -> Theme:
 		for state in ["normal", "hover", "pressed", "focus", "disabled"]:
 			var fill := AQUA if state == "pressed" else (Color("e3f8fa") if state == "hover" else PAPER)
 			var border := AQUA if state in ["pressed", "hover", "focus"] else Color("c3ceda")
-			var style := box(fill, border, 2 if state in ["pressed", "focus"] else 1)
+			var style := create_panel_style(fill, border, 2 if state in ["pressed", "focus"] else 1)
 			if state == "focus":
 				style.bg_color = Color.TRANSPARENT
 			if state == "disabled":
@@ -41,28 +41,28 @@ static func theme() -> Theme:
 		result.set_color("font_disabled_color", type, Color("8191a1"))
 	result.set_color("font_color", "Label", INK)
 	result.set_color("font_color", "PopupMenu", INK)
-	result.set_stylebox("panel", "PopupMenu", box(PAPER, Color("c3ceda")))
-	result.set_stylebox("panel", "PopupPanel", box(PAPER, AQUA, 2, 12))
+	result.set_stylebox("panel", "PopupMenu", create_panel_style(PAPER, Color("c3ceda")))
+	result.set_stylebox("panel", "PopupPanel", create_panel_style(PAPER, AQUA, 2, 12))
 	for state in ["normal", "read_only", "focus"]:
-		result.set_stylebox(state, "LineEdit", box(PAPER, AQUA if state == "focus" else Color("c3ceda")))
+		result.set_stylebox(state, "LineEdit", create_panel_style(PAPER, AQUA if state == "focus" else Color("c3ceda")))
 	result.set_color("font_color", "LineEdit", INK)
 	result.set_color("font_uneditable_color", "LineEdit", MUTED)
-	result.set_stylebox("panel", "AcceptDialog", box(PAPER, AQUA, 2, 12))
+	result.set_stylebox("panel", "AcceptDialog", create_panel_style(PAPER, AQUA, 2, 12))
 	result.set_color("font_color", "AcceptDialog", INK)
 	return result
 
 
-static func accent(button: Button, fill: Color) -> void:
-	button.add_theme_stylebox_override("normal", box(fill, fill))
-	button.add_theme_stylebox_override("hover", box(fill.lightened(.12), INK))
-	button.add_theme_stylebox_override("pressed", box(fill.darkened(.08), INK, 2))
+static func apply_accent_style(button: Button, fill: Color) -> void:
+	button.add_theme_stylebox_override("normal", create_panel_style(fill, fill))
+	button.add_theme_stylebox_override("hover", create_panel_style(fill.lightened(.12), INK))
+	button.add_theme_stylebox_override("pressed", create_panel_style(fill.darkened(.08), INK, 2))
 
 
-static func swatch(button: Button, color: Color) -> void:
-	button.add_theme_stylebox_override("normal", box(color, Color("adbcca"), 1, 24))
-	button.add_theme_stylebox_override("hover", box(color, INK, 2, 24))
-	button.add_theme_stylebox_override("pressed", box(color, INK, 4, 24))
-	var focus := box(Color.TRANSPARENT, AQUA, 2, 24)
+static func apply_swatch_style(button: Button, color: Color) -> void:
+	button.add_theme_stylebox_override("normal", create_panel_style(color, Color("adbcca"), 1, 24))
+	button.add_theme_stylebox_override("hover", create_panel_style(color, INK, 2, 24))
+	button.add_theme_stylebox_override("pressed", create_panel_style(color, INK, 4, 24))
+	var focus := create_panel_style(Color.TRANSPARENT, AQUA, 2, 24)
 	focus.expand_margin_left = 3
 	focus.expand_margin_right = 3
 	focus.expand_margin_top = 3

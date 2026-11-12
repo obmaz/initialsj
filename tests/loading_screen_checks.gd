@@ -1,6 +1,6 @@
 extends RefCounted
 # A course rebuild freezes the frame, so the transition must show a loading card first.
-const Card = preload("res://scripts/ui/loading_card.gd")
+const LoadingOverlay = preload("res://scripts/ui/loading/loading_overlay.gd")
 var failures := 0
 
 
@@ -64,18 +64,26 @@ func run(tree: SceneTree) -> int:
 	r.navigate_to_mode("track", 0)
 	await tree.process_frame
 	check(r.loading_title == "", "Without a transition no stale loading title may remain")
-	var card = Card.new()
-	tree.root.add_child(card)
-	check(not card.visible, "The loading card starts hidden")
-	card.begin("FUJI LAKESIDE")
-	check(card.visible and card.progress > 0 and card.progress < 0.2, "The card must open near the start of the bar")
-	card.advance(2, 0.7)
-	check(is_equal_approx(card.progress, 0.7) and card.step == 2, "The card must report each build step")
-	card.advance(9, 3.0)
-	check(card.progress == 1.0 and card.step == card.STEPS.size() - 1, "Progress and step must stay within range")
-	card.finish()
-	check(not card.visible, "The card must hide when loading ends")
-	card.queue_free()
+	var overlay = LoadingOverlay.new()
+	tree.root.add_child(overlay)
+	check(not overlay.visible, "The loading card starts hidden")
+	overlay.begin("FUJI LAKESIDE")
+	check(
+		overlay.visible and overlay.load_progress > 0 and overlay.load_progress < 0.2,
+		"The card must open near the start of the bar"
+	)
+	overlay.advance(2, 0.7)
+	check(
+		is_equal_approx(overlay.load_progress, 0.7) and overlay.step_index == 2, "The card must report each build step"
+	)
+	overlay.advance(9, 3.0)
+	check(
+		overlay.load_progress == 1.0 and overlay.step_index == overlay.STEP_LABELS.size() - 1,
+		"Progress and step must stay within range"
+	)
+	overlay.finish()
+	check(not overlay.visible, "The card must hide when loading ends")
+	overlay.queue_free()
 	r.queue_free()
 	await tree.process_frame
 	print("Loading card / mode loading titles / no stale titles: ", "PASS" if failures == 0 else "FAIL")

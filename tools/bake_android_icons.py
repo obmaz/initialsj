@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draw the Android launcher icons from the same geometry as assets/ui/coast-rush-icon.svg.
+"""Draw the Android launcher icons from the same geometry as assets/ui/branding/coast_rush_icon.svg.
 
 Writes assets/android/icon-192.png (legacy rounded icon) and the adaptive pair
 icon-foreground-432.png / icon-background-432.png (artwork inside the safe central area).

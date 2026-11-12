@@ -294,7 +294,7 @@ func _ready() -> void:
 	hud.race = self
 	canvas.add_child(hud)
 	if DisplayServer.get_name() != "headless":
-		screen_transition = preload("res://scripts/ui/screen_transition.gd").new()
+		screen_transition = preload("res://scripts/ui/loading/screen_transition.gd").new()
 		screen_transition.race = self
 		add_child(screen_transition)
 	if DisplayServer.get_name() != "headless":
@@ -633,11 +633,11 @@ func open_tuning() -> void:
 	loading_title = "COAST CUSTOMS"
 	navigate(
 		func():
-			tuning_shop = preload("res://scripts/ui/tuning_shop.gd").new()
+			tuning_shop = preload("res://scripts/ui/tuning/tuning_shop.gd").new()
 			tuning_shop.race = self
-			tuning_shop.vehicle = selected_vehicle
-			tuning_shop.saved = customization.selection(selected_vehicle, passport)
-			tuning_shop.draft = tuning_shop.saved.duplicate(true)
+			tuning_shop.vehicle_index = selected_vehicle
+			tuning_shop.saved_customization = customization.selection(selected_vehicle, passport)
+			tuning_shop.draft_customization = tuning_shop.saved_customization.duplicate(true)
 			add_child(tuning_shop)
 	)
 
@@ -1006,7 +1006,9 @@ func _physics_process(delta: float) -> void:
 	speed_ambience.update(self)
 	speed_effect.visible = state == RaceState.RACING and not motion_reduced and speed > 35 and render_budget.level < 2
 	speed_effect.material.set_shader_parameter("strength", clampf((speed - 35) / 53 * 1.2, 0, 1))
-	speed_effect.material.set_shader_parameter("high_quality", render_budget.level == 0 and not render_budget.mobile)
+	speed_effect.material.set_shader_parameter(
+		"high_quality", render_budget.level == 0 and not render_budget.is_mobile_platform
+	)
 	update_camera(delta)
 	player.road_speed = speed if state == RaceState.RACING else 0.0
 	player.effects_quality = render_budget.level
@@ -1245,7 +1247,7 @@ func select_route(side: int) -> void:
 	route_preference = clampi(side, 0, 1)
 	route_choice_flash = 0.4
 	if screen_transition != null and sound_enabled:
-		screen_transition.ui_sound.play()
+		screen_transition.transition_sound.play()
 
 
 func award_checkpoint() -> void:

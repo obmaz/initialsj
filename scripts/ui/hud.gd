@@ -7,7 +7,7 @@ const INK := Color("11121bc9")
 const CYAN := Color("19dcff")
 const WHITE := Color("f6f7fa")
 const GOLD := Color("ffda22")
-const LOGO = preload("res://assets/ui/initialsj-logo.svg")
+const LOGO = preload("res://assets/ui/branding/initialsj_logo.svg")
 const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
 const CAPTION_FONT = preload("res://assets/fonts/LiberationSans-BoldItalic.ttf")
 const POSITION_FONT = preload("res://assets/fonts/PositionNumeral.tres")
@@ -93,8 +93,8 @@ func _ready() -> void:
 		face.scale = Vector2(2, 2)
 		dial_cache.add_child(face)
 		build_rpm_ring()
-	bottle_texture = load_icon("res://assets/ui/nitro-bottle.png")
-	drift_texture = load_icon("res://assets/ui/drift-car.png")
+	bottle_texture = load_icon("res://assets/ui/controls/nitro_bottle.png")
+	drift_texture = load_icon("res://assets/ui/controls/drift_car.png")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
@@ -114,7 +114,7 @@ func vehicle_changed(old_index: int) -> void:
 	previous_vehicle = old_index
 	selection_blend = 0.0 if not race.motion_reduced else 1.0
 	if race.screen_transition != null and race.sound_enabled:
-		race.screen_transition.ui_sound.play()
+		race.screen_transition.transition_sound.play()
 
 
 func load_icon(path: String) -> Texture2D:

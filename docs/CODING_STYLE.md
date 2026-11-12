@@ -13,6 +13,10 @@ build/dev-venv/bin/gdformat --check scripts models addons tests tools
 
 파일·함수·멤버는 `snake_case`, 상수는 `UPPER_SNAKE_CASE`, 스크립트를 가리키는 지역 상수는 `RaceState`처럼 역할을 드러내는 이름을 씁니다. 외부 API·셰이더 유니폼·공통 APK JSON 필드는 해당 계약의 이름을 유지합니다. Python은4칸, JavaScript·JSON·YAML은2칸 들여쓰기를 사용하며 편집기 공통 설정은 [.editorconfig](../.editorconfig)에 있습니다.
 
+직접 관리하는 UI 이미지도 `snake_case`로 이름을 붙이고 기능별 폴더로 나눕니다. `tuning_theme.gd`·`loading_overlay.gd`처럼 파일명에는 실제 역할을 적습니다. 글꼴·외부 에셋의 원래 이름과 모델 팩의 기존 ID는 출처·연결 계약을 따릅니다.
+
+같은 화면에 여러 상태가 있으면 `preview_car`·`saved_customization`·`draft_customization`처럼 대상과 수명을 구분합니다. 계산 단위가 모호하면 `track_length_m`·`last_sample_usec`·`sample_elapsed_seconds`처럼 단위를 표시하고, 상태 플래그는 `is_comparing`·`show_illustration`처럼 읽히게 짓습니다. 변수명 정리와 저장 파일의 키·모델 노드 이름·직렬화된 속성 변경을 섞지 않습니다.
+
 공개 헬퍼는 인자·반환형을 선언하고, 이미 구체형을 아는 상태·배열은 그 형식을 사용합니다. 코스·시각 어댑터가 서로 다른 스크립트를 받을 때는 `Node3D`처럼 공통 계약을 사용합니다. 타입을 억지로 바꾸기 위해 순환 `preload`나 모든 것을 담는 전역 등록표를 만들지 않습니다.
 
 ## 런타임 폴더
@@ -27,11 +31,15 @@ build/dev-venv/bin/gdformat --check scripts models addons tests tools
 | [scripts/rendering/](../scripts/rendering/) | 공용 렌더 자원·화질·조명 |
 | [scripts/effects/](../scripts/effects/) | 충돌·착지·축하·물보라·타이어 자국 |
 | [scripts/audio/](../scripts/audio/) | 차량별 음원과 경기 효과음 재생 |
-| [scripts/ui/](../scripts/ui/) | HUD·메뉴·로딩·화면 전환·차고 미리보기·전광판 |
+| [scripts/ui/](../scripts/ui/) | HUD·메뉴·차고 미리보기·전광판 |
+| [scripts/ui/loading/](../scripts/ui/loading/) | 시작 스플래시·로딩 표시·화면 전환 |
+| [scripts/ui/tuning/](../scripts/ui/tuning/) | 튜닝샵·전용 테마·미리보기 조작 |
 | [scripts/input/](../scripts/input/) | 키보드·터치·게임패드 해석·진동 |
 | [scripts/platform/](../scripts/platform/) | 앱 버전과 브라우저 셸 연동 |
 
 시작 씬은 [boot.tscn](../scenes/boot.tscn)이며 스플래시 뒤 [race.tscn](../scenes/race.tscn)을 엽니다. 상태 조정자는 [race.gd](../scripts/race/race.gd)입니다. 파일을 옮길 때는 `.uid`를 함께 보존하고 런타임·모델·검사·내보내기 도구·문서의 경로를 함께 갱신합니다. 모델별 형상·재질·출처는 기존 [models/](../models/) 팩 안에서 소유하며 [모델 제작 계약](MODEL_PIPELINE.md)을 따릅니다.
+
+UI 이미지의 정본은 `assets/ui/` 아래 `branding/`(아이콘·로고), `backgrounds/`(메인·차고·로딩·튜닝 배경), `courses/`(코스 카드·아틀라스), `controls/`(터치 조작 아이콘)에 둡니다. [이미지 출처](../assets/ui/GENERATED_ART.md)는 공통 목록을 유지합니다. 이미지를 옮길 때 `.import`도 함께 옮겨 UID를 보존하고 Godot 임포트로 캐시 경로를 갱신합니다.
 
 ## 헬퍼와 수명
 

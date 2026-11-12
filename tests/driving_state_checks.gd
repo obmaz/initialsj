@@ -24,20 +24,20 @@ func run(tree: SceneTree) -> int:
 	budget.set_mode(0, race)
 	budget.level = 0
 	for frame in range(31):
-		budget.last_tick = Time.get_ticks_usec() - 33334
+		budget.last_sample_usec = Time.get_ticks_usec() - 33334
 		budget.tick(race)
 	race.pause_tour()
 	budget.tick(race)
-	check(budget.slow_windows == 0, "Pausing must break a sequence of slow quality windows")
+	check(budget.slow_sample_windows == 0, "Pausing must break a sequence of slow quality windows")
 	race.state = "racing"
 	for frame in range(31):
-		budget.last_tick = Time.get_ticks_usec() - 33334
+		budget.last_sample_usec = Time.get_ticks_usec() - 33334
 		budget.tick(race)
 	check(budget.level == 0, "A fresh single slow window after pause must not degrade quality")
 	budget.set_mode(0, race)
 	budget.level = 0
 	for frame in range(2):
-		budget.last_tick = Time.get_ticks_usec() - 1000000
+		budget.last_sample_usec = Time.get_ticks_usec() - 1000000
 		budget.tick(race)
 	check(budget.level == 1, "Repeated one-second foreground frames must trigger automatic quality reduction")
 	check(

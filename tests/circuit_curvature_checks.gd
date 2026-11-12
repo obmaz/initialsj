@@ -21,12 +21,18 @@ func run(_tree: SceneTree) -> int:
 		var maximum_error := 0.0
 		for i in range(2400):
 			var d := road.length * (i + .37) / 2400
-			maximum_error = maxf(maximum_error, absf(table.at(d) - road.curvature(d)))
+			maximum_error = maxf(maximum_error, absf(table.sample_curvature(d) - road.curvature(d)))
 		check(maximum_error < .00005, "트랙%d 곡률 캐시는 원래 수평 곡률을 보존해야 한다: %f" % [course + 1, maximum_error])
 		for d in [-25.4, -.01, 0.0, .01, 27.8, road.length - .01]:
-			check(is_equal_approx(table.at(d), table.at(d + road.length * 3)), "곡률 조회는 음수 거리와 여러 바퀴에서도 같은 값이어야 한다")
+			check(
+				is_equal_approx(table.sample_curvature(d), table.sample_curvature(d + road.length * 3)),
+				"곡률 조회는 음수 거리와 여러 바퀴에서도 같은 값이어야 한다"
+			)
 		check(
-			table.spacing <= Curvature.MAX_STEP and table.samples.size() <= ceili(road.length / Curvature.MAX_STEP) + 1,
+			(
+				table.sample_spacing_m <= Curvature.MAX_SAMPLE_SPACING_M
+				and table.curvature_samples.size() <= ceili(road.length / Curvature.MAX_SAMPLE_SPACING_M) + 1
+			),
 			"곡률 캐시는 코스 길이에 비례한 고정 메모리만 사용한다"
 		)
 		road.free()

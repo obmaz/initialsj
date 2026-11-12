@@ -5,14 +5,14 @@ const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const RenderResources = preload("res://scripts/rendering/render_resources.gd")
 # 메뉴 화면 전용 배경. 메뉴에서만 읽고 주행이 시작되면 놓아 GPU 메모리를 비운다.
 const COURSE_PREVIEWS := [
-	"res://assets/ui/course-fuji.png",
-	"res://assets/ui/course-speedway.png",
-	"res://assets/ui/course-night.tres",
-	"res://assets/ui/course-riviera.tres",
-	"res://assets/ui/course-gorge.tres"
+	"res://assets/ui/courses/fuji.png",
+	"res://assets/ui/courses/speedway.png",
+	"res://assets/ui/courses/night.tres",
+	"res://assets/ui/courses/riviera.tres",
+	"res://assets/ui/courses/gorge.tres"
 ]
-const HOME_BG := "res://assets/ui/home-coast.png"
-const GARAGE_BG := "res://assets/ui/garage-bay.png"
+const HOME_BG := "res://assets/ui/backgrounds/home_coast.png"
+const GARAGE_BG := "res://assets/ui/backgrounds/garage_bay.png"
 var menu_art: Dictionary = {}
 var menu_art_requested := false
 var hud: Control

@@ -111,10 +111,10 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		rival.lane = lane
 		rival.target_lane = lane
 		rival.decision = RivalState.decision_phase(rival.id)
-		rival.plan_time = 0
-		rival.curve_limit = INF
-		rival.traffic_limit = INF
-		rival.boost_curve = 0
+		rival.speed_plan_time_left = 0
+		rival.planned_curve_speed_limit = INF
+		rival.planned_traffic_speed_limit = INF
+		rival.planned_boost_curvature = 0
 		rival.lod_time = 0
 		rival.world_stuck = 0.0
 		rival.world_reverse = 0.0
@@ -688,15 +688,15 @@ func carry_rival(index: int, rival: RivalState, target_lane: float, target_speed
 
 func plan_rival_speed(index: int, d: float, look: float, forward: Vector3) -> void:
 	var rival: RivalState = race.rivals[index - 1]
-	rival.curve_limit = INF
+	rival.planned_curve_speed_limit = INF
 	for ahead in [0.0, 25.0, 55.0, 95.0, 145.0]:
 		var curve: float = absf(race.track.curvature(d + ahead))
 		var safe: float = sqrt(rival.specification.grip * float(rival.style.corner) / maxf(curve, 0.0001))
-		rival.curve_limit = minf(
-			rival.curve_limit, sqrt(safe * safe + 2 * minf(28, float(rival.specification.brake)) * ahead)
+		rival.planned_curve_speed_limit = minf(
+			rival.planned_curve_speed_limit, sqrt(safe * safe + 2 * minf(28, float(rival.specification.brake)) * ahead)
 		)
-	rival.boost_curve = absf(race.track.curvature(d + look))
-	rival.traffic_limit = INF
+	rival.planned_boost_curvature = absf(race.track.curvature(d + look))
+	rival.planned_traffic_speed_limit = INF
 	var right := Vector3(-forward.z, 0, forward.x).normalized()
 	for j in range(bodies.size()):
 		if j == index or (j > 0 and not race.rivals[j - 1].active):
@@ -705,8 +705,8 @@ func plan_rival_speed(index: int, d: float, look: float, forward: Vector3) -> vo
 		var gap := relative.dot(forward)
 		if gap > 0 and gap < 40 and absf(relative.dot(right)) < 2.4 and absf(relative.y) < 3:
 			var other_speed := speed_of(bodies[j])
-			rival.traffic_limit = minf(
-				rival.traffic_limit,
+			rival.planned_traffic_speed_limit = minf(
+				rival.planned_traffic_speed_limit,
 				sqrt(other_speed * other_speed + 2 * minf(30, float(rival.specification.brake)) * maxf(0, gap - 7))
 			)
 
@@ -764,20 +764,20 @@ func update_rivals(delta: float) -> void:
 			target_speed = minf(target_speed, 10)
 		var dirt := clampf((absf(rival.lane) + 0.8 - race.track.half_width(d)) / 1.6, 0, 1)
 		target_speed *= lerpf(1, 0.58, dirt)
-		rival.plan_time -= dt
+		rival.speed_plan_time_left -= dt
 		# 150m 밖의 운반 차량만 계획을 재사용한다. 근접 복귀·접촉·공중 상태는 즉시 갱신한다.
 		if (
 			not carried
 			or not body.grounded
 			or rival.air.active
 			or not body.last_contacts.is_empty()
-			or rival.plan_time <= 0
+			or rival.speed_plan_time_left <= 0
 		):
 			plan_rival_speed(i, d, look, forward)
-			rival.plan_time = RivalState.FAR_PLAN_INTERVAL
-		var curve_cap: float = rival.curve_limit
-		target_speed = minf(target_speed, minf(curve_cap, rival.traffic_limit))
-		var blocked: bool = rival.traffic_limit < INF
+			rival.speed_plan_time_left = RivalState.FAR_SPEED_PLAN_INTERVAL
+		var curve_cap: float = rival.planned_curve_speed_limit
+		target_speed = minf(target_speed, minf(curve_cap, rival.planned_traffic_speed_limit))
+		var blocked: bool = rival.planned_traffic_speed_limit < INF
 		var lap: int = maxi(0, floori((d - 80) / race.track.length))
 		if lap > rival.boost_lap:
 			rival.boost_lap = lap
@@ -785,7 +785,7 @@ func update_rivals(delta: float) -> void:
 		var used_nitro := RivalDriving.nitro(
 			rival,
 			dt,
-			rival.boost_curve,
+			rival.planned_boost_curvature,
 			now,
 			not blocked and body.grounded and rival.world_reverse <= 0 and absf(angle) < 0.35
 		)
