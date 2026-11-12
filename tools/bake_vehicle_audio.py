@@ -10,8 +10,9 @@ its catalog "id". The bake writes, per vehicle, into assets/audio/vehicles/:
     <id>-drift.ogg        looping tyre noise approaching the grip limit
     <id>-coast.ogg        vehicle-specific off-throttle exhaust
     ../road-gravel.ogg, ../road-wet.ogg  shared ground contact textures
+    ../traffic-draft.ogg, ../traffic-pass.wav  shared aerodynamic feedback
 
-and assets/audio/web-loops.json (the four loops of every vehicle and two common ground loops, base64, for Web Audio).
+and assets/audio/web-loops.json (vehicle and shared ground/draft loops, plus the pass WAV, base64, for Web Audio).
 Everything is deterministic: the same table always bakes identical audio. Loops are
 exactly periodic (two seconds, every tone an exact multiple of 0.5 Hz), so they repeat
 without a seam. Levels are A-weighted and matched to the shared recordings this system
@@ -327,6 +328,23 @@ def surface_loop(layer: str) -> np.ndarray:
     return normalize(out, LEVEL[layer])
 
 
+def traffic_wind(loop: bool) -> np.ndarray:
+    """차체 배기가 아닌 공기 통과·후류 소리를 오프라인 합성한다."""
+    rng = seeded("traffic", "draft" if loop else "pass")
+    n = M if loop else round(RATE * .58)
+    freq = np.fft.rfftfreq(n, 1 / RATE)
+    magnitude = band(freq, 220, .65) + .5 * band(freq, 950, .8)
+    if not loop:
+        magnitude += .25 * highpass(freq, 1600) * lowpass(freq, 6500)
+    out = filtered_noise(rng, magnitude, n)
+    if loop:
+        out *= am(8.5, .23) * am(29, .12)
+    else:
+        t = np.arange(n) / RATE
+        out *= np.minimum(t / .035, 1) * np.exp(-t / .17) * np.minimum((.58 - t) / .07, 1)
+    return normalize(out, .16)
+
+
 def boost_loop(spec: dict, rng: np.random.Generator) -> np.ndarray:
     magnitude = sum(gain * band(FREQ, centre, q) for centre, q, gain in spec["bands"])
     flow = filtered_noise(rng, magnitude, M)
@@ -442,6 +460,10 @@ def bake() -> None:
         path = AUDIO / f"road-{layer}.ogg"
         write_ogg(path, surface_loop(layer))
         web[f"surface-{layer}"] = base64.b64encode(path.read_bytes()).decode()
+    write_ogg(AUDIO / "traffic-draft.ogg", traffic_wind(True))
+    write_wav(AUDIO / "traffic-pass.wav", traffic_wind(False))
+    for layer, suffix in (("draft", "ogg"), ("pass", "wav")):
+        web[f"traffic-{layer}"] = base64.b64encode((AUDIO / f"traffic-{layer}.{suffix}").read_bytes()).decode()
     (AUDIO / "web-loops.json").write_text(json.dumps(web, separators=(",", ":")) + "\n")
 
 
@@ -516,6 +538,16 @@ def check() -> int:
         elif abs(len(read_audio(path)) - M) > 2048 or np.abs(read_audio(path)).max() > .99:
             print("INVALID SURFACE LOOP", layer)
             failures += 1
+    for layer, suffix in (("draft", "ogg"), ("pass", "wav")):
+        path = AUDIO / f"traffic-{layer}.{suffix}"
+        if not path.is_file() or base64.b64decode(web.get(f"traffic-{layer}", "")) != path.read_bytes():
+            print("MISSING/STALE TRAFFIC", layer)
+            failures += 1
+        else:
+            sound = read_audio(path)
+            if np.abs(sound).max() > .99 or not (.4 <= len(sound) / RATE <= 2.1):
+                print("INVALID TRAFFIC SOUND", layer)
+                failures += 1
     print("PASS" if not failures else f"FAIL ({failures})")
     return failures
 

@@ -91,7 +91,10 @@ func run(tree: SceneTree) -> int:
 	check(ids.size() == count, "Vehicle ids must be unique")
 	for key in web_loops:
 		check(
-			ids.has(str(key).rsplit("-", true, 1)[0]) or str(key) in ["surface-gravel", "surface-wet"],
+			(
+				ids.has(str(key).rsplit("-", true, 1)[0])
+				or str(key) in ["surface-gravel", "surface-wet", "traffic-draft", "traffic-pass"]
+			),
 			"web-loops.json carries a loop for an unknown vehicle: " + str(key)
 		)
 	if failures > 0:

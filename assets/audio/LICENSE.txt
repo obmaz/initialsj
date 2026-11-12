@@ -11,8 +11,8 @@ countdown.wav, launch.wav, reward.wav, lap.wav
   These files belong to this project; no third-party recordings are included.
 
 vehicles/<id>-engine.ogg, -coast.ogg, -boost.ogg, -boost-start.wav, -drift.ogg
-road-gravel.ogg, road-wet.ogg, web-loops.json
+road-gravel.ogg, road-wet.ogg, traffic-draft.ogg, traffic-pass.wav, web-loops.json
   프로젝트 전용 합성 원본. tools/bake_vehicle_audio.py가 차량별 가속·타력 배기,
-  부스터·점화·타이어 음원과 공통 자갈·물 접촉 소리를 생성합니다.
+  부스터·점화·타이어 음원과 공통 자갈·물 접촉 소리, 근접 통과·슬립스트림 공기 소리를 생성합니다.
   외부 녹음은 포함하지 않으며 web-loops.json은 같은 파일의 웹 재생 포장입니다.
   차량 추가·조정 규칙은 docs/VEHICLE_AUDIO.md를 따릅니다.

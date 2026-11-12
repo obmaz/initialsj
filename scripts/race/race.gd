@@ -31,6 +31,7 @@ var show_ghost := true
 var max_drift_multiplier := 1
 var rewards := preload("res://scripts/race/driving_rewards.gd").new()
 var sound_state := preload("res://scripts/audio/vehicle_sound_state.gd").new()
+var proximity_audio := preload("res://scripts/audio/proximity_audio_state.gd").new()
 var protection_left := 0.0
 var auto_accelerate := true
 var recovery_distance := 80.0
@@ -678,6 +679,7 @@ func restart(start_countdown: bool = true) -> void:
 		load_record()
 	rewards.reset()
 	sound_state.reset()
+	proximity_audio.reset()
 	passport.new_unlocks.clear()
 	apply_cosmetics()
 	route_challenges.reset()
@@ -1077,6 +1079,7 @@ func step(
 	var physical: CharacterBody3D = world_race.player_body
 	player.body_motion.sample(delta, physical.velocity, physical.global_basis, physical.grounded and not crash.active)
 	sound_state.advance(self, delta)
+	proximity_audio.update(self, delta)
 	if track.active.collapse != null:
 		track.active.collapse.advance(delta, distance, motion_reduced)
 		hazard_text = track.active.collapse.warning(distance)

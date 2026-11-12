@@ -12,27 +12,46 @@ class AudioContext {
  createBufferSource(){
   assert.notEqual(this.state,'closed','Late decodes must not rebuild a closed graph');
   const context=this;
-  const source={buffer:null,loop:false,playbackRate:{setTargetAtTime(){}},connect(gain){context.connections.add(source);return gain},disconnect(){context.connections.delete(source)},start(){context.live.add(source)},stop(){assert(context.live.delete(source),'A source must stop exactly once')}};
+  const source={buffer:null,loop:false,playbackRate:{value:1,setTargetAtTime(value){this.value=value}},connect(gain){context.connections.add(source);return gain},disconnect(){context.connections.delete(source)},start(){context.live.add(source)},stop(){assert(context.live.delete(source),'A source must stop exactly once')}};
   return source;
  }
- createGain(){const context=this;const gain={gain:{value:0,setTargetAtTime(){}},connect(){context.connections.add(gain);return gain},disconnect(){context.connections.delete(gain)}};return gain}
+ createGain(){const context=this;const gain={gain:{value:0,setTargetAtTime(value){this.value=value}},connect(target){context.connections.add(gain);return target},disconnect(){context.connections.delete(gain)}};return gain}
+ createStereoPanner(){const context=this;const pan={pan:{value:0,setTargetAtTime(value){this.value=value}},connect(target){context.connections.add(pan);return target},disconnect(){context.connections.delete(pan)}};return pan}
  close(){this.closes++;this.state='closed';return Promise.resolve()}
 }
 const window={...events};
 vm.runInNewContext(fs.readFileSync('web/file_audio.js','utf8'),{window,document:events,AudioContext,console:{error(...args){errors.push(args)}},atob:encoded=>Buffer.from(encoded,'base64').toString('binary')});
 const files={};for(const id of ['a','b'])for(const voice of ['engine','coast','boost','drift'])files[id+'-'+voice]='QQ==';
 for(const voice of ['gravel','wet'])files['surface-'+voice]='QQ==';
+for(const voice of ['draft','pass'])files['traffic-'+voice]='QQ==';
 (async()=>{
  const audio=new window.InitialSJFileAudio({...files});const context=contexts[0];
  const a=audio.setVehicle('a'),b=audio.setVehicle('b'),again=audio.setVehicle('a');
- assert.equal(context.pending.length,10,'Repeated visits must reuse the decoded-file promise');
+ assert.equal(context.pending.length,12,'Repeated visits must reuse the decoded-file promise');
  for(const pending of context.pending)pending.resolve({length:100});
  await Promise.all([a,b,again]);
- assert.equal(context.live.size,6,'A -> B -> A must leave exactly six current loops');
- assert.equal(context.connections.size,12);
+ assert.equal(context.live.size,7,'A -> B -> A must leave exactly seven current loops');
+ assert.equal(context.connections.size,15);
  for(let i=0;i<20;i++)await audio.setVehicle(i%2?'a':'b');
- assert.equal(context.live.size,6,'Repeated selection must not accumulate looping sources');
- assert.equal(context.connections.size,12,'Stopped sources and gains must disconnect');
+ assert.equal(context.live.size,7,'Repeated selection must not accumulate looping sources');
+ assert.equal(context.connections.size,15,'Stopped sources and gains must disconnect');
+ audio.update(true,1,1,0,1,0,1);
+ audio.updateSpatial(true,.05,-.2,1.1,1,.07,-.8,1.15);
+ assert.equal(context.live.size,8);assert.equal(context.connections.size,18);
+ assert.equal(audio.passVoice.pan.pan.value,-.8);assert.equal(audio.voices.draft.pan.pan.value,-.2);
+ const first=audio.passVoice;
+ audio.updateSpatial(true,.05,.2,1.1,1,.07,.8,.9);
+ assert.equal(audio.passVoice,first,'The same pass event must not allocate another source');
+ assert.equal(first.pan.pan.value,.8);assert.equal(first.source.playbackRate.value,.9);
+ for(let serial=2;serial<20;serial++)audio.updateSpatial(true,.05,.1,1,serial,.06,.7,1);
+ assert.equal(context.live.size,8,'Repeated passes must replace, not accumulate, one-shots');
+ const ended=audio.passVoice;context.live.delete(ended.source);ended.source.onended();
+ assert.equal(audio.passVoice,null);assert.equal(context.live.size,7);assert.equal(context.connections.size,15);
+ audio.updateSpatial(true,.05,0,1,21,.06,-.7,1);
+ audio.updateSpatial(false,0,0,1,21,.06,-.7,1);
+ assert.equal(audio.passVoice,null,'Pause and mute must stop a running pass');
+ audio.updateSpatial(true,0,0,1,21,.06,-.7,1);
+ assert.equal(audio.passVoice,null,'Resuming must not replay a pass heard before pause');
  audio.close();audio.close();
  audio.update(true,1,1,1,1,1,1);
  assert.equal(audio.target.active,false,'A disposed mixer must ignore late updates');

@@ -1,8 +1,6 @@
 extends AudioStreamPlayer
-# Plays the selected vehicle's own engine, boost and drift sounds (VehicleAudio holds
-# the mapping; docs/VEHICLE_AUDIO.md the rules). Loops use native Web Audio looping
-# in the browser; transient WAV cues use Godot sample playback. Native builds stream.
-# This node itself is the engine loop player.
+# 차량 고유 음향 믹스를 네이티브·웹에 동일하게 전달한다.
+# 공간 음향도 공통 관측값을 쓰며 네이티브의 두 보이스는 자식 어댑터가 소유한다.
 const RaceState = preload("res://scripts/race/race_state.gd")
 const VehicleAudio = preload("res://scripts/audio/vehicle_audio.gd")
 var race: Node3D
@@ -33,6 +31,7 @@ var reward_pitch := 1.0
 var cue_busy := 0.0
 var extra_loops: Dictionary = {}
 var extra_levels := {"coast": 0.0, "gravel": 0.0, "wet": 0.0}
+var spatial: Node
 const COUNT_TONE = preload("res://assets/audio/countdown.wav")
 const LAUNCH_TONE = preload("res://assets/audio/launch.wav")
 const REWARD_TONE = preload("res://assets/audio/reward.wav")
@@ -66,6 +65,9 @@ func _ready() -> void:
 			source + "\nwindow.initialsjFileAudio = new window.InitialSJFileAudio(" + recordings + ");"
 		)
 		web_audio = JavaScriptBridge.get_interface("window").initialsjFileAudio
+	else:
+		spatial = preload("res://scripts/audio/spatial_driving_audio.gd").new()
+		add_child(spatial)
 	apply_vehicle()
 
 
@@ -168,6 +170,8 @@ func _process(delta: float) -> void:
 	last_landing = race.air.landing_flash
 	last_reward = race.rewards.event_id
 	var mixed := VehicleAudio.mix(race)
+	var nearby: RefCounted = race.proximity_audio
+	var spatial_active: bool = active and race.state == RaceState.RACING and nearby.active
 	if OS.has_feature("web"):
 		if web_audio != null:
 			web_audio.update(
@@ -183,7 +187,18 @@ func _process(delta: float) -> void:
 				mixed.wet,
 				mixed.road_pitch
 			)
+			web_audio.updateSpatial(
+				spatial_active,
+				nearby.draft_level,
+				nearby.draft_pan,
+				nearby.draft_pitch,
+				nearby.serial,
+				nearby.pass_level,
+				nearby.pass_pan,
+				nearby.pass_pitch
+			)
 		return
+	spatial.update(nearby, spatial_active, delta)
 	gain = move_toward(gain, 1.0 if active else 0.0, delta * 2)
 	if gain <= 0 and not active:
 		stop()

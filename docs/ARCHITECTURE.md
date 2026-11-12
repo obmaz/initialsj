@@ -25,6 +25,10 @@
 
 시각 하중은 [body_motion.gd](../scripts/effects/body_motion.gd)의 고정 크기 스프링 상태만 보유합니다. 공통 주행이 실제 속도를 한 번 샘플링하고 [car.gd](../scripts/vehicles/car.gd)가 GLB 시각 피벗에만 적용합니다. [vehicle_sound_state.gd](../scripts/audio/vehicle_sound_state.gd)는 부하·변속·보상 사건을 관측하고 [vehicle_audio.gd](../scripts/audio/vehicle_audio.gd)의 믹스가 네이티브와 웹에 동일하게 전달됩니다. 보상은 주행 규칙이 한 번 지급하고 피드백 관측자는 점수·물리를 수정하지 않습니다.
 
+[chase_camera_state.gd](../scripts/effects/chase_camera_state.gd)는 현재 도로의 시선 예고와 작은 가감속 거리 보정을 담당하며 실제 위치 추적·충돌 회피는 `WorldRace`에 둡니다. [proximity_audio_state.gd](../scripts/audio/proximity_audio_state.gd)는 물리 틱에서 상대 위치·속도를 관측합니다. 관측은 최대32개 ID와 스칼라만 보유하고 지역·노드 참조를 붙잡지 않습니다. 순간이동은 두 상태를 초기화합니다.
+
+[spatial_driving_audio.gd](../scripts/audio/spatial_driving_audio.gd)는 네이티브의 통과·후류 두 보이스와 고유 이름의 패닝 버스 두 개를 생성하고 종료 시 함께 해제합니다. 웹의 `file_audio.js`는 같은 패닝·피치·사건 번호를 읽고 `StereoPannerNode`로 재생합니다. 통과음은 동시에 하나만 유지하며 종료·교체·음소거 때 연결을 해제합니다. 차량16대나 새로운 지역 진입 때문에 음향 노드를 추가하지 않습니다.
+
 ## 모델과 런타임의 경계
 
 ```mermaid

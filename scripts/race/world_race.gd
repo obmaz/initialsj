@@ -24,6 +24,7 @@ var landing_velocity := 0.0
 var wrong_way_time := 0.0
 var crash_flight := false
 var outside_time := 0.0
+var camera_state := preload("res://scripts/effects/chase_camera_state.gd").new()
 
 
 func setup() -> void:
@@ -54,6 +55,7 @@ func road_up(d: float) -> Vector3:
 
 
 func reset() -> void:
+	camera_state.reset()
 	reverse_wait = 0
 	reversing = false
 	recovery_clock = 0
@@ -97,8 +99,10 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		race.player.reset_physics_interpolation()
 		race.player.body_motion.reset()
 		race.sound_state.reset()
+		race.proximity_audio.reset()
 		race.sound_state.last_reward = race.rewards.event_id
 		race.camera.reset_physics_interpolation()
+		camera_state.reset()
 	else:
 		var rival: RivalState = race.rivals[index - 1]
 		rival.distance = d
@@ -962,13 +966,20 @@ func update_protection(delta: float) -> void:
 
 
 func update_camera(delta: float) -> void:
+	if race.state == RaceState.PAUSED:
+		return
 	var forward: Vector3 = player_body.forward_direction()
 	if race.coast_handling and race.drifting and player_body.velocity.length() > 25:
 		forward = forward.lerp(player_body.velocity.normalized(), 0.65).normalized()
 	var right := Vector3(-forward.z, 0, forward.x).normalized()
 	var pace := clampf(race.speed / 88, 0, 1)
 	var up := Vector3.UP.lerp(player_body.surface_normal, 0.3).normalized()
+	var preview: bool = race.state == RaceState.RACING and player_body.grounded and not race.crash.active
+	var angle := camera_state.preview_angle(race, forward) if preview and not race.motion_reduced else 0.0
+	camera_state.advance(delta, race.speed, angle, race.player.body_motion.acceleration.x, preview, race.motion_reduced)
+	var sight := forward.rotated(Vector3.UP, camera_state.look_yaw).normalized()
 	var desired: Vector3 = -forward * (7.1 + pace * 0.9) + Vector3.UP * (3.0 + race.camera_intro * 1.5)
+	desired -= forward * camera_state.pullback
 	if not race.motion_reduced and race.state == RaceState.RACING:
 		# Speed hum, kerb/rail rumble, boost pull-back and a dip when the car lands.
 		race.camera_time += delta
@@ -987,7 +998,7 @@ func update_camera(delta: float) -> void:
 		var obstruction := get_world_3d().direct_space_state.intersect_ray(query)
 		if not obstruction.is_empty() and origin.distance_to(obstruction.position) > 1:
 			race.camera.position = obstruction.position + obstruction.normal * 0.2
-	race.camera.look_at(race.player.position + forward * (5.0 + pace * 3.0) + up * 0.8, up)
+	race.camera.look_at(race.player.position + sight * (5.0 + pace * 3.0) + up * 0.8, up)
 	var fov: float = 68 if race.motion_reduced else 66 + pace * 17 + (6 if race.boosting else 0)
 	if not race.motion_reduced and race.boosting and race.player.boost_fx != null:
 		fov += race.player.boost_fx.heat * 2.5
