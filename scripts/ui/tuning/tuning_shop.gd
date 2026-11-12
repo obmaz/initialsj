@@ -10,7 +10,7 @@ const PAINT_COLORS := [
 	"edf1ef", "20cbd0", "fb686e", "ffdc48", "173454", "b7bec4", "777e89", "509bed", "aa80d3", "252c35"
 ]
 const LIVERY_LABELS := ["ORIGINAL", "HERITAGE STRIPES", "COAST WAVES", "CIRCUIT GRAPHIC"]
-const WHEEL_LABELS := ["ORIGINAL WHEELS", "FORGED FIVE SPOKE", "SPLIT SPOKE"]
+const WHEEL_LABELS := ["ORIGINAL WHEELS", "FORGED 5-SPOKE", "SPLIT SPOKE"]
 const WING_LABELS := ["ORIGINAL AERO", "LOW DUCKTAIL", "GT REAR WING", "NO WING"]
 var race: Node3D
 var content_root: Control
@@ -19,7 +19,6 @@ var preview_viewport: SubViewport
 var preview_camera: Camera3D
 var preview_display: TextureRect
 var preview_car: Node3D
-var selection_summary: Label
 var save_status_label: Label
 var apply_button: Button
 var compare_button: Button
@@ -55,8 +54,8 @@ func _ready() -> void:
 	create_preview()
 	build_layout()
 	options_panel = Control.new()
-	options_panel.position = Vector2(38, 182)
-	options_panel.size = Vector2(274, 412)
+	options_panel.position = Vector2(40, 181)
+	options_panel.size = Vector2(320, 454)
 	content_root.add_child(options_panel)
 	discard_dialog = ConfirmationDialog.new()
 	discard_dialog.title = "Leave Coast Customs?"
@@ -82,8 +81,8 @@ func create_preview() -> void:
 	texture.width = 256
 	texture.height = 64
 	shadow.texture = texture
-	shadow.position = Vector2(555, 470)
-	shadow.size = Vector2(610, 90)
+	shadow.position = Vector2(520, 480)
+	shadow.size = Vector2(700, 72)
 	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_root.add_child(shadow)
 	preview_viewport = SubViewport.new()
@@ -99,17 +98,17 @@ func create_preview() -> void:
 	environment.background_color = Color.TRANSPARENT
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("e4f3ff")
-	environment.ambient_light_energy = .85
+	environment.ambient_light_energy = .65
 	world.environment = environment
 	preview_viewport.add_child(world)
 	for pose in [Vector3(-40, -35, 0), Vector3(-15, 145, 0)]:
 		var light := DirectionalLight3D.new()
 		light.rotation_degrees = pose
-		light.light_energy = 1.15 if pose.y < 0 else .55
+		light.light_energy = 1.1 if pose.y < 0 else .4
 		preview_viewport.add_child(light)
 	preview_camera = Camera3D.new()
-	preview_camera.position = Vector3(-3.7, 1.7, -4.5)
-	preview_camera.fov = 27
+	preview_camera.position = Vector3(-4.8, 1.6, -5.4)
+	preview_camera.fov = 21
 	preview_viewport.add_child(preview_camera)
 	preview_camera.look_at(Vector3(0, .65, 0))
 	preview_car = VehicleFactory.create(vehicle_index)
@@ -119,62 +118,73 @@ func create_preview() -> void:
 	preview_car.effects_quality = race.player.effects_quality
 	preview_display = TextureRect.new()
 	preview_display.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	preview_display.position = Vector2(345, 154)
+	preview_display.position = Vector2(385, 176)
 	preview_display.texture = preview_viewport.get_texture()
-	preview_display.size = Vector2(915, 414)
+	preview_display.size = Vector2(895, 400)
 	preview_display.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	preview_display.gui_input.connect(drag_preview)
 	content_root.add_child(preview_display)
 
 
 func build_layout() -> void:
-	add_panel(Rect2(0, 0, 1280, 82), Color("ffffffed"))
-	var back := add_button("<", Rect2(20, 17, 68, 50), request_close, 30)
+	add_panel(Rect2(0, 0, 1280, 78), Color("fffffff5"))
+	var back := add_button("←", Rect2(15, 8, 80, 62), request_close, 42)
 	TuningTheme.apply_accent_style(back, TuningTheme.CORAL)
 	back.call_deferred("grab_focus")
-	add_label("COAST CUSTOMS", Rect2(110, 11, 700, 42), 34)
-	add_label("MAKE IT YOURS", Rect2(113, 51, 440, 23), 14, TuningTheme.MUTED)
-	add_panel(Rect2(1025, 17, 235, 50), TuningTheme.YELLOW)
-	var name_label := add_label(str(VehicleCatalog.spec(vehicle_index).name), Rect2(1035, 19, 215, 46), 25)
+	var title_art := TextureRect.new()
+	title_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	title_art.texture = preload("res://assets/ui/branding/tuning_title.png")
+	title_art.position = Vector2(110, 0)
+	title_art.size = Vector2(480, 78)
+	title_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_root.add_child(title_art)
+	var brand := TextureRect.new()
+	brand.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	brand.texture = preload("res://assets/ui/branding/tuning_brand.png")
+	brand.position = Vector2(600, 0)
+	brand.size = Vector2(368, 76)
+	brand.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_root.add_child(brand)
+	add_panel(Rect2(1016, 14, 264, 49), TuningTheme.YELLOW)
+	var name_label := add_label(str(VehicleCatalog.spec(vehicle_index).name), Rect2(1028, 17, 230, 44), 30)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	for i in range(4):
 		var tab_button := add_button(
 			["PAINT", "LIVERY", "WHEELS", "REAR WING"][i],
-			Rect2(20 + i * 310, 96, 300, 52),
+			Rect2(34 + i * 306, 96, 300, 58),
 			func():
 				selected_tab = i
 				rebuild_options(),
-			21
+			28
 		)
+		var selected_style := TuningTheme.create_panel_style(TuningTheme.AQUA, Color.WHITE, 2)
+		selected_style.skew = Vector2(.22, 0)
+		tab_button.add_theme_stylebox_override("pressed", selected_style)
 		tab_button.toggle_mode = true
 		tab_buttons.append(tab_button)
-	add_panel(Rect2(20, 166, 310, 450), Color("ffffffed"))
-	add_panel(Rect2(350, 164, 910, 32), Color("ffffffd9"))
-	selection_summary = add_label("", Rect2(360, 166, 885, 28), 14, TuningTheme.INK)
-	selection_summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_panel(Rect2(350, 568, 910, 48), Color("fffffff0"))
+	add_panel(Rect2(22, 170, 358, 469), Color("fffffff0"))
+	add_panel(Rect2(404, 578, 852, 60), Color("fffffff2"))
 	for i in range(3):
-		add_button(["FRONT", "SIDE", "REAR"][i], Rect2(360 + i * 105, 570, 98, 44), func(): set_view(i), 15)
-	add_label("DRAG TO ROTATE", Rect2(688, 580, 290, 27), 16, TuningTheme.MUTED)
-	boost_button = add_button("BOOST PREVIEW", Rect2(1040, 570, 210, 44), toggle_boost, 16)
+		add_button(["FRONT", "SIDE", "REAR"][i], Rect2(415 + i * 126, 581, 116, 54), func(): set_view(i), 21)
+	add_label("DRAG TO ROTATE", Rect2(808, 586, 196, 44), 19, TuningTheme.MUTED)
+	boost_button = add_button("» BOOST", Rect2(1026, 581, 214, 54), toggle_boost, 23)
 	boost_button.toggle_mode = true
-	add_panel(Rect2(0, 634, 1280, 86), Color("fffffff5"))
-	add_button("RESET", Rect2(20, 651, 120, 50), reset_draft, 17)
-	compare_button = add_button("COMPARE", Rect2(152, 651, 150, 50), toggle_compare, 17)
+	add_panel(Rect2(0, 650, 1280, 70), Color("fffffff8"))
+	add_button("RESET", Rect2(30, 658, 140, 56), reset_draft, 23)
+	compare_button = add_button("COMPARE", Rect2(184, 658, 160, 56), toggle_compare, 23)
 	compare_button.toggle_mode = true
-	add_button("CANCEL", Rect2(314, 651, 120, 50), request_close, 17)
-	save_status_label = add_label("", Rect2(460, 653, 535, 46), 17)
+	add_button("CANCEL", Rect2(358, 658, 142, 56), request_close, 23)
+	save_status_label = add_label("", Rect2(530, 662, 444, 48), 22)
 	save_status_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	apply_button = add_button("APPLY", Rect2(1020, 649, 240, 54), apply_changes, 25)
+	apply_button = add_button("APPLY  »", Rect2(1000, 654, 250, 64), apply_changes, 36)
 	TuningTheme.apply_accent_style(apply_button, TuningTheme.YELLOW)
 
 
 func add_panel(rect: Rect2, color: Color) -> void:
-	var node := Panel.new()
+	var node := preload("res://scripts/ui/tuning/tuning_panel.gd").new()
 	node.position = rect.position
 	node.size = rect.size
-	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	node.add_theme_stylebox_override("panel", TuningTheme.create_panel_style(color, Color("ffffff55"), 1, 8))
+	node.fill = color
 	content_root.add_child(node)
 
 
@@ -208,12 +218,12 @@ func add_button(text: String, rect: Rect2, action: Callable, size_px: int = 18, 
 
 
 func build_color_options(key: String, title: String, y: float, colors: Array) -> void:
-	add_label(title, Rect2(0, y, 183, 26), 18, TuningTheme.INK, options_panel)
+	add_label(title, Rect2(5, y, 234, 35), 24, TuningTheme.INK, options_panel)
 	var picker := ColorPickerButton.new()
-	picker.position = Vector2(194, y)
-	picker.size = Vector2(80, 28)
-	picker.text = "CUSTOM"
-	picker.add_theme_font_size_override("font_size", 12)
+	picker.position = Vector2(258, y)
+	picker.size = Vector2(62, 54)
+	picker.text = "+"
+	picker.add_theme_font_size_override("font_size", 26)
 	picker.edit_alpha = false
 	picker.color = Color(draft_customization[key])
 	picker.set_meta("color_key", key)
@@ -221,6 +231,7 @@ func build_color_options(key: String, title: String, y: float, colors: Array) ->
 	options_panel.add_child(picker)
 	var mark := Label.new()
 	mark.name = "CustomMark"
+	mark.add_theme_font_size_override("font_size", 28)
 	mark.text = "+"
 	mark.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -234,7 +245,7 @@ func build_color_options(key: String, title: String, y: float, colors: Array) ->
 		var color := Color(colors[i])
 		var node := add_button(
 			"",
-			Rect2((i % 5) * 55, y + 35 + (i / 5) * 50, 44, 44),
+			Rect2((i % 5) * 64, y + 54 + (i / 5) * 60, 60, 60),
 			func(): set_customization_value(key, colors[i]),
 			14,
 			options_panel
@@ -253,16 +264,13 @@ func rebuild_options() -> void:
 		child.free()
 	if selected_tab == 0:
 		build_color_options("paint", "BODY COLOR", 0, PAINT_COLORS)
-		build_color_options("secondary", "ACCENT COLOR", 153, PAINT_COLORS)
-		add_label("FINISH", Rect2(0, 305, 274, 25), 18, TuningTheme.INK, options_panel)
+		build_color_options("secondary", "ACCENT COLOR", 180, PAINT_COLORS)
+		add_label("FINISH", Rect2(4, 360, 320, 30), 22, TuningTheme.INK, options_panel)
 		for i in range(3):
-			add_choice_button(["GLOSS", "MATTE", "METALLIC"][i], Rect2(i * 93, 341, 88, 48), "finish", i, 14)
+			add_choice_button(["GLOSS", "MATTE", "METAL"][i], Rect2(i * 108, 396, 104, 56), "finish", i, 20)
 	elif selected_tab == 1:
-		var notes := ["Clean factory finish", "Classic racing lines", "A little ocean motion", "Race-day graphics"]
 		for i in range(4):
-			var choice := add_choice_button(
-				LIVERY_LABELS[i] + "\n" + notes[i], Rect2(0, i * 91, 274, 80), "livery", i, 16
-			)
+			var choice := add_choice_button(LIVERY_LABELS[i], Rect2(0, i * 109, 320, 94), "livery", i, 23)
 			if i > 0:
 				var atlas := AtlasTexture.new()
 				atlas.atlas = load(Customization.ATLAS)
@@ -275,12 +283,11 @@ func rebuild_options() -> void:
 				choice.add_theme_constant_override("icon_max_width", 56)
 	elif selected_tab == 2:
 		for i in range(3):
-			add_choice_button(WHEEL_LABELS[i], Rect2(0, i * 80, 274, 68), "wheel", i, 17)
-		build_color_options("rim", "RIM COLOR", 259, ["b7bec4", "dfb65a", "252c35", "edf1ef", "20cbd0"])
+			add_choice_button(WHEEL_LABELS[i], Rect2(0, i * 88, 320, 74), "wheel", i, 23)
+		build_color_options("rim", "RIM COLOR", 280, ["b7bec4", "dfb65a", "252c35", "edf1ef", "20cbd0"])
 	else:
-		var notes := ["The original silhouette", "Low and clean", "A proper racing profile", "Keep it simple"]
 		for i in range(4):
-			add_choice_button(WING_LABELS[i] + "\n" + notes[i], Rect2(0, i * 91, 274, 80), "wing", i, 17)
+			add_choice_button(WING_LABELS[i], Rect2(0, i * 109, 320, 94), "wing", i, 23)
 	refresh_customization()
 
 
@@ -316,21 +323,12 @@ func refresh_customization() -> void:
 				child.add_theme_color_override(state, ink)
 	var data: Dictionary = saved_customization if is_comparing else draft_customization
 	Customization.apply(preview_car, data, vehicle_index)
-	selection_summary.text = (
-		"%s  /  %s  /  %s  /  %s"
-		% [
-			["GLOSS", "MATTE", "METALLIC"][data.finish],
-			LIVERY_LABELS[data.livery],
-			WHEEL_LABELS[data.wheel],
-			WING_LABELS[data.wing]
-		]
-	)
 	compare_button.set_pressed_no_signal(is_comparing)
 	apply_button.disabled = draft_customization == saved_customization
 	save_status_label.text = (
-		"SHOWING SAVED LOOK"
+		"SAVED LOOK"
 		if is_comparing
-		else ("CHANGES NOT SAVED" if draft_customization != saved_customization else "YOUR LOOK IS APPLIED")
+		else ("UNSAVED CHANGES" if draft_customization != saved_customization else "LOOK APPLIED")
 	)
 	save_status_label.add_theme_color_override(
 		"font_color",

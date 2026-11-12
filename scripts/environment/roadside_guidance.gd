@@ -191,14 +191,12 @@ func install_markings() -> void:
 				d = fposmod(d, road.length)
 			elif d < 65:
 				continue
-			for side in [-1, 1]:
-				var lane: float = side * road.half_width(d) * .35
-				if not clear_marking(d, lane):
-					continue
-				groups[angle].append(surface_pose(d, lane, corner.side))
-				markings.append(
-					{"distance": d, "angle": angle, "lane": lane, "corner": corner.distance, "side": corner.side}
-				)
+			if not clear_marking(d, 0):
+				continue
+			groups[angle].append(surface_pose(d, 0, corner.side))
+			markings.append(
+				{"distance": d, "angle": angle, "lane": 0.0, "corner": corner.distance, "side": corner.side}
+			)
 	var paint := ShaderMaterial.new()
 	paint.shader = preload("res://shaders/approach_arrow.gdshader")
 	paint.set_shader_parameter("night", is_night(road))

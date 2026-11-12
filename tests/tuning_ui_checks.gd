@@ -41,7 +41,8 @@ func run(tree: SceneTree) -> int:
 		await tree.process_frame
 		for child in shop.options_panel.get_children():
 			if child is Button:
-				check(child.position.x + child.size.x <= 274.1, "옵션 컨트롤은 왼쪽 패널 밖으로 늘어나지 않는다")
+				check(child.position.x + child.size.x <= shop.options_panel.size.x + .1, "옵션 컨트롤은 왼쪽 패널 밖으로 늘어나지 않는다")
+				check(child.size.y >= 54, "모바일 옵션은 최소54 논리 픽셀의 터치 높이를 제공한다")
 	shop.tab_buttons[0].pressed.emit()
 	for child in shop.options_panel.get_children():
 		if (

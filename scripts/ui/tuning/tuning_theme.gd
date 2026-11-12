@@ -9,7 +9,7 @@ const PAPER := Color("f6fbff")
 const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
 
 
-static func create_panel_style(fill: Color, border: Color, width: int = 1, radius: int = 8) -> StyleBoxFlat:
+static func create_panel_style(fill: Color, border: Color, width: int = 1, radius: int = 3) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill
 	style.border_color = border
@@ -25,12 +25,13 @@ static func create_panel_style(fill: Color, border: Color, width: int = 1, radiu
 static func create_theme() -> Theme:
 	var result := Theme.new()
 	result.default_font = FONT
-	result.default_font_size = 18
+	result.default_font_size = 23
 	for type in ["Button", "OptionButton", "ColorPickerButton"]:
 		for state in ["normal", "hover", "pressed", "focus", "disabled"]:
 			var fill := AQUA if state == "pressed" else (Color("e3f8fa") if state == "hover" else PAPER)
 			var border := AQUA if state in ["pressed", "hover", "focus"] else Color("c3ceda")
 			var style := create_panel_style(fill, border, 2 if state in ["pressed", "focus"] else 1)
+			style.skew = Vector2(.22, 0) if type == "Button" else Vector2.ZERO
 			if state == "focus":
 				style.bg_color = Color.TRANSPARENT
 			if state == "disabled":
@@ -53,16 +54,20 @@ static func create_theme() -> Theme:
 
 
 static func apply_accent_style(button: Button, fill: Color) -> void:
-	button.add_theme_stylebox_override("normal", create_panel_style(fill, fill))
-	button.add_theme_stylebox_override("hover", create_panel_style(fill.lightened(.12), INK))
-	button.add_theme_stylebox_override("pressed", create_panel_style(fill.darkened(.08), INK, 2))
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		var color := fill.lightened(.12) if state == "hover" else (fill.darkened(.08) if state == "pressed" else fill)
+		if state == "disabled":
+			color = fill.lightened(.35)
+		var style := create_panel_style(color, color)
+		style.skew = Vector2(.28, 0)
+		button.add_theme_stylebox_override(state, style)
 
 
 static func apply_swatch_style(button: Button, color: Color) -> void:
-	button.add_theme_stylebox_override("normal", create_panel_style(color, Color("adbcca"), 1, 24))
-	button.add_theme_stylebox_override("hover", create_panel_style(color, INK, 2, 24))
-	button.add_theme_stylebox_override("pressed", create_panel_style(color, INK, 4, 24))
-	var focus := create_panel_style(Color.TRANSPARENT, AQUA, 2, 24)
+	button.add_theme_stylebox_override("normal", create_panel_style(color, Color("adbcca"), 2, 30))
+	button.add_theme_stylebox_override("hover", create_panel_style(color.lightened(.08), INK, 2, 30))
+	button.add_theme_stylebox_override("pressed", create_panel_style(color, AQUA, 5, 30))
+	var focus := create_panel_style(Color.TRANSPARENT, AQUA, 3, 30)
 	focus.expand_margin_left = 3
 	focus.expand_margin_right = 3
 	focus.expand_margin_top = 3

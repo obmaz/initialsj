@@ -41,6 +41,7 @@ func camera_trace(station: Node3D) -> void:
 
 func inspect_marks(road: Node3D, guide: Node3D) -> void:
 	for marker in guide.markings:
+		check(is_zero_approx(marker.lane), "노면 화살표는 좌우 중복 없이 도로 중앙 한 줄에 표시한다")
 		check(guide.clear_marking(marker.distance, marker.lane), "노면 안내는 부스터·점프·고가도로·트럭과 겹치지 않는다")
 		var before: float = marker.corner - marker.distance
 		if road.closed_loop:
