@@ -47,6 +47,10 @@ func build() -> void:
 		car.paint = Color("3476a4")
 		stage.add_child(car)
 		bounds = collect_bounds(car, Transform3D.IDENTITY)
+	elif category == "props" and item.parameters.get("scene_only", false):
+		var node := preload("res://models/shared/scene_source.gd").instantiate_static(item.scene_path)
+		stage.add_child(node)
+		bounds = collect_bounds(node, Transform3D.IDENTITY)
 	elif category == "props":
 		var node := MeshInstance3D.new()
 		node.mesh = Props.model(item.id)

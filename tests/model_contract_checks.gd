@@ -75,6 +75,18 @@ func run(tree: SceneTree, category: String = "", id: String = "") -> int:
 			if not metadata(item):
 				continue
 			if group == "props":
+				if item.parameters.get("scene_only", false):
+					var scene := SceneSource.instantiate_static(item.scene_path)
+					check(visual_triangles(scene) <= 5000, "조립형 소품은5000삼각형 이하: " + item.id)
+					for part in SceneSource.collect_meshes(scene):
+						check(part.material_override != null, "조립형 소품의 전용 재질: " + item.id)
+						for surface in range(part.mesh.get_surface_count()):
+							check(
+								part.mesh.surface_get_arrays(surface)[Mesh.ARRAY_TEX_UV] != null,
+								"조립형 소품 UV: " + item.id
+							)
+					scene.free()
+					continue
 				var mesh: ArrayMesh = Props.model(item.id)
 				check(mesh.get_surface_count() == 1 and triangles(mesh) < 3200, "소품은 한 표면·3200삼각형 미만: " + item.id)
 				var bounds := mesh.get_aabb()
