@@ -4,18 +4,21 @@ import math
 import argparse
 import hashlib
 REPLACE = False
+ONLY = None
 from glb_shapes import ColoredMesh, append
 from glb_geometry import write
 ROOT = Path(__file__).resolve().parents[1]
 STONE=(.57,.56,.49,1); TILE=(.10,.21,.22,1); WOOD=(.48,.12,.08,1)
 
 def roof(m,y,w,d):
-    # 겹처마의 경사면과 들린 끝선, 용마루를 실체 두께로 만든다.
+    # 용마루는 긴 가로 축에 놓고, 깊이 방향의 경사와 들린 처마를 두껍게 만든다.
     for side in [-1,1]:
-        p=[(0,y+2,-d/2),(0,y+2,d/2),(side*w/2,y+.5,d/2),(side*w/2,y+.5,-d/2)]
-        m.slab(p,TILE)
-        m.box((side*w/2,y+.5,0),(.35,.4,d),TILE)
-    m.box((0,y+2.15,0),(.7,.45,d+1),TILE)
+        bands=[(0,2.8,w-5),(d*.28,1.0,w-2),(d*.5,1.4,w)]
+        for (z0,h0,w0),(z1,h1,w1) in zip(bands,bands[1:]):
+            m.slab([(-w0/2,y+h0,side*z0),(w0/2,y+h0,side*z0),
+                    (w1/2,y+h1,side*z1),(-w1/2,y+h1,side*z1)],TILE)
+        m.box((0,y+1.25,side*d/2),(w,.4,.35),TILE)
+    m.box((0,y+2.9,0),(w-4,.45,.7),TILE)
 
 def ring(m,y,r,h,color,n=20,upper=None):
     upper=r if upper is None else upper
@@ -28,6 +31,7 @@ def ring(m,y,r,h,color,n=20,upper=None):
 
 
 def save(name,m,size,transparent=False):
+    if ONLY and name != ONLY: return
     source=ROOT/f'model_sources/props/{name}/model.glb'
     if source.exists():
         if not REPLACE:
@@ -46,10 +50,12 @@ def save(name,m,size,transparent=False):
     folder=ROOT/f'models/props/{name}';folder.mkdir(parents=True,exist_ok=True)
     (folder/'model.tscn').write_text(f'[gd_scene format=3]\n[ext_resource type="PackedScene" path="res://models/props/{name}/model.glb" id="1"]\n[node name="Landmark" type="Node3D"]\n[node name="Model" parent="." instance=ExtResource("1")]\n')
     (folder/'definition.tres').write_text(f'[gd_resource type="Resource" format=3]\n[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]\n[resource]\nscript = ExtResource("1")\ncontract_version = 2\nid = "{name}"\ncategory = "props"\nscene_path = "res://models/props/{name}/model.tscn"\nsource_path = "res://models/props/{name}/SOURCE.md"\nbase_size = Vector3{size}\nvisibility_range = 2200.0\n')
-    (folder/'material.tres').write_text('[gd_resource type="StandardMaterial3D" format=3]\n[resource]\nvertex_color_use_as_albedo = true\nroughness = 0.65\n'+('transparency = 1\ncull_mode = 2\n' if transparent else ''))
+    if not (name == 'sungnyemun_gate' and (folder/'heritage_atlas.png').exists()):
+        (folder/'material.tres').write_text('[gd_resource type="StandardMaterial3D" format=3]\n[resource]\nvertex_color_use_as_albedo = true\nroughness = 0.65\n'+('transparency = 1\ncull_mode = 2\n' if transparent else ''))
     with (folder/'definition.tres').open('a') as output:
         output.write(f'material_path = "res://models/props/{name}/material.tres"\n')
-    (folder/'SOURCE.md').write_text(f'# {name}\n\nInitial SJ 자체 제작 GLB. tools/bake_seoul_landmarks.py의 오프라인 형상 제작. 원본은 model_sources/props/{name}/model.glb에 보존합니다. 실척(m): {size}. 서울 실루엣을 참고한 게임용 해석이며 외부 모델·상표·사진을 사용하지 않습니다. 숭례문 통과 폭은 게임 도로에 맞추고 탑은 도로 밖 원경에 배치합니다.\n')
+    if not (name == 'sungnyemun_gate' and (folder/'heritage_atlas.png').exists()):
+        (folder/'SOURCE.md').write_text(f'# {name}\n\nInitial SJ 자체 제작 GLB. tools/bake_seoul_landmarks.py의 오프라인 형상 제작. 원본은 model_sources/props/{name}/model.glb에 보존합니다. 실척(m): {size}. 서울 실루엣을 참고한 게임용 해석이며 외부 모델·상표·사진을 사용하지 않습니다. 숭례문 통과 폭은 게임 도로에 맞추고 탑은 도로 밖 원경에 배치합니다.\n')
 
 def main():
     m=ColoredMesh()
@@ -99,6 +105,7 @@ def main():
     m=ColoredMesh();m.box((0,.5,0),(1,1,1),(.44,.46,.45,1));save('skyway_abutment',m,(1,1,1))
 def configure_imports():
     for name in ['sungnyemun_gate','namsan_tower','golden_63_tower','seoul_sky_tower','carnival_glass_gallery','skyway_abutment']:
+        if ONLY and name != ONLY: continue
         path=ROOT/f'models/props/{name}/model.glb.import'
         if not path.exists():raise SystemExit('먼저 Godot --editor --import --quit을 실행하세요')
         text=path.read_text()
@@ -109,9 +116,11 @@ def configure_imports():
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--only', choices=['sungnyemun_gate','namsan_tower','golden_63_tower','seoul_sky_tower','carnival_glass_gallery','skyway_abutment'], help='지정 팩만 편집하고 다른 원본·조립 자료는 보존')
     parser.add_argument('--replace-generated',action='store_true',help='기존 자체 제작 원본을 SHA-256별 백업하고 재생성')
     parser.add_argument('--configure-imports',action='store_true',help='최초 Godot 임포트 뒤 정점색·유리 전용 재질 연결. UID 보존')
     args=parser.parse_args()
     REPLACE=args.replace_generated
+    ONLY=args.only
     if args.configure_imports:configure_imports()
     else:main()
