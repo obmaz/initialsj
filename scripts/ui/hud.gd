@@ -25,6 +25,8 @@ const GARAGE_PAINT := Rect2(80, 650, 270, 56)
 const GARAGE_PLATE := Rect2(370, 650, 300, 56)
 const GARAGE_TUNING := Rect2(690, 650, 210, 56)
 const HOME_SETTINGS := Rect2(1000, 24, 250, 84)
+const COURSE_WEATHER := Rect2(290, 602, 310, 60)
+const COURSE_PERIOD := Rect2(620, 602, 370, 60)
 const COURSE_FUJI := Rect2(24, 150, 236, 440)
 const COURSE_SPEEDWAY := Rect2(272, 150, 236, 440)
 const COURSE_NIGHT := Rect2(520, 150, 236, 440)
@@ -39,8 +41,10 @@ const SETTINGS_GRAPHICS := Rect2(365, 258, 550, 77)
 const SETTINGS_FPS := Rect2(365, 338, 265, 77)
 const SETTINGS_AUTO := Rect2(650, 338, 265, 77)
 const SETTINGS_FULLSCREEN := Rect2(365, 418, 550, 77)
-const SETTINGS_INSTALL := Rect2(365, 498, 550, 77)
-const SETTINGS_CLOSE := Rect2(365, 592, 550, 77)
+const SETTINGS_WEATHER := Rect2(365, 498, 265, 77)
+const SETTINGS_PERIOD := Rect2(650, 498, 265, 77)
+const SETTINGS_INSTALL := Rect2(365, 592, 265, 77)
+const SETTINGS_CLOSE := Rect2(650, 592, 265, 77)
 const RECOVERY_BUTTON := Rect2(500, 176, 280, 64)
 const GARAGE_START := Rect2(930, 630, 290, 76)
 const MAIN_MENU_BUTTON := Rect2(390, 578, 500, 78)
@@ -225,6 +229,10 @@ func handle_pointer(event: InputEvent) -> void:
 			race.navigate_to_mode("track", 3)
 		elif COURSE_GORGE.has_point(p):
 			race.navigate_to_mode("track", 4)
+		elif COURSE_WEATHER.has_point(p):
+			race.cycle_track_weather()
+		elif COURSE_PERIOD.has_point(p):
+			race.cycle_track_period()
 		elif GARAGE_BACK.has_point(p):
 			race.navigate(race.open_menu)
 		return
@@ -242,6 +250,10 @@ func handle_pointer(event: InputEvent) -> void:
 		elif SETTINGS_FULLSCREEN.has_point(p):
 			if race.has_method("toggle_fullscreen"):
 				race.shell.toggle_fullscreen()
+		elif SETTINGS_WEATHER.has_point(p):
+			race.cycle_track_weather()
+		elif SETTINGS_PERIOD.has_point(p):
+			race.cycle_track_period()
 		elif SETTINGS_INSTALL.has_point(p):
 			install_game()
 		elif SETTINGS_CLOSE.has_point(p):
@@ -356,7 +368,16 @@ func draw_pad_focus() -> void:
 	if race.state == RaceState.MENU:
 		rects = [HOME_TOUR, HOME_TRACK, HOME_SETTINGS]
 	elif race.state == RaceState.COURSES:
-		rects = [COURSE_FUJI, COURSE_SPEEDWAY, COURSE_NIGHT, COURSE_RIVIERA, COURSE_GORGE, GARAGE_BACK]
+		rects = [
+			COURSE_FUJI,
+			COURSE_SPEEDWAY,
+			COURSE_NIGHT,
+			COURSE_RIVIERA,
+			COURSE_GORGE,
+			GARAGE_BACK,
+			COURSE_WEATHER,
+			COURSE_PERIOD
+		]
 	if rects.is_empty():
 		return
 	var rect: Rect2 = rects[clampi(race.menu_focus, 0, rects.size() - 1)]

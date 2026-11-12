@@ -4,7 +4,7 @@ const RaceState = preload("res://scripts/race/race_state.gd")
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const Pad = preload("res://scripts/input/gamepad_input.gd")
 # 설정 화면에서 패드로 고를 수 있는 줄 수.
-const SETTINGS_ROWS := 8
+const SETTINGS_ROWS := 10
 var race: Node3D
 
 
@@ -156,6 +156,10 @@ func pad_pressed(button: int) -> void:
 					match race.menu_focus:
 						0, 1, 2, 3, 4:
 							race.navigate_to_mode("track", race.menu_focus)
+						6:
+							race.cycle_track_weather()
+						7:
+							race.cycle_track_period()
 						_:
 							race.navigate(race.open_menu)
 				JOY_BUTTON_X:
@@ -221,6 +225,18 @@ func pad_pressed(button: int) -> void:
 # D-pad (or the left stick, see pad_stick_navigation) moves the gold focus frame: left/right
 # between the two cards, up to the corner button, down back to the last card.
 func pad_focus(button: int) -> void:
+	if race.state == RaceState.COURSES:
+		if race.menu_focus >= 6:
+			if button in [JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT]:
+				race.menu_focus = 7 if race.menu_focus == 6 else 6
+			elif button == JOY_BUTTON_DPAD_UP:
+				race.menu_focus = race.menu_last_card
+			return
+		if button == JOY_BUTTON_DPAD_DOWN and race.menu_focus < race.COURSE_COUNT:
+			race.menu_last_card = race.menu_focus
+			race.menu_focus = 6
+			return
+
 	# The home screen has two cards, the circuit screen three; the corner button comes after them.
 	var cards: int = race.COURSE_COUNT if race.state == RaceState.COURSES else 2
 	match button:
@@ -290,6 +306,10 @@ func settings_activate(index: int) -> void:
 		5:
 			race.shell.toggle_fullscreen()
 		6:
+			race.cycle_track_weather()
+		7:
+			race.cycle_track_period()
+		8:
 			race.hud.install_game()
 		_:
 			race.navigate(race.close_settings)

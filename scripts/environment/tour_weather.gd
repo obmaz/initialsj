@@ -3,6 +3,7 @@ const RaceState = preload("res://scripts/race/race_state.gd")
 var race: Node
 var particles: CPUParticles3D
 var current_weather := ""
+var current_quality := -1
 
 
 func _ready() -> void:
@@ -34,12 +35,18 @@ func _ready() -> void:
 
 func configure(weather: String) -> void:
 	current_weather = weather
+	current_quality = race.render_budget.level if race != null and race.track_environment.supported(race) else -1
 	particles.emitting = false
 	if weather == "clear":
+		particles.restart()
+		particles.emitting = false
 		return
 	var rain := weather == "rain"
 	var snow := weather == "snow"
 	particles.amount = 360 if rain else (180 if snow else 200)
+	if race != null and race.track_environment.supported(race) and rain:
+		current_quality = race.render_budget.level
+		particles.amount = [240, 160, 90][current_quality]
 	particles.lifetime = 1.6 if rain else 3.2
 	particles.direction = Vector3(.1, -1, 0) if rain else (Vector3(.35, -.8, .1) if snow else Vector3(1, .08, .2))
 	particles.gravity = Vector3(0, -4, 0) if rain else Vector3(0, -.3, 0)
@@ -56,12 +63,21 @@ func configure(weather: String) -> void:
 
 
 func _process(_delta: float) -> void:
-	if race.mode != "tour" or race.state not in RaceState.DRIVING or not race.track.visible:
+	if (
+		(race.mode != "tour" and not race.track_environment.supported(race))
+		or race.state not in RaceState.DRIVING
+		or not race.track.visible
+	):
 		particles.emitting = false
+		particles.visible = false
 		return
+	particles.visible = true
 	var road: Node3D = race.track.active
 	var weather: String = road.region_metadata.get("weather", "clear")
-	if weather != current_weather:
+	if (
+		weather != current_weather
+		or (race.track_environment.supported(race) and current_quality != race.render_budget.level)
+	):
 		configure(weather)
 	var at: float = road.curve.get_closest_offset(race.player.global_position)
 	particles.emitting = weather != "clear" and not road.in_tunnel(at) and not race.motion_reduced

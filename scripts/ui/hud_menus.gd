@@ -133,6 +133,19 @@ func draw_courses() -> void:
 		hud.text_at(Vector2(x, 448), titles[i][1], 21, accent)
 		hud.text_at(Vector2(x, 480), subtitles[i], 13, hud.WHITE)
 		hud.text_at(Vector2(x, 507), lengths[i], 14, Color("adc2d0"))
+	hud.text_at(Vector2(26, 637), race.tr("TRACK 1 ONLY"), 19, hud.CYAN)
+	for rect in [hud.COURSE_WEATHER, hud.COURSE_PERIOD]:
+		hud.slant(rect, Color("20374a"), 9)
+	hud.text_at(
+		hud.COURSE_WEATHER.position + Vector2(20, 39),
+		race.tr("WEATHER") + ": " + race.tr(race.track_environment.weather.to_upper()),
+		25
+	)
+	hud.text_at(
+		hud.COURSE_PERIOD.position + Vector2(20, 39),
+		race.tr("TIME OF DAY") + ": " + race.tr(race.track_environment.time_of_day.to_upper()),
+		25
+	)
 	hud.centered(Vector2(640, 675), "THREE LAPS / TRACK02: 16 RACERS / OTHERS: 8", 18, Color("8299a7"))
 
 
@@ -148,7 +161,9 @@ func draw_settings() -> void:
 		hud.SETTINGS_FPS,
 		hud.SETTINGS_AUTO,
 		hud.SETTINGS_FULLSCREEN,
-		hud.SETTINGS_INSTALL
+		hud.SETTINGS_INSTALL,
+		hud.SETTINGS_WEATHER,
+		hud.SETTINGS_PERIOD
 	]:
 		hud.slant(rect, Color("20374a"), 9)
 	hud.text_at(hud.SETTINGS_SOUND.position + Vector2(28, 49), "SOUND", 28)
@@ -168,12 +183,33 @@ func draw_settings() -> void:
 	)
 	hud.text_at(hud.SETTINGS_FULLSCREEN.position + Vector2(28, 49), fullscreen_label, 28)
 	hud.text_at(hud.SETTINGS_FULLSCREEN.position + Vector2(489, 49), ">", 32, hud.CYAN)
-	hud.text_at(hud.SETTINGS_INSTALL.position + Vector2(28, 49), "INSTALL GAME", 30, hud.WHITE)
-	hud.text_at(hud.SETTINGS_INSTALL.position + Vector2(489, 49), "+", 35, hud.CYAN)
+	hud.text_at(hud.SETTINGS_INSTALL.position + Vector2(28, 49), race.tr("INSTALL"), 27, hud.WHITE)
+	hud.text_at(hud.SETTINGS_INSTALL.position + Vector2(215, 49), "+", 35, hud.CYAN)
+	hud.text_at(hud.SETTINGS_WEATHER.position + Vector2(18, 28), race.tr("WEATHER"), 21)
+	hud.text_at(
+		hud.SETTINGS_WEATHER.position + Vector2(18, 64),
+		race.tr(race.track_environment.weather.to_upper()),
+		27,
+		hud.CYAN
+	)
+	hud.text_at(hud.SETTINGS_PERIOD.position + Vector2(18, 28), race.tr("TIME OF DAY"), 21)
+	hud.text_at(
+		hud.SETTINGS_PERIOD.position + Vector2(18, 64),
+		race.tr(race.track_environment.time_of_day.to_upper()),
+		27,
+		hud.CYAN
+	)
+	if hud.install_note.is_empty():
+		hud.centered(Vector2(640, 586), race.tr("TRACK 1 · NEXT RACE"), 17, Color("b2cbd8"))
 	if not hud.install_note.is_empty():
-		hud.centered(Vector2(640, 585), hud.install_note, 16, Color("b2cbd8"))
+		hud.centered(Vector2(640, 586), hud.install_note, 16, Color("b2cbd8"))
 	hud.slant(hud.SETTINGS_CLOSE, hud.CYAN, 10)
-	hud.centered(Vector2(640, hud.SETTINGS_CLOSE.position.y + 51), "DONE", 34, Color("0a1b2b"))
+	hud.centered(
+		Vector2(hud.SETTINGS_CLOSE.get_center().x, hud.SETTINGS_CLOSE.position.y + 51),
+		race.tr("DONE"),
+		30,
+		Color("0a1b2b")
+	)
 	if hud.pad_on():
 		var rows: Array[Rect2] = [
 			hud.SETTINGS_SOUND,
@@ -182,6 +218,8 @@ func draw_settings() -> void:
 			hud.SETTINGS_FPS,
 			hud.SETTINGS_AUTO,
 			hud.SETTINGS_FULLSCREEN,
+			hud.SETTINGS_WEATHER,
+			hud.SETTINGS_PERIOD,
 			hud.SETTINGS_INSTALL,
 			hud.SETTINGS_CLOSE
 		]

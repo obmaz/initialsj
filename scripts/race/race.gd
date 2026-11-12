@@ -92,6 +92,7 @@ var pad_active: bool:
 		)
 var mode := "tour"
 var graphics_mode := 0
+var track_environment := preload("res://scripts/environment/track_environment.gd").new()
 var render_budget := RenderBudget.new()
 var screen_transition: CanvasLayer
 var rendering_viewport: Viewport
@@ -554,6 +555,7 @@ func load_preferences() -> void:
 		show_fps = bool(config.get_value("preferences", "show_fps", false))
 		auto_accelerate = bool(config.get_value("preferences", "auto_accelerate", true))
 		show_ghost = bool(config.get_value("preferences", "show_ghost", true))
+		track_environment.read(config)
 
 
 func save_preferences() -> void:
@@ -567,6 +569,7 @@ func save_preferences() -> void:
 	if motion_user_set:
 		config.set_value("preferences", "reduced_motion", motion_reduced)
 	config.set_value("preferences", "graphics", graphics_mode)
+	track_environment.write(config)
 	config.save(preferences_path)
 
 
@@ -681,6 +684,7 @@ func competitor_position(id: int) -> int:
 
 
 func restart(start_countdown: bool = true) -> void:
+	track_environment.activate(self)
 	hazard_text = ""
 	if track.active.closed_loop and track.active.course_id == 3:
 		track.scenery.rock_arches.reset_effect()
@@ -1030,7 +1034,7 @@ func _physics_process(delta: float) -> void:
 	if offroad_amount > 0.2:
 		for particles in player.smoke:
 			particles.emitting = false
-	var night: bool = track.scenery.theme in ["neon", "night"]
+	var night: bool = track.scenery.theme in ["neon", "night"] or track_environment.headlights(self)
 	player.set_headlights(track.active.in_tunnel(distance) or night)
 	for rival_index in range(rivals.size()):
 		var r: RivalState = rivals[rival_index]
@@ -1072,6 +1076,7 @@ func sync_world_rendering() -> void:
 	if world_visible and atmosphere.sky == null:
 		if mode == "track":
 			atmosphere.sky = track.scenery.make_sky()
+			track_environment.configure_sky(self)
 		else:
 			var sky := Sky.new()
 			sky.sky_material = sky_colors
@@ -1086,6 +1091,11 @@ func sync_world_rendering() -> void:
 				tour_weather = preload("res://scripts/environment/tour_weather.gd").new()
 				tour_weather.race = self
 				player.get_parent().add_child(tour_weather)
+	if world_visible and track_environment.supported(self) and not is_instance_valid(tour_weather):
+		tour_weather = preload("res://scripts/environment/tour_weather.gd").new()
+		tour_weather.race = self
+		player.get_parent().add_child(tour_weather)
+		tour_weather.configure(track_environment.active_weather)
 	if world_visible and mode == "tour" and is_instance_valid(goal_background):
 		goal_background._process(0)
 	rendering_viewport.disable_3d = not world_visible
@@ -1390,3 +1400,13 @@ func update_camera(delta: float) -> void:
 
 func update_atmosphere(delta: float) -> void:
 	lighting.update(delta)
+
+
+func cycle_track_weather() -> void:
+	track_environment.cycle_weather()
+	save_preferences()
+
+
+func cycle_track_period() -> void:
+	track_environment.cycle_period()
+	save_preferences()

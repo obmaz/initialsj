@@ -101,9 +101,18 @@ func apply_course() -> void:
 			race.rim_light.light_energy = .14
 	else:
 		race.visual_theme = ""
+		race.sun_light.rotation_degrees = Vector3(-42, -32, 0)
+		race.atmosphere.ambient_light_color = Color("b5cce0")
+		race.atmosphere.tonemap_exposure = .88
+
+	if race.track_environment.supported(race):
+		race.track_environment.apply_lighting(race)
 
 
 func update(delta: float) -> void:
+	if race.track_environment.supported(race):
+		race.track_environment.update(race, delta)
+		return
 	# 항만의 달과 협곡의 태양은 원경 이미지의 고정 방위에 있으므로 매 프레임 재계산하지 않는다.
 	if race.mode == "track" and race.selected_course in [2, 4]:
 		return
