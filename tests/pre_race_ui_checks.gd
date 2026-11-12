@@ -56,6 +56,14 @@ func run(tree: SceneTree) -> int:
 	shop.discard()
 	await tree.process_frame
 	tree.root.size = previous_size
+	race.state = "countdown"
+	var ring: Texture2D = race.hud.menus.countdown_texture()
+	for frame in range(3):
+		race.hud.menus.sync_menu_art()
+		check(race.hud.menus.countdown_texture() == ring, "카운트다운 장식은 매 프레임 다시 읽지 않는다")
+	race.state = "racing"
+	race.hud.menus.sync_menu_art()
+	check(race.hud.menus.countdown_art == null, "출발 후 카운트다운 전용 텍스처 참조를 해제한다")
 	var body = race.player
 	body.update_protection(.9)
 	var material: ShaderMaterial = body.protection_materials.values()[0]

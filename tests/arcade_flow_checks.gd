@@ -17,6 +17,26 @@ func run(tree: SceneTree) -> int:
 	race.choose_mode("track", 0)
 	check(race.track.active.get_node("CircuitCheckpoint").get_child_count() == 8, "트랙은 출발점 포함 두 체크포인트를 표시한다")
 	check(race.track.active.get_node("CherryAvenue").get_meta("tree_count") >= 100, "후지 트랙은 긴 벚꽃 가로수를 표시한다")
+	var scene_text := FileAccess.get_file_as_string("res://models/world/track_0/seasonal_avenue.tscn")
+	var saved_buffers := RegEx.create_from_string("(?m)^buffer = PackedFloat32Array\\(([^\\n]+)\\)").search_all(
+		scene_text
+	)
+	check(
+		saved_buffers.size() == race.track.active.get_node("CherryAvenue").get_child_count(),
+		"모든 벚꽃 배치 묶음에 실제 위치 버퍼를 저장한다"
+	)
+	for buffer in saved_buffers:
+		var values: PackedStringArray = buffer.get_string(1).split(",")
+		var origin := Vector3(values[3].to_float(), values[7].to_float(), values[11].to_float())
+		check(
+			origin.length() > 50 and absf(values[0].to_float()) + absf(values[2].to_float()) > 1,
+			"벚꽃의 실제 위치·실척 배율을 파일에 보존한다"
+		)
+	# headless의 Dummy 렌더 서버는 get_instance_transform을 보존하지 않으므로 파일을 직접 검사한다.
+	if DisplayServer.get_name() != "headless":
+		for chunk in race.track.active.get_node("CherryAvenue").get_children():
+			var pose: Transform3D = chunk.multimesh.get_instance_transform(0)
+			check(pose.origin.length() > 50 and absf(pose.basis.determinant()) > 1, "실제 GPU 배치에도 벚꽃 위치·배율을 연결한다")
 	for valid_gates in [5, 0]:
 		race.restart()
 		race.state = "racing"

@@ -1044,7 +1044,7 @@ func draw_menu() -> void:
 	if race.state == RaceState.COUNTDOWN:
 		if race.mode == "track" and race.selected_course == 1:
 			centered(Vector2(640, 515), "ROLLING START / 16 CARS", 27, CYAN)
-		draw_texture_rect(menus.art("res://assets/ui/controls/countdown_ring.png"), Rect2(485, 175, 310, 310), false)
+		draw_texture_rect(menus.countdown_texture(), Rect2(485, 175, 310, 310), false)
 		var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
 		centered(Vector2(640, 353), str(maxi(1, ceili(race.countdown))), int(90 + 18 * pulse), MenuTheme.INK)
 	elif race.state in [RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED]:

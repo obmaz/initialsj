@@ -14,6 +14,8 @@ const COURSE_PREVIEWS := [
 const TOUR_PREVIEW := "res://assets/ui/courses/tour.tres"
 const HOME_BG := "res://assets/ui/backgrounds/home_coast.png"
 const GARAGE_BG := "res://assets/ui/backgrounds/tuning_bay.png"
+const COUNTDOWN_ART := "res://assets/ui/controls/countdown_ring.png"
+var countdown_art: Texture2D
 var menu_art: Dictionary = {}
 var menu_art_requested := false
 var hud: Control
@@ -32,36 +34,28 @@ func art(path: String) -> Texture2D:
 	return menu_art[path]
 
 
+func countdown_texture() -> Texture2D:
+	if countdown_art == null:
+		countdown_art = RenderResources.fetch(COUNTDOWN_ART)
+	return countdown_art
+
+
 func sync_menu_art() -> void:
+	# 카운트다운은 주행 상태이므로 메뉴 이미지 해제 큐와 수명을 분리한다.
+	if race.state != RaceState.COUNTDOWN and countdown_art != null:
+		countdown_art = null
+		RenderResources.release(COUNTDOWN_ART)
 	if race.state in RaceState.DRIVING:
 		if menu_art_requested or not menu_art.is_empty():
 			menu_art_requested = false
 			menu_art.clear()
 			for path in (
-				COURSE_PREVIEWS
-				+ [
-					HOME_BG,
-					GARAGE_BG,
-					TOUR_PREVIEW,
-					MenuTheme.HEADER_ART,
-					MenuTheme.PRIMARY_ART,
-					"res://assets/ui/controls/countdown_ring.png"
-				]
+				COURSE_PREVIEWS + [HOME_BG, GARAGE_BG, TOUR_PREVIEW, MenuTheme.HEADER_ART, MenuTheme.PRIMARY_ART]
 			):
 				RenderResources.release(path)
 	elif not menu_art_requested:
 		menu_art_requested = true
-		for path in (
-			COURSE_PREVIEWS
-			+ [
-				HOME_BG,
-				GARAGE_BG,
-				TOUR_PREVIEW,
-				MenuTheme.HEADER_ART,
-				MenuTheme.PRIMARY_ART,
-				"res://assets/ui/controls/countdown_ring.png"
-			]
-		):
+		for path in COURSE_PREVIEWS + [HOME_BG, GARAGE_BG, TOUR_PREVIEW, MenuTheme.HEADER_ART, MenuTheme.PRIMARY_ART]:
 			RenderResources.warm(path)
 
 

@@ -143,7 +143,8 @@ func run(tree: SceneTree) -> int:
 						is_equal_approx(facade.get_shader_parameter("window_density"), expected),
 						"황혼·야간·낮 창문 점등 밀도를 실제 재질에 적용한다"
 					)
-				check(window_materials > 0, "트랙의 건물 전용 재질을 점검한다")
+				if course in [0, 2, 3]:
+					check(window_materials > 0, "주택·빌딩 전용 재질이 있는 트랙의 점등을 점검한다")
 				check(fixtures.is_night == (period != "day"), "광고·거리 조명은 낮에는 끄고 어두워지면 켠다")
 				check(race.track.curvature_cache == curvature, "환경 변경으로 노면·곡률 캐시를 재생성하지 않는다")
 				if period == "night":

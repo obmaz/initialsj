@@ -65,7 +65,7 @@ const SPECS := [
 		"accent": "c18aff",
 		"mode": "charges",
 		"nitro_title": "3 SHOTS / TAP",
-		"nitro_help": "2.4s per shot. Checkpoint restores one.",
+		"nitro_help": "Drive or drift to recharge each shot.",
 		"description": "Fastest top speed and strongest nitro shots. Slower launch; brake early for corners.",
 		"max_speed": 92.0,
 		"boost_speed": 112.0,

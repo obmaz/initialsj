@@ -3,7 +3,7 @@ extends SceneTree
 const Section = preload("res://scripts/track/road_section.gd")
 const Assets = preload("res://scripts/rendering/world_assets.gd")
 const Source = preload("res://models/shared/scene_source.gd")
-const Pack := "res://models/props/cherry_blossom_tree/"
+const TREE_PACK := "res://models/props/cherry_blossom_tree/"
 const Dependency = preload("res://tools/author_circuit_checkpoints.gd")
 
 
@@ -12,7 +12,7 @@ func _initialize() -> void:
 
 
 func run() -> void:
-	var source := Source.instantiate_static(Pack + "model.tscn")
+	var source := Source.instantiate_static(TREE_PACK + "model.tscn")
 	root.add_child(source)
 	source.visible = false
 	var pieces := Source.collect_meshes(source)
@@ -46,42 +46,53 @@ func run() -> void:
 					groups[group] = []
 				groups[group].append(pose)
 				count += 1
-		var avenue := Node3D.new()
-		avenue.name = "CherryAvenue"
-		avenue.set_meta("tree_count", count)
+		var folder: String = "res://models/world/" + str(id) + "/"
+		var text := "[gd_scene format=3]\n"
+		for piece in pieces:
+			text += (
+				'[ext_resource type="Material" path="%s%s.tres" id="%s"]\n'
+				% [TREE_PACK, str(piece.name).to_lower(), piece.name]
+			)
 		for group in groups:
 			for piece in pieces:
-				var multi := MultiMesh.new()
-				multi.transform_format = MultiMesh.TRANSFORM_3D
-				multi.instance_count = groups[group].size()
-				for i in range(multi.instance_count):
-					multi.set_instance_transform(i, groups[group][i] * piece.global_transform)
-				var node := MultiMeshInstance3D.new()
-				node.name = "%s_%d" % [piece.name, group]
-				node.multimesh = multi
-				node.material_override = piece.material_override
-				node.set_meta("mesh_ref", Pack + "model.glb#" + str(piece.name))
-				node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-				node.visibility_range_end = 280
-				node.visibility_range_end_margin = 25
-				avenue.add_child(node)
-				node.owner = avenue
-		var packed := PackedScene.new()
-		packed.pack(avenue)
-		var folder: String = "res://models/world/" + str(id) + "/"
-		ResourceSaver.save(packed, folder + "seasonal_avenue.tscn")
+				var buffer := PackedFloat32Array()
+				for pose in groups[group]:
+					var transform: Transform3D = pose * piece.global_transform
+					for row in range(3):
+						buffer.append_array(
+							[
+								transform.basis.x[row],
+								transform.basis.y[row],
+								transform.basis.z[row],
+								transform.origin[row]
+							]
+						)
+				var key := "%s_%d" % [piece.name, group]
+				# 메시를 나중에 연결하는 MultiMesh는 ResourceSaver가 버퍼를 생략하므로 명시적으로 저장한다.
+				text += (
+					'[sub_resource type="MultiMesh" id="%s"]\ntransform_format = 1\ninstance_count = %d\nbuffer = %s\n'
+					% [key, groups[group].size(), var_to_str(buffer)]
+				)
+		text += '[node name="CherryAvenue" type="Node3D"]\nmetadata/tree_count = %d\n' % count
+		for group in groups:
+			for piece in pieces:
+				var key := "%s_%d" % [piece.name, group]
+				text += (
+					'[node name="%s" type="MultiMeshInstance3D" parent="."]\ncast_shadow = 0\nmaterial_override = ExtResource("%s")\nmultimesh = SubResource("%s")\nvisibility_range_end = 280.0\nvisibility_range_end_margin = 25.0\nmetadata/mesh_ref = "%smodel.glb#%s"\n'
+					% [key, piece.name, key, TREE_PACK, piece.name]
+				)
+		FileAccess.open(folder + "seasonal_avenue.tscn", FileAccess.WRITE).store_string(text)
 		for path in [
 			folder + "seasonal_avenue.tscn",
-			Pack + "model.tscn",
-			Pack + "model.glb",
-			Pack + "bark.tres",
-			Pack + "blossoms.tres",
-			Pack + "blossoms.png",
-			Pack + "cherry_blossom.gdshader"
+			TREE_PACK + "model.tscn",
+			TREE_PACK + "model.glb",
+			TREE_PACK + "bark.tres",
+			TREE_PACK + "blossoms.tres",
+			TREE_PACK + "blossoms.png",
+			TREE_PACK + "cherry_blossom.gdshader"
 		]:
 			Dependency.add_dependency(folder, path)
 		print(id, " 벚꽃: ", count)
-		avenue.free()
 		road.free()
 		await process_frame
 	source.free()
