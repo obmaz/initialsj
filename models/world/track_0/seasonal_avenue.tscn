@@ -1,0 +1,319 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://models/props/cherry_blossom_tree/bark.tres" id="1_86ing"]
+[ext_resource type="Material" path="res://models/props/cherry_blossom_tree/blossoms.tres" id="2_qpegc"]
+
+[sub_resource type="MultiMesh" id="MultiMesh_65olg"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_xh46q"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_t36jo"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_mfymi"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_g1jyw"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_wddg0"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_g2c3c"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_7f0os"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_57tni"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_yf5bh"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_q0wuk"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_lu0l8"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_p28t7"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_oca1j"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_63027"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_crnf3"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_ris3g"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_8ln3g"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_w2qoe"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_grd5d"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_tn38l"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_6bkf1"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_oehw6"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_oxyfp"]
+transform_format = 1
+instance_count = 10
+
+[sub_resource type="MultiMesh" id="MultiMesh_pcm57"]
+transform_format = 1
+instance_count = 6
+
+[sub_resource type="MultiMesh" id="MultiMesh_ifmtj"]
+transform_format = 1
+instance_count = 6
+
+[node name="CherryAvenue" type="Node3D" unique_id=96155396]
+metadata/tree_count = 126
+
+[node name="Bark_4" type="MultiMeshInstance3D" parent="." unique_id=770140880]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_65olg")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_4" type="MultiMeshInstance3D" parent="." unique_id=38000426]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_xh46q")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"
+
+[node name="Bark_5" type="MultiMeshInstance3D" parent="." unique_id=839621447]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_t36jo")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_5" type="MultiMeshInstance3D" parent="." unique_id=101048352]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_mfymi")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"
+
+[node name="Bark_6" type="MultiMeshInstance3D" parent="." unique_id=1867051253]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_g1jyw")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_6" type="MultiMeshInstance3D" parent="." unique_id=604380701]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_wddg0")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"
+
+[node name="Bark_7" type="MultiMeshInstance3D" parent="." unique_id=1720909986]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_g2c3c")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_7" type="MultiMeshInstance3D" parent="." unique_id=1453107459]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_7f0os")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"
+
+[node name="Bark_8" type="MultiMeshInstance3D" parent="." unique_id=583059004]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_57tni")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_8" type="MultiMeshInstance3D" parent="." unique_id=534854192]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_yf5bh")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"
+
+[node name="Bark_9" type="MultiMeshInstance3D" parent="." unique_id=1366528097]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_q0wuk")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_9" type="MultiMeshInstance3D" parent="." unique_id=562919697]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_lu0l8")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"
+
+[node name="Bark_10" type="MultiMeshInstance3D" parent="." unique_id=1526239564]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_p28t7")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_10" type="MultiMeshInstance3D" parent="." unique_id=1573369320]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_oca1j")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"
+
+[node name="Bark_11" type="MultiMeshInstance3D" parent="." unique_id=1531305478]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_63027")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_11" type="MultiMeshInstance3D" parent="." unique_id=1335501521]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_crnf3")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"
+
+[node name="Bark_12" type="MultiMeshInstance3D" parent="." unique_id=2146662855]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_ris3g")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_12" type="MultiMeshInstance3D" parent="." unique_id=98084782]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_8ln3g")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"
+
+[node name="Bark_13" type="MultiMeshInstance3D" parent="." unique_id=52033185]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_w2qoe")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_13" type="MultiMeshInstance3D" parent="." unique_id=388147659]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_grd5d")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"
+
+[node name="Bark_14" type="MultiMeshInstance3D" parent="." unique_id=670012576]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_tn38l")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_14" type="MultiMeshInstance3D" parent="." unique_id=577631240]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_6bkf1")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"
+
+[node name="Bark_15" type="MultiMeshInstance3D" parent="." unique_id=1856286935]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_oehw6")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_15" type="MultiMeshInstance3D" parent="." unique_id=675064877]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_oxyfp")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"
+
+[node name="Bark_16" type="MultiMeshInstance3D" parent="." unique_id=1452843568]
+material_override = ExtResource("1_86ing")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_pcm57")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Bark"
+
+[node name="Blossoms_16" type="MultiMeshInstance3D" parent="." unique_id=978288786]
+material_override = ExtResource("2_qpegc")
+cast_shadow = 0
+visibility_range_end = 280.0
+visibility_range_end_margin = 25.0
+multimesh = SubResource("MultiMesh_ifmtj")
+metadata/mesh_ref = "res://models/props/cherry_blossom_tree/model.glb#Blossoms"

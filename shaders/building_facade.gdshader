@@ -5,6 +5,7 @@ uniform sampler2D facade_extra : source_color, filter_linear_mipmap_anisotropic,
 uniform sampler2D facade_alternate_a : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D facade_alternate_b : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D neon_facades : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+uniform float window_density = 0.0;
 uniform bool ruined = false;
 uniform bool night_city = false;
 uniform bool industrial_facade = false;
@@ -106,6 +107,11 @@ void fragment() {
 			ALBEDO=photographed*vec3(.82,.77,.72);
 		}
 	}
+	}
+	if (window_density > 0.0 && !ruined) {
+		vec2 room_id = floor(vec2(u / 3.2, v / 4.0));
+		float occupancy = fract(sin(dot(room_id + vec2(dimensions.a * 31.0), vec2(12.9898,78.233))) * 43758.5453);
+		EMISSION += vec3(1.0,.65,.31) * pane * step(occupancy,window_density) * 1.6;
 	}
 	float luma=dot(photographed,vec3(.2126,.7152,.0722));
 	float wall=1.0-step(.5,abs(local_normal.y));

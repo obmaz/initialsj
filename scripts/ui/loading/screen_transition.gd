@@ -5,7 +5,7 @@ var race: Node3D
 var transition_cover: ColorRect
 var transition_sound: AudioStreamPlayer
 var loading_overlay: Control
-var prepared_track_instance_id := 0
+var prepared_road_instance_id := 0
 
 
 func _ready() -> void:
@@ -56,7 +56,13 @@ func play(action: Callable) -> void:
 	loading_overlay.advance(1, .35)
 	await RenderingServer.frame_post_draw
 	action.call()
-	race.warming_world = race.state == RaceState.READY and prepared_track_instance_id != race.track.get_instance_id()
+	# 출발 카운트다운은 GPU 준비와 화면 공개가 끝난 뒤부터 진행한다.
+	var freeze_countdown: bool = race.state == RaceState.COUNTDOWN
+	var was_processing: bool = race.is_physics_processing()
+	if freeze_countdown:
+		race.set_physics_process(false)
+	race.warming_world = freeze_countdown and prepared_road_instance_id != race.track.active.get_instance_id()
+	race.sync_world_rendering()
 	if loading_title != "":
 		loading_overlay.advance(2, 0.7)
 		await RenderingServer.frame_post_draw
@@ -67,7 +73,8 @@ func play(action: Callable) -> void:
 		await preload("res://scripts/rendering/material_warmup.gd").prepare_course(race)
 		await race.impacts.prewarm(race.camera)
 		await preload("res://scripts/rendering/tunnel_lights.gd").prewarm_scene(race)
-		prepared_track_instance_id = race.track.get_instance_id()
+		prepared_road_instance_id = race.track.active.get_instance_id()
+		race.track.active.set_meta("render_views_warmed", true)
 	race.warming_world = false
 	loading_overlay.advance(3, 1)
 	await RenderingServer.frame_post_draw
@@ -83,4 +90,6 @@ func play(action: Callable) -> void:
 	)
 	await reveal.finished
 	transition_cover.visible = false
+	if freeze_countdown:
+		race.set_physics_process(was_processing)
 	busy = false

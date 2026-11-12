@@ -6,7 +6,9 @@ const MATERIALS := [
 	"billboard_ad.gdshader",
 	"prop_advertisement.gdshader",
 	"speedway_wall_ad.gdshader",
-	"road_paint.gdshader"
+	"road_paint.gdshader",
+	"building_facade.gdshader",
+	"prop_facade.gdshader"
 ]
 var street_lights: Array[Transform3D] = []
 var billboard_lights: Array[Transform3D] = []
@@ -56,7 +58,13 @@ func configure(owner: Node3D) -> void:
 		if changed.has(material.get_instance_id()):
 			continue
 		changed[material.get_instance_id()] = true
-		if material.shader.resource_path.get_file() == "road_paint.gdshader":
+		if material.shader.resource_path.get_file() in ["building_facade.gdshader", "prop_facade.gdshader"]:
+			material.set_shader_parameter(
+				"window_density", .88 if race.track_environment.active_period == "dusk" else (.36 if is_night else 0.0)
+			)
+			if material.shader.resource_path.get_file() == "building_facade.gdshader":
+				material.set_shader_parameter("night_city", false)
+		elif material.shader.resource_path.get_file() == "road_paint.gdshader":
 			material.set_shader_parameter("rain_wetness", 1.0 if wet else 0.0)
 		else:
 			material.set_shader_parameter("night_lighting", 1.0 if is_night else 0.0)
@@ -64,7 +72,7 @@ func configure(owner: Node3D) -> void:
 	road.road_surface.material_override.set_shader_parameter("street_pool_lookup", street_pools)
 	road.road_surface.material_override.set_shader_parameter("course_length", road.length)
 	road.road_surface.material_override.set_shader_parameter(
-		"street_lighting", (0.5 if road.course_id == 1 else .23) if is_night else 0.0
+		"street_lighting", (0.5 if road.course_id == 1 else .48) if is_night else 0.0
 	)
 	selection_clock = 0
 
@@ -81,7 +89,7 @@ func _process(delta: float) -> void:
 		return
 	selection_clock = .15
 	var capacity: int = race.render_budget.local_light_limit()
-	var street_range := 46.0 if race.render_budget.is_mobile_platform and race.render_budget.wet_night else 62.0
+	var street_range := 58.0 if race.render_budget.is_mobile_platform and race.render_budget.wet_night else 74.0
 	var camera_position: Vector3 = race.camera.global_position
 	var candidates: Array[Dictionary] = []
 	for kind in range(2):
@@ -119,7 +127,7 @@ func _process(delta: float) -> void:
 		light.global_transform = item.anchor
 		light.spot_range = 22 if item.ad else street_range
 		light.spot_angle = 56 if item.ad else 58
-		light.light_energy = 4.2 if item.ad else (7.5 if race.selected_course == 1 else 5.0)
+		light.light_energy = 4.2 if item.ad else (10.0 if race.selected_course == 1 else 7.0)
 		light.light_color = Color("fff1d6") if item.ad else Color("ffe7bd")
 
 

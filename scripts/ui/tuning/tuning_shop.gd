@@ -137,7 +137,7 @@ func build_layout() -> void:
 	add_panel(Rect2(0, 0, 1280, 106), TuningTheme.PAPER)
 	var back := add_button("‹ BACK", MenuLayout.BACK, request_close, 28)
 	back.name = "Back"
-	back.call_deferred("grab_focus")
+	call_deferred("focus_back", back)
 	var title := add_label("COAST CUSTOMS", Rect2(330, 20, 600, 68), 40)
 	title.name = "Title"
 	title.add_theme_font_override("font", preload("res://assets/fonts/Roboto-BlackItalic.ttf"))
@@ -465,6 +465,7 @@ func build_sheets() -> void:
 	color_sheet.add_child(scroll)
 	custom_picker = ColorPicker.new()
 	custom_picker.custom_minimum_size = Vector2(554, 400)
+	custom_picker.add_theme_constant_override("h_width", 80)
 	custom_picker.edit_alpha = false
 	custom_picker.presets_visible = false
 	custom_picker.color_modes_visible = false
@@ -510,3 +511,8 @@ func close_sheet(sheet: Control) -> void:
 	modal_focus_modes.clear()
 	if is_instance_valid(previous_focus) and previous_focus.is_visible_in_tree():
 		previous_focus.grab_focus()
+
+
+func focus_back(back: Button) -> void:
+	if back.focus_mode != Control.FOCUS_NONE and not color_sheet.visible and not discard_dialog.visible:
+		back.grab_focus()

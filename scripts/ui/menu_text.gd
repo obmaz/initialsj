@@ -57,7 +57,24 @@ func finish() -> void:
 
 
 func draw_wrapped(rect: Rect2, value: String, font_size: int, color: Color) -> void:
-	draw(rect, value, font_size, color, false)
-	var label := labels[used - 1]
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.max_lines_visible = 2
+	# 고정 풀 Label의 줄 수 캐시와 무관하게 두 줄을 각각 배치한다.
+	var lines := ["", ""]
+	var second := false
+	for word in value.split(" "):
+		var candidate: String = word if lines[0].is_empty() else lines[0] + " " + word
+		if (
+			not second
+			and hud.FONT.get_string_size(candidate, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x <= rect.size.x
+		):
+			lines[0] = candidate
+		else:
+			second = true
+			lines[1] += ("" if lines[1].is_empty() else " ") + word
+	for i in range(2):
+		draw(
+			Rect2(rect.position + Vector2(0, i * rect.size.y / 2), Vector2(rect.size.x, rect.size.y / 2)),
+			lines[i],
+			font_size,
+			color,
+			false
+		)

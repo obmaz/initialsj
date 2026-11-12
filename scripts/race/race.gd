@@ -181,6 +181,8 @@ var near_miss_flash := 0.0
 var overtakes := 0
 var overtake_flash := 0.0
 var checkpoint_flash := 0.0
+var circuit_checkpoint := 1
+var result_age := 0.0
 var return_flash := 0.0
 var hitstop_until := 0
 var checkpoints := 0
@@ -434,6 +436,8 @@ func navigate(action: Callable) -> void:
 
 
 func start_race() -> void:
+	if screen_transition != null and screen_transition.prepared_road_instance_id != track.active.get_instance_id():
+		loading_title = mode_loading_title(mode, selected_course)
 	navigate(
 		func():
 			restart()
@@ -723,7 +727,7 @@ func restart(start_countdown: bool = true) -> void:
 	lap_started = 0
 	last_lap = 0
 	countdown = 3
-	time_left = Library.START_TIME
+	time_left = circuit_time_bonus() + 40 if mode == "track" else Library.START_TIME
 	score = 0
 	run_medal = 0
 	tour_score_multiplier = 1
@@ -766,6 +770,8 @@ func restart(start_countdown: bool = true) -> void:
 	overtakes = 0
 	overtake_flash = 0
 	checkpoint_flash = 0
+	circuit_checkpoint = 1
+	result_age = 0
 	checkpoints = 0
 	checkpoint_stage = -1
 	route_preference = -1
@@ -1328,6 +1334,7 @@ func finish() -> void:
 	if record_key() != loaded_record_key:
 		load_record()
 	state = RaceState.FINISHED
+	result_age = 0
 	cancel_nitro()
 	drifting = false
 	boosting = false
@@ -1426,6 +1433,14 @@ func collision_camera_offset(forward: Vector3, right: Vector3) -> Vector3:
 
 
 func update_camera(delta: float) -> void:
+	if state in RaceState.ENDED:
+		result_age += delta
+		var angle := .4 if motion_reduced else .4 + result_age * .12
+		var target := player.global_position + Vector3.UP * .8
+		camera.position = target + Vector3(sin(angle) * 9, 3.8, cos(angle) * 9)
+		camera.look_at(target)
+		camera.reset_physics_interpolation()
+		return
 	world_race.update_camera(delta)
 
 
@@ -1441,3 +1456,7 @@ func cycle_track_weather() -> void:
 func cycle_track_period() -> void:
 	track_environment.cycle_period()
 	save_preferences()
+
+
+func circuit_time_bonus() -> float:
+	return maxf(60, track.length / vehicle.max_speed + 35)

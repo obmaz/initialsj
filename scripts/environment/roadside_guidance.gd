@@ -45,6 +45,15 @@ static func is_night(section: Node3D) -> bool:
 static func attach(section: Node3D) -> void:
 	if section.has_node(NAME):
 		return
+	var Assets = preload("res://scripts/rendering/world_assets.gd")
+	for placement in [["checkpoint.tscn", "CircuitCheckpoint"], ["seasonal_avenue.tscn", "CherryAvenue"]]:
+		var path: String = Assets.folder(section) + placement[0]
+		if not ResourceLoader.exists(path) or section.has_node(placement[1]):
+			continue
+		var decoration: Node3D = preload("res://scripts/rendering/render_resources.gd").fetch(path).instantiate()
+		Assets.geometry(decoration)
+		decoration.transform = Assets.content_placement(section)
+		section.add_child(decoration)
 	var guide: Node3D = load("res://scripts/environment/roadside_guidance.gd").new()
 	guide.name = NAME
 	guide.road = section

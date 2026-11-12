@@ -38,12 +38,30 @@ func sync_menu_art() -> void:
 			menu_art_requested = false
 			menu_art.clear()
 			for path in (
-				COURSE_PREVIEWS + [HOME_BG, GARAGE_BG, TOUR_PREVIEW, MenuTheme.HEADER_ART, MenuTheme.PRIMARY_ART]
+				COURSE_PREVIEWS
+				+ [
+					HOME_BG,
+					GARAGE_BG,
+					TOUR_PREVIEW,
+					MenuTheme.HEADER_ART,
+					MenuTheme.PRIMARY_ART,
+					"res://assets/ui/controls/countdown_ring.png"
+				]
 			):
 				RenderResources.release(path)
 	elif not menu_art_requested:
 		menu_art_requested = true
-		for path in COURSE_PREVIEWS + [HOME_BG, GARAGE_BG, TOUR_PREVIEW, MenuTheme.HEADER_ART, MenuTheme.PRIMARY_ART]:
+		for path in (
+			COURSE_PREVIEWS
+			+ [
+				HOME_BG,
+				GARAGE_BG,
+				TOUR_PREVIEW,
+				MenuTheme.HEADER_ART,
+				MenuTheme.PRIMARY_ART,
+				"res://assets/ui/controls/countdown_ring.png"
+			]
+		):
 			RenderResources.warm(path)
 
 

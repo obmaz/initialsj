@@ -8,11 +8,13 @@ uniform sampler2D building_sides_alt : source_color, filter_linear_mipmap_anisot
 uniform sampler2D restaurant_facades : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D rural_fronts : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D rural_sides : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+uniform float window_density = 0.0;
+varying vec3 local_normal;
 varying float style;
 varying float variant;
 varying float front;
 varying float skin;
-void vertex() { style=UV2.x;front=UV2.y;variant=INSTANCE_CUSTOM.r;skin=INSTANCE_CUSTOM.b; }
+void vertex() { local_normal=NORMAL;style=UV2.x;front=UV2.y;variant=INSTANCE_CUSTOM.r;skin=INSTANCE_CUSTOM.b; }
 void fragment() {
  ALBEDO=COLOR.rgb;ROUGHNESS=.94;SPECULAR=.05;
  // 대체 상점의 청색 띠와 실제 입체 처마·캐노피의 도장색을 맞춘다.
@@ -56,6 +58,14 @@ void fragment() {
   ALBEDO=surface*mix(warm,cool,variant);
   ROUGHNESS=.82;SPECULAR=.22;
   AO=mix(.78,1.0,smoothstep(0.0,.07,min(q.x,1.0-q.x)));
+ }
+ if(window_density>0.0 && style>9.5 && style<49.5) {
+  vec2 room_id=floor(UV*vec2(5.0,3.0));
+  vec2 pane=fract(UV*vec2(5.0,3.0));
+  float window=smoothstep(.15,.22,pane.x)*(1.0-smoothstep(.76,.83,pane.x))*smoothstep(.18,.25,pane.y)*(1.0-smoothstep(.70,.78,pane.y));
+  float occupancy=fract(sin(dot(room_id+vec2(style,variant*31.0),vec2(12.9898,78.233)))*43758.5453);
+  float darkness=1.0-smoothstep(.22,.50,dot(ALBEDO,vec3(.2126,.7152,.0722)));
+  EMISSION+=vec3(1.0,.65,.31)*window*step(occupancy,window_density)*darkness*(1.0-step(.5,abs(local_normal.y)))*1.7;
  }
  float height=dot(ALBEDO,vec3(.2126,.7152,.0722));
  NORMAL=relief_normal(height,VERTEX,NORMAL,.45);

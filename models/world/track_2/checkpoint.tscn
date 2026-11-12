@@ -1,0 +1,64 @@
+[gd_scene format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/Roboto-BoldItalic.ttf" id="1_mj2om"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vtbpy"]
+albedo_color = Color(0.09019608, 0.72156864, 0.78039217, 1)
+emission_enabled = true
+emission = Color(0.02745098, 0.43137255, 0.4745098, 1)
+
+[node name="CircuitCheckpoint" type="Node3D" unique_id=734082592]
+
+[node name="Frame0" type="MeshInstance3D" parent="." unique_id=1865041738]
+transform = Transform3D(0.044714667, 0, -0.44777292, 0, 6, 0, 0.44777292, 0, 0.044714667, -100.99366, 16.189571, -39.95051)
+material_override = SubResource("StandardMaterial3D_vtbpy")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#unit_box"
+
+[node name="Frame1" type="MeshInstance3D" parent="." unique_id=1182965424]
+transform = Transform3D(0.044714667, 0, -0.44777292, 0, 6, 0, 0.44777292, 0, 0.044714667, -99.00634, 15.610429, -20.04949)
+material_override = SubResource("StandardMaterial3D_vtbpy")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#unit_box"
+
+[node name="Frame2" type="MeshInstance3D" parent="." unique_id=1926126638]
+transform = Transform3D(1.9873185, 0, -0.5970306, 0, 0.5, 0, 19.90102, 0, 0.059619557, -100, 18.9, -30)
+material_override = SubResource("StandardMaterial3D_vtbpy")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#unit_box"
+
+[node name="CheckpointLabel3" type="Label3D" parent="." unique_id=118644060]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -100, 19, -30)
+pixel_size = 0.006
+billboard = 1
+text = "CHECKPOINT"
+font = ExtResource("1_mj2om")
+font_size = 180
+outline_size = 24
+
+[node name="Frame4" type="MeshInstance3D" parent="." unique_id=722851960]
+transform = Transform3D(-0.0768602, 0, 0.44338754, 0, 6, 0, -0.44338754, 0, -0.0768602, 198.90807, 20.42477, 513.6016)
+material_override = SubResource("StandardMaterial3D_vtbpy")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#unit_box"
+
+[node name="Frame5" type="MeshInstance3D" parent="." unique_id=471305878]
+transform = Transform3D(-0.0768602, 0, 0.44338754, 0, 6, 0, -0.44338754, 0, -0.0768602, 196.39989, 20.42477, 499.1325)
+material_override = SubResource("StandardMaterial3D_vtbpy")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#unit_box"
+
+[node name="Frame6" type="MeshInstance3D" parent="." unique_id=588169574]
+transform = Transform3D(-2.5081918, 0, 0.5911834, 0, 0.5, 0, -14.469141, 0, -0.10248027, 197.65398, 23.42477, 506.36707)
+material_override = SubResource("StandardMaterial3D_vtbpy")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/shared/render_primitives/model.glb#unit_box"
+
+[node name="CheckpointLabel7" type="Label3D" parent="." unique_id=1303771570]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 197.65398, 23.52477, 506.36707)
+pixel_size = 0.006
+billboard = 1
+text = "CHECKPOINT"
+font = ExtResource("1_mj2om")
+font_size = 180
+outline_size = 24

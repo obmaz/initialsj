@@ -2,7 +2,7 @@ extends SceneTree
 # GLB 형상은 공유하고 배치·스폿 연결점·노면 조도 표만 코스별 씬에 저장한다.
 const Section = preload("res://scripts/track/road_section.gd")
 const Assets = preload("res://scripts/rendering/world_assets.gd")
-const SPACING := [280.0, 65.0, 120.0, 170.0, 0.0]
+const SPACING := [210.0, 48.0, 90.0, 125.0, 0.0]
 const LEGACY := [
 	"LampPoles",
 	"LampHeads",
@@ -48,7 +48,8 @@ func run() -> void:
 		Assets.profile(road)
 		root.add_child(road)
 		await process_frame
-		await RenderingServer.frame_post_draw
+		if DisplayServer.get_name() != "headless":
+			await RenderingServer.frame_post_draw
 		var lamps: Array[Transform3D] = []
 		var floods: Array[Transform3D] = []
 		var street_anchors: Array[Transform3D] = []

@@ -350,6 +350,25 @@ func step(
 	race.personal_run.observe(
 		race, bool(data.valid) and race.protection_left <= 0 and player_body.velocity.dot(road_forward) >= -1, delta
 	)
+	if race.mode == "track":
+		race.time_left = maxf(0, race.time_left - delta)
+		while race.distance >= race.circuit_checkpoint * race.track.length * .5:
+			var gate_distance: float = race.circuit_checkpoint * race.track.length * .5
+			# 검증 게이트는 그리드 위치에서 시작하므로 코스 원점과의 차이를 반영한다.
+			var required := maxi(
+				0,
+				floori((gate_distance - trackers[0].start_distance) / (race.track.length / Progress.GATE_COUNT) + .0001)
+			)
+			if bool(data.valid) and race.protection_left <= 0 and trackers[0].gates_passed >= required:
+				race.checkpoint_award = race.circuit_time_bonus()
+				race.time_left += race.checkpoint_award
+				race.checkpoint_flash = 2
+			race.circuit_checkpoint += 1
+		if race.time_left <= 0:
+			race.state = RaceState.FAILED
+			race.result_age = 0
+			race.cancel_nitro()
+			race.personal_run.finish(race, false)
 	var laps: int = int(data.finished_laps)
 	if laps > race.laps_completed:
 		race.laps_completed = laps

@@ -127,6 +127,23 @@ func run(tree: SceneTree) -> int:
 				)
 				check(race.tour_weather.particles.emitting == (weather == "rain"), "야외 강수는 현재 설정을 따른다")
 				check(climate.headlights(race) == (period != "day" or weather == "rain"), "저녁·밤·비에서는 자동 전조등을 사용한다")
+				var window_materials := 0
+				for object in preload("res://scripts/rendering/world_assets.gd").nodes(race.track.active):
+					if not object is GeometryInstance3D or not object.material_override is ShaderMaterial:
+						continue
+					var facade: ShaderMaterial = object.material_override
+					if (
+						facade.shader.resource_path.get_file()
+						not in ["building_facade.gdshader", "prop_facade.gdshader"]
+					):
+						continue
+					window_materials += 1
+					var expected := .88 if period == "dusk" else (.36 if period == "night" else 0.0)
+					check(
+						is_equal_approx(facade.get_shader_parameter("window_density"), expected),
+						"황혼·야간·낮 창문 점등 밀도를 실제 재질에 적용한다"
+					)
+				check(window_materials > 0, "트랙의 건물 전용 재질을 점검한다")
 				check(fixtures.is_night == (period != "day"), "광고·거리 조명은 낮에는 끄고 어두워지면 켠다")
 				check(race.track.curvature_cache == curvature, "환경 변경으로 노면·곡률 캐시를 재생성하지 않는다")
 				if period == "night":

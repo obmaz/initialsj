@@ -713,6 +713,12 @@ func draw_lap_time() -> void:
 		text_at(Vector2(975, 61), "%d / 3" % mini(3, race.laps_completed + 1), 39, GOLD, true, NUMBER_FONT)
 		text_at(Vector2(1090, 35), "RACE TIME", 12, Color("b9d1df"))
 		text_at(Vector2(1085, 62), time_label(race.elapsed), 26)
+		text_at(
+			Vector2(385, 91),
+			tr("CHECKPOINT %d / %ds") % [posmod(race.circuit_checkpoint, 2) + 1, ceili(race.time_left)],
+			22,
+			GOLD
+		)
 		return
 	slant(Rect2(894, 15, 378, 60), Color("15151ce6"), 15)
 	text_at(Vector2(914, 43), "TIME", 23)
@@ -1037,13 +1043,18 @@ func draw_menu() -> void:
 		return
 	if race.state == RaceState.COUNTDOWN:
 		if race.mode == "track" and race.selected_course == 1:
-			centered(Vector2(640, 420), "ROLLING START / 16 CARS", 27, CYAN)
-		MenuTheme.panel(self, Rect2(568, 248, 144, 136), MenuTheme.YELLOW)
+			centered(Vector2(640, 515), "ROLLING START / 16 CARS", 27, CYAN)
+		draw_texture_rect(menus.art("res://assets/ui/controls/countdown_ring.png"), Rect2(485, 175, 310, 310), false)
 		var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
 		centered(Vector2(640, 353), str(maxi(1, ceili(race.countdown))), int(90 + 18 * pulse), MenuTheme.INK)
 	elif race.state in [RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED]:
-		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color(.87, .95, .97, .94))
-		MenuTheme.panel(self, Rect2(235, 100, 810, 575), MenuTheme.PAPER, false, 20)
+		if race.state in RaceState.ENDED and race.result_age < 2:
+			return
+		draw_rect(
+			Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()),
+			Color(.87, .95, .97, .94 if race.state == RaceState.PAUSED else .28)
+		)
+		MenuTheme.panel(self, Rect2(235, 100, 810, 575), Color(1, 1, .98, .88), false, 20)
 		glow_line(PackedVector2Array([Vector2(265, 100), Vector2(1045, 100)]), CYAN, 2)
 		text_at(
 			Vector2(307, 150),
@@ -1290,11 +1301,7 @@ func draw_pace_feedback() -> void:
 	if race.checkpoint_flash > 0 and not race.route_choices_visible():
 		toast(
 			Vector2(640, banner),
-			(
-				("LAP %d / 3" % mini(3, race.laps_completed + 1))
-				if race.mode == "track"
-				else ("CHECKPOINT +%ds" % int(race.checkpoint_award))
-			),
+			tr("CHECKPOINT +%ds") % int(race.checkpoint_award),
 			40,
 			GOLD,
 			minf(1, race.checkpoint_flash * 3),
