@@ -11,6 +11,15 @@ var drift_turn := 0.0
 var settle := 0.0
 var corner_key := ""
 var rewarded_corners: Dictionary = {}
+var grip_seconds := 0.0
+var grip_metres := 0.0
+var grip_turn := 0.0
+var grip_settle := 0.0
+var grip_key := ""
+var grip_direction := 0.0
+var corner_locked := false
+var straight_metres := 0.0
+var grip_exits := 0
 var pass_chain := 0
 var max_pass_chain := 0
 var pass_window := 0.0
@@ -29,6 +38,10 @@ func reset() -> void:
 	message = ""
 	flash = 0
 	cancel_drift()
+	cancel_grip()
+	grip_exits = 0
+	corner_locked = false
+	straight_metres = 0
 	rewarded_corners.clear()
 	pass_chain = 0
 	max_pass_chain = 0
@@ -129,10 +142,86 @@ func drift_step(
 	if absf(slip) > 0.18:
 		return 0
 	var earned := 0
-	if drift_seconds >= 0.7 and drift_metres >= 18 and drift_turn >= 0.12 and not rewarded_corners.has(corner_key):
+	if (
+		drift_seconds >= 0.7
+		and drift_metres >= 18
+		and drift_turn >= 0.12
+		and not rewarded_corners.has(corner_key)
+		and not corner_locked
+	):
+		corner_locked = true
 		rewarded_corners[corner_key] = true
 		clean_exits += 1
 		earned = 200 + mini(200, int(drift_turn * 150))
 		announce("CLEAN EXIT  +%d" % earned, 1.4, clampf(0.4 + drift_seconds * 0.08, 0.45, 0.75))
 	cancel_drift()
+	return earned
+
+
+func cancel_grip() -> void:
+	grip_seconds = 0
+	grip_metres = 0
+	grip_turn = 0
+	grip_settle = 0
+	grip_key = ""
+	grip_direction = 0
+
+
+# 한 코너의 그립·드리프트 보상은 공유한다. 실제 직선을 주행한 뒤 다음 판정을 연다.
+func corner_step(
+	delta: float,
+	drifting: bool,
+	slip: float,
+	speed: float,
+	metres: float,
+	curvature: float,
+	clean: bool,
+	key: String,
+	contact_hold: bool,
+	alignment: float,
+	load_ratio: float
+) -> int:
+	if not clean or speed < 25 or metres < 0 or metres > speed * delta * 2 + 1:
+		cancel_grip()
+		cancel_drift()
+		exit_boost = 0
+		straight_metres = 0
+		return 0
+	if contact_hold:
+		return 0
+	straight_metres = straight_metres + metres if absf(curvature) < .0012 and not drifting else 0.0
+	if straight_metres >= 24:
+		corner_locked = false
+	var was_drift := drift_seconds > 0
+	var earned := drift_step(delta, drifting, slip, speed, metres, curvature, clean, key)
+	if drifting or was_drift or earned > 0 or corner_locked:
+		cancel_grip()
+		return earned
+	if absf(slip) > .12 or alignment < cos(.25) or load_ratio > 1.05:
+		cancel_grip()
+		return 0
+	if absf(curvature) >= .0018 and load_ratio >= .2:
+		if grip_direction != 0 and signf(curvature) != grip_direction:
+			cancel_grip()
+		if grip_key.is_empty():
+			grip_key = key
+			grip_direction = signf(curvature)
+		grip_seconds += delta
+		grip_metres += metres
+		grip_turn += absf(curvature) * metres
+		grip_settle = 0
+		return 0
+	if grip_seconds <= 0:
+		return 0
+	grip_settle += delta
+	if absf(curvature) >= .0018 or grip_settle < .12:
+		return 0
+	if grip_seconds >= .55 and grip_metres >= 18 and grip_turn >= .14 and not rewarded_corners.has(grip_key):
+		rewarded_corners[grip_key] = true
+		corner_locked = true
+		grip_exits += 1
+		clean_exits += 1
+		announce("CLEAN EXIT  +120", 1.2, .32, 3)
+		earned = 120
+	cancel_grip()
 	return earned

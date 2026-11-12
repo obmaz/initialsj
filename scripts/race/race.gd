@@ -1404,6 +1404,7 @@ func interrupt_drive() -> void:
 	drift_latched = false
 	drift_pending = 0
 	rewards.cancel_drift()
+	rewards.cancel_grip()
 	rewards.exit_boost = 0
 
 

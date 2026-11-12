@@ -92,6 +92,10 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 	trackers[index].lane = lane
 	if index == 0:
 		contact_flow.reset()
+		race.rewards.cancel_drift()
+		race.rewards.cancel_grip()
+		race.rewards.exit_boost = 0
+		race.rewards.straight_metres = 0
 		race.distance = d
 		race.lane = lane
 		race.speed = 0
@@ -325,18 +329,21 @@ func step(
 		race.score += delta * race.speed * (2 + race.drift_charge)
 	var clean_exit: bool = (
 		player_body.grounded
+		and bool(data.valid)
 		and not race.crash.active
 		and race.protection_left <= 0
 		and race.offroad_amount < 0.15
 		and race.impact < 0.15
 		and race.throttling
 		and not contact_flow.sustained()
+		and player_body.velocity.dot(road_forward) > race.speed * .8
 	)
 	var corner_key: String = (
 		"%s:%s:%d:%d:%d"
 		% [race.mode, race.selected_course, race.stage_index, race.laps_completed, int(old_position.y / 100)]
 	)
-	race.score += race.rewards.drift_step(
+	var previous_grip_exits: int = race.rewards.grip_exits
+	race.score += race.rewards.corner_step(
 		delta,
 		race.drifting,
 		race.slip_angle,
@@ -345,8 +352,19 @@ func step(
 		race.track.curvature(race.distance),
 		clean_exit,
 		corner_key,
-		contact_flow.reward_hold > 0
+		contact_flow.reward_hold > 0,
+		player_body.forward_direction().dot(road_forward),
+		player_body.corner_demand / maxf(player_body.corner_grip, 1)
 	)
+	if race.rewards.grip_exits > previous_grip_exits:
+		if race.vehicle.mode == "charges":
+			if race.nitro_charges < race.vehicle.charges:
+				race.shot_recharge += 4
+				if race.shot_recharge >= 100:
+					race.nitro_charges += 1
+					race.shot_recharge -= 100
+		else:
+			race.nitro = minf(100, race.nitro + 4)
 	if was_airborne and player_body.grounded:
 		race.route_challenges.land(race, clean_exit and not crash_flight)
 	race.route_challenges.observe(race)
@@ -972,8 +990,6 @@ func recover_player() -> bool:
 	# 성공한 복구만 여기서 한 번 집계해 모든 호출 경로의 보상·기록을 함께 무효화한다.
 	race.personal_run.invalidate()
 	race.route_challenges.invalidate()
-	race.rewards.cancel_drift()
-	race.rewards.exit_boost = 0
 	race.rewards.break_pass_chain()
 	safe_distance = site.distance
 	safe_lane = site.lane
