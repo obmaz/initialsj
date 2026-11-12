@@ -8,6 +8,7 @@ const TourProgress = preload("res://scripts/race/tour_progress.gd")
 const RivalState = preload("res://scripts/race/rival_state.gd")
 const RivalDriving = preload("res://scripts/race/rival_driving.gd")
 const Nitro = preload("res://scripts/race/nitro_system.gd")
+const Power = preload("res://scripts/physics/drive_power.gd")
 const Corner = preload("res://scripts/physics/corner_resistance.gd")
 const Tuning = preload("res://scripts/physics/drive_tuning.gd")
 var race: Node3D
@@ -199,7 +200,7 @@ func step(
 	cap *= lerpf(1, 0.58, race.offroad_amount)
 	if player_body.grounded:
 		accel *= Corner.engine_factor(race.speed, cap, player_body.corner_demand, player_body.corner_grip)
-	var target: float = move_toward(race.speed, cap, accel * delta) if gas else maxf(0, race.speed - 5 * delta)
+	var target: float = Power.target(race.speed, cap, accel, delta, gas, race.offroad_amount)
 	if race.drifting:
 		target = (
 			move_toward(race.speed, cap * 0.98, accel * 0.45 * delta)
@@ -668,17 +669,12 @@ func carry_rival(index: int, rival: RivalState, target_lane: float, target_speed
 	var body := bodies[index]
 	var tracker: RefCounted = trackers[index]
 	var now := speed_of(body)
-	var next_speed := move_toward(
-		now,
-		target_speed,
-		(
-			dt
-			* (
-				rival.specification.brake
-				if target_speed < now
-				else (rival.specification.boost_accel if rival.nitro_active else rival.specification.accel)
-			)
-		)
+	var must_brake: bool = rival.planned_curve_speed_limit < now or rival.planned_traffic_speed_limit < now
+	var acceleration: float = rival.specification.boost_accel if rival.nitro_active else rival.specification.accel
+	var next_speed: float = (
+		move_toward(now, target_speed, dt * rival.specification.brake)
+		if target_speed < now and must_brake
+		else Power.target(now, target_speed, acceleration, dt, true)
 	)
 	var old := Vector2(rival.lane, rival.distance)
 	var next_distance: float = tracker.distance + next_speed * dt
@@ -836,8 +832,11 @@ func update_rivals(delta: float) -> void:
 		var acceleration: float = rival.specification.boost_accel if used_nitro else rival.specification.accel
 		if body.grounded:
 			acceleration *= Corner.engine_factor(now, target_speed, body.corner_demand, body.corner_grip)
-		var desired := move_toward(
-			now, target_speed, dt * (rival.specification.brake if target_speed < now else acceleration)
+		var must_brake: bool = blocked or curve_cap < now or dirt > .01 or absf(angle) > 1.1
+		var desired: float = (
+			move_toward(now, target_speed, rival.specification.brake * dt)
+			if target_speed < now and must_brake
+			else Power.target(now, target_speed, acceleration, dt, true, dirt)
 		)
 		if reversing_cpu > 0:
 			# A bounded physical manoeuvre, never a curve reposition or teleport.
