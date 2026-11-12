@@ -37,6 +37,7 @@ var discard_dialog: ConfirmationDialog
 
 func _ready() -> void:
 	layer = 30
+	auto_translate_mode = Node.AUTO_TRANSLATE_MODE_ALWAYS
 	var background := ColorRect.new()
 	background.color = Color("e6f5fa")
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -131,20 +132,17 @@ func build_layout() -> void:
 	var back := add_button("←", Rect2(15, 8, 80, 62), request_close, 42)
 	TuningTheme.apply_accent_style(back, TuningTheme.CORAL)
 	back.call_deferred("grab_focus")
-	var title_art := TextureRect.new()
-	title_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	title_art.texture = preload("res://assets/ui/branding/tuning_title.png")
-	title_art.position = Vector2(110, 0)
-	title_art.size = Vector2(480, 78)
-	title_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content_root.add_child(title_art)
-	var brand := TextureRect.new()
-	brand.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	brand.texture = preload("res://assets/ui/branding/tuning_brand.png")
-	brand.position = Vector2(600, 0)
-	brand.size = Vector2(368, 76)
-	brand.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content_root.add_child(brand)
+	var title := add_label("COAST CUSTOMS", Rect2(114, 1, 470, 49), 40)
+	title.name = "Title"
+	title.add_theme_font_override("font", preload("res://assets/fonts/Roboto-BlackItalic.ttf"))
+	var subtitle := add_label("MAKE IT YOURS", Rect2(118, 49, 460, 26), 19)
+	subtitle.name = "Subtitle"
+	add_panel(Rect2(600, 0, 368, 78), Color("e7f8fb"))
+	var brand := add_label("INITIAL SJ", Rect2(620, 2, 326, 30), 25, TuningTheme.CORAL)
+	brand.name = "BrandTitle"
+	var brand_subtitle := add_label("COAST RUSH", Rect2(616, 30, 340, 43), 34)
+	brand_subtitle.name = "BrandSubtitle"
+	brand_subtitle.add_theme_font_override("font", preload("res://assets/fonts/Roboto-BlackItalic.ttf"))
 	add_panel(Rect2(1016, 14, 264, 49), TuningTheme.YELLOW)
 	var name_label := add_label(str(VehicleCatalog.spec(vehicle_index).name), Rect2(1028, 17, 230, 44), 30)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -170,11 +168,11 @@ func build_layout() -> void:
 	boost_button = add_button("» BOOST", Rect2(1026, 581, 214, 54), toggle_boost, 23)
 	boost_button.toggle_mode = true
 	add_panel(Rect2(0, 650, 1280, 70), Color("fffffff8"))
-	add_button("RESET", Rect2(30, 658, 140, 56), reset_draft, 23)
-	compare_button = add_button("COMPARE", Rect2(184, 658, 160, 56), toggle_compare, 23)
+	add_button("RESET", Rect2(30, 658, 160, 56), reset_draft, 23)
+	compare_button = add_button("COMPARE", Rect2(206, 658, 178, 56), toggle_compare, 23)
 	compare_button.toggle_mode = true
-	add_button("CANCEL", Rect2(358, 658, 142, 56), request_close, 23)
-	save_status_label = add_label("", Rect2(530, 662, 444, 48), 22)
+	add_button("CANCEL", Rect2(400, 658, 142, 56), request_close, 23)
+	save_status_label = add_label("", Rect2(562, 662, 412, 48), 22)
 	save_status_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	apply_button = add_button("APPLY  »", Rect2(1000, 654, 250, 64), apply_changes, 36)
 	TuningTheme.apply_accent_style(apply_button, TuningTheme.YELLOW)
@@ -193,6 +191,7 @@ func add_label(
 ) -> Label:
 	var node := Label.new()
 	node.text = text
+	node.set_meta("tuning_font_size", size_px)
 	node.position = rect.position
 	node.size = rect.size
 	node.clip_text = true
@@ -207,11 +206,13 @@ func add_label(
 func add_button(text: String, rect: Rect2, action: Callable, size_px: int = 18, parent: Control = null) -> Button:
 	var node := Button.new()
 	node.text = text
+	node.set_meta("tuning_font_size", size_px)
 	node.position = rect.position
 	node.size = rect.size
 	node.add_theme_font_size_override("font_size", size_px)
 	node.clip_text = true
 	node.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	node.tooltip_text = text
 	node.pressed.connect(action)
 	(parent if parent != null else content_root).add_child(node)
 	return node
@@ -334,6 +335,7 @@ func refresh_customization() -> void:
 		"font_color",
 		TuningTheme.CORAL if draft_customization != saved_customization and not is_comparing else TuningTheme.MUTED
 	)
+	fit_translated_text()
 	request_preview_render()
 
 
@@ -429,3 +431,28 @@ func handle_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		request_close()
 		get_viewport().set_input_as_handled()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and is_instance_valid(content_root):
+		call_deferred("fit_translated_text")
+
+
+func fit_translated_text() -> void:
+	# 원문을 보존하고 실제 번역 표시는 Control에 맡긴다. 언어를 바꿔도 원문 키를 잃지 않는다.
+	for control in content_root.find_children("*", "Control", true, false):
+		if not control.has_meta("tuning_font_size"):
+			continue
+		var font_size: int = control.get_meta("tuning_font_size")
+		var minimum := mini(font_size, 18)
+		var available: float = control.size.x - (20 if control is Button else 4)
+		if control is Button and control.icon != null:
+			available -= 68
+		var font: Font = control.get_theme_font("font")
+		var translated: String = control.tr(control.text)
+		while (
+			font_size > minimum
+			and font.get_string_size(translated, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > available
+		):
+			font_size -= 1
+		control.add_theme_font_size_override("font_size", font_size)

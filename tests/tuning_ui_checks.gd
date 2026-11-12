@@ -35,6 +35,27 @@ func run(tree: SceneTree) -> int:
 		shop.apply_button.disabled and shop.preview_car.paint == Color(shop.saved_customization.paint),
 		"샵 진입은 저장값을 미리 보고 변경이 없으면 적용을 비활성화한다"
 	)
+	var title: Label = shop.content_root.get_node("Title")
+	var original_locale := TranslationServer.get_locale()
+	var translation := Translation.new()
+	translation.locale = "de"
+	translation.add_message("COAST CUSTOMS", "KÜSTENWERKSTATT UND FAHRZEUGGESTALTUNG")
+	translation.add_message("APPLY  »", "ÜBERNEHMEN  »")
+	TranslationServer.add_translation(translation)
+	TranslationServer.set_locale("de")
+	await tree.process_frame
+	shop.fit_translated_text()
+	check(
+		title.text == "COAST CUSTOMS" and title.tr(title.text).begins_with("KÜSTEN"), "제목은 이미지가 아닌 원문을 유지한 번역 가능 텍스트다"
+	)
+	check(title.get_theme_font_size("font_size") < 40, "긴 번역 제목은 버튼·패널 위치를 밀지 않고 글자를 맞춘다")
+	check(
+		shop.apply_button.text == "APPLY  »" and shop.apply_button.tr(shop.apply_button.text) == "ÜBERNEHMEN  »",
+		"버튼도 언어 전환 뒤 원문 키를 유지한다"
+	)
+	TranslationServer.remove_translation(translation)
+	TranslationServer.set_locale(original_locale)
+	await tree.process_frame
 	for i in range(4):
 		shop.tab_buttons[i].pressed.emit()
 		check(shop.selected_tab == i, "각 카테고리 버튼은 해당 옵션으로 이동한다")
