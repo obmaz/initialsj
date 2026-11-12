@@ -7,6 +7,7 @@ var sibling: Section
 var previews: Array[Section] = []
 var history: Array[int] = []
 var weather_seed := int(Time.get_ticks_usec() % 100000)
+var retirement_worker: Node
 const RegionMetadata = preload("res://scripts/environment/tour_region_metadata.gd")
 var base_material: StandardMaterial3D
 var ground_plane: MeshInstance3D
@@ -48,7 +49,13 @@ func disable_collisions(node: Node) -> void:
 		disable_collisions(child)
 
 
-func retire(node: Node) -> void:
+func retire(node: Node, staged: bool = false) -> void:
+	if staged:
+		if not is_instance_valid(retirement_worker) or retirement_worker.is_queued_for_deletion():
+			retirement_worker = preload("res://scripts/rendering/scene_retirement.gd").new()
+			add_child(retirement_worker)
+		retirement_worker.schedule(node)
+		return
 	disable_collisions(node)
 	node.queue_free()
 
@@ -90,9 +97,23 @@ func add_world_collision(section: Section) -> void:
 	section.add_child(preload("res://scripts/physics/world_collision.gd").build(section))
 
 
-# 충돌체도 형상 수집·장벽 구간·물리 등록으로 나눠 만든 뒤 구간을 보이게 한다.
+# 저장 충돌도 노면·장벽의 첫 물리 연결을 나눠 끝낸 뒤 구간을 보이게 한다.
 func stage_world_collision(section: Section) -> void:
 	var Collision := preload("res://scripts/physics/world_collision.gd")
+	if ResourceLoader.exists(preload("res://scripts/rendering/world_assets.gd").folder(section) + "collision.res"):
+		var saved := Collision.saved_root(section)
+		section.add_child(saved)
+		section.queue_next(
+			[
+				func(): Collision.add_saved_body(saved, true),
+				func(): Collision.add_saved_body(saved, false),
+				func():
+					Collision.convert_trucks(section)
+					section.move_child(saved, section.get_child_count() - 1),
+				func(): warm_section(section)
+			]
+		)
+		return
 	var state := {}
 	var steps: Array[Callable] = [func(): state.merge(Collision.begin(section))]
 	for part in range(ceili(section.length / 400.0)):
@@ -109,9 +130,8 @@ func warm_section(section: Section) -> void:
 		return
 	var worker := preload("res://scripts/rendering/material_warmup.gd").new()
 	section.add_child(worker)
-	worker.collect(section)
 	worker.completed.connect(func(): section.visible = true)
-	worker.begin(2)
+	worker.prepare_staged(section)
 
 
 # 주행 중 다음 구간 생성에 한 프레임이 쓸 수 있는 시간. 한 단계는 끝까지 실행한다.
@@ -172,10 +192,10 @@ func maintain(distance: float) -> void:
 	# 지나온 구간을 한 프레임에 하나씩 먼저 해제한 뒤에 다음 구간을 만들어, 동시에 살아 있는 구간 수를 줄인다.
 	if distance > 420:
 		if is_instance_valid(sibling):
-			retire(sibling)
+			retire(sibling, true)
 			sibling = null
 		elif is_instance_valid(previous):
-			retire(previous)
+			retire(previous, true)
 			previous = null
 		else:
 			build_previews(true)

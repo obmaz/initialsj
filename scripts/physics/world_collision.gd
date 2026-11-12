@@ -1,16 +1,23 @@
 extends RefCounted
+const CollisionData = preload("res://scripts/physics/world_collision_data.gd")
+const Assets = preload("res://scripts/rendering/world_assets.gd")
+const Pool = preload("res://scripts/rendering/render_resources.gd")
 
 
 # 모든 코스와 투어 구간이 공유하는 실제 충돌체 빌더.
 # 노면은 보이는 도로·갓길과 같은 삼각형을 사용하며, 장벽은 별도 충돌층에 둔다.
 static func body(label: String, faces: PackedVector3Array, layer: int) -> StaticBody3D:
+	var shape := ConcavePolygonShape3D.new()
+	shape.backface_collision = true
+	shape.set_faces(faces)
+	return shape_body(label, shape, layer)
+
+
+static func shape_body(label: String, shape: ConcavePolygonShape3D, layer: int) -> StaticBody3D:
 	var node := StaticBody3D.new()
 	node.name = label
 	node.collision_layer = layer
 	node.collision_mask = 4
-	var shape := ConcavePolygonShape3D.new()
-	shape.backface_collision = true
-	shape.set_faces(faces)
 	var collision := CollisionShape3D.new()
 	collision.shape = shape
 	node.add_child(collision)
@@ -29,11 +36,39 @@ static func frame(section: Node3D, d: float) -> Basis:
 	return Basis(forward.cross(up).normalized(), up, -forward).orthonormalized()
 
 
-static func build(section: Node3D) -> Node3D:
+static func build(section: Node3D, use_saved: bool = true) -> Node3D:
+	var path := Assets.folder(section) + "collision.res"
+	if use_saved and ResourceLoader.exists(path):
+		var root := saved_root(section)
+		add_saved_body(root, true)
+		add_saved_body(root, false)
+		convert_trucks(section)
+		return root
 	var state := begin(section)
 	while not walls(section, state, section.length):
 		pass
 	return finish(state)
+
+
+static func saved_root(section: Node3D) -> Node3D:
+	var path := Assets.folder(section) + "collision.res"
+	var data := Pool.fetch(path) as CollisionData
+	assert(data != null, "정적 충돌 자료 형식이 올바르지 않습니다: " + path)
+	var root := Node3D.new()
+	root.name = "WorldCollision"
+	root.transform = Assets.placement(section)
+	root.set_meta("ground_triangles", data.ground_triangles)
+	root.set_meta("barrier_triangles", data.barrier_triangles)
+	root.set_meta("collision_data", data)
+	return root
+
+
+static func add_saved_body(root: Node3D, ground: bool) -> void:
+	var data: CollisionData = root.get_meta("collision_data")
+	# 물리 백엔드가 첫 연결 때 준비하는 비용도 노면·장벽 두 프레임으로 분산한다.
+	root.add_child(
+		shape_body("RoadSurfaceBody", data.ground, 1) if ground else shape_body("BarrierBody", data.barriers, 2)
+	)
 
 
 # 주행 중에 만드는 구간은 begin → walls(여러 번) → finish를 단계로 나눠 부른다.
@@ -57,14 +92,18 @@ static func begin(section: Node3D) -> Dictionary:
 		):
 			append_mesh(ground, child.mesh, relative * child.global_transform)
 	collect_scenery(section.scenery, section, ground, barriers)
+	convert_trucks(section)
+	var template := Pool.unit_box()
+	# 단위 상자의 삼각형은 한 번만 꺼내 모든 장벽 조각이 재사용한다.
+	return {"root": root, "ground": ground, "walls": barriers, "unit": template.get_faces(), "distance": 0.0}
+
+
+static func convert_trucks(section: Node3D) -> void:
 	for child in section.get_children():
 		if child.get_meta("parked_truck", false) and not child.get_meta("traffic_converted", false):
 			if child is CharacterBody3D:
 				continue
 			make_truck_traffic(section, child)
-	var template := preload("res://scripts/rendering/render_resources.gd").unit_box()
-	# 단위 상자의 삼각형은 한 번만 꺼내 모든 장벽 조각이 재사용한다.
-	return {"root": root, "ground": ground, "walls": barriers, "unit": template.get_faces(), "distance": 0.0}
 
 
 # 장벽 상자를 span 미터만큼 이어 붙인다. 끝까지 만들었으면 true.

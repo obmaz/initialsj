@@ -19,6 +19,7 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 python3 tools/optimize_models.py --check
+python3 tools/check_world_collisions.py
 version="$(tr -d '[:space:]' < .godot-version)"
 kind="${1:-debug}"
 sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}}"

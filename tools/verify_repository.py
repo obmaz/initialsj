@@ -42,7 +42,7 @@ def live_resources():
         if name.rstrip("/") == "shaders" and path.is_dir():
             continue
         if name.rstrip("/") == "models/world" and path.is_dir():
-            pending.extend(p.relative_to(ROOT).as_posix() for pattern in ("*/model.tscn", "*/profile.tres") for p in path.glob(pattern))
+            pending.extend(p.relative_to(ROOT).as_posix() for pattern in ("*/model.tscn", "*/profile.tres", "*/collision.res") for p in path.glob(pattern))
             continue
         if name in MODEL_DIRECTORIES and path.is_dir():
             pending.extend(p.relative_to(ROOT).as_posix() for p in path.glob("*/definition.tres"))
@@ -62,7 +62,7 @@ def check_sources(reached):
             name = path.relative_to(ROOT).as_posix()
             if path.name == "AGENTS.md":
                 continue
-            if name in BUILD_METADATA:
+            if name in BUILD_METADATA or (name.startswith("models/world/") and path.name == "collision.sources.json"):
                 continue
             if path.suffix == ".mtl":
                 # An OBJ model's material file is read by the importer, not by res:// references.
@@ -188,6 +188,11 @@ def main():
             run(ROOT, check=True)
         except (ValueError, OSError, KeyError) as error:
             errors.append(str(error))
+    from check_world_collisions import check as check_collisions
+    try:
+        print(f"정적 충돌 자료·입력 해시: PASS ({check_collisions(ROOT)}개 코스)")
+    except (ValueError, OSError) as error:
+        errors.append(str(error))
     reached = live_resources()
     check_audio_licences()
     check_sources(reached)

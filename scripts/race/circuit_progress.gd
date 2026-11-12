@@ -82,6 +82,15 @@ func reposition(at_distance: float) -> void:
 	last_valid_world = section.point(at_distance) if is_instance_valid(section) else Vector3.ZERO
 
 
+# 도로 프로필로 정확히 배치한 원거리 상대에만 사용한다. 거리·유효 게이트·랩은
+# reposition의 값을 보존하고 다음 실제 물리 틱의 근방 검색 힌트만 채운다.
+# 플레이어 순간이동·복구는 이 신뢰 경로를 사용하지 않는다.
+func seed_carried_pose(world_feet: Vector3) -> void:
+	previous_world = world_feet
+	has_previous_world = true
+	previous_trackable = true
+
+
 func _score(
 	offset: Vector3, forward: Vector3, right: Vector3, width: float, bank: float, d: float, hint: float
 ) -> float:

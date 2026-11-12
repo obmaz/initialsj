@@ -572,6 +572,7 @@ var staged := false
 var draining := false
 var warmed: Array[String] = []
 var asset_paths: Array[String] = []
+var profile_path := ""
 var asset_context: Dictionary = {}
 var build_queue: Array[Callable] = []
 
@@ -614,7 +615,9 @@ func _ready() -> void:
 		region_metadata = preload("res://scripts/environment/tour_region_metadata.gd").resolve(
 			Library.theme(stage, route_node)
 		)
-	preload("res://scripts/rendering/world_assets.gd").profile(self)
+	var assets := preload("res://scripts/rendering/world_assets.gd")
+	if profile_path != assets.folder(self):
+		assets.profile(self)
 	build_queue.append(func(): preload("res://scripts/rendering/world_assets.gd").queue(self))
 	if not staged:
 		build_some()

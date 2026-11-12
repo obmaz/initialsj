@@ -2,6 +2,7 @@ extends RefCounted
 # 상대 차량 한 대의 경기 상태. 주행·접촉 판단은 world_race.gd의 실제 차체가 담당한다.
 const SurfaceState = preload("res://scripts/track/road_surface_state.gd")
 const AirState = preload("res://scripts/physics/air_state.gd")
+const DECISION_INTERVAL := .24
 var car: Node3D
 var id := 0
 var active := false
@@ -41,6 +42,11 @@ func _init(visual: Node3D = null) -> void:
 	car = visual
 
 
+# 16대 출발·복구에서도 모든 상대의 비싼 차선 판단이 같은 틱에 몰리지 않게 한다.
+static func decision_phase(index: int) -> float:
+	return float(posmod(index, 15)) * DECISION_INTERVAL / 15.0
+
+
 # 경기 시작 전의 기본 배치. 모드별 배치는 race.gd가 이어서 덮어쓴다.
 func reset(index: int) -> void:
 	id = index
@@ -51,7 +57,8 @@ func reset(index: int) -> void:
 	pace = speed
 	lane = [-6.0, -2.0, 2.0, 6.0][index % 4]
 	target_lane = lane
-	decision = index * 0.07
+	decision = decision_phase(index)
+	lod_time = 0
 	surface = SurfaceState.new()
 	air = AirState.new()
 	boosting = false

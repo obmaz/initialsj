@@ -110,7 +110,8 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		rival.distance = d
 		rival.lane = lane
 		rival.target_lane = lane
-		rival.decision = 0
+		rival.decision = RivalState.decision_phase(rival.id)
+		rival.lod_time = 0
 		rival.world_stuck = 0.0
 		rival.world_reverse = 0.0
 		rival.world_reverse_cooldown = 0.0
@@ -558,7 +559,7 @@ func rival_lane(index: int, d: float, look: float, delta: float) -> float:
 	rival.decision -= delta
 	if rival.decision > 0:
 		return rival.target_lane
-	rival.decision = 0.24
+	rival.decision = RivalState.DECISION_INTERVAL
 	var body := bodies[index]
 	var current: float = trackers[index].lane
 	var chosen: float = rival.target_lane
@@ -672,6 +673,8 @@ func carry_rival(index: int, rival: RivalState, target_lane: float, target_speed
 	body.grounded = true
 	tracker.reposition(next_distance)
 	tracker.lane = next_lane
+	if tracker.has_method("seed_carried_pose"):
+		tracker.seed_carried_pose(body.feet_position())
 	rival.distance = next_distance
 	rival.lane = next_lane
 	rival.speed = next_speed

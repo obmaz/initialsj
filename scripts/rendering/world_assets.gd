@@ -38,10 +38,14 @@ static func placement(road: Node3D) -> Transform3D:
 
 
 static func profile(road: Node3D) -> void:
+	road.profile_path = folder(road)
 	var resource: Resource = load(folder(road) + "profile.tres")
 	road.tour_underpass = resource.get_meta("tour_underpass", Vector2.ZERO)
 	road.asset_paths.assign(resource.get_meta(&"dependencies", []))
 	road.asset_paths = GeometryMap.dependencies(road.asset_paths)
+	var collision_path := folder(road) + "collision.res"
+	if ResourceLoader.exists(collision_path):
+		road.asset_paths.append(collision_path)
 	var data: Dictionary = resource.get_meta(&"profile")
 	for key in data:
 		if key == "curve":

@@ -1,6 +1,6 @@
 # Initial SJ — Coast Rush
 
-[게임 실행](https://obmaz.github.io/initialsj/) · [게임 규칙](docs/GAMEPLAY.md) · [개발·검사·배포](docs/DEVELOPMENT.md) · [아키텍처](docs/ARCHITECTURE.md) · [모델 제작](docs/MODEL_PIPELINE.md)
+[게임 실행](https://obmaz.github.io/initialsj/) · [게임 규칙](docs/GAMEPLAY.md) · [개발·검사·배포](docs/DEVELOPMENT.md) · [아키텍처](docs/ARCHITECTURE.md) · [모델 제작](docs/MODEL_PIPELINE.md) · [튜닝샵 설계](docs/TUNING_SHOP.md)
 
 Godot **4.7.2 / GL Compatibility** 기반의 가로 화면 3D 아케이드 레이싱 게임입니다. 프로젝트 진입점은 [project.godot](project.godot)입니다.
 

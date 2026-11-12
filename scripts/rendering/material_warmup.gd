@@ -8,6 +8,7 @@ var keys := {}
 var viewport: SubViewport
 var stage: Node3D
 var batch_size := 8
+var collection: Array[Node] = []
 
 
 static func prepare_course(race: Node3D) -> void:
@@ -71,30 +72,70 @@ func collect(source: Node) -> void:
 	for node in source.get_children():
 		if node == self:
 			continue
-		if node is CPUParticles3D and node.mesh != null:
-			var material: Material = node.material_override
-			var key := (
-				"particles:" + str(material.get_instance_id() if material != null else node.mesh.get_instance_id())
-			)
-			if not keys.has(key):
-				keys[key] = true
-				jobs.append({"particles": node})
-		if node is MeshInstance3D or node is MultiMeshInstance3D:
-			var multi: bool = node is MultiMeshInstance3D
-			var mesh: Mesh = node.multimesh.mesh if multi else node.mesh
-			var materials: Array = []
-			if mesh != null:
-				for i in range(mesh.get_surface_count()):
-					materials.append(mesh.surface_get_material(i) if multi else node.get_active_material(i))
-			add_mesh(
-				mesh,
-				node.material_override,
-				materials,
-				multi,
-				multi and node.multimesh.use_colors,
-				multi and node.multimesh.use_custom_data
-			)
+		collect_node(node)
 		collect(node)
+
+
+func collect_node(node: Node) -> void:
+	if node is CPUParticles3D and node.mesh != null:
+		var material: Material = node.material_override
+		var key := "particles:" + str(material.get_instance_id() if material != null else node.mesh.get_instance_id())
+		if not keys.has(key):
+			keys[key] = true
+			jobs.append({"particles": node})
+	if node is MeshInstance3D or node is MultiMeshInstance3D:
+		var multi: bool = node is MultiMeshInstance3D
+		var mesh: Mesh = node.multimesh.mesh if multi else node.mesh
+		var materials: Array = []
+		if mesh != null:
+			for i in range(mesh.get_surface_count()):
+				materials.append(mesh.surface_get_material(i) if multi else node.get_active_material(i))
+		add_mesh(
+			mesh,
+			node.material_override,
+			materials,
+			multi,
+			multi and node.multimesh.use_colors,
+			multi and node.multimesh.use_custom_data
+		)
+
+
+func prepare_staged(source: Node) -> void:
+	collection.assign(source.get_children())
+	collection.reverse()
+	call_deferred("collect_batches")
+
+
+func collect_some(budget_usec: int = 500) -> bool:
+	var started := Time.get_ticks_usec()
+	var count := 0
+	while not collection.is_empty():
+		var node = collection.pop_back()
+		if is_instance_valid(node) and node != self:
+			collect_node(node)
+			var children: Array[Node] = node.get_children()
+			children.reverse()
+			collection.append_array(children)
+		count += 1
+		if count >= 16 or Time.get_ticks_usec() - started >= budget_usec:
+			break
+	return collection.is_empty()
+
+
+func collect_batches() -> void:
+	while not cancelled() and not collect_some():
+		await get_tree().process_frame
+	if not cancelled():
+		begin(2)
+
+
+func cancelled() -> bool:
+	return (
+		not is_inside_tree()
+		or is_queued_for_deletion()
+		or get_parent().is_queued_for_deletion()
+		or get_parent().get_meta("retirement_pending", false)
+	)
 
 
 func collect_library() -> void:
@@ -144,7 +185,7 @@ func begin(limit: int = 8) -> void:
 
 
 func render_batches() -> void:
-	while not jobs.is_empty() and is_inside_tree():
+	while not jobs.is_empty() and not cancelled():
 		for node in stage.get_children():
 			node.free()
 		for index in range(mini(batch_size, jobs.size())):
@@ -197,7 +238,13 @@ func render_batches() -> void:
 			stage.add_child(node)
 		viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 		await get_tree().process_frame
+		if cancelled():
+			return
 		await RenderingServer.frame_post_draw
+		if cancelled():
+			return
+	if cancelled():
+		return
 	jobs.clear()
 	keys.clear()
 	viewport.free()
@@ -206,5 +253,6 @@ func render_batches() -> void:
 
 
 func _exit_tree() -> void:
+	collection.clear()
 	jobs.clear()
 	keys.clear()
