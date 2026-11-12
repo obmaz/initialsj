@@ -1,11 +1,12 @@
 extends RefCounted
 # 밝은 해안 커스텀 샵의 색·서체·입력 상태를 네이티브 컨트롤에 일관되게 적용한다.
-const INK := Color("142b49")
-const MUTED := Color("65778a")
-const AQUA := Color("17d5d6")
-const CORAL := Color("fb646b")
-const YELLOW := Color("ffdf45")
-const PAPER := Color("f6fbff")
+const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
+const INK := MenuTheme.INK
+const MUTED := MenuTheme.MUTED
+const AQUA := MenuTheme.AQUA
+const CORAL := MenuTheme.CORAL
+const YELLOW := MenuTheme.YELLOW
+const PAPER := MenuTheme.PAPER
 const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
 
 

@@ -1,4 +1,5 @@
 extends Control
+const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
 const RaceState = preload("res://scripts/race/race_state.gd")
 
 const AppVersion = preload("res://scripts/platform/app_version.gd")
@@ -21,17 +22,18 @@ const HOME_TOUR := Rect2(100, 470, 520, 170)
 const HOME_TRACK := Rect2(660, 470, 520, 170)
 const HOME_PASSPORT := Rect2(30, 24, 260, 84)
 const PASSPORT_CLOSE := Rect2(1020, 24, 220, 84)
-const GARAGE_PAINT := Rect2(80, 650, 270, 56)
-const GARAGE_PLATE := Rect2(370, 650, 300, 56)
-const GARAGE_TUNING := Rect2(690, 650, 210, 56)
+const GARAGE_PAINT := Rect2(80, 630, 225, 80)
+const GARAGE_PLATE := Rect2(325, 630, 245, 80)
+const GARAGE_TUNING := Rect2(590, 630, 245, 80)
 const HOME_SETTINGS := Rect2(1000, 24, 250, 84)
-const COURSE_WEATHER := Rect2(290, 602, 310, 60)
-const COURSE_PERIOD := Rect2(620, 602, 370, 60)
-const COURSE_FUJI := Rect2(24, 150, 236, 440)
-const COURSE_SPEEDWAY := Rect2(272, 150, 236, 440)
-const COURSE_NIGHT := Rect2(520, 150, 236, 440)
-const COURSE_RIVIERA := Rect2(768, 150, 236, 440)
-const COURSE_GORGE := Rect2(1016, 150, 236, 440)
+const COURSE_WEATHER := Rect2(330, 602, 345, 84)
+const COURSE_PERIOD := Rect2(700, 602, 440, 84)
+const COURSE_FUJI := Rect2(24, 136, 236, 430)
+const COURSE_SPEEDWAY := Rect2(272, 136, 236, 430)
+const COURSE_NIGHT := Rect2(520, 136, 236, 430)
+const COURSE_RIVIERA := Rect2(768, 136, 236, 430)
+const COURSE_GORGE := Rect2(1016, 136, 236, 430)
+var menu_text := preload("res://scripts/ui/menu_text.gd").new(self)
 var menus := preload("res://scripts/ui/hud_menus.gd").new(self)
 const GARAGE_GHOST := Rect2(940, 24, 280, 84)
 const GARAGE_BACK := Rect2(60, 24, 220, 84)
@@ -46,11 +48,11 @@ const SETTINGS_PERIOD := Rect2(650, 498, 265, 77)
 const SETTINGS_INSTALL := Rect2(365, 592, 265, 77)
 const SETTINGS_CLOSE := Rect2(650, 592, 265, 77)
 const RECOVERY_BUTTON := Rect2(500, 176, 280, 64)
-const GARAGE_START := Rect2(930, 630, 290, 76)
+const GARAGE_START := Rect2(855, 630, 345, 80)
 const MAIN_MENU_BUTTON := Rect2(390, 578, 500, 78)
 const START_BUTTON := Rect2(390, 483, 500, 82)
-const MOTION_BUTTON := Rect2(307, 424, 300, 46)
-const SOUND_BUTTON := Rect2(630, 424, 330, 46)
+const MOTION_BUTTON := Rect2(307, 386, 300, 78)
+const SOUND_BUTTON := Rect2(630, 386, 330, 78)
 var race: Node3D
 var fingers: Dictionary = {}
 var recovery_touches: Dictionary = {}
@@ -84,6 +86,7 @@ var buttons := {
 
 
 func _ready() -> void:
+	menu_text.prepare()
 	build_dial_backdrop()
 	if DisplayServer.get_name() != "headless":
 		dial_cache = SubViewport.new()
@@ -355,8 +358,9 @@ func pad_hints(items: Array, y: float, center_x: float = 640.0) -> void:
 		var badge: String = race.pad.label(item[0])
 		var width := badge_width(badge)
 		var rect := Rect2(x, y - 14, width, 28)
-		draw_rect(rect, Color("08141ff2"))
-		draw_rect(rect, GOLD, false, 2.0)
+		var bright: bool = race.state in [RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED]
+		draw_rect(rect, MenuTheme.SOFT if bright else Color("08141ff2"))
+		draw_rect(rect, MenuTheme.TEAL if bright else GOLD, false, 2.0)
 		centered(Vector2(x + width / 2, y + 7), badge, 18, GOLD)
 		text_at(Vector2(x + width + 8, y + 7), item[1], 20, WHITE)
 		x += width + 8 + FONT.get_string_size(item[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 20).x + 30
@@ -381,25 +385,16 @@ func draw_pad_focus() -> void:
 	if rects.is_empty():
 		return
 	var rect: Rect2 = rects[clampi(race.menu_focus, 0, rects.size() - 1)]
-	draw_rect(rect.grow(5), GOLD, false, 4.0)
+	draw_rect(rect.grow(5), MenuTheme.TEAL, false, 3.0)
 
 
 func draw_pad_hints() -> void:
 	if not pad_on():
 		return
 	draw_pad_focus()
+	if race.state in RaceState.MENUS or race.state == RaceState.READY:
+		return
 	match race.state:
-		RaceState.MENU:
-			pad_hints([["dpad", "MOVE"], ["confirm", "SELECT"], ["alt", "TRACK"], ["alt2", "SETTINGS"]], 702)
-		RaceState.COURSES:
-			pad_hints(
-				[["dpad", "MOVE"], ["confirm", "SELECT"], ["alt", "SUNCOAST"], ["alt2", "MIDNIGHT"], ["back", "BACK"]],
-				702
-			)
-		RaceState.SETTINGS:
-			pad_hints([["dpad", "MOVE"], ["confirm", "CHANGE"], ["back", "CLOSE"]], 704)
-		RaceState.READY:
-			pad_hints([["dpad", "CHOOSE CAR"], ["confirm", "DRIVE"], ["back", "BACK"]], 698, 560)
 		RaceState.PAUSED:
 			pad_hints([["confirm", "RESUME"], ["alt", "MAIN MENU"], ["alt2", "RESTART"]], 704)
 		RaceState.FINISHED, RaceState.FAILED:
@@ -486,6 +481,21 @@ func _process(delta: float) -> void:
 func text_at(
 	pos: Vector2, value: String, size_px: int, color: Color = WHITE, shadow: bool = true, face: Font = FONT
 ) -> void:
+	if (
+		race != null
+		and (
+			race.passport_open
+			or race.state in RaceState.MENUS
+			or race.state in [RaceState.READY, RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED]
+		)
+	):
+		shadow = false
+		if color == WHITE:
+			color = MenuTheme.INK
+		elif color == CYAN:
+			color = MenuTheme.TEAL
+		elif color == GOLD:
+			color = MenuTheme.TEAL
 	if shadow:
 		draw_string_outline(
 			face,
@@ -599,6 +609,12 @@ func standings() -> Array[Dictionary]:
 
 
 func _draw() -> void:
+	menu_text.begin()
+	draw_content()
+	menu_text.finish()
+
+
+func draw_content() -> void:
 	if race == null:
 		return
 	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
@@ -1011,7 +1027,7 @@ func garage_card(index: int) -> Rect2:
 	var count: int = Catalog.SPECS.size()
 	var gap := 20.0
 	var width := (1120.0 - gap * (count - 1)) / count
-	return Rect2(80 + index * (width + gap), 530, width, 84)
+	return Rect2(80 + index * (width + gap), 480, width, 106)
 
 
 func draw_menu() -> void:
@@ -1021,12 +1037,12 @@ func draw_menu() -> void:
 	if race.state == RaceState.COUNTDOWN:
 		if race.mode == "track" and race.selected_course == 1:
 			centered(Vector2(640, 420), "ROLLING START / 16 CARS", 27, CYAN)
-		slant(Rect2(568, 248, 144, 136), Color("11121bba"), 24)
+		MenuTheme.panel(self, Rect2(568, 248, 144, 136), MenuTheme.YELLOW)
 		var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
-		centered(Vector2(640, 353), str(maxi(1, ceili(race.countdown))), int(90 + 18 * pulse), GOLD)
+		centered(Vector2(640, 353), str(maxi(1, ceili(race.countdown))), int(90 + 18 * pulse), MenuTheme.INK)
 	elif race.state in [RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED]:
-		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("060b168f"))
-		slant(Rect2(235, 100, 810, 575), Color("10121bf7"), 30)
+		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color(.87, .95, .97, .94))
+		MenuTheme.panel(self, Rect2(235, 100, 810, 575), MenuTheme.PAPER, false, 20)
 		glow_line(PackedVector2Array([Vector2(265, 100), Vector2(1045, 100)]), CYAN, 2)
 		text_at(
 			Vector2(307, 150),
@@ -1075,23 +1091,23 @@ func draw_menu() -> void:
 		elif race.state == RaceState.FAILED:
 			text_at(Vector2(307, 292), "SCORE %d" % int(race.score), 32, GOLD)
 		elif race.state == RaceState.PAUSED:
-			text_at(Vector2(307, 294), race.vehicle.name, 28, Color(race.vehicle.accent))
-			text_at(Vector2(307, 338), time_label(race.elapsed), 35, Color("b9cedb"))
+			text_at(Vector2(307, 294), race.vehicle.name, 28, MenuTheme.TEAL)
+			text_at(Vector2(307, 338), time_label(race.elapsed), 35, MenuTheme.MUTED)
 		if race.state == RaceState.PAUSED:
 			for rect in [MOTION_BUTTON, SOUND_BUTTON]:
-				slant(rect, Color("253548"), 8)
+				slant(rect, MenuTheme.SOFT, 8)
 			var motion_label := "MOTION: LOW" if race.motion_reduced else "MOTION: FULL"
 			var sound_label := "SOUND: ON" if race.sound_enabled else "SOUND: OFF"
-			centered(Vector2(MOTION_BUTTON.get_center().x, 454), motion_label, 21, CYAN)
-			centered(Vector2(SOUND_BUTTON.get_center().x, 454), sound_label, 21, CYAN)
+			centered(Vector2(MOTION_BUTTON.get_center().x, 434), motion_label, 26, CYAN)
+			centered(Vector2(SOUND_BUTTON.get_center().x, 434), sound_label, 26, CYAN)
 		else:
 			draw_record_panel()
 			preload("res://scripts/ui/driving_challenges_ui.gd").draw_result(self)
-		slant(START_BUTTON, CYAN, 13)
+		slant(START_BUTTON, MenuTheme.YELLOW, 13)
 		var cta: String = "RESUME" if race.state == RaceState.PAUSED else race.result_button_label()
 		centered(Vector2(640, 536), cta, 32, Color("0a1b2b"))
 		if race.state == RaceState.PAUSED:
-			slant(MAIN_MENU_BUTTON, Color("253548"), 8)
+			slant(MAIN_MENU_BUTTON, MenuTheme.SOFT, 8)
 			centered(Vector2(640, 627), "MAIN MENU", 26, CYAN)
 
 
@@ -1106,8 +1122,8 @@ func draw_record_panel() -> void:
 	]
 	for cell in cells:
 		var rect: Rect2 = cell[0]
-		slant(rect, Color("253548"), 8)
-		text_at(rect.position + Vector2(22, 26), cell[1], 16, Color("9fb6c7"))
+		slant(rect, MenuTheme.SOFT, 8)
+		text_at(rect.position + Vector2(22, 26), cell[1], 16, MenuTheme.MUTED)
 		text_at(rect.position + Vector2(22, 60), cell[2], 34, cell[3])
 	if not finished:
 		return
@@ -1116,7 +1132,7 @@ func draw_record_panel() -> void:
 		slant(tag, GOLD, 8)
 		centered(Vector2(tag.get_center().x, tag.position.y + 24), "NEW RECORD!", 20, Color("1a1300"))
 	elif race.previous_best > 0:
-		text_at(Vector2(307, 382), "+%.3f vs best" % (race.elapsed - race.previous_best), 20, Color("ff9f8a"))
+		text_at(Vector2(307, 382), "+%.3f vs best" % (race.elapsed - race.previous_best), 20, Color("a63340"))
 
 
 # Optional frames-per-second counter (Settings > SHOW FPS). It refreshes twice a second so the

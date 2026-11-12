@@ -26,13 +26,14 @@ func _ready() -> void:
 		env.background_color = Color(0, 0, 0, 0)
 		env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 		env.ambient_light_color = Color("dceaff")
-		env.ambient_light_energy = 0.45
+		env.ambient_light_energy = 0.65
 		env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+		env.tonemap_exposure = 1.3
 		world.environment = env
 		viewport.add_child(world)
 		var sun := DirectionalLight3D.new()
 		sun.rotation_degrees = Vector3(-42, -35, 0)
-		sun.light_energy = 1.05
+		sun.light_energy = 1.1
 		sun.light_color = Color("ffe3bd")
 		sun.shadow_enabled = true
 		sun.directional_shadow_max_distance = 25
@@ -40,7 +41,7 @@ func _ready() -> void:
 		var fill := DirectionalLight3D.new()
 		fill.rotation_degrees = Vector3(-20, 140, 0)
 		fill.light_color = Color("79c8f1")
-		fill.light_energy = 0.35
+		fill.light_energy = 0.5
 		viewport.add_child(fill)
 		var platform := MeshInstance3D.new()
 		var mesh := preload("res://scripts/rendering/primitive_assets.gd").mesh("garage_shadow")

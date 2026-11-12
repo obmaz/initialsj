@@ -4,8 +4,9 @@ const AppVersion = preload("res://scripts/platform/app_version.gd")
 const GAME_LOGO = preload("res://assets/ui/branding/initialsj_logo.svg")
 const BACKGROUND_ART = preload("res://assets/ui/backgrounds/loading_coast.png")
 const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
-const CYAN := Color("19dcff")
-const INK := Color("173454")
+const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
+const CYAN := MenuTheme.AQUA
+const INK := MenuTheme.INK
 const STEP_LABELS := ["PREPARING THE TRACK", "BUILDING THE WORLD", "WARMING UP THE ENGINE", "READY"]
 const LOADING_TIPS := [
 	"DRIFT THROUGH CORNERS TO FILL THE NITRO BAR",
