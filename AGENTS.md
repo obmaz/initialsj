@@ -28,6 +28,7 @@
 
 - 모델 제작의 정본은 [MODEL_PIPELINE.md](docs/MODEL_PIPELINE.md)와 [모델 제작 스킬](.agents/skills/model-authoring/SKILL.md)입니다.
 - 모든 3D 시각 형상은 GLB와 `.tscn` 조립 씬으로 관리하고 런타임에 정점을 생성하지 않습니다. 도로·지형·구조물은 `models/world/<id>/`에 주행 프로필과 함께 두며 움직임·물리는 공통 제어기가 맡습니다.
+- 코스 추가·중심선·길이 변경은 [곡률 캐시 계약](docs/MODEL_PIPELINE.md#곡률-캐시-계약)을 따릅니다. 프로필 적용 후 표를 생성하는 공통 경로를 유지하며 실행 중 곡선을 바꾼 뒤 오래된 표를 사용하지 않습니다. 현재 런타임 변경 자동 감지는 없고, 중심선이 그대로인 붕괴·낙석의 통행 판단은 별도로 유지합니다.
 - **`model_sources/`는 편집 원본입니다. 실행 코드에서 참조하지 않아도 미사용 리소스로 삭제하지 않습니다.** 원본 GLB를 수정하고 `python3 tools/optimize_models.py --accept-source-changes`로 생성합니다. 도구는 원본을 덮어쓰거나 삭제하지 않으며, 누락된 원본은 목록 갱신 옵션으로도 통과시키지 않습니다. 폴더·해시 목록·공통 나무 편집 위치는 [원본 관리 규칙](model_sources/README.md)을 따릅니다.
 - `models/`의 GLB는 생성물이므로 직접 수정하지 않습니다. `.tscn`·`profile.tres`는 해당 모델 팩에서 편집하고 연결 노드 이름·피벗을 보존합니다. 공통 코스 식생 원본은 `model_sources/shared/world_vegetation/<id>/model.glb`입니다. 코스 원본에 남은 같은 나무의 스냅샷은 보존하고 공용 원본을 편집합니다.
 - 모델은 `models/vehicles/<id>/`, `models/props/<id>/`, `models/buildings/<id>/`에서 정의·형상·재질·출처를 함께 소유합니다. 자동 탐색하므로 중앙 등록표를 추가하지 않습니다.
