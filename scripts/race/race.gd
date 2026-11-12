@@ -69,6 +69,8 @@ var visual_theme := "hawaii"
 var atmosphere_transition := 0.0
 var camera: Camera3D
 var hud: HUD
+var ground_contact_material: ShaderMaterial
+var rain_lens := preload("res://scripts/effects/rain_lens.gd").new()
 var speed_effect: ColorRect
 var tire_trails: Node3D
 var speed_ambience: Node3D
@@ -684,7 +686,6 @@ func competitor_position(id: int) -> int:
 
 
 func restart(start_countdown: bool = true) -> void:
-	track_environment.activate(self)
 	hazard_text = ""
 	if track.active.closed_loop and track.active.course_id == 3:
 		track.scenery.rock_arches.reset_effect()
@@ -707,6 +708,7 @@ func restart(start_countdown: bool = true) -> void:
 		track.active.rockfall.reset_effect()
 	preload("res://scripts/environment/roadside_guidance.gd").reset(track.active)
 	preload("res://scripts/environment/advertisement_library.gd").reshuffle(get_tree())
+	track_environment.activate(self)
 	distance = 80
 	completed_distance = 0
 	lane = -3.2
@@ -778,6 +780,7 @@ func restart(start_countdown: bool = true) -> void:
 	return_flash = 0
 	impacts.reset()
 	boost_kick = 0
+	rain_lens.reset()
 	bump_cooldown = 0
 	launch_flash = 0
 	camera_offset = Vector3.ZERO
@@ -862,7 +865,7 @@ func load_record() -> void:
 
 func record_key() -> String:
 	if mode == "tour":
-		return "tour_routes_v1_" + str(vehicle.id) + "_" + TourChallenge.route_id(track.history)
+		return "tour_routes_v2_" + str(vehicle.id) + "_" + TourChallenge.route_id(track.history)
 	return Catalog.record_key(selected_vehicle, mode, selected_course)
 
 
@@ -912,6 +915,7 @@ func reset_nitro() -> void:
 func cancel_nitro() -> void:
 	surface.cancel_boost()
 	boost_kick = 0
+	rain_lens.reset()
 	nitro_active = false
 	nitro_burst_left = 0
 	nitro_pending = false
@@ -1008,8 +1012,28 @@ func _physics_process(delta: float) -> void:
 		shoulder_dust.particles.emitting = false
 	tire_trails.update(self)
 	speed_ambience.update(self)
-	speed_effect.visible = state == RaceState.RACING and not motion_reduced and speed > 35 and render_budget.level < 2
-	speed_effect.material.set_shader_parameter("strength", clampf((speed - 35) / 53 * 1.2, 0, 1))
+	var road_material: ShaderMaterial = track.active.road_surface.material_override
+	if ground_contact_material != road_material:
+		if ground_contact_material != null:
+			ground_contact_material.set_shader_parameter("contact_strength", 0.0)
+		ground_contact_material = road_material
+	if world_race != null:
+		var body: CharacterBody3D = world_race.player_body
+		road_material.set_shader_parameter("contact_position", body.feet_position())
+		road_material.set_shader_parameter("contact_normal", body.surface_normal)
+		var forward: Vector3 = body.forward_direction()
+		road_material.set_shader_parameter("contact_forward", Vector2(forward.x, forward.z).normalized())
+		road_material.set_shader_parameter(
+			"contact_strength", 1.0 if body.grounded and state in RaceState.DRIVING else 0.0
+		)
+	rain_lens.update(self, delta)
+	var speed_blur_enabled: bool = not motion_reduced and speed > 35 and render_budget.level < 2
+	speed_effect.visible = state == RaceState.RACING and (speed_blur_enabled or rain_lens.amount > .01)
+	speed_effect.material.set_shader_parameter(
+		"strength", clampf((speed - 35) / 53 * 1.2, 0, 1) if speed_blur_enabled else 0.0
+	)
+	speed_effect.material.set_shader_parameter("lens_amount", rain_lens.amount)
+	speed_effect.material.set_shader_parameter("lens_clock", rain_lens.clock)
 	speed_effect.material.set_shader_parameter(
 		"high_quality", render_budget.level == 0 and not render_budget.is_mobile_platform
 	)
@@ -1034,7 +1058,11 @@ func _physics_process(delta: float) -> void:
 	if offroad_amount > 0.2:
 		for particles in player.smoke:
 			particles.emitting = false
-	var night: bool = track.scenery.theme in ["neon", "night"] or track_environment.headlights(self)
+	var night: bool = (
+		track_environment.headlights(self)
+		if track_environment.supported(self)
+		else track.scenery.theme in ["neon", "night"]
+	)
 	player.set_headlights(track.active.in_tunnel(distance) or night)
 	for rival_index in range(rivals.size()):
 		var r: RivalState = rivals[rival_index]
@@ -1071,6 +1099,7 @@ func sync_world_rendering() -> void:
 		return
 	preload("res://scripts/environment/roadside_guidance.gd").sync_visuals(self)
 	var world_visible := warming_world or state not in RaceState.MENUS
+	camera.far = 3000.0 if mode == "tour" and track.scenery.theme == "seoul" else 1800.0
 	# GLES3는 첫 렌더 전 교체된 Sky의 대기 중 큐브맵을 남길 수 있다.
 	# 가려진 코스 선택에서는 만들지 않고 실제 렌더·프리워밍 때 생성한다.
 	if world_visible and atmosphere.sky == null:

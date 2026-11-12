@@ -48,6 +48,9 @@ var curve_marker_tunnel: Array[bool] = []
 var curve_marker_transforms: Array[Transform3D] = []
 var curve_markers: MultiMeshInstance3D
 var curve := Curve3D.new()
+# 배치 전 곡선을 샘플링해 먼 월드 좌표에서 누적되는 베이크 거리 오차를 피한다.
+var sampling_curve: Curve3D
+var sampling_transform := Transform3D.IDENTITY
 var length := 0.0
 var rng := RandomNumberGenerator.new()
 
@@ -58,6 +61,10 @@ var start_heading := -PI / 2
 var tour_underpass := Vector2.ZERO
 var start_point := Vector3(0, 6, 0)
 var surface_lift := 0.0
+var entry_buffer_length := 0.0
+var entry_content_transform := Transform3D.IDENTITY
+var entry_scene_path := ""
+var entry_surface: MeshInstance3D
 
 
 func excavation_depth(distance: float) -> float:
@@ -272,9 +279,10 @@ func _init(
 
 func point(distance: float, lane: float = 0) -> Vector3:
 	var d := fposmod(distance, length) if closed_loop else clampf(distance, 0, length)
-	var p := curve.sample_baked(d, false)
-	var a := curve.sample_baked(fposmod(d - 2, length) if closed_loop else clampf(d - 2, 0, length), false)
-	var b := curve.sample_baked(fposmod(d + 2, length) if closed_loop else clampf(d + 2, 0, length), false)
+	var source: Curve3D = sampling_curve if sampling_curve != null else curve
+	var p := source.sample_baked(d, false)
+	var a := source.sample_baked(fposmod(d - 2, length) if closed_loop else clampf(d - 2, 0, length), false)
+	var b := source.sample_baked(fposmod(d + 2, length) if closed_loop else clampf(d + 2, 0, length), false)
 	var forward := (b - a).normalized()
 	if distance != d and not closed_loop:
 		p += forward * (distance - d)
@@ -285,7 +293,7 @@ func point(distance: float, lane: float = 0) -> Vector3:
 	var bank_height := bank_lane * tan(bank)
 	if closed_loop and course_id == 1:
 		bank_height += half_width(d) * absf(tan(bank))
-	return p + Vector3(-forward.z, 0, forward.x).normalized() * lane + Vector3.UP * bank_height
+	return sampling_transform * (p + Vector3(-forward.z, 0, forward.x).normalized() * lane + Vector3.UP * bank_height)
 
 
 func bank_at(distance: float) -> float:
@@ -416,8 +424,9 @@ func authored_half_width(distance: float) -> float:
 		return preload("res://scripts/track/riviera_profile.gd").half_width(distance, length)
 	if closed_loop:
 		return width_profile(FUJI_WIDTH, fposmod(distance, length) / length)
-	var t := clampf(distance / length, 0, 1)
-	var blend := smoothstep(180, 360, distance) * (1 - smoothstep(length - 360, length - 180, distance))
+	var content_distance := maxf(0, distance - entry_buffer_length)
+	var t := clampf(content_distance / maxf(1, length - entry_buffer_length), 0, 1)
+	var blend := smoothstep(180, 360, content_distance) * (1 - smoothstep(length - 360, length - 180, distance))
 	# Saturated sine: long wide and narrow stretches joined by quick but smooth transitions.
 	var wave := tanh(1.7 * sin(TAU * (2.4 + route_node * 0.2) * t + stage * 1.3))
 	var tunnel := Library.tunnel_span(stage, route_node)
@@ -446,14 +455,14 @@ func rail_setback(distance: float, side: float) -> float:
 	var d := fposmod(distance, length) if closed_loop else clampf(distance, 0, length)
 	if excavation_depth(d) > 0.05:
 		return 1.5
-	var t := d / length
+	var t := maxf(0, d - entry_buffer_length) / maxf(1, length - entry_buffer_length)
 	var first := smoothstep(0.15, 0.20, t) * (1 - smoothstep(0.30, 0.35, t))
 	var second := smoothstep(0.40, 0.45, t) * (1 - smoothstep(0.60, 0.65, t))
 	if closed_loop:
 		first = smoothstep(0.06, 0.10, t) * (1 - smoothstep(0.17, 0.22, t))
 		second = smoothstep(0.73, 0.77, t) * (1 - smoothstep(0.86, 0.91, t))
 	else:
-		if d < 260 or d > length - 850:
+		if d < 260 + entry_buffer_length or d > length - 850:
 			return 1.5
 		var tunnel := Library.tunnel_span(stage, route_node)
 		if tunnel.y > tunnel.x:

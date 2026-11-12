@@ -50,6 +50,8 @@
 [ext_resource type="FontFile" path="res://assets/fonts/Roboto-BoldItalic.ttf" id="47_khfd6"]
 [ext_resource type="Script" path="res://scripts/rendering/world_asset_preview.gd" id="48_fyrd5"]
 
+[ext_resource type="PackedScene" path="res://models/world/track_1/night_lighting.tscn" id="course_lighting"]
+
 [sub_resource type="Curve3D" id="Curve3D_pjeeh"]
 bake_interval = 1.0
 _data = {
@@ -2589,11 +2591,13 @@ text = "SUNCOAST"
 font_size = 90
 
 [node name="StadiumLightPoles" type="MultiMeshInstance3D" parent="Part0062" unique_id=1480012540]
+visible = false
 material_override = SubResource("StandardMaterial3D_ncebu")
 multimesh = SubResource("MultiMesh_wvsrv")
 metadata/mesh_ref = "res://models/world/track_1/geometry.glb#Geometry0123"
 
 [node name="StadiumLightBanks" type="MultiMeshInstance3D" parent="Part0062" unique_id=216932149]
+visible = false
 material_override = SubResource("StandardMaterial3D_fkhda")
 multimesh = SubResource("MultiMesh_6uj10")
 metadata/mesh_ref = "res://models/world/track_1/geometry.glb#Geometry0124"
@@ -4214,3 +4218,5 @@ outline_size = 6
 
 [node name="GLBPreview" type="Node" parent="." unique_id=629439488]
 script = ExtResource("48_fyrd5")
+
+[node name="CourseLighting" parent="." instance=ExtResource("course_lighting")]

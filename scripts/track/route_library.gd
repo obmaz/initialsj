@@ -1,7 +1,9 @@
 extends RefCounted
 const STAGES := 5
-const FORK_COMMIT := 80.0
-# About a second and a half at the fastest pad speed: the straight to the fork is short.
+const ENTRY_RUNUP := 120.0
+const FORK_COMMIT := 200.0
+const FORK_RECONSIDER := 270.0
+# 분기 연결부120m를 포함해 최고 부스터 속도에서도 선택할 주행 거리를 확보한다.
 const CHECKPOINT_RUNUP := 210.0
 const CHECKPOINT_BONUS := 52.0
 const START_TIME := 62.0
@@ -64,7 +66,7 @@ static func next_titles(stage: int, node: int) -> Array[String]:
 
 # The node is the number of right forks taken: each right choice adds lasting risk.
 static func section_length(stage: int, node: int) -> float:
-	return 3000.0 + stage * 180.0 + node * 160.0
+	return 3000.0 + stage * 180.0 + node * 160.0 + (ENTRY_RUNUP if stage > 0 else 0.0)
 
 
 static func checkpoint_bonus(node: int) -> float:
@@ -73,26 +75,26 @@ static func checkpoint_bonus(node: int) -> float:
 
 static func canopy_span(stage: int, node: int) -> Vector2:
 	if stage == 2 and node == 1:
-		return Vector2(760, 1080)
+		return Vector2(760, 1080) + Vector2.ONE * ENTRY_RUNUP
 	if stage == 4 and node == 1:
-		return Vector2(1180, 1264)
+		return Vector2(1180, 1264) + Vector2.ONE * ENTRY_RUNUP
 	return Vector2.ZERO
 
 
 static func tunnel_span(stage: int, node: int) -> Vector2:
 	match theme(stage, node):
 		"jungle":
-			return Vector2(1080, 1300)
+			return Vector2(1080, 1300) + Vector2.ONE * ENTRY_RUNUP
 		"city":
-			return Vector2(1640, 1960)
+			return Vector2(1640, 1960) + Vector2.ONE * ENTRY_RUNUP
 		"bamboo":
-			return Vector2(1760, 1980)
+			return Vector2(1760, 1980) + Vector2.ONE * ENTRY_RUNUP
 		"canyon":
-			return Vector2(1820, 2080)
+			return Vector2(1820, 2080) + Vector2.ONE * ENTRY_RUNUP
 		"seoul":
-			return Vector2(1680, 2060)
+			return Vector2(1680, 2060) + Vector2.ONE * ENTRY_RUNUP
 		"snow":
-			return Vector2(1900, 2120)
+			return Vector2(1900, 2120) + Vector2.ONE * ENTRY_RUNUP
 	return Vector2.ZERO
 
 

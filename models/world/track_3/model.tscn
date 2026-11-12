@@ -47,6 +47,8 @@
 [ext_resource type="Shader" path="res://shaders/finish_stripe.gdshader" id="44_4cgqr"]
 [ext_resource type="Script" path="res://scripts/rendering/world_asset_preview.gd" id="45_pi3et"]
 
+[ext_resource type="PackedScene" path="res://models/world/track_3/night_lighting.tscn" id="course_lighting"]
+
 [sub_resource type="Curve3D" id="Curve3D_to5mr"]
 bake_interval = 1.0
 _data = {
@@ -7868,12 +7870,14 @@ multimesh = SubResource("MultiMesh_vfb6y")
 metadata/mesh_ref = "res://models/world/track_3/geometry.glb#Geometry0080"
 
 [node name="BillboardLampHousings" type="MultiMeshInstance3D" parent="Part0062/Part0226" unique_id=1793134728]
+visible = false
 material_override = SubResource("ShaderMaterial_1gdlp")
 cast_shadow = 0
 multimesh = SubResource("MultiMesh_2a4v0")
 metadata/mesh_ref = "res://models/world/track_3/geometry.glb#Geometry0080"
 
 [node name="BillboardLampLenses" type="MultiMeshInstance3D" parent="Part0062/Part0226" unique_id=352026340]
+visible = false
 material_override = SubResource("StandardMaterial3D_malbu")
 cast_shadow = 0
 multimesh = SubResource("MultiMesh_a0f75")
@@ -8577,3 +8581,5 @@ outline_size = 0
 
 [node name="GLBPreview" type="Node" parent="." unique_id=900019830]
 script = ExtResource("45_pi3et")
+
+[node name="CourseLighting" parent="." instance=ExtResource("course_lighting")]

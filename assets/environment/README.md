@@ -87,11 +87,11 @@ image_gen.imagegen으로 제작한1774×887(2:1) 위경도 원본을 편집·확
 | 배포 이미지 | 생성 원본 | 방향별 원경 |
 | --- | --- | --- |
 | `speedway-panorama.png` | `exec-91bccf60-d2e8-434d-ac57-9b687bc399b6.png` | 바다·녹색 구릉·해안 도시·경기장 |
-| `harbor-panorama.png` | `exec-2e298e2d-4ecd-44b9-85b5-fd480d8c613c.png` | 야간 도시·항만 크레인·화물선·해안 산맥 |
+| `harbor-panorama.png` | `exec-dd887b1b-c833-4439-bbf9-c7887152c1e5.png` | 중립 낮 항만·크레인·도시, 시간대 합성용 |
 | `track-riviera-panorama.png` | `exec-49f9750e-df18-4376-9257-6d660938b467.png` | 청록 바다·섬·사암 능선·마을·녹색 산맥 |
 | `gorge-sunset-panorama.png` | `exec-935341f2-e969-44b5-a8f4-90a4d96574ce.png` | 적색 메사·깊은 협곡·강 계곡·노을 |
 
-[track_background.gd](../../scripts/environment/track_background.gd)와 [track_panorama.gdshader](../../shaders/track_panorama.gdshader)는 시선의 실제 경도·위도로 이미지를 읽습니다. 수평 양 끝의 좁은 영역만 혼합하며, 랩·카메라 방향에 따른 평면 회전이나 수평 늘이기를 하지 않습니다. 원경 하나만 현재 코스의 하늘이 소유하고 코스 해제 시 놓습니다. 원본은 손실 품질0.9·밉맵으로 임포트합니다. 태양·달의 이미지 내 위치에 맞춰 주광 방위·고도도 고정합니다. 기존 `riviera-sky-panorama.png`는 투어의 구름 전용 이미지로 계속 사용합니다.
+[track_background.gd](../../scripts/environment/track_background.gd)와 [track_panorama.gdshader](../../shaders/track_panorama.gdshader)는 시선의 실제 경도·위도로 이미지를 읽습니다. 수평 양 끝의 좁은 영역만 혼합하며, 랩·카메라 방향에 따른 평면 회전이나 수평 늘이기를 하지 않습니다. 원경 하나만 현재 코스의 하늘이 소유하고 코스 해제 시 놓습니다. 원본은 손실 품질0.9·밉맵으로 임포트합니다. 시간대 설정에 따라 공용 하늘 셰이더가 광원 방향의 달·별을 합성합니다. 항만은 이미지의 수평선 위치를0.12 보정합니다. 기존 `riviera-sky-panorama.png`는 투어의 구름 전용 이미지로 계속 사용합니다.
 
 ## 경기장 벽 전용 가로 광고
 
@@ -133,3 +133,5 @@ image_gen.imagegen으로 제작한1774×887(2:1) 위경도 원본을 편집·확
 ## 홍콩풍 네온 외벽
 
 `hong-kong-night-facades.png`는 image_gen으로 제작한4열×3행의 야간 외벽 아틀라스입니다. 낡은 타일·벽돌·회벽, 실외기·창살·세로 네온 간판, 따뜻한 창빛을 조합한12종의 가상 상가·주거 외벽입니다. 특정 게임의 이미지·실존 상표를 사용하지 않았습니다. 생성 결과를 크기 변경 없이 이 PNG에 보존했으며 작업 원본 파일명은 `exec-00c65074-94ab-4738-8cfc-5578ba1a5ae7.png`입니다. 투어 네온 건물과 `neon_tenement`·`neon_blade_sign`의 전용 UV·셰이더에서 사용합니다.
+
+`moon_surface.png`는2026-11-12 OpenAI 이미지 생성 도구의 `exec-b1cb20e8-af05-4f24-ad29-0bb6f0514d13.png`에서 제작한1280² 달 표면 자료입니다. 글자·로고 없는 자체 생성 자료이며5트랙이 같은 표면을 다른 위상·회전으로 공유합니다. 달과 교체된 항만은 VRAM 압축·밉맵을 사용합니다.

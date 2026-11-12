@@ -15,7 +15,10 @@ static func canyon_spans(road: Node3D) -> Array[Vector2]:
 		if road.course_id == 4:
 			return [Vector2(1000, road.length - 200)]
 	elif Library.theme(road.stage, road.route_node) == "canyon":
-		return [Vector2(300, 1700), Vector2(2390, road.length - 280)]
+		return [
+			Vector2(300, 1700) + Vector2.ONE * road.entry_buffer_length,
+			Vector2(2390 + road.entry_buffer_length, road.length - 280)
+		]
 	return []
 
 
@@ -50,7 +53,7 @@ static func in_cluster(road: Node3D, d: float, radius: float) -> bool:
 				return true
 		return false
 	# 도시도 몇 개의 구역으로 나누고 구역 사이에는 최소 280m의 빈 구간을 둔다.
-	var local := fposmod(d - 160 + road.route_node * 43 + road.stage * 31, 760)
+	var local := fposmod(d - road.entry_buffer_length - 160 + road.route_node * 43 + road.stage * 31, 760)
 	return local - radius >= 0 and local + radius <= 480
 
 

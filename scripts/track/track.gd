@@ -279,8 +279,42 @@ func advance(side: int, distance: float, lane: float) -> Dictionary:
 	return {"distance": d, "lane": (world - active.point(d)).dot(right), "old_length": old_length, "sibling": sibling}
 
 
+# 두 도로의 바깥 공터가 아니라 갈림길 중앙의 실제 빈 공간만 판정한다.
+func in_fork_gap(world: Vector3, progress: float) -> bool:
+	var roads: Array[Section] = []
+	if progress > length and previews.size() == 2:
+		roads.assign(previews)
+	elif progress < Library.ENTRY_RUNUP + 300 and is_instance_valid(sibling):
+		roads.assign([active, sibling])
+	else:
+		return false
+	var offsets: Array[float] = []
+	var centers: Array[Vector3] = []
+	for road in roads:
+		var at := road.curve.get_closest_offset(world)
+		if at < Library.ENTRY_RUNUP + 95 or at > Library.ENTRY_RUNUP + 400:
+			return false
+		offsets.append(at)
+		centers.append(road.point(at))
+	var span := centers[1] - centers[0]
+	span.y = 0
+	if span.length_squared() < 1:
+		return false
+	var fraction := (world - centers[0]).dot(span) / span.length_squared()
+	if fraction <= 0 or fraction >= 1:
+		return false
+	for i in range(2):
+		var right: Vector3 = (roads[i].point(offsets[i], 1) - centers[i]).normalized()
+		var towards := signf((centers[1 - i] - centers[i]).dot(right))
+		var lane := (world - centers[i]).dot(right) * towards
+		var edge := roads[i].half_width(offsets[i]) + roads[i].rail_setback(offsets[i], towards)
+		if lane <= edge - .15:
+			return false
+	return true
+
+
 func reconsider(distance: float, lane: float) -> Dictionary:
-	if distance >= 150 or not is_instance_valid(sibling):
+	if distance >= Library.FORK_RECONSIDER or not is_instance_valid(sibling):
 		return {}
 	var world := point(distance, lane)
 	if world.distance_to(sibling.point(distance)) + 0.7 >= world.distance_to(active.point(distance)):

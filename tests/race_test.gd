@@ -41,7 +41,7 @@ func run() -> void:
 		"Negative road positions must extrapolate rather than wrap"
 	)
 	check(
-		race.track.previews[0].point(300).distance_to(race.track.previews[1].point(300)) > 60,
+		race.track.previews[0].point(300).distance_to(race.track.previews[1].point(300)) > 50,
 		"Forks must be two physical roads"
 	)
 	check(race.track.point(800).y > race.track.point(80).y + 8, "Road must have real elevation")

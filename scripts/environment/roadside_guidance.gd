@@ -11,6 +11,8 @@ var markings: Array[Dictionary] = []
 var station: Node3D
 var camera_distance := -1.0
 var digital_material: ShaderMaterial
+var original_marker_mesh: Mesh
+var original_marker_material: Material
 var motion_setting := -1
 var vessel: Node3D
 
@@ -35,7 +37,9 @@ static func dependencies(section: Node3D) -> Array[String]:
 
 
 static func is_night(section: Node3D) -> bool:
-	return section.course_id == 2 if section.closed_loop else Library.theme(section.stage, section.route_node) == "neon"
+	if section.closed_loop:
+		return section.region_metadata.get("time_of_day", "night" if section.course_id == 2 else "day") == "night"
+	return Library.theme(section.stage, section.route_node) == "neon"
 
 
 static func attach(section: Node3D) -> void:
@@ -156,14 +160,21 @@ func straight_site() -> float:
 
 
 func install_chevrons() -> void:
-	if not is_night(road) or road.curve_markers == null:
+	if road.curve_markers == null:
 		return
-	# 기존 인스턴스의 X 반사가 좌우 방향을 소유한다. 매 프레임 버퍼를 다시 쓰지 않는다.
-	road.curve_markers.multimesh = road.curve_markers.multimesh.duplicate()
+	if original_marker_mesh == null:
+		original_marker_mesh = road.curve_markers.multimesh.mesh
+		original_marker_material = road.curve_markers.material_override
+		road.curve_markers.multimesh = road.curve_markers.multimesh.duplicate()
+	if not is_night(road):
+		road.curve_markers.multimesh.mesh = original_marker_mesh
+		road.curve_markers.material_override = original_marker_material
+		return
+	if digital_material == null:
+		digital_material = ShaderMaterial.new()
+		digital_material.shader = preload("res://shaders/digital_chevrons.gdshader")
+		digital_material.set_shader_parameter("animate", motion_setting != 1)
 	road.curve_markers.multimesh.mesh = Props.model("digital_chevrons")
-	digital_material = ShaderMaterial.new()
-	digital_material.shader = preload("res://shaders/digital_chevrons.gdshader")
-	digital_material.set_shader_parameter("animate", motion_setting != 1)
 	road.curve_markers.material_override = digital_material
 
 

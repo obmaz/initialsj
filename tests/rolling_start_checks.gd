@@ -179,6 +179,7 @@ func run(tree: SceneTree) -> int:
 		if child is Label3D and child.text.contains("DRIFT") and child.text.contains("CURVE"):
 			signs += 1
 	check(signs >= 2, "기존 네온 바는 방향과 드리프트 의미를 글자로 안내해야 한다")
+	race.track_environment.time_of_day = "dusk"
 	race.choose_mode("track", 4)
 	race.state = "racing"
 	var energy: float = race.atmosphere.ambient_light_energy

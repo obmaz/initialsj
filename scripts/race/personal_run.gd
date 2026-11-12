@@ -38,7 +38,7 @@ func prepare(race: Node3D) -> void:
 	reference_route = str(store.get_value("tour_routes", str(race.vehicle.id), "LLLL"))
 	reference_key = race.record_key()
 	if race.mode == "tour":
-		reference_key = "tour_routes_v1_" + str(race.vehicle.id) + "_" + reference_route
+		reference_key = "tour_routes_v2_" + str(race.vehicle.id) + "_" + reference_route
 	reference.clear()
 	var file := FileAccess.open_compressed(file_path(reference_key), FileAccess.READ, FileAccess.COMPRESSION_ZSTD)
 	if file != null and file.get_length() < 3_000_000:

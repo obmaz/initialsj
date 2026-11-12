@@ -1,10 +1,11 @@
 {
-  "barrierTriangles": 11832,
-  "groundTriangles": 9572,
+  "barrierTriangles": 12192,
+  "groundTriangles": 9932,
   "inputs": {
     "res://models/props/skyway_abutment/model.glb": "61163b1f08fe612035a760bc98fbaeea10dfc0d49c3dea93ee258a90e2fc4ee1",
     "res://models/shared/render_primitives/model.glb": "9d4e5b0f58417ab41bcc711ed6a02eed2b2303a1db8d00b5ca6f61df77b5d13b",
     "res://models/shared/scene_state.gd": "a55c54bb9a515aeb7e5c6e5ce46122c0de7f4d28b7c1fe5a66bf12ee7f40fff7",
+    "res://models/shared/tour_entry/model.glb": "ec9fddf583262e6b2979bd1a5335b52962063da2f87c9c307a7d729321f47b10",
     "res://models/shared/world_geometry_map.gd": "1d0b90917c80b5bbe4b15f61a551af38d512f5b00c7d89b326d99fa8e51d67fe",
     "res://models/shared/world_vegetation/references.json": "a92c9d4d321a64eaf8cf420f9d4210c82f05c38478ab91b0366f2252f97826b7",
     "res://models/world/tour_3_1_1/assembly/part_000.tscn": "c78901ba2adacbe74e1f117f90778177f6eace41708d34340a48bb4adb714cea",
@@ -30,23 +31,24 @@
     "res://models/world/tour_3_1_1/assembly/part_020.tscn": "4c8c555b2b91c148c52f0b8446643c5c5d718fd3b078348e3f032d507caa1e4d",
     "res://models/world/tour_3_1_1/assembly/part_021.tscn": "9098ef0d0260ecd59ffa354f916c1e95434469f00e033cea81a02526410400bf",
     "res://models/world/tour_3_1_1/assembly/part_022.tscn": "bb9f40683b2569c8a8a17bf037e04411d0ccd25d09631ecd00fc893e1369cdff",
-    "res://models/world/tour_3_1_1/assembly/part_023.tscn": "4f0c2e91929cb3c17425e2419d97796ff03ceafe2af12d54c2124d5f8e81c041",
+    "res://models/world/tour_3_1_1/assembly/part_023.tscn": "d04d9465151cd0496c98c4a042c945c883fd680d75279b832782ac8bd4888a3c",
     "res://models/world/tour_3_1_1/assembly/part_024.tscn": "7feea09232489c0c4b936fbefe12dae76d3dd18b82c2406b5b297d556496374f",
     "res://models/world/tour_3_1_1/assembly/part_025.tscn": "6e191d0b3233243f5f3e63edef8ceafb96e0fb3e8388e94e7899fcf0ed9182b9",
-    "res://models/world/tour_3_1_1/assembly/resources.tres": "ca0f41955a2a085bfe79aa8bad3ff21bacaad87344717de4a2e8aab1d7ede38a",
+    "res://models/world/tour_3_1_1/assembly/resources.tres": "095fa81faacabcde050e05d9081e0f330a4de2f86b2e05d992fb9cb25fc8437f",
     "res://models/world/tour_3_1_1/geometry.glb": "20498e772cccbde40a828688e757918f1e41d02aefbb0b3972f76f6bb7caa872",
     "res://models/world/tour_3_1_1/model.tscn": "91f75681b2185c1db38f7bd5b225d4af34b0f1938ace47dfe9ea89a0fc285e97",
-    "res://models/world/tour_3_1_1/profile.tres": "42c4f01ec38e648df3895c747e139d99c99f18bbf641211633e63cadd1e656be",
-    "res://scripts/physics/world_collision.gd": "4c663831d913ed851e29ceaec3be2227f5321f5290d98275abe61d2da7c3a494",
+    "res://models/world/tour_3_1_1/profile.tres": "f2e0c74b5dfc7e2b65fd41d7cbac811b8c90fb0ed67848025d588c8bd747b5f9",
+    "res://scripts/physics/world_collision.gd": "3a2ecbebd90a685baaef29411f1eeda245e2cac832cacc13d20b5924f4c922db",
     "res://scripts/physics/world_collision_data.gd": "e68183e5a450b913c355be6f9bc05d6b68aca853aa9c5570dd0f610aa403d30a",
-    "res://scripts/rendering/world_assets.gd": "3a791c1c3b5013a095cbf0c753337ee04e607a3d3edbabec238c72a3f7cc93fb",
+    "res://scripts/rendering/world_assets.gd": "adb2a7afeb97ccf1aea7ed4d8e89d8aad598c6a216438610f0705d7483b63e6a",
     "res://scripts/track/circuit_runoff.gd": "9cc305d214aed6eb0727075766fe393c291ae34cfa3db3968aeedc7491685ebc",
     "res://scripts/track/harbor_corridor.gd": "ae3c723900cbf0fc1eac94dcdf6be7d5c91dfceb3a7d61dfda96f7d37b95b502",
     "res://scripts/track/riviera_profile.gd": "d5c8c3fd1a666433ec3fab896e4a760e9b509a7865b251585c688300f6cd2601",
-    "res://scripts/track/road_section.gd": "dc02dc437031b01b128a0ddf4ba559d58302a6107e4cb7898a118570f7e69476",
-    "res://scripts/track/route_library.gd": "d7a7ee73608b5b91bc4ecc723da05789c1a79e825603b77542c26f0a2bd1a160",
-    "res://tools/bake_world_collisions.gd": "95ec3862efcecfca27b937b3ef87a2a159d469890424429d0d22421b833bc538"
+    "res://scripts/track/road_section.gd": "603c98d1c448e9ecb0e3d537446c57919c90706d5d350885d41948ea80f8b128",
+    "res://scripts/track/route_library.gd": "b4b3202d7bea2d5c6571665ee66508a4fe408b9a00f45859baa26693ae0cb1be",
+    "res://scripts/track/tour_entry.gd": "4fc8914715cb0abee080156fd9291619caab78402474a8ff9ffe79a31e729524",
+    "res://tools/bake_world_collisions.gd": "84b9148151f3fd35591a20c05f48701edbd399e9beba9d6d28448ebf36bd92bc"
   },
   "schema": 1,
-  "sha256": "802a6e4447f95e7fd77a09c0bcf22dece5b0a67a977531759fd581e9ded951f7"
+  "sha256": "d32066e087b73854c6d479024a2801e66e830666534f68691e40497f2f2b3b98"
 }

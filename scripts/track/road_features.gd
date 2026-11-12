@@ -260,6 +260,8 @@ static func gentle_distance(section: Node3D, desired: float) -> float:
 
 static func layout(section: Node3D) -> Array[Dictionary]:
 	if not section.closed_loop:
+		if section.entry_buffer_length > 0:
+			return section.features.duplicate(true)
 		return tour_layout(section)
 	var out: Array[Dictionary] = []
 	var side := -1.0 if (section.stage + section.route_node) % 2 == 0 else 1.0

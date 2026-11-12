@@ -43,6 +43,8 @@
 [ext_resource type="Shader" path="res://shaders/finish_stripe.gdshader" id="40_tubg8"]
 [ext_resource type="Script" path="res://scripts/rendering/world_asset_preview.gd" id="41_mdo7b"]
 
+[ext_resource type="PackedScene" path="res://models/world/track_0/night_lighting.tscn" id="course_lighting"]
+
 [sub_resource type="Curve3D" id="Curve3D_lffoa"]
 bake_interval = 1.0
 _data = {
@@ -8097,3 +8099,5 @@ outline_size = 0
 
 [node name="GLBPreview" type="Node" parent="." unique_id=1231137688]
 script = ExtResource("41_mdo7b")
+
+[node name="CourseLighting" parent="." instance=ExtResource("course_lighting")]

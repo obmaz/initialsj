@@ -877,6 +877,10 @@ func update_outside(delta: float) -> void:
 
 
 func update_recovery(delta: float, data: Dictionary) -> void:
+	if race.mode == "tour" and race.track.in_fork_gap(player_body.feet_position(), race.distance):
+		recovery_clock = 0
+		race.return_to_road()
+		return
 	update_outside(delta)
 	if data.valid and player_body.grounded and absf(race.lane) < race.track.half_width(race.distance) - 1:
 		safe_distance = race.distance
@@ -1019,5 +1023,5 @@ func update_camera(delta: float) -> void:
 func fork_area() -> bool:
 	return (
 		race.mode == "tour"
-		and (race.distance > race.track.length - 5 or (race.distance < 155 and is_instance_valid(race.track.sibling)))
+		and (race.distance > race.track.length - 5 or (race.distance < 275 and is_instance_valid(race.track.sibling)))
 	)

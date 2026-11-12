@@ -32,6 +32,8 @@
 [ext_resource type="Shader" path="res://shaders/finish_stripe.gdshader" id="30_t0lo2"]
 [ext_resource type="Script" path="res://scripts/rendering/world_asset_preview.gd" id="31_trmv4"]
 
+[ext_resource type="PackedScene" path="res://models/world/track_2/night_lighting.tscn" id="course_lighting"]
+
 [sub_resource type="Curve3D" id="Curve3D_tpaqn"]
 bake_interval = 1.0
 _data = {
@@ -1910,18 +1912,21 @@ multimesh = SubResource("MultiMesh_pw2rr")
 metadata/mesh_ref = "res://models/props/cargo_ship/model.glb#Visual"
 
 [node name="LampPoles" type="MultiMeshInstance3D" parent="Part0053" unique_id=851735982]
+visible = false
 material_override = SubResource("StandardMaterial3D_vmvo3")
 cast_shadow = 0
 multimesh = SubResource("MultiMesh_1pwxe")
 metadata/mesh_ref = "res://models/world/track_2/geometry.glb#Geometry0065"
 
 [node name="LampHeads" type="MultiMeshInstance3D" parent="Part0053" unique_id=709258748]
+visible = false
 material_override = SubResource("StandardMaterial3D_mslh1")
 cast_shadow = 0
 multimesh = SubResource("MultiMesh_xrkh0")
 metadata/mesh_ref = "res://models/world/track_2/geometry.glb#Geometry0066"
 
 [node name="LampLightPools" type="MultiMeshInstance3D" parent="Part0053" unique_id=1991242555]
+visible = false
 material_override = SubResource("StandardMaterial3D_1bfdu")
 cast_shadow = 0
 multimesh = SubResource("MultiMesh_hxjcq")
@@ -2103,3 +2108,5 @@ outline_size = 0
 
 [node name="GLBPreview" type="Node" parent="." unique_id=2110954506]
 script = ExtResource("31_trmv4")
+
+[node name="CourseLighting" parent="." instance=ExtResource("course_lighting")]

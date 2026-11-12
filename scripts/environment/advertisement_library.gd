@@ -54,6 +54,8 @@ static var rng := RandomNumberGenerator.new()
 static var deck: Array[int] = []
 static var last := -1
 static var materials: Array[ShaderMaterial] = []
+static var night_materials: Array[ShaderMaterial] = []
+static var night_prop_prints: Array[ShaderMaterial] = []
 static var prop_prints: Array[ShaderMaterial] = []
 static var atlases: Dictionary = {}
 
@@ -115,7 +117,15 @@ static func make_print(index: int, shader: Shader) -> ShaderMaterial:
 	return printed
 
 
-static func material(index: int) -> ShaderMaterial:
+static func material(index: int, night: bool = false) -> ShaderMaterial:
+	if night:
+		if night_materials.is_empty():
+			night_materials.resize(count())
+		var slot := posmod(index, count())
+		if night_materials[slot] == null:
+			night_materials[slot] = make_print(slot, preload("res://shaders/billboard_ad.gdshader"))
+			night_materials[slot].set_shader_parameter("night_lighting", 1.0)
+		return night_materials[slot]
 	if materials.is_empty():
 		materials.resize(count())
 	var slot := posmod(index, count())
@@ -124,7 +134,15 @@ static func material(index: int) -> ShaderMaterial:
 	return materials[slot]
 
 
-static func prop_material(index: int) -> ShaderMaterial:
+static func prop_material(index: int, night: bool = false) -> ShaderMaterial:
+	if night:
+		if night_prop_prints.is_empty():
+			night_prop_prints.resize(count())
+		var slot := posmod(index, count())
+		if night_prop_prints[slot] == null:
+			night_prop_prints[slot] = make_print(slot, preload("res://shaders/prop_advertisement.gdshader"))
+			night_prop_prints[slot].set_shader_parameter("night_lighting", 1.0)
+		return night_prop_prints[slot]
 	if prop_prints.is_empty():
 		prop_prints.resize(count())
 	var slot := posmod(index, count())
@@ -136,6 +154,8 @@ static func prop_material(index: int) -> ShaderMaterial:
 static func clear_cache() -> void:
 	materials.clear()
 	prop_prints.clear()
+	night_materials.clear()
+	night_prop_prints.clear()
 	atlases.clear()
 	deck.clear()
 	last = -1
@@ -147,10 +167,23 @@ static func reshuffle(tree: SceneTree) -> void:
 			continue
 		if node is MultiMeshInstance3D:
 			var index := choose()
-			node.material_override = prop_material(index)
+			node.material_override = prop_material(index, node.get_meta("advertisement_night", false))
 			node.set_meta("ad_index", index)
 		elif node is MeshInstance3D:
 			var index := choose()
-			node.material_override = material(index)
+			node.material_override = material(index, node.get_meta("advertisement_night", false))
 			var record: Dictionary = node.get_meta("ad_record", {})
 			record.ad_index = index
+
+
+# 투어의 다음 지역도 자기 시간대로 인쇄면과 GLB 렌즈만 준비한다. 동적 광원은 늘리지 않는다.
+static func configure_tour_section(road: Node3D) -> void:
+	var night: bool = road.region_metadata.get("time_of_day", "day") in ["night", "dawn"]
+	for node in road.get_tree().get_nodes_in_group("racing_advertisement"):
+		if not road.is_ancestor_of(node):
+			continue
+		node.set_meta("advertisement_night", night)
+		if node is MultiMeshInstance3D:
+			node.material_override = prop_material(node.get_meta("ad_index", 0), night)
+		elif node is MeshInstance3D:
+			node.material_override = material(node.get_meta("ad_record", {}).get("ad_index", 0), night)

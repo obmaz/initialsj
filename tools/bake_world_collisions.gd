@@ -14,6 +14,7 @@ const INPUTS := [
 	"res://scripts/track/harbor_corridor.gd",
 	"res://scripts/track/riviera_profile.gd",
 	"res://scripts/track/route_library.gd",
+	"res://scripts/track/tour_entry.gd",
 	"res://scripts/track/circuit_runoff.gd",
 	"res://scripts/rendering/world_assets.gd",
 	"res://models/shared/scene_state.gd",

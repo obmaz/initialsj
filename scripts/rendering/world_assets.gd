@@ -2,9 +2,12 @@ extends RefCounted
 # 기하 원본은 GLB, 배치·재질·동작 부품 연결은 코스별 PackedScene이 소유한다.
 const State = preload("res://models/shared/scene_state.gd")
 const Pool = preload("res://scripts/rendering/render_resources.gd")
+const TourEntry = preload("res://scripts/track/tour_entry.gd")
 const GeometryMap = preload("res://models/shared/world_geometry_map.gd")
 const KEEP := [
 	"curve",
+	"sampling_curve",
+	"sampling_transform",
 	"length",
 	"stage",
 	"route_node",
@@ -16,7 +19,11 @@ const KEEP := [
 	"region_metadata",
 	"staged",
 	"warmed",
-	"draining"
+	"draining",
+	"entry_buffer_length",
+	"entry_content_transform",
+	"entry_scene_path",
+	"entry_surface"
 ]
 const SLICE := 4
 
@@ -37,9 +44,23 @@ static func placement(road: Node3D) -> Transform3D:
 	return Transform3D(basis, road.start_point - basis * Vector3(0, 6, 0))
 
 
+static func content_placement(road: Node3D) -> Transform3D:
+	return placement(road) * road.entry_content_transform
+
+
+# 저작 도구의 거리는 원래 콘텐츠 기준이다. 진입 연결부의 변환을 역으로 제거한다.
+static func source_pose(road: Node3D, distance: float, lane: float = 0.0) -> Transform3D:
+	var at: float = distance + road.entry_buffer_length
+	var pose := Transform3D(Basis(Vector3.UP, road.heading(at)), road.point(at, lane))
+	return content_placement(road).affine_inverse() * pose
+
+
 static func profile(road: Node3D) -> void:
 	road.profile_path = folder(road)
 	var resource: Resource = load(folder(road) + "profile.tres")
+	road.entry_buffer_length = resource.get_meta("entry_buffer_length", 0.0)
+	road.entry_content_transform = resource.get_meta("entry_content_transform", Transform3D.IDENTITY)
+	road.entry_scene_path = resource.get_meta("entry_scene_path", "")
 	road.tour_underpass = resource.get_meta("tour_underpass", Vector2.ZERO)
 	road.asset_paths.assign(resource.get_meta(&"dependencies", []))
 	road.asset_paths = GeometryMap.dependencies(road.asset_paths)
@@ -54,10 +75,20 @@ static func profile(road: Node3D) -> void:
 			road.get(key).assign(data[key])
 		else:
 			road.set(key, data[key])
+	for key in resource.get_meta("entry_gimmick_state", {}):
+		var value: Variant = resource.get_meta("entry_gimmick_state")[key]
+		if road.get(key) is Array:
+			road.get(key).assign(value)
+		else:
+			road.set(key, value)
 	for key in resource.get_meta(&"course_metadata", {}):
 		road.set_meta(key, resource.get_meta(&"course_metadata")[key])
+	road.sampling_curve = null
+	road.sampling_transform = Transform3D.IDENTITY
 	if not road.closed_loop:
+		road.sampling_curve = road.curve.duplicate()
 		var transform := placement(road)
+		road.sampling_transform = transform
 		for i in range(road.curve.point_count):
 			road.curve.set_point_position(i, transform * road.curve.get_point_position(i))
 			road.curve.set_point_in(i, transform.basis * road.curve.get_point_in(i))
@@ -225,6 +256,10 @@ static func rebase_metadata(node: Node, transform: Transform3D) -> void:
 			for i in range(points.size()):
 				if points[i] is Vector3:
 					points[i] = transform * points[i]
+	var poses: Variant = node.get("curve_marker_transforms")
+	if poses is Array:
+		for i in range(poses.size()):
+			poses[i] = transform * poses[i]
 	for field in ["placements", "plantings", "billboard_manifest"]:
 		var entries: Variant = node.get(field)
 		if entries is Array:
@@ -245,7 +280,7 @@ static func finish_state(context: Dictionary, road: Node3D) -> void:
 		if not KEEP.has(key):
 			road.set(key, root.get(key))
 	for node in context.members:
-		rebase_metadata(node, placement(road))
+		rebase_metadata(node, content_placement(road))
 		if node.has_meta(&"ad_record") or node.has_meta(&"ad_index"):
 			node.add_to_group(&"racing_advertisement", true)
 		if node.get_script() != null:
@@ -264,7 +299,7 @@ static func finish_state(context: Dictionary, road: Node3D) -> void:
 static func move_child(root: Node3D, road: Node3D, child: Node) -> void:
 	root.remove_child(child)
 	if child is Node3D:
-		child.transform = placement(road) * child.transform
+		child.transform = content_placement(road) * child.transform
 	road.add_child(child)
 
 
@@ -276,6 +311,8 @@ static func finish(context: Dictionary, road: Node3D) -> void:
 		road.road_surface.material_override.set_shader_parameter(
 			"rain_wetness", 1.0 if road.region_metadata.get("weather", "") == "rain" and not road.closed_loop else 0.0
 		)
+	if not road.closed_loop:
+		preload("res://scripts/environment/advertisement_library.gd").configure_tour_section(road)
 
 
 static func queue(road: Node3D) -> void:
@@ -302,13 +339,28 @@ static func queue_bindings(root: Node3D, road: Node3D) -> void:
 		steps.append(
 			func():
 				for index in range(begin, mini(begin + SLICE, context.members.size())):
+					TourEntry.shift_node(context.members[index], root, road.entry_buffer_length)
 					State.bind(context.members[index])
 		)
 	steps.append(func(): finish_state(context, road))
 	for child in root.get_children():
 		steps.append(func(): move_child(root, road, child))
+	if not road.entry_scene_path.is_empty():
+		steps.append(func(): attach_entry(road))
 	steps.append(func(): finish(context, road))
 	road.queue_next(steps)
+
+
+static func attach_entry(road: Node3D) -> void:
+	var entry: Node3D = Pool.fetch(road.entry_scene_path).instantiate()
+	geometry(entry)
+	entry.transform = placement(road) * Transform3D(Basis.IDENTITY, Vector3.UP * (6.0 + road.surface_lift))
+	road.entry_surface = entry.get_node("Surface")
+	road.entry_surface.material_override = road.entry_surface.material_override.duplicate()
+	road.entry_surface.material_override.set_shader_parameter(
+		"rain_wetness", 1.0 if road.region_metadata.get("weather", "clear") == "rain" else 0.0
+	)
+	road.add_child(entry)
 
 
 static func warm(road: Node3D) -> void:

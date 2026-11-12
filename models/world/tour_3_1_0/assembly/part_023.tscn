@@ -4,7 +4,6 @@
 [ext_resource type="PackedScene" path="res://models/props/sungnyemun_gate/model.tscn" id="seoul0"]
 [ext_resource type="PackedScene" path="res://models/props/namsan_tower/model.tscn" id="seoul1"]
 [ext_resource type="PackedScene" path="res://models/props/golden_63_tower/model.tscn" id="seoul2"]
-[ext_resource type="PackedScene" path="res://models/props/seoul_sky_tower/model.tscn" id="seoul3"]
 [ext_resource type="Material" path="res://models/props/skyway_abutment/material.tres" id="abutment_color"]
 [ext_resource type="MultiMesh" path="res://models/world/tour_3_1_0/assembly/resources.tres::SkywayAbutments" id="shared_SkywayAbutments"]
 
@@ -19,13 +18,11 @@ font_size = 72
 
 [node name="TourLandmarks" type="Node3D" parent="."]
 [node name="sungnyemun_gate" parent="TourLandmarks" instance=ExtResource("seoul0")]
-transform = Transform3D(0.7412946, 0, -0.6711798, 0, 1, 0, 0.6711798, 0, 0.7412946, 455.4735, 54.4748, -352.1919)
+transform = Transform3D(0.74127984, 0, -0.6711961, 0, 1, 0, 0.6711961, 0, 0.74127984, 455.47363, 54.4748, -352.192)
 [node name="namsan_tower" parent="TourLandmarks" instance=ExtResource("seoul1")]
-transform = Transform3D(-0.29356796, 0, -0.9559382, 0, 1, 0, 0.9559382, 0, -0.29356796, 1207.0127, 63.14319, -724.1149)
+transform = Transform3D(0.38693798, 0, -0.9221057, 0, 1, 0, 0.9221057, 0, 0.38693798, 3027.6968, 6.000145, -723.0042)
 [node name="golden_63_tower" parent="TourLandmarks" instance=ExtResource("seoul2")]
-transform = Transform3D(0.742809, 0, -0.6695034, 0, 1, 0, 0.6695034, 0, 0.742809, 1932.1699, 98.83919, -776.44214)
-[node name="seoul_sky_tower" parent="TourLandmarks" instance=ExtResource("seoul3")]
-transform = Transform3D(0.38688067, 0, -0.9221298, 0, 1, 0, 0.9221298, 0, 0.38688067, 3027.6873, 6.000144, -723.00024)
+transform = Transform3D(-0.111976475, 0, -0.9937109, 0, 1, 0, 0.9937109, 0, -0.111976475, 2699.5896, 14.868496, -1290.1619)
 [node name="SkywayAbutments" type="MultiMeshInstance3D" parent="TourLandmarks"]
 material_override = ExtResource("abutment_color")
 multimesh = ExtResource("shared_SkywayAbutments")

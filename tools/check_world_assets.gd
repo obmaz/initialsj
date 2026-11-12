@@ -99,7 +99,10 @@ func run() -> void:
 				check(bounds.position.is_finite() and bounds.size.is_finite(), "GLB 경계는 유한해야 한다: " + name)
 				total += mesh.get_faces().size() / 3
 		check(total > 2000 and scene.road_surface.mesh.get_faces().size() > 3000, "도로와 지형의 실제 삼각형: " + name)
-		check(is_equal_approx(scene.length, profile.length), "주행 프로필과 씬의 길이 일치: " + name)
+		check(
+			absf(scene.length + float(resource.get_meta("entry_buffer_length", 0.0)) - profile.length) < .05,
+			"콘텐츠와 진입 연결부를 합친 프로필 길이: " + name
+		)
 		scene.free()
 		count += 1
 		await process_frame

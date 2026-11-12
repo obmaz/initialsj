@@ -19,6 +19,45 @@ func run(tree: SceneTree) -> int:
 	race.auto_accelerate = false
 	race.hud.configure_pedals()
 	var rows := []
+	await tree.physics_frame
+	await tree.physics_frame
+	var left: Node3D = race.track.previews[0]
+	var right: Node3D = race.track.previews[1]
+	check(left.entry_buffer_length == 120 and right.entry_buffer_length == 120, "양 분기는 지역 앞에120m 진입 거리를 확보한다")
+	check(left.point(120).distance_to(right.point(120)) < 10, "진입부에서는 두 도로가 급하게 벌어지지 않는다")
+	var gap: Vector3 = (left.point(300) + right.point(300)) * .5
+	check(race.track.in_fork_gap(gap, race.track.length + 300), "두 분기 사이의 빈 틈을 낙하 전에 감지한다")
+	check(not race.track.in_fork_gap(left.point(300), race.track.length + 300), "정상 분기 노면은 중앙 틈으로 오인하지 않는다")
+	var space: PhysicsDirectSpaceState3D = left.get_world_3d().direct_space_state
+	check(
+		not (
+			space
+			. intersect_ray(
+				PhysicsRayQueryParameters3D.create(left.point(300) + Vector3.UP * .7, gap + Vector3.UP * .7, 2)
+			)
+			. is_empty()
+		),
+		"분기 중앙으로 진입하는 실제 차체 경로에는 투명 장벽이 있다"
+	)
+	for road in [left, right]:
+		for d in [20.0, 80.0, 119.0, 121.0, 180.0]:
+			for lane in [-6.0, 0.0, 6.0]:
+				var p: Vector3 = road.point(d, lane)
+				check(
+					not (
+						space
+						. intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * .4, p - Vector3.UP * .4, 1))
+						. is_empty()
+					),
+					"진입부와 원래 지역의 이음매는 실제 주행 가능한 바닥이다"
+				)
+	# 바닥 높이에 있어도 중앙 틈에 들어가면 이 틱에 즉시 복구한다.
+	race.state = "racing"
+	race.distance = race.track.length + 300
+	race.world_race.player_body.reset_pose(gap, Vector3.RIGHT, Vector3.UP)
+	race.world_race.update_recovery(1.0 / 60, {"valid": false})
+	check(race.distance < race.track.length and race.protection_left > 0, "중앙 틈은 낙하 대기 없이 안전 노면으로 즉시 복구한다")
+	race.restart()
 	# Visual chips are small, but hit areas retain a phone-sized target. Neither
 	# target may steal pause/map touches or cover the central forward road view.
 	var phone_scale := minf(896.0 / 1280, 414.0 / 720)

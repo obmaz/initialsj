@@ -13,6 +13,7 @@ func run(tree: SceneTree) -> int:
 	tree.root.add_child(race)
 	race.set_physics_process(false)
 	race.save_records = false
+	race.track_environment.time_of_day = "night"
 	race.choose_mode("track", 2)
 	for vehicle in range(4):
 		race.open_garage()
@@ -31,6 +32,7 @@ func run(tree: SceneTree) -> int:
 			check(not rival.car.headlight.visible, "상대 차량은 렌즈만 켜서 동적 조명 수를 제한해야 한다")
 			for lens in rival.car.headlamp_lenses:
 				check(lens.visible, "야간 상대 차량의 전조등도 켜져야 한다")
+	race.track_environment.time_of_day = "day"
 	race.choose_mode("track", 3)
 	race.restart()
 	race._physics_process(1.0 / 60)

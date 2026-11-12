@@ -29,7 +29,10 @@ func compare_shapes(road: Node3D) -> void:
 		var error := 0.0
 		for i in range(mini(actual.size(), expected.size())):
 			error = maxf(error, actual[i].distance_to(expected[i]))
-		check(error < .01, "회전·위치가 다른 투어 진입에서도 정적 충돌은 기존 형상과1cm 이내로 일치한다: %s/%s" % [road.name, label])
+		check(
+			error < .01,
+			"회전·위치가 다른 투어 진입에서도 정적 충돌은 기존 형상과1cm 이내로 일치한다: %s/%s" % [road.name, label] + " error=" + str(error)
+		)
 		check(saved.get_node(label).collision_layer == built.get_node(label).collision_layer, "노면·장벽 충돌층을 유지한다")
 	check(saved.has_meta("collision_data"), "활성 충돌 노드가 공유 자료의 수명을 소유한다")
 	saved.free()

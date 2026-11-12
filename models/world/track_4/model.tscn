@@ -37,6 +37,8 @@
 [ext_resource type="Script" path="res://scripts/environment/rockfall_hazard.gd" id="35_wfbja"]
 [ext_resource type="Script" path="res://scripts/rendering/world_asset_preview.gd" id="36_t75aj"]
 
+[ext_resource type="PackedScene" path="res://models/world/track_4/night_lighting.tscn" id="course_lighting"]
+
 [sub_resource type="Curve3D" id="Curve3D_hwhgv"]
 bake_interval = 1.0
 _data = {
@@ -2688,12 +2690,14 @@ multimesh = SubResource("MultiMesh_m2m03")
 metadata/mesh_ref = "res://models/world/track_4/geometry.glb#Geometry0156"
 
 [node name="BillboardLampHousings" type="MultiMeshInstance3D" parent="Part0187/Part0190" unique_id=818409108]
+visible = false
 material_override = SubResource("ShaderMaterial_ncogm")
 cast_shadow = 0
 multimesh = SubResource("MultiMesh_6d2jl")
 metadata/mesh_ref = "res://models/world/track_4/geometry.glb#Geometry0156"
 
 [node name="BillboardLampLenses" type="MultiMeshInstance3D" parent="Part0187/Part0190" unique_id=950651903]
+visible = false
 material_override = SubResource("StandardMaterial3D_b48lg")
 cast_shadow = 0
 multimesh = SubResource("MultiMesh_rj455")
@@ -3193,3 +3197,5 @@ metadata/scene_state = {
 
 [node name="GLBPreview" type="Node" parent="." unique_id=18975795]
 script = ExtResource("36_t75aj")
+
+[node name="CourseLighting" parent="." instance=ExtResource("course_lighting")]

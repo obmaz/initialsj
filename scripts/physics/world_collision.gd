@@ -92,6 +92,9 @@ static func begin(section: Node3D) -> Dictionary:
 		):
 			append_mesh(ground, child.mesh, relative * child.global_transform)
 	collect_scenery(section.scenery, section, ground, barriers)
+	for child in section.get_children():
+		if child.get_meta("entry_connector", false):
+			collect_scenery(child, section, ground, barriers)
 	convert_traffic(section)
 	var template := Pool.unit_box()
 	# 단위 상자의 삼각형은 한 번만 꺼내 모든 장벽 조각이 재사용한다.
@@ -125,7 +128,11 @@ static func walls(section: Node3D, state: Dictionary, span: float) -> bool:
 		var middle := d + step * 0.5
 		var basis := frame(section, middle)
 		for side in [-1.0, 1.0]:
-			if not section.closed_loop and middle < 150 and side == -section.entry_side:
+			if (
+				not section.closed_loop
+				and middle < (115 + section.entry_buffer_length if section.entry_buffer_length > 0 else 150)
+				and side == -section.entry_side
+			):
 				continue
 			var lane: float = side * (section.half_width(middle) + section.rail_setback(middle, side))
 			var wall_basis := basis

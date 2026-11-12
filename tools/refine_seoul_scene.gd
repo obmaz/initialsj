@@ -3,10 +3,7 @@ extends SceneTree
 const Section = preload("res://scripts/track/road_section.gd")
 const Assets = preload("res://scripts/rendering/world_assets.gd")
 const LANDMARKS := {
-	"sungnyemun_gate": Vector2(620, 0),
-	"namsan_tower": Vector2(1350, -260),
-	"golden_63_tower": Vector2(2280, 160),
-	"seoul_sky_tower": Vector2(3440, 330)
+	"sungnyemun_gate": Vector2(620, 0), "namsan_tower": Vector2(3440, 330), "golden_63_tower": Vector2(3200, -300)
 }
 
 
@@ -122,13 +119,5 @@ func update_landmarks(text: String, road: Node3D) -> String:
 	for name in LANDMARKS:
 		var pattern := RegEx.create_from_string('(?m)(^\\[node name="' + name + '"[^\\n]+\\]\\n)transform = [^\\n]+')
 		var location: Vector2 = LANDMARKS[name]
-		text = pattern.sub(
-			text,
-			(
-				"$1transform = "
-				+ var_to_str(
-					Transform3D(Basis(Vector3.UP, road.heading(location.x)), road.point(location.x, location.y))
-				)
-			)
-		)
+		text = pattern.sub(text, "$1transform = " + var_to_str(Assets.source_pose(road, location.x, location.y)))
 	return text

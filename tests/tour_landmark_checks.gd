@@ -14,14 +14,23 @@ func run(tree: SceneTree) -> int:
 		var road := Section.new(Vector3(0, 6, 0), -PI / 2, 3, 1, side)
 		tree.root.add_child(road)
 		var landmarks := road.scenery.get_node("TourLandmarks")
-		for id in ["sungnyemun_gate", "namsan_tower", "golden_63_tower", "seoul_sky_tower"]:
+		for id in ["sungnyemun_gate", "namsan_tower", "golden_63_tower"]:
 			check(landmarks.has_node(id), "서울 랜드마크는 모든 진입 형상에 있어야 한다: " + id)
+		check(not landmarks.has_node("seoul_sky_tower"), "은퇴한 롯데 모티브 타워는 모든 진입에서 제거한다")
 		var gate: Node3D = landmarks.get_node("sungnyemun_gate")
-		check(gate.global_position.distance_to(road.to_global(road.point(620))) < .1, "숭례문 통과 공간은 실제 도로 중심에 정렬한다")
-		for placement in [["golden_63_tower", 2280.0, 160.0], ["seoul_sky_tower", 3440.0, 330.0]]:
+		check(
+			gate.global_position.distance_to(road.to_global(road.point(620 + road.entry_buffer_length))) < .1,
+			"숭례문 통과 공간은 실제 도로 중심에 정렬한다"
+		)
+		for placement in [["golden_63_tower", 3200.0, -300.0], ["namsan_tower", 3440.0, 330.0]]:
 			var landmark: Node3D = landmarks.get_node(placement[0])
 			check(
-				landmark.global_position.distance_to(road.to_global(road.point(placement[1], placement[2]))) < .1,
+				(
+					landmark.global_position.distance_to(
+						road.to_global(road.point(placement[1] + road.entry_buffer_length, placement[2]))
+					)
+					< .1
+				),
 				"서울의 큰 타워는 모든 진입 형상에서 후반·종료 가까이에 배치한다"
 			)
 		var gate_mesh: MeshInstance3D = gate.get_node("Model/Model/Visual")

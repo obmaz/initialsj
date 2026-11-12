@@ -14,7 +14,7 @@ var drift_gates: Array[float] = []
 
 func make_sky() -> Sky:
 	return preload("res://scripts/environment/track_background.gd").create(
-		"res://assets/environment/harbor-panorama.png"
+		"res://assets/environment/harbor-panorama.png", .12
 	)
 
 

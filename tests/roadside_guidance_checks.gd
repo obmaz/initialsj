@@ -66,6 +66,7 @@ func run(tree: SceneTree) -> int:
 	race.set_physics_process(false)
 	race.save_records = false
 	for course in range(5):
+		race.track_environment.time_of_day = "night" if course == 2 else "day"
 		race.choose_mode("track", course)
 		var road: Node3D = race.track.active
 		var guide: Node3D = road.get_node("RoadsideGuidance")

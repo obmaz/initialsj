@@ -52,77 +52,24 @@ func setup() -> void:
 func apply_course() -> void:
 	race.atmosphere.sky = null
 	race.rim_light.light_color = Color.WHITE
-	if race.mode == "track":
-		if race.selected_course == 2:
-			# Night: a dim cool moon, deep blue ambient light and dark blue haze.
-			race.atmosphere.fog_light_color = Color("0c1a30")
-			race.atmosphere.fog_density = 0.0016
-			race.atmosphere.ambient_light_color = Color("5a78b8")
-			race.atmosphere.ambient_light_energy = 0.55
-			race.atmosphere.tonemap_exposure = 1.0
-			# 원경 달 U=.72,V=.395와 같은 방위·고도의 차가운 주광.
-			race.sun_light.rotation_degrees = Vector3(-19, 79, 0)
-			race.sun_light.light_energy = 0.32
-			race.sun_light.light_color = Color("a8c0ff")
-			race.rim_light.light_energy = 0.18
-		else:
-			race.atmosphere.fog_light_color = Color("b3d3df")
-			race.atmosphere.fog_density = 0.00065
-			race.atmosphere.ambient_light_color = Color("b5cce0")
-			race.atmosphere.tonemap_exposure = 0.88
-			race.sun_light.rotation_degrees = Vector3(-42, -32, 0)
-			race.sun_light.light_energy = 1.0
-			race.sun_light.light_color = Color("ffe4be")
-			race.rim_light.light_energy = 0.10
-			race.atmosphere.ambient_light_energy = 0.28
-		if race.selected_course == 1:
-			# 생성형 해안 하늘의 태양 U=.118,V=.355.
-			race.sun_light.rotation_degrees = Vector3(-26, -137, 0)
-			race.atmosphere.fog_density = .00026
-		if race.selected_course == 3:
-			# 지중해 하늘의 높은 태양 U=.695,V=.182.
-			race.sun_light.rotation_degrees = Vector3(-57, 70, 0)
-		if race.selected_course in [3, 4]:
-			race.atmosphere.fog_light_color = Color("87bdcf")
-			race.atmosphere.fog_density = 0.00022
-			race.atmosphere.tonemap_exposure = 0.76
-			race.sun_light.light_energy = 0.85
-		if race.selected_course == 4:
-			# 파노라마 태양 U=.65,V=.49와 같은 방위·낮은 고도의 주광을 고정한다.
-			race.sun_light.rotation_degrees = Vector3(-5, 54, 0)
-			race.sun_light.light_color = Color("ffbf82")
-			race.sun_light.light_energy = .78
-			race.atmosphere.ambient_light_color = Color("899ec5")
-			race.atmosphere.ambient_light_energy = .38
-			race.atmosphere.fog_light_color = Color("bd9fa8")
-			race.atmosphere.fog_density = .00038
-			race.atmosphere.tonemap_exposure = .9
-			race.rim_light.light_color = Color("a2b6db")
-			race.rim_light.light_energy = .14
-	else:
-		race.visual_theme = ""
-		race.sun_light.rotation_degrees = Vector3(-42, -32, 0)
-		race.atmosphere.ambient_light_color = Color("b5cce0")
-		race.atmosphere.tonemap_exposure = .88
-
 	if race.track_environment.supported(race):
 		race.track_environment.apply_lighting(race)
+		return
+	race.visual_theme = ""
+	race.sun_light.rotation_degrees = Vector3(-42, -32, 0)
+	race.sun_light.light_color = Color("fff0d4")
+	race.sun_light.light_energy = .95
+	race.atmosphere.ambient_light_color = Color("b5cce0")
+	race.atmosphere.ambient_light_energy = .35
+	race.atmosphere.tonemap_exposure = .88
+	race.atmosphere.fog_light_color = Color("b3d3df")
+	race.atmosphere.fog_density = .00065
+	race.rim_light.light_energy = .10
 
 
 func update(delta: float) -> void:
 	if race.track_environment.supported(race):
 		race.track_environment.update(race, delta)
-		return
-	# 항만의 달과 협곡의 태양은 원경 이미지의 고정 방위에 있으므로 매 프레임 재계산하지 않는다.
-	if race.mode == "track" and race.selected_course in [2, 4]:
-		return
-	if race.mode == "track":
-		var sheltered: bool = race.track.active.in_tunnel(race.distance)
-		var blend := 1 - exp(-delta * 3)
-		race.atmosphere.ambient_light_energy = lerpf(
-			race.atmosphere.ambient_light_energy, 0.12 if sheltered else 0.28, blend
-		)
-		race.rim_light.light_energy = lerpf(race.rim_light.light_energy, 0.025 if sheltered else 0.10, blend)
 		return
 	var theme_id: String = race.track.scenery.theme
 	var region: Dictionary = race.track.active.region_metadata

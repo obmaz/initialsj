@@ -133,7 +133,7 @@ func draw_courses() -> void:
 		hud.text_at(Vector2(x, 448), titles[i][1], 21, accent)
 		hud.text_at(Vector2(x, 480), subtitles[i], 13, hud.WHITE)
 		hud.text_at(Vector2(x, 507), lengths[i], 14, Color("adc2d0"))
-	hud.text_at(Vector2(26, 637), race.tr("TRACK 1 ONLY"), 19, hud.CYAN)
+	hud.text_at(Vector2(26, 637), race.tr("ALL TRACKS"), 19, hud.CYAN)
 	for rect in [hud.COURSE_WEATHER, hud.COURSE_PERIOD]:
 		hud.slant(rect, Color("20374a"), 9)
 	hud.text_at(
@@ -200,7 +200,7 @@ func draw_settings() -> void:
 		hud.CYAN
 	)
 	if hud.install_note.is_empty():
-		hud.centered(Vector2(640, 586), race.tr("TRACK 1 · NEXT RACE"), 17, Color("b2cbd8"))
+		hud.centered(Vector2(640, 586), race.tr("TRACKS · NEXT RACE"), 17, Color("b2cbd8"))
 	if not hud.install_note.is_empty():
 		hud.centered(Vector2(640, 586), hud.install_note, 16, Color("b2cbd8"))
 	hud.slant(hud.SETTINGS_CLOSE, hud.CYAN, 10)

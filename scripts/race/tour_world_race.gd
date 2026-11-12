@@ -58,7 +58,7 @@ func step(
 	):
 		race.advance_route()
 		changed = true
-	elif race.distance < 150 and is_instance_valid(race.track.sibling):
+	elif race.distance < Library.FORK_RECONSIDER and is_instance_valid(race.track.sibling):
 		var reconsidered: Dictionary = race.track.reconsider(race.distance, race.lane)
 		if not reconsidered.is_empty():
 			race.distance = reconsidered.distance

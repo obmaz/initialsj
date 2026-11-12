@@ -9,7 +9,7 @@ func _initialize() -> void:
 
 
 func pose(road: Node3D, distance: float, lane: float = 0) -> Transform3D:
-	return Transform3D(Basis(Vector3.UP, road.heading(distance)), road.point(distance, lane))
+	return Assets.source_pose(road, distance, lane)
 
 
 func run() -> void:
@@ -21,7 +21,7 @@ func run() -> void:
 		var folder := Assets.folder(road)
 		var scene_path := folder + "model.tscn"
 		var text := FileAccess.get_file_as_string(scene_path)
-		if text.contains('name="TourLandmarks"'):
+		if text.contains('name="TourLandmarks"') or text.contains("metadata/assembly_parts"):
 			road.free()
 			continue
 		var packed: PackedScene = load(scene_path)
@@ -47,10 +47,7 @@ func run() -> void:
 		if road.stage == 3 and road.route_node == 1:
 			var index := 0
 			for landmark in [
-				["sungnyemun_gate", 620.0, 0.0],
-				["namsan_tower", 1350.0, -260.0],
-				["golden_63_tower", 2280.0, 160.0],
-				["seoul_sky_tower", 3440.0, 330.0]
+				["sungnyemun_gate", 620.0, 0.0], ["namsan_tower", 3440.0, 330.0], ["golden_63_tower", 3200.0, -300.0]
 			]:
 				var name: String = landmark[0]
 				resources += (
@@ -73,7 +70,7 @@ func run() -> void:
 				var height := preload("res://scripts/track/road_features.gd").skyway_height(feature, distance)
 				if height < 1.2:
 					continue
-				var transform := pose(road, distance, feature.lane)
+				var transform := pose(road, distance - road.entry_buffer_length, feature.lane)
 				transform.basis = transform.basis.scaled_local(Vector3(feature.width - .6, height - 1.0, 8.4))
 				blocks.append(transform)
 		if not blocks.is_empty():
