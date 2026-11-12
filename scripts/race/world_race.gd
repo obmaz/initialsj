@@ -405,13 +405,13 @@ func advance_contact(delta: float) -> void:
 		return
 	var side := signf(race.lane)
 	var edge: float = race.track.half_width(race.distance) + race.track.active.rail_setback(race.distance, side)
-	var right: Vector3 = (race.track.point(race.distance, 1) - race.track.point(race.distance, -1)).normalized()
+	# 실제 접촉 뒤의 짧은 안쪽 반동은 허용하되 벽 쪽 조향이 계속될 때만 누적한다.
 	var pressed: bool = (
 		player_body.grounded
 		and not fork_area()
 		and not race.crash.active
-		and edge - absf(race.lane) - 1.1 < .2
-		and player_body.velocity.dot(right) * side > -.4
+		and edge - absf(race.lane) - 1.1 < .75
+		and race.steer * side > .15
 	)
 	contact_flow.advance(delta, pressed)
 	if contact_flow.sustained():

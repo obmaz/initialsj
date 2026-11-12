@@ -64,6 +64,7 @@ func run(tree: SceneTree) -> int:
 	var road: Vector3 = (race.track.point(d + 2) - race.track.point(d - 2)).normalized()
 	body.velocity = road * 40
 	race.speed = 40
+	race.steer = .5
 	race.nitro_burst_left = 1
 	race.drifting = true
 	session.contact_flow.contact(true)
@@ -78,6 +79,34 @@ func run(tree: SceneTree) -> int:
 	race.braking = false
 	preload("res://scripts/race/nitro_system.gd").update(race, .016, true, false)
 	check(not race.nitro_active, "벽을 계속 밀며 누른 니트로가 매 틱 재발사되지 않는다")
+	# 실제 충돌 반동이 있어도 밖으로 계속 조향하면 누적 판정이 유지되어야 한다.
+	race.restart()
+	race.state = "racing"
+	for rival in race.rivals:
+		rival.active = false
+	var edge: float = race.track.half_width(d) + race.track.active.rail_setback(d, 1)
+	session.teleport(0, d, edge - 1.4)
+	await tree.physics_frame
+	await tree.physics_frame
+	race.step(1.0 / 60, 0, false, false, false)
+	var right: Vector3 = (race.track.point(d, 1) - race.track.point(d, -1)).normalized()
+	body.reset_pose(body.feet_position(), (road + right * .16).normalized(), session.road_up(d))
+	body.velocity = body.forward_direction() * 32
+	race.speed = 32
+	var peak := 0.0
+	var blocked := false
+	for frame in range(180):
+		await tree.physics_frame
+		race.step(1.0 / 60, .65, false, true, false, true)
+		peak = maxf(peak, session.contact_flow.wall_seconds)
+		if session.contact_flow.sustained():
+			blocked = blocked or not race.nitro_active
+	print("실제 벽 밀기: 충돌=", race.wall_hits, " 누적=", peak, " 차단=", blocked)
+	check(race.wall_hits > 0 and peak >= .3 and blocked, "실제 반동을 포함한 지속 벽 조향에서도 니트로를 차단한다")
+	for frame in range(30):
+		await tree.physics_frame
+		race.step(1.0 / 60, 0, false, true, false)
+	check(not session.contact_flow.wall_latched, "벽 쪽 조향을 놓고 탈출하면 누적 접촉을 해제한다")
 	race.world_race.contact_flow.contact(true)
 	race.world_race.teleport(0, 80)
 	check(not race.world_race.contact_flow.wall_latched, "리스폰은 이전 벽 접촉을 다음 도로로 가져오지 않는다")
