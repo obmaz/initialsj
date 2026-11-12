@@ -2,6 +2,7 @@ shader_type spatial;
 uniform sampler2D ad_atlas : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform vec2 ad_tile = vec2(0);
 uniform vec2 ad_grid = vec2(3,2);
+uniform float night_lighting = 0.0;
 varying float front;
 varying float printed_face;
 varying float print_fill;
@@ -15,6 +16,7 @@ void fragment() {
   vec2 uv=ad_tile/ad_grid+inset+q*(1.0/ad_grid-inset*2.0);
   ALBEDO=textureGrad(ad_atlas,uv,dFdx(q)/ad_grid,dFdy(q)/ad_grid).rgb;
   // 인쇄면만 보조광을 보정한다. 뒷판·지주는 실제 조명을 유지한다.
-  EMISSION=ALBEDO*max(.1,print_fill);
+  EMISSION=ALBEDO*max(mix(.1,.75,night_lighting),print_fill);
  }
+ if(printed_face < -2.5) { ALBEDO=vec3(.85,.79,.61); EMISSION=vec3(1.0,.85,.55)*night_lighting*3.0; ROUGHNESS=.3; }
 }
