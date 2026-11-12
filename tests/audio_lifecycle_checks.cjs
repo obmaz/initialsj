@@ -16,11 +16,13 @@ class AudioContext {
   return source;
  }
  createGain(){const context=this;const gain={gain:{value:0,setTargetAtTime(value){this.value=value}},connect(target){context.connections.add(gain);return target},disconnect(){context.connections.delete(gain)}};return gain}
+ createDelay(){const context=this;const node={delayTime:{value:0,setTargetAtTime(value){this.value=value}},connect(target){context.connections.add(node);return target},disconnect(){context.connections.delete(node)}};return node}
+ createBiquadFilter(){const context=this;const node={type:'',frequency:{value:0,setTargetAtTime(value){this.value=value}},Q:{value:0},connect(target){context.connections.add(node);return target},disconnect(){context.connections.delete(node)}};return node}
  createStereoPanner(){const context=this;const pan={pan:{value:0,setTargetAtTime(value){this.value=value}},connect(target){context.connections.add(pan);return target},disconnect(){context.connections.delete(pan)}};return pan}
  close(){this.closes++;this.state='closed';return Promise.resolve()}
 }
 const window={...events};
-vm.runInNewContext(fs.readFileSync('web/file_audio.js','utf8'),{window,document:events,AudioContext,console:{error(...args){errors.push(args)}},atob:encoded=>Buffer.from(encoded,'base64').toString('binary')});
+vm.runInNewContext(fs.readFileSync('web/environment_audio.js','utf8')+'\n'+fs.readFileSync('web/file_audio.js','utf8'),{window,document:events,AudioContext,console:{error(...args){errors.push(args)}},atob:encoded=>Buffer.from(encoded,'base64').toString('binary')});
 const files={};for(const id of ['a','b'])for(const voice of ['engine','coast','boost','drift'])files[id+'-'+voice]='QQ==';
 for(const voice of ['gravel','wet'])files['surface-'+voice]='QQ==';
 for(const voice of ['draft','pass'])files['traffic-'+voice]='QQ==';
@@ -31,13 +33,17 @@ for(const voice of ['draft','pass'])files['traffic-'+voice]='QQ==';
  for(const pending of context.pending)pending.resolve({length:100});
  await Promise.all([a,b,again]);
  assert.equal(context.live.size,7,'A -> B -> A must leave exactly seven current loops');
- assert.equal(context.connections.size,15);
+ assert.equal(context.connections.size,23);
  for(let i=0;i<20;i++)await audio.setVehicle(i%2?'a':'b');
  assert.equal(context.live.size,7,'Repeated selection must not accumulate looping sources');
- assert.equal(context.connections.size,15,'Stopped sources and gains must disconnect');
+ assert.equal(context.connections.size,23,'Stopped sources and gains must disconnect');
+ for(let i=0;i<100;i++)audio.updateEnvironment(true,.22,1);
+ assert.equal(context.connections.size,23,'Changing acoustic regions must reuse the same graph');
+ assert(Math.abs(audio.environment.taps[0].delay.delayTime.value-.06)<1e-9);
+ assert(audio.environment.wet.gain.value>0);
  audio.update(true,1,1,0,1,0,1);
  audio.updateSpatial(true,.05,-.2,1.1,1,.07,-.8,1.15);
- assert.equal(context.live.size,8);assert.equal(context.connections.size,18);
+ assert.equal(context.live.size,8);assert.equal(context.connections.size,26);
  assert.equal(audio.passVoice.pan.pan.value,-.8);assert.equal(audio.voices.draft.pan.pan.value,-.2);
  const first=audio.passVoice;
  audio.updateSpatial(true,.05,.2,1.1,1,.07,.8,.9);
@@ -46,12 +52,15 @@ for(const voice of ['draft','pass'])files['traffic-'+voice]='QQ==';
  for(let serial=2;serial<20;serial++)audio.updateSpatial(true,.05,.1,1,serial,.06,.7,1);
  assert.equal(context.live.size,8,'Repeated passes must replace, not accumulate, one-shots');
  const ended=audio.passVoice;context.live.delete(ended.source);ended.source.onended();
- assert.equal(audio.passVoice,null);assert.equal(context.live.size,7);assert.equal(context.connections.size,15);
+ assert.equal(audio.passVoice,null);assert.equal(context.live.size,7);assert.equal(context.connections.size,23);
  audio.updateSpatial(true,.05,0,1,21,.06,-.7,1);
  audio.updateSpatial(false,0,0,1,21,.06,-.7,1);
  assert.equal(audio.passVoice,null,'Pause and mute must stop a running pass');
  audio.updateSpatial(true,0,0,1,21,.06,-.7,1);
  assert.equal(audio.passVoice,null,'Resuming must not replay a pass heard before pause');
+ audio.updateEnvironment(false,.22,1);
+ assert.equal(audio.environment.input.gain.value,0);assert.equal(audio.environment.wet.gain.value,0);
+ assert(audio.environment.taps.every(tap=>tap.feedback.gain.value===0));
  audio.close();audio.close();
  audio.update(true,1,1,1,1,1,1);
  assert.equal(audio.target.active,false,'A disposed mixer must ignore late updates');

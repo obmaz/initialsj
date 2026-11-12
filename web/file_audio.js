@@ -5,6 +5,7 @@ window.InitialSJFileAudio = class {
   constructor(files) {
     this.files = files;
     this.context = new AudioContext({latencyHint: 'interactive'});
+    this.environment = new window.InitialSJEnvironmentAudio(this.context);
     this.decoded = {};
     this.voices = {};
     this.vehicle = null;
@@ -18,7 +19,7 @@ window.InitialSJFileAudio = class {
     this.unlock = () => { if (!this.closed && this.context.state === 'suspended') this.context.resume(); };
     document.addEventListener('pointerdown', this.unlock, {passive: true});
     document.addEventListener('keydown', this.unlock);
-    this.silence = () => { this.target.active = false; this.stopPass(); this.apply(); };
+    this.silence = () => { this.target.active = false; this.environment.update(false, 0, 0); this.stopPass(); this.apply(); };
     this.visibility = () => { if (document.hidden) this.silence(); };
     window.addEventListener('blur', this.silence);
     document.addEventListener('visibilitychange', this.visibility);
@@ -61,8 +62,8 @@ window.InitialSJFileAudio = class {
       gain.gain.value = 0;
       const pan = name === 'draft' ? this.context.createStereoPanner() : null;
       source.connect(gain);
-      if (pan) gain.connect(pan).connect(this.context.destination);
-      else gain.connect(this.context.destination);
+      if (pan) gain.connect(pan).connect(this.environment.input);
+      else gain.connect(this.environment.input);
       source.start();
       this.voices[name] = {source, gain, pan};
     })).then(() => this.apply()).catch(error => {
@@ -82,6 +83,10 @@ window.InitialSJFileAudio = class {
     if (!active || level <= 0) this.stopPass();
     else if (changed && this.passBuffer && this.target.active) this.playPass(level, pan, pitch);
     this.apply();
+  }
+  updateEnvironment(active, wet, enclosure) {
+    if (this.closed) return;
+    this.environment.update(active, wet, enclosure);
   }
   releasePass(voice) {
     voice.source.onended = null;
@@ -104,7 +109,7 @@ window.InitialSJFileAudio = class {
     source.playbackRate.value = pitch;
     gain.gain.value = level;
     pan.pan.value = direction;
-    source.connect(gain).connect(pan).connect(this.context.destination);
+    source.connect(gain).connect(pan).connect(this.environment.input);
     const voice = {source, gain, pan};
     source.onended = () => this.releasePass(voice);
     this.passVoice = voice;
@@ -144,6 +149,7 @@ window.InitialSJFileAudio = class {
     window.removeEventListener('blur', this.silence);
     document.removeEventListener('visibilitychange', this.visibility);
     this.stopVoices();
+    this.environment.close();
     this.files = {};
     this.decoded = {};
     this.passBuffer = null;

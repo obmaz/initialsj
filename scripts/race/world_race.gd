@@ -100,6 +100,8 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		race.player.body_motion.reset()
 		race.sound_state.reset()
 		race.proximity_audio.reset()
+		race.slipstream.cancel()
+		race.acoustics.reset()
 		race.sound_state.last_reward = race.rewards.event_id
 		race.camera.reset_physics_interpolation()
 		camera_state.reset()
@@ -175,14 +177,7 @@ func step(
 	race.braking = brake
 	race.steer = move_toward(race.steer, axis, delta * race.vehicle.steer_rate)
 	update_drift(delta, drift_input, brake, gas)
-	race.drafting = false
-	for i in range(1, bodies.size()):
-		if not race.rivals[i - 1].active:
-			continue
-		var relative := bodies[i].position - player_body.position
-		var forward: Vector3 = player_body.forward_direction()
-		if relative.dot(forward) > 8 and relative.dot(forward) < 65 and relative.cross(forward).length() < 2.4:
-			race.drafting = true
+	race.drafting = race.slipstream.prepare(race, delta)
 	race.draft_charge = move_toward(race.draft_charge, 1 if race.drafting else 0, delta)
 	Nitro.update(race, delta, nitro_input, cell_input)
 	var cap: float = race.vehicle.max_speed + race.draft_charge * 8
@@ -299,6 +294,7 @@ func step(
 	update_rivals(delta)
 	update_passes(old_gaps, old_position.y)
 	update_tour_passes(old_position.y)
+	race.slipstream.finish(race, delta)
 	var road_forward: Vector3 = (race.track.point(race.distance + 2) - race.track.point(race.distance - 2)).normalized()
 	wrong_way_time = (
 		wrong_way_time + delta if player_body.velocity.dot(road_forward) < -5 and player_body.grounded else 0.0

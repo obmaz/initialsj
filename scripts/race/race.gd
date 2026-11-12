@@ -32,6 +32,8 @@ var max_drift_multiplier := 1
 var rewards := preload("res://scripts/race/driving_rewards.gd").new()
 var sound_state := preload("res://scripts/audio/vehicle_sound_state.gd").new()
 var proximity_audio := preload("res://scripts/audio/proximity_audio_state.gd").new()
+var slipstream := preload("res://scripts/race/slipstream_state.gd").new()
+var acoustics := preload("res://scripts/audio/environment_audio_state.gd").new()
 var protection_left := 0.0
 var auto_accelerate := true
 var recovery_distance := 80.0
@@ -680,6 +682,8 @@ func restart(start_countdown: bool = true) -> void:
 	rewards.reset()
 	sound_state.reset()
 	proximity_audio.reset()
+	slipstream.reset()
+	acoustics.reset()
 	passport.new_unlocks.clear()
 	apply_cosmetics()
 	route_challenges.reset()
@@ -943,6 +947,7 @@ func _physics_process(delta: float) -> void:
 			cell_input
 		)
 	place_cars(delta)
+	acoustics.advance(self, delta)
 	ghost.update(self)
 	sync_world_rendering()
 	var world_visible := not rendering_viewport.disable_3d

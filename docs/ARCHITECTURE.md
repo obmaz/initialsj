@@ -29,6 +29,10 @@
 
 [spatial_driving_audio.gd](../scripts/audio/spatial_driving_audio.gd)는 네이티브의 통과·후류 두 보이스와 고유 이름의 패닝 버스 두 개를 생성하고 종료 시 함께 해제합니다. 웹의 `file_audio.js`는 같은 패닝·피치·사건 번호를 읽고 `StereoPannerNode`로 재생합니다. 통과음은 동시에 하나만 유지하며 종료·교체·음소거 때 연결을 해제합니다. 차량16대나 새로운 지역 진입 때문에 음향 노드를 추가하지 않습니다.
 
+[slipstream_state.gd](../scripts/race/slipstream_state.gd)는 공통 주행에서 실제 후류 대상을 선택하고 충전·준비·같은 차의 실제 추월을 검증합니다. 상태는 ID·시간·벡터만 보유하고 대상 노드를 붙잡지 않습니다. 기존 `DrivingRewards.announce()`에 성공 사건을 전달하며 추월 점수는 기존 주행 규칙에 둡니다. HUD는 같은 상태로 진행 막대와 대상 표식을 그립니다.
+
+[environment_audio_state.gd](../scripts/audio/environment_audio_state.gd)는 현재 도로·실제 차량 높이로 닫힌 정도와 잔향 혼합을 보간합니다. 네이티브 [environment_audio.gd](../scripts/audio/environment_audio.gd)는 차량·공기 루프의 공유 잔향 버스 한 개를 소유하고, 웹 [environment_audio.js](../web/environment_audio.js)는 고정 반사 경로 두 개를 소유합니다. 점화·충돌·UI 단발음은 이 버스를 거치지 않습니다. 네이티브 패닝 두 버스는 공유 잔향 버스로 보내고, 종료 시 세 버스를 모두 해제합니다. 구간마다 노드·IR 버퍼를 만들지 않으며 거의 같은 DSP 매개변수를 반복 예약하지 않습니다.
+
 ## 모델과 런타임의 경계
 
 ```mermaid

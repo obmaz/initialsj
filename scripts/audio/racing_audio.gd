@@ -32,6 +32,7 @@ var cue_busy := 0.0
 var extra_loops: Dictionary = {}
 var extra_levels := {"coast": 0.0, "gravel": 0.0, "wet": 0.0}
 var spatial: Node
+var environment_audio: Node
 const COUNT_TONE = preload("res://assets/audio/countdown.wav")
 const LAUNCH_TONE = preload("res://assets/audio/launch.wav")
 const REWARD_TONE = preload("res://assets/audio/reward.wav")
@@ -60,14 +61,29 @@ func _ready() -> void:
 	cue.volume_db = -18
 	if OS.has_feature("web"):
 		var source := FileAccess.get_file_as_string("res://web/file_audio.js")
+		var environment_source := FileAccess.get_file_as_string("res://web/environment_audio.js")
 		var recordings := FileAccess.get_file_as_string("res://assets/audio/web-loops.json")
 		JavaScriptBridge.eval(
-			source + "\nwindow.initialsjFileAudio = new window.InitialSJFileAudio(" + recordings + ");"
+			(
+				environment_source
+				+ "\n"
+				+ source
+				+ "\nwindow.initialsjFileAudio = new window.InitialSJFileAudio("
+				+ recordings
+				+ ");"
+			)
 		)
 		web_audio = JavaScriptBridge.get_interface("window").initialsjFileAudio
 	else:
+		environment_audio = preload("res://scripts/audio/environment_audio.gd").new()
+		add_child(environment_audio)
+		bus = environment_audio.bus_name
+		for voice in [boost_sound, drift_sound, extra_loops.coast, extra_loops.gravel, extra_loops.wet]:
+			voice.bus = environment_audio.bus_name
 		spatial = preload("res://scripts/audio/spatial_driving_audio.gd").new()
 		add_child(spatial)
+		for spatial_bus in spatial.buses:
+			AudioServer.set_bus_send(AudioServer.get_bus_index(spatial_bus), environment_audio.bus_name)
 	apply_vehicle()
 
 
@@ -174,6 +190,7 @@ func _process(delta: float) -> void:
 	var spatial_active: bool = active and race.state == RaceState.RACING and nearby.active
 	if OS.has_feature("web"):
 		if web_audio != null:
+			web_audio.updateEnvironment(active, race.acoustics.wet, race.acoustics.enclosure)
 			web_audio.update(
 				active,
 				mixed.engine_pitch,
@@ -198,6 +215,7 @@ func _process(delta: float) -> void:
 				nearby.pass_pitch
 			)
 		return
+	environment_audio.update(race.acoustics, active, delta)
 	spatial.update(nearby, spatial_active, delta)
 	gain = move_toward(gain, 1.0 if active else 0.0, delta * 2)
 	if gain <= 0 and not active:

@@ -586,6 +586,7 @@ func _draw() -> void:
 	draw_boost_feedback()
 	draw_fps()
 	draw_competitor_markers()
+	draw_slipstream_target()
 	draw_pace_feedback()
 	var rows := standings()
 	draw_position(rows)
@@ -931,7 +932,17 @@ func draw_nitro() -> void:
 	if race.vehicle.mode == "hybrid":
 		for i in range(2):
 			draw_circle(Vector2(807 + i * 22, 642), 7, color if i < race.nitro_charges else Color("304252"))
-	if race.boosting and not race.nitro_active and not race.pad_active:
+	if race.state == RaceState.RACING and race.slipstream.charge > .01:
+		var charge_color: Color = GOLD if race.slipstream.ready else CYAN
+		var label := (
+			"SLIPSTREAM READY / PULL OUT & PASS"
+			if race.slipstream.ready
+			else "SLIPSTREAM  %d%%" % int(race.slipstream.charge * 100)
+		)
+		text_at(Vector2(443, 617), label, 15, charge_color)
+		draw_rect(Rect2(443, 623, 400, 5), Color("263b4c"))
+		draw_rect(Rect2(443, 623, 400 * race.slipstream.charge, 5), charge_color)
+	elif race.boosting and not race.nitro_active and not race.pad_active:
 		text_at(Vector2(443, 624), "SKILL BOOST" if race.reward_boost_active() else "SLIPSTREAM", 16, CYAN)
 	var rim := rounded_polygon(
 		PackedVector2Array([Vector2(442, 661), Vector2(847, 661), Vector2(835, 691), Vector2(430, 691)]), 4
@@ -1089,6 +1100,24 @@ func draw_fps() -> void:
 		fps_text = "%d FPS" % roundi(fps_value)
 	var color := Color("7dffb0") if fps_value >= 55 else (Color("ffd166") if fps_value >= 40 else Color("ff6b5a"))
 	text_at(Vector2(24, 204), fps_text, 18, color)
+
+
+func draw_slipstream_target() -> void:
+	if race.state != RaceState.RACING or race.slipstream.charge < .1 or race.slipstream.target_id == 0:
+		return
+	var target = instance_from_id(race.slipstream.target_id)
+	if not is_instance_valid(target) or target.is_queued_for_deletion():
+		return
+	var world: Vector3 = target.global_position + Vector3.UP * 3.8
+	if race.camera.is_position_behind(world):
+		return
+	var point := to_design(race.camera.unproject_position(world))
+	if not Rect2(275, 175, 745, 275).has_point(point):
+		return
+	var color: Color = GOLD if race.slipstream.ready else CYAN
+	var chevron := PackedVector2Array([point + Vector2(-10, -7), point + Vector2(0, 1), point + Vector2(10, -7)])
+	draw_polyline(chevron, INK, 7, true)
+	draw_polyline(chevron, color, 3, true)
 
 
 func draw_competitor_markers() -> void:
