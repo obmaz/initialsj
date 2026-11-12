@@ -1,0 +1,15 @@
+[gd_scene format=3]
+[ext_resource type="Material" path="res://models/shared/tour_entry/surface.tres" id="1"]
+[sub_resource type="StandardMaterial3D" id="rail"]
+vertex_color_use_as_albedo = true
+roughness = 0.7
+metallic = 0.25
+[node name="TourEntry" type="Node3D"]
+metadata/entry_connector = true
+[node name="Surface" type="MeshInstance3D" parent="."]
+material_override = ExtResource("1")
+metadata/world_ground = true
+metadata/mesh_ref = "res://models/shared/tour_entry/model.glb#Model/Entry2Surface"
+[node name="Rails" type="MeshInstance3D" parent="."]
+material_override = SubResource("rail")
+metadata/mesh_ref = "res://models/shared/tour_entry/model.glb#Model/Entry2Rails"

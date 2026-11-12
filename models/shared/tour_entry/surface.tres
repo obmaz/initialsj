@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" format=3]
+[ext_resource type="Shader" path="res://shaders/asphalt.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://assets/environment/asphalt.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/environment/asphalt-variants.png" id="3"]
+[resource]
+shader = ExtResource("1")
+shader_parameter/asphalt_texture = ExtResource("2")
+shader_parameter/asphalt_variants = ExtResource("3")
+shader_parameter/entry_surface = true
