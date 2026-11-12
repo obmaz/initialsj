@@ -2,15 +2,22 @@ name: Godot game checks
 
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: godot-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  check:
+  source-integrity:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,31 +25,43 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: tools/requirements-dev.txt
-      - name: Check coding style and repository tools
-        run: |
-          python -m pip install -r tools/requirements-dev.txt
-          gdformat --check scripts models addons tests tools
-          python -m unittest discover -s tools -p 'test_*.py'
-      - name: Verify repository references
-        run: python3 tools/verify_repository.py
-      - name: Read pinned Godot version
-        id: godot_version
-        run: echo "version=$(tr -d '[:space:]' < .godot-version)" >> "$GITHUB_OUTPUT"
-      - uses: chickensoft-games/setup-godot@v2
+      - name: Install pinned development tools
+        run: python -m pip install -r tools/requirements-dev.txt
+      - name: Run the shared static checks
+        run: python3 tools/check.py --static
+      - name: Keep failed check logs
+        if: failure()
+        uses: actions/upload-artifact@v4
         with:
-          version: ${{ steps.godot_version.outputs.version }}
-          use-dotnet: false
-          include-templates: false
-      - name: Verify engine version
-        run: godot --headless --path . --script res://tests/verify_engine.gd
-      - name: Import project
-        run: godot --headless --path . --editor --import --quit
-      - name: Check model contracts
-        run: godot --headless --path . --script res://tools/check_models.gd
-      - name: Check gameplay and browser bridges
-        run: |
-          godot --headless --fixed-fps 60 --path . --script res://tests/race_test.gd
-          node tests/install_bridge_checks.cjs
-          node tests/back_bridge_checks.cjs
-          node tests/fullscreen_bridge_checks.cjs
-          node tests/audio_lifecycle_checks.cjs
+          name: static-check-logs
+          path: build/reports/checks
+          retention-days: 7
+
+  check:
+    needs: source-integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Cache the pinned Godot engine
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/engines
+          key: ${{ runner.os }}-godot-${{ hashFiles('.godot-version', 'tools/setup_env.sh') }}
+      - name: Prepare the shared environment
+        run: ./tools/setup_env.sh --skip-import
+      - name: Run the shared engine and bridge checks
+        run: python3 tools/check.py --engine
+      - name: Keep failed check logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-check-logs
+          path: build/reports/checks
+          retention-days: 7

@@ -15,34 +15,36 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Verify repository references
-        run: python3 tools/verify_repository.py
-      - name: Read pinned Godot version
-        id: godot_version
-        run: echo "version=$(tr -d '[:space:]' < .godot-version)" >> "$GITHUB_OUTPUT"
-      - name: Set up Godot
-        uses: chickensoft-games/setup-godot@v2
+      - uses: actions/setup-python@v5
         with:
-          version: ${{ steps.godot_version.outputs.version }}
-          use-dotnet: false
-          include-templates: true
-      - name: Import and check game
-        run: |
-          python3 tools/optimize_models.py --check
-          godot --headless --path . --script res://tests/verify_engine.gd
-          godot --headless --path . --editor --import --quit
-          godot --headless --path . --script res://tools/check_models.gd
-          godot --headless --fixed-fps 60 --path . --script res://tests/race_test.gd
-          node tests/install_bridge_checks.cjs
-          node tests/back_bridge_checks.cjs
-          node tests/fullscreen_bridge_checks.cjs
-          node tests/audio_lifecycle_checks.cjs
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/requirements-dev.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned development tools
+        run: python -m pip install -r tools/requirements-dev.txt
+      - name: Run the shared static checks
+        run: python3 tools/check.py --static
+      - name: Cache the pinned engine and Web templates
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/godot/engines
+            ~/.local/share/godot/export_templates
+          key: ${{ runner.os }}-godot-web-${{ hashFiles('.godot-version', 'tools/setup_env.sh') }}
+      - name: Prepare the shared Web environment
+        run: ./tools/setup_env.sh --skip-import --templates web
+      - name: Run the shared engine and bridge checks
+        run: python3 tools/check.py --engine
       - name: Export game for Web
         run: |
           mkdir -p build/site
-          godot --headless --path . --export-release Web build/site/index.html
+          ./tools/godot --headless --path . --export-release Web build/site/index.html
           cp web/retire-flutter-worker.js build/site/flutter_service_worker.js
           touch build/site/.nojekyll
       - name: Verify root deployment
@@ -58,10 +60,18 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/site
+      - name: Keep failed check logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-check-logs
+          path: build/reports/checks
+          retention-days: 7
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

@@ -21,18 +21,18 @@
 
 ## 기본 검사
 
+푸시 전에 아래 공통 명령을 로컬에서 통과시킵니다. 엔진 설치는 `setup_env.sh`, 검사는 `check.py`가 담당하며 검사 명령은 설치·내보내기·배포를 시작하지 않습니다.
+
 ```sh
-build/dev-venv/bin/gdformat --check scripts models addons tests tools
-python3 -m unittest discover -s tools -p 'test_*.py'
-python3 tools/verify_repository.py
-python3 tools/check_world_collisions.py
-./tools/godot --headless --path . --editor --import --quit
-./tools/godot --headless --fixed-fps 60 --path . --script res://tests/race_test.gd
-node tests/install_bridge_checks.cjs
-node tests/back_bridge_checks.cjs
-node tests/fullscreen_bridge_checks.cjs
-node tests/audio_lifecycle_checks.cjs
+python3 tools/check.py
+# 원인 분리용 단계별 검사. 전체 검사를 대체하지 않습니다.
+python3 tools/check.py --static
+python3 tools/check.py --engine
 ```
+
+`--static`은 포맷·Python 도구·원본 GLB·생성물·충돌 캐시·참조·문서 링크를 검사합니다. `--engine`은 엔진 버전·임포트·모델 계약·실제 게임 회귀·브라우저 브리지를 검사합니다. Godot가0으로 종료해도 `SCRIPT ERROR:`·`ERROR:`가 있으면 실패합니다. 단계별 제한 시간은15분이며 로그는 `build/reports/checks/`에 남습니다.
+
+포맷터는 `INITIALSJ_GDFORMAT_BIN`, `build/dev-venv/bin/gdformat`, `PATH` 순서로 찾습니다. 설치 버전은 [코딩 규칙](CODING_STYLE.md#포맷과-이름)을 따릅니다. 렌더·입력 변경의 실제 브라우저 검사는 아래 [선택 검사](#선택-검사와-산출물)를 함께 수행합니다. CI를 새 코드의 첫 실행·진단 장소로 사용하지 않습니다.
 
 저장소 검사기는 런타임 참조, 자동 등록 모델 팩, 누락·미사용 리소스, `.uid`·`.import` 누락·고아 파일, Markdown 상대 링크·제목 앵커, 사용하지 않는 셰이더 sampler와 음원 라이선스를 확인합니다. [편집 원본](../model_sources/README.md)의 누락·해시와 배포 GLB의 생성 상태도 확인합니다. 모델 목록은 정의 파일에서 자동 탐색하며 별도의 중앙 등록표가 없습니다.
 
@@ -78,6 +78,8 @@ Web 프리셋은 단일 스레드·가로 PWA이며 PC용 S3TC와 모바일용 E
 
 커밋 작성자·커미터는 `obmaz <zambobmaz@gmail.com>`을 사용합니다. 통합 전 원격 `main`을 받고 리베이스하며, 충돌은 파일 전체 덮어쓰기 대신 해당 모델·게임 규칙의 최종 의도에 맞춰 해결합니다.
 
-`main` 푸시의 `godot-checks`는 기본 검사만 수행합니다. 대상 없는 “배포”는 Dropbox APK 전달이며, 웹은 명시 요청 시에만 `deploy-pages`를 workflow_dispatch로 실행합니다. main 푸시는 웹을 자동 게시하지 않습니다. 빌드와 게시 단계의 성공을 각각 확인하고 배포된 커밋·아티팩트를 대조합니다. 공개 URL 접근이 가능하면 앱 버전 또는 `index.pck`의 새 리소스 경로까지 확인합니다. 네트워크 제한 등으로 직접 접속하지 못한 경우 확인 범위를 보고합니다.
+자동 워크플로는 `godot-checks` 하나입니다. `main` 푸시와 `main` 대상 PR에서 로컬과 같은 `check.py`를 실행하며, 정적 `source-integrity` 작업이 성공해야 `check` 작업이 엔진 검사를 시작합니다. 두 상태 이름은 유지하고 GLB 검사를 중복 실행하지 않습니다. 같은 브랜치·PR의 오래된 실행은 취소하며 실패 로그만7일간 보관합니다. 긴 프레임 계측·후보 비교·시각 진단은 로컬에서 필요할 때 수행하고 자동 워크플로에 추가하지 않습니다.
+
+대상 없는 “배포”는 Dropbox APK 전달이며, 웹은 명시 요청 시에만 `deploy-pages`를 workflow_dispatch로 실행합니다. 수동 웹 배포도 같은 공통 검사를 통과한 뒤 내보내기·게시합니다. 두 워크플로 모두 `setup_env.sh`로 환경을 준비합니다. main 푸시는 웹을 자동 게시하지 않습니다. 빌드와 게시 단계의 성공을 각각 확인하고 배포된 커밋·아티팩트를 대조합니다. 공개 URL 접근이 가능하면 앱 버전 또는 `index.pck`의 새 리소스 경로까지 확인합니다. 네트워크 제한 등으로 직접 접속하지 못한 경우 확인 범위를 보고합니다.
 
 Android와 Dropbox 전달은 [ANDROID.md](ANDROID.md)와 [APK 스킬](../.agents/skills/dropbox-apk/SKILL.md)을 따릅니다. 일반 개발·검사·웹 배포에 APK 빌드를 추가하지 않습니다.
