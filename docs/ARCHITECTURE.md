@@ -4,7 +4,7 @@
 
 ## 실행과 주행
 
-진입 씬은 `scenes/race.tscn`입니다. [race.gd](../scripts/race/race.gd)가 모드·경기 상태·화면 전환을 조정하고 [hud.gd](../scripts/ui/hud.gd)가 주행 화면 표시와 터치 좌표를 담당하고 홈·코스 선택·설정·차고 화면은 [hud_menus.gd](../scripts/ui/hud_menus.gd)(`hud.menus`)가 같은 캔버스에 그립니다. 화면 상태 값은 [race_state.gd](../scripts/race/race_state.gd)의 상수가 정본이며 `race.state`는 선언된 값만 받습니다. [race.gd](../scripts/race/race.gd)는 세 보조 객체에 일을 맡깁니다: [race_input.gd](../scripts/input/race_input.gd)(`race.controls`, 키보드·게임패드·터치 입력을 화면별 동작으로 연결), [race_lighting.gd](../scripts/rendering/race_lighting.gd)(`race.lighting`, 하늘·안개·조명과 지역·날씨 전환), [web_shell.gd](../scripts/platform/web_shell.gd)(`race.shell`, 브라우저 전체화면·뒤로 가기·화면 방향).
+시작 씬은 [boot.tscn](../scenes/boot.tscn)이며 스플래시를 그린 뒤 실제 게임 [race.tscn](../scenes/race.tscn)을 엽니다. [race.gd](../scripts/race/race.gd)가 모드·경기 상태·화면 전환을 조정하고 [hud.gd](../scripts/ui/hud.gd)가 주행 화면 표시와 터치 좌표를 담당하고 홈·코스 선택·설정·차고 화면은 [hud_menus.gd](../scripts/ui/hud_menus.gd)(`hud.menus`)가 같은 캔버스에 그립니다. 화면 상태 값은 [race_state.gd](../scripts/race/race_state.gd)의 상수가 정본이며 `race.state`는 선언된 값만 받습니다. [race.gd](../scripts/race/race.gd)는 세 보조 객체에 일을 맡깁니다: [race_input.gd](../scripts/input/race_input.gd)(`race.controls`, 키보드·게임패드·터치 입력을 화면별 동작으로 연결), [race_lighting.gd](../scripts/rendering/race_lighting.gd)(`race.lighting`, 하늘·안개·조명과 지역·날씨 전환), [web_shell.gd](../scripts/platform/web_shell.gd)(`race.shell`, 브라우저 전체화면·뒤로 가기·화면 방향).
 
 | 영역 | 책임과 정본 |
 | --- | --- |
@@ -122,3 +122,9 @@ Compatibility 렌더러에서는 소품의 정점색을 보존하도록 MultiMes
 [personal_run.gd](../scripts/race/personal_run.gd)는 구간 기록 캐시와 고정 상한의10Hz 자세 기록을 소유하고 메뉴 준비와 경기 종료에만 파일에 접근합니다. 개인 기록 인덱스·고스트·여권은 임시 파일 저장이 끝난 뒤 원본을 교체합니다. [personal_ghost.gd](../scripts/effects/personal_ghost.gd)는 기존 GLB 차량을 충돌·광원·오디오 없이 보간 재생합니다. 표시 재질은 고스트가 소유하고 원본 공유 재질은 변경하지 않습니다. 투어 경로가 달라지거나 재생 위치가 멀리 점프하면 표시를 생략합니다. [driving_challenges_ui.gd](../scripts/ui/driving_challenges_ui.gd)는 구간 비교·결과 평가를 HUD에 그립니다.
 
 [tour_passport.gd](../scripts/race/tour_passport.gd)는 목적지·경로 메달·장식 해금·차량별 선택·경로별 최고 점수를 보관합니다. [passport_ui.gd](../scripts/ui/passport_ui.gd)는 메인 화면 안의 별도 여권 패널이며 브라우저·Android 뒤로가기와 입력 가림을 공유합니다. 차량 장식은 기존 GLB·판 위치를 사용하고 성능 카탈로그와 원본 재질을 바꾸지 않습니다.
+
+## 시작과 메뉴 전환
+
+[boot.gd](../scripts/ui/boot.gd)가 생성형 스플래시를 실제로 렌더한 뒤 메인 씬을 읽습니다. 실행 스크립트의 최초 컴파일은 메인 스레드에서 수행합니다. [loading_card.gd](../scripts/ui/loading_card.gd)는 짧은 전환에는 진행 표시를 사용하고650ms 이상 기다리면 이미지로 전환합니다. 알려진 무거운 코스 전환은 작업 전에 이미지부터 보여 줍니다. 표시를 위한 최소 대기 시간을 추가하지 않으며 준비 단계만 진행 막대에 반영합니다. 같은 트랙의 재질 준비를 메뉴마다 반복하지 않습니다.
+
+튜닝샵은 [전용 어댑터·저장·UI](TUNING_SHOP.md)가 소유하며 주행 성능과 분리합니다.

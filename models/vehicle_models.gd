@@ -13,9 +13,26 @@ static func build(car: Node3D, item: Resource) -> void:
 	var model := SceneSource.instantiate_static(item.scene_path)
 	var material: ShaderMaterial = car.paint_material()
 	car.body.add_child(model)
-	for node in SceneSource.collect_meshes(model):
+	var meshes := SceneSource.collect_meshes(model)
+	var split := meshes.any(func(node): return node.name == "PaintShell")
+	for node in meshes:
+		# 직렬화된 투어 교통 차량은 기존 BodyShell 전체 메시를 계속 참조한다.
+		if (
+			split
+			and (
+				(not car.traffic and node.name == "BodyShell")
+				or (car.traffic and node.name in ["TrimShell", "PaintShell"])
+			)
+		):
+			continue
 		node.reparent(car.body, true)
-		if str(node.name).begins_with("wheel_"):
+		if car.traffic and node.name == "BodyShell":
+			node.visible = true
+		if node.name == "PaintShell":
+			node.material_override = preload("res://scripts/vehicles/vehicle_customization.gd").paint_material(
+				car.paint
+			)
+		elif str(node.name).begins_with("wheel_"):
 			node.material_override = car.shared_body_material()
 		elif str(node.name).begins_with("BrakeLights"):
 			var brake := node.mesh.surface_get_material(0).duplicate() as StandardMaterial3D

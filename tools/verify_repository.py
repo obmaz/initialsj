@@ -10,7 +10,7 @@ RESOURCE = re.compile(r'''["']res://([^"'\n]+)["']''')
 LINK = re.compile(r'!?\[[^\]]*\]\(\s*(<[^>\n]+>|[^\s)]+)(?:\s+"[^"]*")?\s*\)')
 # 이전 워커 주소로도 제공해야 하는 호환 리소스입니다.
 ROOTS = ("project.godot", "export_presets.cfg", "web/retire-flutter-worker.js")
-MODEL_DIRECTORIES = {"models/props", "models/vehicles", "models/buildings", "models/vegetation"}
+MODEL_DIRECTORIES = {"models/props", "models/vehicles", "models/buildings", "models/vegetation", "models/vehicle_parts"}
 UID_SOURCES = {".gd", ".gdshader", ".gdshaderinc"}
 IMPORTED_SOURCES = {".png", ".webp", ".svg", ".wav", ".ogg", ".ttf", ".obj", ".glb"}
 BUILD_METADATA = {"models/shared/world_vegetation/generated.json"}

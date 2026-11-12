@@ -267,6 +267,9 @@ func paint_material() -> ShaderMaterial:
 func restore_paint() -> void:
 	var material := paint_material()
 	for node in body.get_children():
+		if node is MeshInstance3D and node.name == "PaintShell":
+			node.material_override = preload("res://scripts/vehicles/vehicle_customization.gd").paint_material(paint)
+			continue
 		if (
 			node is MeshInstance3D
 			and not node in wheels
@@ -301,7 +304,17 @@ func set_protection(active: bool) -> void:
 	if protection_parts.is_empty():
 		for node in body.find_children("*", "MeshInstance3D", true, false):
 			var material: Material = node.material_override
-			if material is ShaderMaterial and material.shader == shared_body_material().shader:
+			if (
+				material is ShaderMaterial
+				and (
+					material.shader
+					in [
+						shared_body_material().shader,
+						preload("res://shaders/vehicle_livery.gdshader"),
+						preload("res://shaders/tuning_wheel.gdshader")
+					]
+				)
+			):
 				protection_parts.append(node)
 				protection_originals.append(material)
 				if not protection_materials.has(material):

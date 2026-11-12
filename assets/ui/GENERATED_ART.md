@@ -4,7 +4,7 @@
 
 | 사용 에셋 | 원본·제작 방식 |
 | --- | --- |
-| [로딩·엔진 스플래시](coast-rush-splash.png) | 생성 원본 `exec-e1703f50-1054-4f9e-8e75-13ee0fa00d26.png` |
+| [로딩·엔진 스플래시](drive-loading.png) | 생성 원본 `exec-9b8a2b16-b59f-4b7a-82cf-6a968a417268.png` |
 | [메인 해안](home-coast.png) | 생성 원본 `exec-83b2a747-ade7-4946-9dca-db44ebbc8894.png` |
 | [차고](garage-bay.png) | 생성 원본 `exec-013bcb89-1cda-4f48-ab68-254e386b4aee.png` |
 | [후지 코스 카드](course-fuji.png) | 콘셉트 생성 원본 `exec-8be49d29-fe68-4ee5-94d1-43c803ed3ae1.png` |
@@ -18,3 +18,7 @@
 [initialsj-logo.svg](initialsj-logo.svg)는 [tools/bake_logo.py](../../tools/bake_logo.py)가 번들 Roboto Bold Italic 윤곽선으로 만드는 벡터 워드마크입니다. 글꼴은 Apache-2.0이며 [라이선스](../fonts/Roboto-LICENSE.txt)를 보존합니다. 아이보리·청록 글자와 주황색 사선, 작은 부제를 사용하며 시스템 글꼴에 의존하지 않습니다.
 
 메인·로딩 화면이 같은 SVG를 사용합니다. 제작 도구는 `web/coast-rush-shell.html`의 `<!--logo:start-->` 구간에도 동일한 SVG를 삽입해 엔진 다운로드 전부터 표시합니다. 변경 후 `python3 tools/bake_logo.py`를 실행하고 SVG와 셸을 함께 커밋합니다. 실행에는 fontTools가 필요합니다.
+
+
+
+drive-loading.png: OpenAI 이미지 생성 도구, 원본 exec-9b8a2b16-b59f-4b7a-82cf-6a968a417268.png. 가상의 흰색·청록 해치백, 해안 커브·교량·노을, 하단 UI 여백을 둔 16:9 전용 키 아트. 실제 제조사·로고를 사용하지 않았습니다.

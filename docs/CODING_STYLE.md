@@ -31,7 +31,7 @@ build/dev-venv/bin/gdformat --check scripts models addons tests tools
 | [scripts/input/](../scripts/input/) | 키보드·터치·게임패드 해석·진동 |
 | [scripts/platform/](../scripts/platform/) | 앱 버전과 브라우저 셸 연동 |
 
-진입 씬은 [race.tscn](../scenes/race.tscn), 상태 조정자는 [race.gd](../scripts/race/race.gd)입니다. 파일을 옮길 때는 `.uid`를 함께 보존하고 런타임·모델·검사·내보내기 도구·문서의 경로를 함께 갱신합니다. 모델별 형상·재질·출처는 기존 [models/](../models/) 팩 안에서 소유하며 [모델 제작 계약](MODEL_PIPELINE.md)을 따릅니다.
+시작 씬은 [boot.tscn](../scenes/boot.tscn)이며 스플래시 뒤 [race.tscn](../scenes/race.tscn)을 엽니다. 상태 조정자는 [race.gd](../scripts/race/race.gd)입니다. 파일을 옮길 때는 `.uid`를 함께 보존하고 런타임·모델·검사·내보내기 도구·문서의 경로를 함께 갱신합니다. 모델별 형상·재질·출처는 기존 [models/](../models/) 팩 안에서 소유하며 [모델 제작 계약](MODEL_PIPELINE.md)을 따릅니다.
 
 ## 헬퍼와 수명
 

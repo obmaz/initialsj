@@ -46,6 +46,8 @@ const RECORD_GROUP := "coast_rush_v3"
 var selected_vehicle := 0
 var vehicle: Dictionary = Catalog.spec(0)
 var previews: Node
+var customization := preload("res://scripts/vehicles/customization_store.gd").new()
+var tuning_shop: CanvasLayer
 var resume_state := RaceState.RACING
 var nitro_charges := 0
 var nitro_burst_left := 0.0
@@ -319,10 +321,11 @@ func _ready() -> void:
 			)
 	load_preferences()
 	passport.load_progress()
+	customization.load_config()
 	apply_cosmetics()
 	if previews != null:
 		for index in range(Catalog.SPECS.size()):
-			previews.customize(index, passport)
+			previews.customize(index, passport, customization)
 	render_budget.set_mode(graphics_mode, self)
 	load_record()
 	reset_nitro()
@@ -355,6 +358,9 @@ func navigate_back() -> bool:
 	if Time.get_ticks_msec() < shell.back_ignored_until:
 		return true
 	if screen_transition != null and screen_transition.busy:
+		return true
+	if is_instance_valid(tuning_shop):
+		tuning_shop.request_close()
 		return true
 	if passport_open:
 		toggle_passport()
@@ -588,16 +594,43 @@ func toggle_passport() -> void:
 func cycle_cosmetic(plate: bool = false) -> void:
 	if state != RaceState.READY:
 		return
+	var previous := passport.paints.duplicate()
 	passport.cycle(selected_vehicle, plate)
+	var id: String = Catalog.spec(selected_vehicle).id
+	if not plate and customization.selections.has(id):
+		var data := customization.selection(selected_vehicle, passport)
+		var color: String = passport.PAINTS[passport.paint_index(selected_vehicle)].color
+		data.paint = Color(Catalog.spec(selected_vehicle).paint if color.is_empty() else color).to_html(false)
+		if save_records:
+			if customization.save(selected_vehicle, data) != OK:
+				passport.paints = previous
+				return
+		else:
+			customization.selections[id] = data
 	apply_cosmetics()
 	if save_records:
 		passport.save_progress()
 
 
 func apply_cosmetics() -> void:
-	passport.apply_car(player, selected_vehicle)
+	customization.apply(player, selected_vehicle, passport)
 	if previews != null:
-		previews.customize(selected_vehicle, passport)
+		previews.customize(selected_vehicle, passport, customization)
+
+
+func open_tuning() -> void:
+	if state != RaceState.READY or is_instance_valid(tuning_shop):
+		return
+	loading_title = "COAST CUSTOMS"
+	navigate(
+		func():
+			tuning_shop = preload("res://scripts/ui/tuning_shop.gd").new()
+			tuning_shop.race = self
+			tuning_shop.vehicle = selected_vehicle
+			tuning_shop.saved = customization.selection(selected_vehicle, passport)
+			tuning_shop.draft = tuning_shop.saved.duplicate(true)
+			add_child(tuning_shop)
+	)
 
 
 func toggle_ghost() -> void:

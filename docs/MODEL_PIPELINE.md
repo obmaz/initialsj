@@ -64,7 +64,7 @@ Blender 등에서 메시를 편집하거나 외부 AI로 제작할 수 있습니
 
 GLB는 차체·타이어·림·가동 부품을 소유합니다. 네 휠은 `wheel_fl`, `wheel_rl`, `wheel_fr`, `wheel_rr` 이름을 사용하고 노드 원점을 회전 중심에 둡니다. 휠의 로컬 `+Y`가 회전축입니다. `BodyShell`은 차체, `BrakeLights`로 시작하는 노드는 독립 발광 부품, `ActiveRearAero`는 가동 스포일러입니다. 부품을 수정할 때 이름과 피벗을 유지합니다.
 
-공통 차체 셰이더의 정점 데이터는 COLOR=표면색, UV=금속성·거칠기, UV2=클리어코트·발광 강도입니다. 도장면의 COLOR.a=.5가 차량별 색 선택 마스크입니다. 이 데이터를 외부 도구가 일반 사진 UV로 덮어쓰지 않게 합니다. 별도 텍스처 셰이더를 도입하면 재질 어댑터와 검사를 함께 수정합니다.
+도장면 분리·호환 메시·교체 부품·새 UV 계약은 [튜닝샵](TUNING_SHOP.md#도장면리버리-계약)을 따릅니다. 일반 차체 셰이더의 정점 데이터는 COLOR=표면색, UV=금속성·거칠기, UV2=클리어코트·발광 강도입니다. 전용 `PaintShell`만 UV0를 리버리 좌표로 사용합니다. 일반 차체 도장면의 COLOR.a=.5가 차량별 색 선택 마스크입니다. 이 데이터를 외부 도구가 일반 사진 UV로 덮어쓰지 않게 합니다. 별도 텍스처 셰이더를 도입하면 재질 어댑터와 검사를 함께 수정합니다.
 
 `parameters`의 휠 반경·반트랙·반휠베이스·`ride_offset`, `headlamp_positions`, `headlight_position`, `exhausts`, `aero_drop`, `aero_pitch`를 형상에 맞춥니다. 브레이크 재질과 도장 유니폼은 차량별로 독립적입니다. 셰이더의 `vec4` 도장 유니폼에는 `Vector4`를 전달해 재질 복제 시 자료형과 값을 유지합니다. 부스트·연기·전조등·휠 회전은 [car.gd](../scripts/vehicles/car.gd)가, 능력치는 [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd)가 소유합니다. 차량 전체 예산은2만 삼각형 미만입니다.
 

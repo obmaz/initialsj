@@ -80,7 +80,10 @@ func show_vehicle(index: int) -> void:
 		rendered[index] = true
 
 
-func customize(index: int, passport: RefCounted) -> void:
-	passport.apply_car(cars[index], index)
+func customize(index: int, passport: RefCounted, customization: RefCounted = null) -> void:
+	if customization != null:
+		customization.apply(cars[index], index, passport)
+	else:
+		passport.apply_car(cars[index], index)
 	rendered[index] = false
 	show_vehicle(index)

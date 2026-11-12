@@ -23,6 +23,7 @@ const HOME_PASSPORT := Rect2(30, 24, 260, 84)
 const PASSPORT_CLOSE := Rect2(1020, 24, 220, 84)
 const GARAGE_PAINT := Rect2(80, 650, 270, 56)
 const GARAGE_PLATE := Rect2(370, 650, 300, 56)
+const GARAGE_TUNING := Rect2(690, 650, 210, 56)
 const HOME_SETTINGS := Rect2(1000, 24, 250, 84)
 const COURSE_FUJI := Rect2(24, 150, 236, 440)
 const COURSE_SPEEDWAY := Rect2(272, 150, 236, 440)
@@ -185,6 +186,8 @@ func hit_button(action: String, pos: Vector2) -> bool:
 
 
 func handle_pointer(event: InputEvent) -> void:
+	if is_instance_valid(race.tuning_shop):
+		return
 	if event is InputEventMouseButton and event.button_index != MOUSE_BUTTON_LEFT:
 		return
 	var index: int = event.index if event is InputEventScreenTouch else -1
@@ -243,6 +246,9 @@ func handle_pointer(event: InputEvent) -> void:
 			race.navigate(race.close_settings)
 		return
 	if race.state == RaceState.READY:
+		if GARAGE_TUNING.has_point(p):
+			race.open_tuning()
+			return
 		if GARAGE_BACK.has_point(p):
 			if race.mode == "track":
 				race.navigate(race.open_courses)

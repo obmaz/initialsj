@@ -13,6 +13,21 @@ func _init(owner: Node3D) -> void:
 
 
 func handle(event: InputEvent) -> void:
+	if is_instance_valid(race.tuning_shop):
+		if Pad.is_pad_event(event):
+			race.pad.handle(event)
+			race.gamepad_active = true
+		race.tuning_shop.handle_input(event)
+		return
+	if (
+		event is InputEventKey
+		and event.pressed
+		and not event.echo
+		and event.keycode == KEY_T
+		and race.state == RaceState.READY
+	):
+		race.open_tuning()
+		return
 	if Pad.is_pad_event(event):
 		# State is always tracked, so a button released during a transition cannot stick.
 		if race.pad.handle(event):
@@ -161,6 +176,8 @@ func pad_pressed(button: int) -> void:
 					race.navigate(race.close_settings)
 		RaceState.READY:
 			match button:
+				JOY_BUTTON_DPAD_UP:
+					race.open_tuning()
 				JOY_BUTTON_X:
 					race.cycle_cosmetic()
 				JOY_BUTTON_BACK:
@@ -224,6 +241,9 @@ func pad_focus(button: int) -> void:
 
 # The left stick drives every menu like the D-pad, with a short repeat while held.
 func pad_stick_navigation(delta: float) -> void:
+	if is_instance_valid(race.tuning_shop):
+		race.nav_dir = ""
+		return
 	if race.state not in RaceState.MENUS or (race.screen_transition != null and race.screen_transition.busy):
 		race.nav_dir = ""
 		return

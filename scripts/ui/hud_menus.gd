@@ -287,5 +287,7 @@ func draw_garage() -> void:
 	]:
 		hud.slant(entry[0], Color("20374a"), 8)
 		hud.centered(entry[0].get_center() + Vector2(0, 7), entry[1], 19, hud.CYAN)
+	hud.slant(hud.GARAGE_TUNING, Color("183d4c"), 8)
+	hud.centered(hud.GARAGE_TUNING.get_center() + Vector2(0, 7), "TUNING / T", 22, hud.CYAN)
 	hud.slant(hud.GARAGE_START, color, 8)
 	hud.centered(Vector2(hud.GARAGE_START.get_center().x, 680), "DRIVE", 34, Color("07111e"))
