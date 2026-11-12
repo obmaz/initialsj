@@ -1,0 +1,143 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_1_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/vehicles/car.gd" id="7_nrteo"]
+[ext_resource type="Script" path="res://scripts/rendering/world_asset_preview.gd" id="61_dg3kd"]
+[ext_resource type="Material" path="res://models/shared/bridge_soffit.tres" id="MassSoffit"]
+[ext_resource type="Material" path="res://models/shared/bridge_soffit.tres" id="UnderpassConcrete"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_1_1/assembly/resources.tres::StandardMaterial3D_xxfb7" id="shared_StandardMaterial3D_xxfb7"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_1_1/assembly/resources.tres::StandardMaterial3D_eemql" id="shared_StandardMaterial3D_eemql"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_1_1/assembly/resources.tres::StandardMaterial3D_ym8xc" id="shared_StandardMaterial3D_ym8xc"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_1_1/assembly/resources.tres::StandardMaterial3D_a3n0j" id="shared_StandardMaterial3D_a3n0j"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_1_1/assembly/resources.tres::StandardMaterial3D_dxq48" id="shared_StandardMaterial3D_dxq48"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_1_1/assembly/resources.tres::StandardMaterial3D_s5vhl" id="shared_StandardMaterial3D_s5vhl"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_1_1/assembly/resources.tres::StandardMaterial3D_iqocq" id="shared_StandardMaterial3D_iqocq"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_1/assembly/resources.tres::MultiMesh_ojgwj" id="shared_MultiMesh_ojgwj"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_1_1/assembly/resources.tres::StandardMaterial3D_4nl6j" id="shared_StandardMaterial3D_4nl6j"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_1/assembly/resources.tres::MultiMesh_6uwdb" id="shared_MultiMesh_6uwdb"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_3_1_1/assembly/resources.tres::ShaderMaterial_r0mw4" id="shared_ShaderMaterial_r0mw4"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0421" type="Node3D" parent="." unique_id=260376140]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3305.3086, 6, 88.42447)
+
+[node name="Part0422" type="MeshInstance3D" parent="Part0421" unique_id=600133501]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.8, 4.3, 0)
+material_override = ExtResource("shared_StandardMaterial3D_xxfb7")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0193"
+
+[node name="Part0423" type="MeshInstance3D" parent="Part0421" unique_id=26318255]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.8, 0.25, 0)
+material_override = ExtResource("shared_StandardMaterial3D_eemql")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0194"
+
+[node name="Part0424" type="MeshInstance3D" parent="Part0421" unique_id=404018589]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.8, 8.85, 0)
+material_override = ExtResource("shared_StandardMaterial3D_ym8xc")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0195"
+
+[node name="Part0425" type="MeshInstance3D" parent="Part0421" unique_id=1816244877]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.8, 4.3, 0)
+material_override = ExtResource("shared_StandardMaterial3D_xxfb7")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0196"
+
+[node name="Part0426" type="MeshInstance3D" parent="Part0421" unique_id=250478024]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.8, 0.25, 0)
+material_override = ExtResource("shared_StandardMaterial3D_a3n0j")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0197"
+
+[node name="Part0427" type="MeshInstance3D" parent="Part0421" unique_id=763766198]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.8, 8.85, 0)
+material_override = ExtResource("shared_StandardMaterial3D_ym8xc")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0198"
+
+[node name="Part0428" type="MeshInstance3D" parent="Part0421" unique_id=1777784880]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.1, 0)
+material_override = ExtResource("shared_StandardMaterial3D_xxfb7")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0199"
+
+[node name="Part0429" type="MeshInstance3D" parent="Part0421" unique_id=684798430]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.2, 0)
+material_override = ExtResource("shared_StandardMaterial3D_dxq48")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0200"
+
+[node name="Part0430" type="MeshInstance3D" parent="Part0421" unique_id=860925288]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.2, -0.01)
+material_override = ExtResource("shared_StandardMaterial3D_s5vhl")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0201"
+
+[node name="EdgeStripLight" type="MultiMeshInstance3D" parent="Part0421" unique_id=1806607348]
+material_override = ExtResource("shared_StandardMaterial3D_iqocq")
+multimesh = ExtResource("shared_MultiMesh_ojgwj")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0202"
+
+[node name="EdgeStripDark" type="MultiMeshInstance3D" parent="Part0421" unique_id=976744364]
+material_override = ExtResource("shared_StandardMaterial3D_4nl6j")
+multimesh = ExtResource("shared_MultiMesh_6uwdb")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0202"
+
+[node name="Part0433" type="Label3D" parent="Part0421" unique_id=1207953639]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.2, 0.24)
+pixel_size = 0.0095
+modulate = Color(0.96862745, 0.9843137, 1, 1)
+text = "< CONTAINER PORT     BAMBOO PASS >"
+font_size = 110
+outline_size = 0
+
+[node name="ForkRoadArrows" type="MeshInstance3D" parent="." unique_id=439756917]
+material_override = ExtResource("shared_ShaderMaterial_r0mw4")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0203"
+
+[node name="GLBPreview" type="Node" parent="." unique_id=621131055]
+script = ExtResource("61_dg3kd")
+[node name="SkywayConcreteSoffit" type="MeshInstance3D" parent="."]
+material_override = ExtResource("MassSoffit")
+metadata/soffit_depth = 0.95
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#SkywayConcreteSoffit"
+
+[node name="UrbanUnderpass" type="MeshInstance3D" parent="."]
+material_override = ExtResource("UnderpassConcrete")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#UrbanUnderpass"
+
+[node name="SeoulPassenger0" type="Node3D" parent="."]
+transform = Transform3D(-0.5654654, 0.0022920575, -0.82476884, 0, 0.9999962, 0.0027790193, 0.82477206, 0.0015714392, -0.5654632, 1150.3406, 54.983437, -119.84261)
+script = ExtResource("7_nrteo")
+model = "hatch"
+paint = Color(0.8980392, 0.8627451, 0.7882353, 1)
+traffic = true
+metadata/parked_car = true
+
+[node name="SeoulPassenger1" type="Node3D" parent="."]
+transform = Transform3D(-0.5654634, 0.0023075778, -0.8247702, 0, 0.9999962, 0.0027978322, 0.82477343, 0.0015820718, -0.5654612, 1146.7224, 54.983437, -114.5635)
+script = ExtResource("7_nrteo")
+model = "wedge"
+paint = Color(0.39215687, 0.49411765, 0.57254905, 1)
+traffic = true
+metadata/parked_car = true
+
+[node name="SeoulPassenger2" type="Node3D" parent="."]
+transform = Transform3D(-0.47114217, 0.0016442966, -0.88205576, 0, 0.9999983, 0.0018641606, 0.8820573, 0.0008782847, -0.47114137, 1074.168, 56.290627, -168.41888)
+script = ExtResource("7_nrteo")
+model = "gt"
+paint = Color(0.63529414, 0.3019608, 0.23921569, 1)
+traffic = true
+metadata/parked_car = true
+
+[node name="SeoulPassenger3" type="Node3D" parent="."]
+transform = Transform3D(0.2715095, 0.0010505501, -0.9624352, 0, 0.9999994, 0.0010915535, 0.9624358, -0.00029636713, 0.27150935, 2105.823, 89.34068, -209.25203)
+script = ExtResource("7_nrteo")
+model = "hatch"
+paint = Color(0.7764706, 0.79607844, 0.8156863, 1)
+traffic = true
+metadata/parked_car = true
+
+[node name="SeoulPassenger4" type="Node3D" parent="."]
+transform = Transform3D(-0.040377125, 0.012846914, -0.99910194, 0, 0.9999173, 0.0128574, 0.9991845, 0.0005191449, -0.04037379, 3033.491, 6.241671, 84.75492)
+script = ExtResource("7_nrteo")
+model = "hatch"
+paint = Color(0.8980392, 0.8627451, 0.7882353, 1)
+traffic = true
+metadata/parked_car = true

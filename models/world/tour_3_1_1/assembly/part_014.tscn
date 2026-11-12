@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_1_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_3_1_1/assembly/resources.tres::ShaderMaterial_yclrh" id="shared_ShaderMaterial_yclrh"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_1/assembly/resources.tres::MultiMesh_xq1xm" id="shared_MultiMesh_xq1xm"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_1/assembly/resources.tres::MultiMesh_4mvdp" id="shared_MultiMesh_4mvdp"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_3_1_1/assembly/resources.tres::ShaderMaterial_kgxpt" id="shared_ShaderMaterial_kgxpt"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_1/assembly/resources.tres::MultiMesh_u67w5" id="shared_MultiMesh_u67w5"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0293" type="MultiMeshInstance3D" parent="." unique_id=607238009]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_xq1xm")
+metadata/mesh_ref = "res://models/props/gas_station/model.glb#Visual"
+
+[node name="Part0294" type="MultiMeshInstance3D" parent="." unique_id=420062838]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_4mvdp")
+metadata/mesh_ref = "res://models/props/convenience_store/model.glb#Visual"
+
+[node name="Part0295" type="MultiMeshInstance3D" parent="." unique_id=720715024 groups=["racing_advertisement"]]
+material_override = ExtResource("shared_ShaderMaterial_kgxpt")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_u67w5")
+metadata/ad_index = 43
+metadata/mesh_ref = "res://models/props/billboard/model.glb#Visual"
+

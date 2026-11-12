@@ -60,6 +60,10 @@ func run() -> void:
 		check(absf(profile.curve.get_baked_length() - profile.length) < .05, "GLB 코스 프로필의 길이: " + name)
 		var scene: Node3D = load(folder + "model.tscn").instantiate()
 		check(scene.get_meta(&"asset_schema") == 1, "코스 조립 계약 버전: " + name)
+		for part in scene.get_meta(&"assembly_parts", []):
+			check(resource.get_meta(&"dependencies").has(part.path), "작은 조립 씬도 미리 읽기 의존성에 포함한다")
+			var packed: PackedScene = load(part.path)
+			check(packed.get_state().get_node_count() <= 25, "조립 단위의 저장 노드는24개 이하로 제한한다")
 		Assets.geometry(scene)
 		var total := 0
 		for node in Assets.nodes(scene):
@@ -67,12 +71,23 @@ func run() -> void:
 			if node is MeshInstance3D or node is CPUParticles3D or node is MultiMeshInstance3D:
 				var mesh: Mesh = node.multimesh.mesh if node is MultiMeshInstance3D else node.mesh
 				check(
-					mesh is ArrayMesh and node.has_meta(&"mesh_ref"),
+					(
+						mesh is ArrayMesh
+						and (
+							node.has_meta(&"mesh_ref")
+							or (
+								mesh.resource_path.begins_with("res://models/")
+								and mesh.resource_path.contains(".glb::")
+							)
+						)
+					),
 					"코스 형상은 GLB의 메시여야 한다: " + name + "/" + str(node.name)
 				)
 				if mesh == null:
 					continue
-				var resolved := GeometryMap.resolve(node.get_meta(&"mesh_ref", ""))
+				var resolved := (
+					GeometryMap.resolve(node.get_meta(&"mesh_ref", "")) if node.has_meta(&"mesh_ref") else ""
+				)
 				if node is MultiMeshInstance3D and GeometryMap.shared(resolved.get_slice("#", 0)):
 					var key := resolved + GeometryMap.material_key(node.get_meta(&"surface_materials", []))
 					if shared_seen.has(key):
@@ -91,18 +106,21 @@ func run() -> void:
 	check(count == 48, "서킷5개·투어 진입 변형43개를 모두 검사한다")
 	check(shared_hits > 100 and Pool.shared_world_scenes.size() == 7, "공통 식생7종의 코스 간 공유를 검사한다")
 	check_material_variants()
-	for steps in [0, 3, 16, 64]:
-		var road := preload("res://scripts/track/road_section.gd").new(Vector3(0, 6, 0), -PI / 2, 1, 0)
-		road.staged = true
-		root.add_child(road)
-		road.build_some(0)
-		var context: Dictionary = road.asset_context
-		var temporary: WeakRef = weakref(context.root)
-		for step in range(steps):
+	for region in [Vector2i(1, 0), Vector2i(3, 1)]:
+		for steps in [0, 3, 16, 64]:
+			var road := preload("res://scripts/track/road_section.gd").new(
+				Vector3(0, 6, 0), -PI / 2, region.x, region.y
+			)
+			road.staged = true
+			root.add_child(road)
 			road.build_some(0)
-		road.free()
-		check(temporary.get_ref() == null and context.is_empty(), "단계별 생성 취소가 임시 씬과 메시 참조를 해제해야 한다")
-		await process_frame
+			var context: Dictionary = road.asset_context
+			var temporary: WeakRef = weakref(context.root)
+			for step in range(steps):
+				road.build_some(0)
+			road.free()
+			check(temporary.get_ref() == null and context.is_empty(), "단계별 생성 취소가 임시 씬과 메시 참조를 해제해야 한다")
+			await process_frame
 	var cached: WeakRef = weakref(Pool.shared_world_scenes.values()[0])
 	shared_seen.clear()
 	Pool.release_owner()

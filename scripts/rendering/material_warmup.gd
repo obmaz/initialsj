@@ -50,8 +50,16 @@ func add_mesh(mesh: Mesh, material: Material, surfaces: Array, instanced: bool, 
 	if mesh == null or mesh.get_surface_count() == 0:
 		return
 	var ids: Array = surfaces.map(func(m): return m.get_instance_id() if m != null else 0)
+	# 같은 재질이라도 서로 다른 메시의 첫 GPU 업로드를 각각 준비한다.
 	var key := str(
-		[mesh.surface_get_format(0), material.get_instance_id() if material != null else ids, instanced, color, custom]
+		[
+			mesh.get_instance_id(),
+			mesh.surface_get_format(0),
+			material.get_instance_id() if material != null else ids,
+			instanced,
+			color,
+			custom
+		]
 	)
 	if keys.has(key):
 		return

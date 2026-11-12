@@ -139,6 +139,12 @@ python3 tools/verify_repository.py
 
 `--prop convenience_store`, `--building city_twin_tower`로 모델을 골라 검사·미리보기 할 수 있습니다. 실척 격자에서 정면·측면·후면, 문·창·타이어·램프의 정렬을 확인합니다. 코스 변경은 실제 주행·분기·붕괴·낙석·복구 회귀 검사와 브라우저 렌더도 확인합니다. 해당 원본·해시 목록·생성물 무결성 기록·GLB·씬·정의·재질·이미지·`.import`·`.uid`·출처를 함께 커밋하고 보고서·캡처는 `build/reports/`에 둡니다. 라이선스와 원본의 출처는 유지합니다. 원본은 실행 참조가 없다는 이유로 정리하지 않습니다.
 
-서울 익스프레스의 숭례문·남산 타워·금빛63타워·서울 스카이 타워와 네온 카니발의 유리 회랑은 `models/props/`의 독립 팩입니다. [오프라인 배치 도구](../tools/author_tour_landmarks.gd)가 모든 진입 형상에 동일 거리로 연결합니다. 고가 하부 교대는 노면 위 통과 공간을 유지하고 하부 횡진입만 막습니다. [나무 크기 도구](../tools/vary_world_tree_sizes.py)는 코스 MultiMesh의 위치·공유 GLB를 유지하며180m 구역별 저장 스케일을 바꿉니다. 이미 적용한 파일은 중복 확대하지 않습니다. 날씨·시간대의 현재 제약은 [검토 문서](TRACK_WEATHER.md)를 따릅니다.
+서울 익스프레스의 숭례문·남산 타워·금빛63타워·서울 스카이 타워와 네온 카니발의 유리 회랑은 `models/props/`의 독립 팩입니다. [오프라인 배치 도구](../tools/author_tour_landmarks.gd)가 모든 진입 형상에 동일 거리로 연결합니다. 고가 하부 교대는 노면 위 통과 공간을 유지하고 하부 횡진입만 막습니다. [나무 크기 도구](../tools/vary_world_tree_sizes.py)는 코스 MultiMesh의 위치·공유 GLB를 유지하며180m 구역별 저장 스케일을 바꿉니다. 이미 적용한 파일은 중복 확대하지 않습니다. 날씨·시간대의 현재 적용 범위는 [환경 설정 문서](TRACK_WEATHER.md)를 따릅니다. 서울의63타워는2280m, 스카이 타워는3440m에 배치하며 [서울 배치 도구](../tools/refine_seoul_scene.gd)가3진입 변형을 함께 갱신합니다. 숭례문의 전용 석재·기와·단청 UV와 재질은 [팩 출처](../models/props/sungnyemun_gate/SOURCE.md)를 따릅니다.
 
 [서울 형상 제작 도구](../tools/bake_seoul_landmarks.py)는 기존 원본이 있으면 기본적으로 중단합니다. 의도적인 자체 제작 형상 재생성은 `--replace-generated`로 이전 원본을 SHA-256별 `build/reports/model-backups/`에 먼저 보존합니다. 새 팩의 최초 Godot 임포트 뒤 `--configure-imports`를 실행하고 다시 임포트하면 정점색·유리 투명 재질을 GLB 재질에 연결합니다. 기존 `.import`의 UID와 다른 옵션은 보존합니다.
+
+## 큰 조립 씬의 분할 준비
+
+서울3진입 변형은 `model.tscn`이 노드 연결 상태와 조립 목록을 소유하고, 같은 팩의 `assembly/resources.tres`가 공유 재질·MultiMesh를, `assembly/part_*.tscn`이24개 이하의 저장 노드를 소유합니다. [분할 도구](../tools/split_world_scene.py)는 기존 조립 씬을 백업하고 부모 경로·이름·좌표·자원 참조를 유지해 분리합니다. GLB나 노면을 수정하지 않습니다. 이미 분할한 씬은 다시 분할하지 않습니다.
+
+`WorldAssets`는 프레임 예산 안에서 작은 씬을 하나씩 원래 부모에 연결한 뒤 메시·상태·물리를 복원합니다. 편집할 때는 해당 노드가 있는 `assembly/part_*.tscn` 또는 공유 자원을 수정하며 원본 GLB는 기존 위치에서 편집합니다. 새 조립 단위를 추가하면 루트의 `assembly_parts`와 프로필 읽기 의존성을 함께 갱신합니다. 충돌 검사·생성기는 모든 조립 파일과 공유 자원의 해시를 포함합니다. 직접 형상을 검사하는 `WorldAssets.geometry()`도 같은 조립 목록을 즉시 복원합니다. 도중 취소는 부분 조립 루트와 미리 읽기를 모두 해제합니다.

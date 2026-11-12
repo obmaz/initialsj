@@ -1,0 +1,51 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_1_2/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/distant_ridges.gd" id="44_y3sej"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_3_1_2/assembly/resources.tres::ShaderMaterial_hgfl3" id="shared_ShaderMaterial_hgfl3"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_2/assembly/resources.tres::MultiMesh_x83v1" id="shared_MultiMesh_x83v1"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_3_1_2/assembly/resources.tres::ShaderMaterial_2n56v" id="shared_ShaderMaterial_2n56v"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_2/assembly/resources.tres::MultiMesh_io72o" id="shared_MultiMesh_io72o"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_3_1_2/assembly/resources.tres::ShaderMaterial_1q3kw" id="shared_ShaderMaterial_1q3kw"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_2/assembly/resources.tres::MultiMesh_6cfum" id="shared_MultiMesh_6cfum"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_3_1_2/assembly/resources.tres::ShaderMaterial_hwftg" id="shared_ShaderMaterial_hwftg"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_2/assembly/resources.tres::MultiMesh_n7sks" id="shared_MultiMesh_n7sks"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0296" type="Node3D" parent="." unique_id=1853015418]
+script = ExtResource("44_y3sej")
+metadata/scene_state = {
+"positions": [Vector3(-150.44844, -5, -625.47906), Vector3(-118.40757, -5, -672.81195), Vector3(-86.411415, -5, -668.3507), Vector3(-54.510216, -5, -553.8912), Vector3(-22.449884, -5, -623.7628), Vector3(11.52109, -5, -567.4544), Vector3(81.85945, -5, -720.92535), Vector3(152.41345, -5, -548.7858), Vector3(245.29398, -5, -554.76855), Vector3(358.5974, -5, -629.52686), Vector3(363.70914, -5, -471.37762), Vector3(456.94214, -5, -616.4104), Vector3(453.20886, -5, -641.4267), Vector3(343.67087, -5, -461.50934), Vector3(269.5604, -5, -614.0641), Vector3(203.6207, -5, -539.08856), Vector3(210.61551, -5, -461.25745), Vector3(187.43872, -5, -638.8794), Vector3(220.02698, -5, -635.5941), Vector3(292.2481, -5, -510.9897), Vector3(305.95038, -5, -625.33936), Vector3(353.825, -5, -645.18945), Vector3(423.4267, -5, -585.2127), Vector3(469.76544, -5, -688.17163), Vector3(537.4559, -5, -714.2806), Vector3(610.4941, -5, -706.4997), Vector3(680.0789, -5, -534.97516), Vector3(764.46216, -5, -697.12286), Vector3(817.391, -5, -546.70807), Vector3(895.0014, -5, -571.45123), Vector3(980.4784, -5, -610.0158), Vector3(1012.34204, -5, -485.96982), Vector3(1085.6124, -5, -488.33847), Vector3(1133.5233, -5, -438.53265), Vector3(1211.6637, -5, -444.9267), Vector3(1235.9458, -5, -367.8222), Vector3(1283.4377, -5, -330.5414), Vector3(1386.794, -5, -362.69412), Vector3(1461.1715, -5, -352.93195), Vector3(1442.732, -5, -246.21024), Vector3(1462.6923, -5, -185.49422), Vector3(1498.1497, -5, -142.17676), Vector3(621.1157, -5, 676.2866), Vector3(620.9677, -5, 589.24634), Vector3(598.905, -5, 657.4893), Vector3(580.2283, -5, 677.19965), Vector3(600.60004, -5, 586.45465), Vector3(592.92664, -5, 593.1158), Vector3(569.8041, -5, 628.7863), Vector3(610.39343, -5, 551.8788), Vector3(571.0243, -5, 613.99054), Vector3(600.0632, -5, 572.9959), Vector3(508.63602, -5, 690.801), Vector3(621.729, -5, 559.11865), Vector3(558.26733, -5, 631.81726), Vector3(592.3633, -5, 603.5322), Vector3(515.77826, -5, 674.6607), Vector3(600.09674, -5, 611.59656), Vector3(649.2555, -5, 585.60095), Vector3(594.8394, -5, 635.75586), Vector3(658.6365, -5, 611.3026), Vector3(531.1363, -5, 706.8441), Vector3(654.2276, -5, 660.07074), Vector3(600.6321, -5, 721.79333), Vector3(725.3559, -5, 691.4153), Vector3(665.5468, -5, 772.94324), Vector3(770.75214, -5, 765.8752), Vector3(1620.7344, -5, -66.1673), Vector3(1571.486, -5, -65.26068), Vector3(1521.423, -5, 43.09955), Vector3(1493.918, -5, 61.718994), Vector3(1482.9326, -5, 118.76599), Vector3(1471.965, -5, 111.03339), Vector3(1453.967, -5, 51.556396), Vector3(1464.4004, -5, 65.74231), Vector3(1451.033, -5, -14.691101), Vector3(1462.0438, -5, -55.29773), Vector3(1551.1245, -5, 80.003235), Vector3(1532.1602, -5, -98.142395), Vector3(1617.3137, -5, -11.000977), Vector3(1864.3627, -5, -88.21521), Vector3(1936.51, -5, -58.034058), Vector3(2004.3276, -5, -31.669617), Vector3(2077.1953, -5, -89.995605), Vector3(2143.701, -5, -63.08429), Vector3(2195.5313, -5, 28.064392), Vector3(2306.1746, -5, -150.4367), Vector3(2360.439, -5, -87.908875), Vector3(2422.326, -5, -58.537415), Vector3(2456.7651, -5, 29.794678), Vector3(2554.571, -5, -27.378052), Vector3(2610.7263, -5, 12.501099), Vector3(2673.249, -5, 39.866455), Vector3(2714.756, -5, 100.60693), Vector3(2772.1467, -5, 138.29083), Vector3(2728.214, -5, 290.64487), Vector3(2836.8948, -5, 265.7268), Vector3(2869.7148, -5, 322.10852), Vector3(2911.2856, -5, 367.26428), Vector3(3033.8833, -5, 347.49982), Vector3(1991.3479, -5, 1079.4895), Vector3(2008.3108, -5, 1094.5969), Vector3(1991.3591, -5, 1129.5605), Vector3(2010.3423, -5, 1113.7866), Vector3(1982.4448, -5, 1145.7595), Vector3(2020.1823, -5, 1155.6992), Vector3(2105.5295, -5, 1222.6028), Vector3(2051.975, -5, 1302.5618), Vector3(2055.853, -5, 1356.1451), Vector3(2018.1123, -5, 1451.4114), Vector3(2146.9065, -5, 1431.2229), Vector3(2226.1648, -5, 1449.2133), Vector3(2240.067, -5, 1531.2357), Vector3(2269.2168, -5, 1611.2145), Vector3(2386.7166, -5, 1588.9045), Vector3(2423.5068, -5, 1671.3398), Vector3(2525.687, -5, 1663.7852), Vector3(2565.4063, -5, 1764.4111), Vector3(2606.067, -5, 1795.6677), Vector3(2604.476, -5, 1865.609), Vector3(2638.812, -5, 1856.1428), Vector3(2711.655, -5, 1759.9473), Vector3(2687.3008, -5, 1907.2408), Vector3(2781.6335, -5, 1757.338), Vector3(2807.4644, -5, 1778.8997), Vector3(2776.2412, -5, 1943.3889), Vector3(2806.2039, -5, 1954.647), Vector3(2852.9683, -5, 1923.7883)],
+"scenery": {
+&"$node": NodePath("Part0200")
+},
+"sprite_batch": null,
+"widths": [32.489597, 57.89668, 50.968006, 33.62774, 61.959534, 54.41423, 51.839157, 59.277184, 37.592346, 61.245865, 37.63793, 43.04949, 32.27835, 36.744198, 42.355385, 54.858833, 33.236443, 37.674812, 47.650146, 51.521706, 55.35981, 41.80612, 44.580986, 56.351982, 35.233753, 50.947723, 55.777473, 45.899605, 41.360916, 55.907604, 36.547466, 61.172745, 47.925064, 32.05867, 40.49449, 43.535324, 42.13465, 40.030117, 40.3547, 45.68659, 45.47259, 56.767754, 49.014427, 44.041855, 36.637413, 34.16743, 37.788845, 58.04438, 59.219307, 45.220516, 52.51189, 38.941334, 32.939907, 49.22119, 48.215515, 44.646633, 57.784332, 32.002827, 34.29977, 52.172302, 52.364544, 60.231014, 60.26623, 34.64255, 40.073654, 32.29477, 36.527424, 37.878838, 48.03796, 48.96691, 52.62936, 47.71013, 35.113556, 42.011997, 54.42771, 36.610687, 48.953743, 57.694042, 48.49464, 54.702736, 32.93041, 56.954872, 60.249245, 58.72738, 55.310062, 39.48784, 45.770046, 37.48032, 45.538597, 37.69558, 43.744724, 58.279343, 53.037712, 49.34405, 57.155113, 47.32414, 54.657925, 35.517643, 35.906105, 50.88469, 45.66597, 47.128937, 43.05385, 47.36383, 34.790417, 51.983444, 44.674187, 57.584473, 45.59312, 40.295715, 46.647354, 54.630157, 35.731476, 40.500633, 42.181213, 44.553993, 35.61451, 36.03359, 44.109478, 46.76131, 49.25007, 52.533966, 37.43908, 59.08924, 40.798035, 34.482944, 61.99666, 42.076244]
+}
+
+[node name="DistantBuildings3D_0" type="MultiMeshInstance3D" parent="Part0296" unique_id=1060494821]
+material_override = ExtResource("shared_ShaderMaterial_hgfl3")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_x83v1")
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0163"
+
+[node name="DistantBuildings3D_1" type="MultiMeshInstance3D" parent="Part0296" unique_id=1825304574]
+material_override = ExtResource("shared_ShaderMaterial_2n56v")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_io72o")
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0164"
+
+[node name="DistantBuildings3D_2" type="MultiMeshInstance3D" parent="Part0296" unique_id=1728248466]
+material_override = ExtResource("shared_ShaderMaterial_1q3kw")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_6cfum")
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0165"
+
+[node name="DistantBuildings3D_3" type="MultiMeshInstance3D" parent="Part0296" unique_id=1556369664]
+material_override = ExtResource("shared_ShaderMaterial_hwftg")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_n7sks")
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0166"
+

@@ -37,6 +37,9 @@ def check(root=ROOT):
                 "res://" + profile.relative_to(root).as_posix(),
                 "res://" + (folder / "model.tscn").relative_to(root).as_posix(),
             }
+            required.update("res://" + path.relative_to(root).as_posix()
+                            for path in (folder / "assembly").glob("*")
+                            if path.suffix in (".tres", ".tscn"))
             if not required.issubset(metadata["inputs"]):
                 raise ValueError("해당 코스·공통 생성 코드의 필수 입력 누락")
             for uri, expected in metadata["inputs"].items():

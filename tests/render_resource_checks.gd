@@ -20,6 +20,15 @@ func run(tree: SceneTree) -> int:
 	check(Pool.owners == 0, "독립 검사 시작 시 이전 게임 씬의 소유권이 남으면 안 된다")
 	Ads.clear_cache()
 	Props.clear_cache()
+	var warmup := preload("res://scripts/rendering/material_warmup.gd").new()
+	var mesh_a := Pool.unit_box()
+	var mesh_b := mesh_a.duplicate() as ArrayMesh
+	var common_material := StandardMaterial3D.new()
+	warmup.add_mesh(mesh_a, common_material, [], false, false, false)
+	warmup.add_mesh(mesh_b, common_material, [], false, false, false)
+	warmup.add_mesh(mesh_a, common_material, [], false, false, false)
+	check(warmup.jobs.size() == 2, "같은 재질의 다른 메시도 GPU 미리 준비에 포함하며 같은 메시 중복은 제거한다")
+	warmup.free()
 	var first := Ads.material(0)
 	check(
 		(

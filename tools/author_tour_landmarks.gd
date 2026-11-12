@@ -49,8 +49,8 @@ func run() -> void:
 			for landmark in [
 				["sungnyemun_gate", 620.0, 0.0],
 				["namsan_tower", 1350.0, -260.0],
-				["golden_63_tower", 920.0, 160.0],
-				["seoul_sky_tower", 2420.0, 330.0]
+				["golden_63_tower", 2280.0, 160.0],
+				["seoul_sky_tower", 3440.0, 330.0]
 			]:
 				var name: String = landmark[0]
 				resources += (

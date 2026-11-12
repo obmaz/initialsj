@@ -31,6 +31,9 @@ func inputs_for(road: Node3D) -> Dictionary:
 	var paths: Array[String] = []
 	paths.assign(INPUTS)
 	paths.append_array([Assets.folder(road) + "model.tscn", Assets.folder(road) + "profile.tres"])
+	for path in road.asset_paths:
+		if path.begins_with(Assets.folder(road) + "assembly/") and not paths.has(path):
+			paths.append(path)
 	for node in Assets.nodes(road):
 		if not (
 			node == road.road_surface

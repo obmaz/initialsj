@@ -104,17 +104,21 @@ func stage_world_collision(section: Section) -> void:
 	if ResourceLoader.exists(preload("res://scripts/rendering/world_assets.gd").folder(section) + "collision.res"):
 		var saved := Collision.saved_root(section)
 		section.add_child(saved)
-		section.queue_next(
-			[
-				func(): Collision.add_saved_body(saved, true),
-				func(): Collision.add_saved_body(saved, false),
-				func():
-					Collision.convert_trucks(section)
-					section.move_child(saved, section.get_child_count() - 1),
-				func(): preload("res://scripts/environment/roadside_guidance.gd").attach(section),
-				func(): warm_section(section)
-			]
-		)
+		var steps: Array[Callable] = [
+			func(): Collision.add_saved_body(saved, true), func(): Collision.add_saved_body(saved, false)
+		]
+		# 일반 교통 차량의 물리 연결을 한 프레임에 몰아서 생성하지 않는다.
+		for child in section.get_children():
+			if (
+				(child.get_meta("parked_truck", false) or child.get_meta("parked_car", false))
+				and not child is CharacterBody3D
+				and not child.get_meta("traffic_converted", false)
+			):
+				steps.append(func(): Collision.make_traffic(section, child))
+		steps.append(func(): section.move_child(saved, section.get_child_count() - 1))
+		steps.append(func(): preload("res://scripts/environment/roadside_guidance.gd").attach(section))
+		steps.append(func(): warm_section(section))
+		section.queue_next(steps)
 		return
 	var state := {}
 	var steps: Array[Callable] = [func(): state.merge(Collision.begin(section))]

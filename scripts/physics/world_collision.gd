@@ -42,7 +42,7 @@ static func build(section: Node3D, use_saved: bool = true) -> Node3D:
 		var root := saved_root(section)
 		add_saved_body(root, true)
 		add_saved_body(root, false)
-		convert_trucks(section)
+		convert_traffic(section)
 		return root
 	var state := begin(section)
 	while not walls(section, state, section.length):
@@ -92,18 +92,21 @@ static func begin(section: Node3D) -> Dictionary:
 		):
 			append_mesh(ground, child.mesh, relative * child.global_transform)
 	collect_scenery(section.scenery, section, ground, barriers)
-	convert_trucks(section)
+	convert_traffic(section)
 	var template := Pool.unit_box()
 	# 단위 상자의 삼각형은 한 번만 꺼내 모든 장벽 조각이 재사용한다.
 	return {"root": root, "ground": ground, "walls": barriers, "unit": template.get_faces(), "distance": 0.0}
 
 
-static func convert_trucks(section: Node3D) -> void:
+static func convert_traffic(section: Node3D) -> void:
 	for child in section.get_children():
-		if child.get_meta("parked_truck", false) and not child.get_meta("traffic_converted", false):
+		if (
+			(child.get_meta("parked_truck", false) or child.get_meta("parked_car", false))
+			and not child.get_meta("traffic_converted", false)
+		):
 			if child is CharacterBody3D:
 				continue
-			make_truck_traffic(section, child)
+			make_traffic(section, child)
 
 
 # 장벽 상자를 span 미터만큼 이어 붙인다. 끝까지 만들었으면 true.
@@ -169,23 +172,24 @@ static func collect_scenery(node: Node, section: Node3D, ground: PackedVector3Ar
 		collect_scenery(child, section, ground, walls)
 
 
-# 기존 GLB 트럭 외형을 유지하고 차체·이동·충격은 일반 교통 차량과 공유한다.
-static func make_truck_traffic(section: Node3D, visual: Node3D) -> void:
+# 기존 GLB 외형에 교통 차체를 연결한다. 승용차와 트럭은 크기·순항 속도만 다르다.
+static func make_traffic(section: Node3D, visual: Node3D) -> void:
 	visual.set_meta("traffic_converted", true)
 	var motor := preload("res://scripts/race/tour_traffic.gd").new()
-	motor.name = "TruckTrafficBody"
-	motor.set_meta("parked_truck", true)
+	var passenger: bool = visual.get_meta("parked_car", false)
+	motor.name = "PassengerTrafficBody" if passenger else "TruckTrafficBody"
+	motor.set_meta("parked_car" if passenger else "parked_truck", true)
 	motor.road = section
 	motor.visual = visual
-	motor.cruise_speed = 12
+	motor.cruise_speed = 18 if passenger else 12
 	motor.distance = section.curve.get_closest_offset(visual.global_position)
 	var right: Vector3 = (section.point(motor.distance, 1) - section.point(motor.distance)).normalized()
 	motor.lane = (visual.global_position - section.point(motor.distance)).dot(right)
-	motor.contact_shape.shape.size = Vector3(2.7, 3.5, 11.0)
-	motor.contact_shape.position.y = 1.1
+	motor.contact_shape.shape.size = Vector3(2.05, 1.5, 4.5) if passenger else Vector3(2.7, 3.5, 11.0)
+	motor.contact_shape.position.y = 0.0 if passenger else 1.1
 	var nearest := INF
 	for feature in section.features:
-		if feature.kind == "truck" and absf(float(feature.distance) - motor.distance) < 30:
+		if feature.kind == ("car" if passenger else "truck") and absf(float(feature.distance) - motor.distance) < 30:
 			var score := absf(float(feature.distance) - motor.distance) + absf(float(feature.lane) - motor.lane) * 8
 			if score < nearest:
 				nearest = score

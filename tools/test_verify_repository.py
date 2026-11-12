@@ -25,6 +25,16 @@ class RepositoryChecks(unittest.TestCase):
         path.write_text(source, encoding="utf-8")
         return path
 
+    def test_shared_subresource_file_and_missing_id(self):
+        self.write("models/world/urban/assembly/resources.tres",
+                   '[gd_resource type="Resource" format=3]\n[sub_resource type="StandardMaterial3D" id="wall"]\n')
+        source = '\n'.join(['"res://models/world/urban/assembly/resources.tres::wall"',
+                            '"res://models/world/urban/assembly/resources.tres::absent"'])
+        self.assertEqual(verify.resource_refs(source),
+                         ["models/world/urban/assembly/resources.tres"] * 2)
+        self.assertEqual(verify.errors,
+                         ["Missing subresource: models/world/urban/assembly/resources.tres::absent"])
+
     def test_missing_and_orphan_sidecars(self):
         self.write("scripts/physics/car.gd", "extends RefCounted\n")
         self.write("assets/unused.png.import", "")

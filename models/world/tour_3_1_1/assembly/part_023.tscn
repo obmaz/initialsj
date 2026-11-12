@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_1_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="PackedScene" path="res://models/props/sungnyemun_gate/model.tscn" id="seoul0"]
+[ext_resource type="PackedScene" path="res://models/props/namsan_tower/model.tscn" id="seoul1"]
+[ext_resource type="PackedScene" path="res://models/props/golden_63_tower/model.tscn" id="seoul2"]
+[ext_resource type="PackedScene" path="res://models/props/seoul_sky_tower/model.tscn" id="seoul3"]
+[ext_resource type="Material" path="res://models/props/skyway_abutment/material.tres" id="abutment_color"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_1/assembly/resources.tres::SkywayAbutments" id="shared_SkywayAbutments"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0399" type="Label3D" parent="." unique_id=1756815520]
+transform = Transform3D(-0.12601583, 0, -0.99202824, 0, 1, 0, 0.99202824, 0, -0.12601583, 1511.7816, 46.809727, 103.514984)
+pixel_size = 0.009
+text = "TUNNEL / 380 m"
+font_size = 72
+
+[node name="TourLandmarks" type="Node3D" parent="."]
+[node name="sungnyemun_gate" parent="TourLandmarks" instance=ExtResource("seoul0")]
+transform = Transform3D(0.4394576, 0, -0.89826334, 0, 1, 0, 0.89826334, 0, 0.4394576, 558.22455, 54.4748, -190.89354)
+[node name="namsan_tower" parent="TourLandmarks" instance=ExtResource("seoul1")]
+transform = Transform3D(-0.62719977, 0, -0.7788584, 0, 1, 0, 0.7788584, 0, -0.62719977, 1394.1044, 63.14313, -257.52585)
+[node name="golden_63_tower" parent="TourLandmarks" instance=ExtResource("seoul2")]
+transform = Transform3D(0.44149625, 0, -0.8972631, 0, 1, 0, 0.8972631, 0, 0.44149625, 2086.9392, 98.83918, -37.14145)
+[node name="seoul_sky_tower" parent="TourLandmarks" instance=ExtResource("seoul3")]
+transform = Transform3D(0.017278245, 0, -0.9998507, 0, 1, 0, 0.9998507, 0, 0.017278245, 3084.4883, 6.0001454, 418.83707)
+[node name="SkywayAbutments" type="MultiMeshInstance3D" parent="TourLandmarks"]
+material_override = ExtResource("abutment_color")
+multimesh = ExtResource("shared_SkywayAbutments")
+metadata/mesh_ref = "res://models/props/skyway_abutment/model.glb#Model/Visual"
+metadata/world_barrier = true
+metadata/collision_transforms = Array[Transform3D]([Transform3D(-5.0254087, 0, -6.730918, 0, 0.8221192999999999, 0, 6.730918, 0, -5.0254087, 2711.3157, 47.753307, -60.54726), Transform3D(-5.0221124, 0, -6.7333784, 0, 1.7534352000000002, 0, 6.7333784, 0, -5.0221124, 2717.5278, 45.782402, -55.91039), Transform3D(-5.014583, 0, -6.7389874, 0, 2.7072164, 0, 6.7389874, 0, -5.014583, 2723.7278, 43.740337, -51.29089), Transform3D(-5.0037646, 0, -6.747024, 0, 3.5960820000000004, 0, 6.747024, 0, -5.0037646, 2729.9211, 41.646687, -46.688522), Transform3D(-4.987521, 0, -6.7590404, 0, 4.332649999999999, 0, 6.7590404, 0, -4.987521, 2736.114, 39.51228, -42.107807), Transform3D(-4.9671364, 0, -6.774035, 0, 4.8295394, 0, 6.774035, 0, -4.9671364, 2742.3118, 37.358166, -37.546375), Transform3D(-4.94385, 0, -6.7910485, 0, 5.0, 0, 6.7910485, 0, -4.94385, 2748.5244, 35.20036, -33.00888), Transform3D(-4.913137, 0, -6.813302, 0, 5.0, 0, 6.813302, 0, -4.913137, 2754.7546, 33.057434, -28.493587), Transform3D(-4.88247, 0, -6.835311, 0, 5.0, 0, 6.835311, 0, -4.88247, 2761.015, 30.95255, -24.002531), Transform3D(-4.8405437, 0, -6.8650656, 0, 5.0, 0, 6.8650656, 0, -4.8405437, 2767.3064, 28.903118, -19.537054), Transform3D(-4.801567, 0, -6.892383, 0, 5.0, 0, 6.892383, 0, -4.801567, 2773.6433, 26.936127, -15.096266), Transform3D(-4.7488317, 0, -6.928823, 0, 5.0, 0, 6.928823, 0, -4.7488317, 2780.0256, 25.074837, -10.685339), Transform3D(-4.7006936, 0, -6.9615707, 0, 5.0, 0, 6.9615707, 0, -4.7006936, 2786.4653, 23.343391, -6.30208), Transform3D(-4.638755, 0, -7.0029955, 0, 5.0, 0, 7.0029955, 0, -4.638755, 2792.9656, 21.780539, -1.9549484), Transform3D(-4.579656, 0, -7.0417857, 0, 5.0, 0, 7.0417857, 0, -4.579656, 2799.5288, 20.39591, 2.3594031), Transform3D(-4.515639, 0, -7.083008, 0, 5.0, 0, 7.083008, 0, -4.515639, 2806.167, 19.258276, 6.627752), Transform3D(-4.4373035, 0, -7.132344, 0, 5.0, 0, 7.132344, 0, -4.4373035, 2812.8633, 18.342579, 10.84679), Transform3D(-4.3650017, 0, -7.1768208, 0, 5.0, 0, 7.1768208, 0, -4.3650017, 2819.6238, 17.611746, 15.004698), Transform3D(-4.274895, 0, -7.230855, 0, 5.0, 0, 7.230855, 0, -4.274895, 2826.4302, 16.952381, 19.086517), Transform3D(-4.1928473, 0, -7.278738, 0, 5.0, 0, 7.278738, 0, -4.1928473, 2833.286, 16.314917, 23.094486), Transform3D(-4.1026926, 0, -7.3299327, 0, 5.0, 0, 7.3299327, 0, -4.1026926, 2840.1929, 15.695068, 27.010391), Transform3D(-4.001056, 0, -7.385902, 0, 5.0, 0, 7.385902, 0, -4.001056, 2847.144, 15.090868, 30.841183), Transform3D(-3.9058495, 0, -7.4366884, 0, 5.0, 0, 7.4366884, 0, -3.9058495, 2854.1516, 14.504351, 34.576687), Transform3D(-3.7896562, 0, -7.496566, 0, 5.0, 0, 7.496566, 0, -3.7896562, 2861.2043, 13.935065, 38.21151), Transform3D(-3.6856217, 0, -7.548257, 0, 5.0, 0, 7.548257, 0, -3.6856217, 2868.3127, 13.38278, 41.75062), Transform3D(-3.5712924, 0, -7.603017, 0, 4.981312999999999, 0, 7.603017, 0, -3.5712924, 2875.4749, 12.849662, 45.174572), Transform3D(-3.44729, 0, -7.660038, 0, 4.683401, 0, 7.660038, 0, -3.44729, 2882.683, 12.333644, 48.493607), Transform3D(-3.331279, 0, -7.711198, 0, 4.089957999999999, 0, 7.711198, 0, -3.331279, 2889.9502, 11.837001, 51.694187), Transform3D(-3.1913006, 0, -7.7701735, 0, 3.2883636000000003, 0, 7.7701735, 0, -3.1913006, 2897.2605, 11.358887, 54.77439), Transform3D(-3.0672772, 0, -7.819962, 0, 2.3659998, 0, 7.819962, 0, -3.0672772, 2904.6272, 10.899235, 57.738487), Transform3D(-2.9305854, 0, -7.8722086, 0, 1.4102481, 0, 7.8722086, 0, -2.9305854, 2912.0432, 10.460069, 60.566975), Transform3D(-2.7875595, 0, -7.923983, 0, 0.5084896, 0, 7.923983, 0, -2.7875595, 2919.5037, 10.039203, 63.273308)])
+

@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_1_0/assembly/resources.tres" id="assembly"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_3_1_0/assembly/resources.tres::ShaderMaterial_yclrh" id="shared_ShaderMaterial_yclrh"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_0/assembly/resources.tres::MultiMesh_2ubvk" id="shared_MultiMesh_2ubvk"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_0/assembly/resources.tres::MultiMesh_axf3l" id="shared_MultiMesh_axf3l"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_3_1_0/assembly/resources.tres::ShaderMaterial_s46ig" id="shared_ShaderMaterial_s46ig"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_1_0/assembly/resources.tres::MultiMesh_ervjr" id="shared_MultiMesh_ervjr"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0288" type="MultiMeshInstance3D" parent="." unique_id=1495120320]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_2ubvk")
+metadata/mesh_ref = "res://models/props/gas_station/model.glb#Visual"
+
+[node name="Part0289" type="MultiMeshInstance3D" parent="." unique_id=530140549]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_axf3l")
+metadata/mesh_ref = "res://models/props/convenience_store/model.glb#Visual"
+
+[node name="Part0290" type="MultiMeshInstance3D" parent="." unique_id=1560922914 groups=["racing_advertisement"]]
+material_override = ExtResource("shared_ShaderMaterial_s46ig")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ervjr")
+metadata/ad_index = 13
+metadata/mesh_ref = "res://models/props/billboard/model.glb#Visual"
+

@@ -1,0 +1,262 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_1_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/regional_props_3d.gd" id="32_und84"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="RegionalForeground3D" type="Node3D" parent="." unique_id=415787914]
+script = ExtResource("32_und84")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Regional3D_apartment_0")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Regional3D_billboard_0")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Regional3D_bus_shelter_0")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Regional3D_street_shop_0")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0273")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0274")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Regional3D_convenience_store_0")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0276")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0277")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0278")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Regional3D_gas_station_0")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0280")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0281")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0282")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0283")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0284")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0285")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0286")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0287")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0288")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0289")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0290")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0291")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0292")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0293")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0294")
+}, {
+&"$node": NodePath("Part0200/Part0267/RegionalForeground3D/Part0295")
+}],
+"kinds": ["apartment", "billboard", "bus_shelter", "street_shop", "convenience_store", "gas_station"],
+"placements": [{
+"distance": 243.36961460113525,
+"kind": "apartment",
+"position": Vector3(238.07043, 7.16558, -52.469707),
+"scale": 1.0026122,
+"variant": 0,
+"yaw": 0.10267163105429232
+}, {
+"distance": 355.6748957633972,
+"kind": "billboard",
+"position": Vector3(356.758, 12.654414, -29.211767),
+"scale": 1.08,
+"variant": 3,
+"yaw": -1.3092795053502329
+}, {
+"distance": 389.6193180084229,
+"kind": "bus_shelter",
+"position": Vector3(363.1603, 18.565205, -76.152504),
+"scale": 0.8827446,
+"variant": 4,
+"yaw": -0.6994430377697478
+}, {
+"distance": 431.7979326248169,
+"kind": "street_shop",
+"position": Vector3(425.7749, 30.880749, -60.746338),
+"scale": 0.97,
+"variant": 5,
+"yaw": -2.487541608876061
+}, {
+"distance": 655.7392866611481,
+"kind": "billboard",
+"position": Vector3(602.91284, 54.241405, -175.98476),
+"scale": 1.0585886,
+"variant": 3,
+"yaw": -1.5623540356303385
+}, {
+"distance": 848.3318448066711,
+"kind": "apartment",
+"position": Vector3(778.6894, 55.205956, -300.642),
+"scale": 0.97,
+"variant": 0,
+"yaw": -0.00129331979347924
+}, {
+"distance": 926.2060751914978,
+"kind": "convenience_store",
+"position": Vector3(865.1863, 56.24307, -298.36835),
+"scale": 0.97,
+"variant": 2,
+"yaw": -0.14425315748262357
+}, {
+"distance": 957.360101222992,
+"kind": "billboard",
+"position": Vector3(880.43774, 56.014362, -198.91083),
+"scale": 1.0566816,
+"variant": 3,
+"yaw": -2.1481799167610056
+}, {
+"distance": 999.7011942863464,
+"kind": "bus_shelter",
+"position": Vector3(936.0561, 57.877583, -251.23798),
+"scale": 1.2361082,
+"variant": 4,
+"yaw": -2.0066889186924906
+}, {
+"distance": 1040.3502163887024,
+"kind": "street_shop",
+"position": Vector3(949.7142, 64.55765, -160.24367),
+"scale": 0.9873582,
+"variant": 5,
+"yaw": -3.4676692175653483
+}, {
+"distance": 1079.8590660095217,
+"kind": "gas_station",
+"position": Vector3(1029.1356, 62.680256, -260.03726),
+"scale": 0.99591887,
+"variant": 6,
+"yaw": -0.3838819666646726
+}, {
+"distance": 1269.2553367614746,
+"kind": "billboard",
+"position": Vector3(1154.9485, 55.10451, -86.801186),
+"scale": 1.0058417,
+"variant": 3,
+"yaw": -2.479049435637622
+}, {
+"distance": 1571.888816356659,
+"kind": "billboard",
+"position": Vector3(1400.4547, 31.843151, 89.63539),
+"scale": 1.08,
+"variant": 3,
+"yaw": -2.387042033316313
+}, {
+"distance": 2182.539101600647,
+"kind": "billboard",
+"position": Vector3(1949.6494, 89.11906, -108.54726),
+"scale": 0.97,
+"variant": 3,
+"yaw": -1.2952450321066675
+}, {
+"distance": 2365.411196708679,
+"kind": "apartment",
+"position": Vector3(2077.919, 89.76959, -267.5508),
+"scale": 1.0619531,
+"variant": 0,
+"yaw": 0.2935891572441198
+}, {
+"distance": 2441.3787693977356,
+"kind": "convenience_store",
+"position": Vector3(2158.8733, 88.70911, -292.35922),
+"scale": 1.08,
+"variant": 2,
+"yaw": 0.15443066192606314
+}, {
+"distance": 2480.4825472831726,
+"kind": "billboard",
+"position": Vector3(2209.9585, 84.73598, -205.47537),
+"scale": 0.97,
+"variant": 3,
+"yaw": -1.8405878401622768
+}, {
+"distance": 2523.2795696258545,
+"kind": "bus_shelter",
+"position": Vector3(2249.3882, 79.309715, -261.55334),
+"scale": 1.0481709,
+"variant": 4,
+"yaw": -1.859329890680276
+}, {
+"distance": 2560.6745262145996,
+"kind": "street_shop",
+"position": Vector3(2284.865, 74.40982, -185.86426),
+"scale": 0.97,
+"variant": 5,
+"yaw": -3.182564252970911
+}, {
+"distance": 2593.499208211899,
+"kind": "gas_station",
+"position": Vector3(2326.1167, 69.54384, -305.0351),
+"scale": 1.08,
+"variant": 6,
+"yaw": -0.09310441668395252
+}, {
+"distance": 2788.1064682006836,
+"kind": "billboard",
+"position": Vector3(2497.4297, 62.1746, -163.23718),
+"scale": 1.052304,
+"variant": 3,
+"yaw": -2.2808748789265145
+}, {
+"distance": 3088.785190343857,
+"kind": "billboard",
+"position": Vector3(2741.1582, 31.771143, -3.3098202),
+"scale": 1.0640787,
+"variant": 3,
+"yaw": -2.573515552009883
+}, {
+"distance": 3125.912697315216,
+"kind": "bus_shelter",
+"position": Vector3(2800.6758, 22.778368, -25.808413),
+"scale": 0.8330072,
+"variant": 4,
+"yaw": -2.193651380684604
+}, {
+"distance": 3170.5692625045776,
+"kind": "street_shop",
+"position": Vector3(2797.0574, 17.325445, 63.574234),
+"scale": 1.08,
+"variant": 5,
+"yaw": -3.67991700958592
+}, {
+"distance": 3208.0168113708496,
+"kind": "gas_station",
+"position": Vector3(2890.854, 12.690807, -29.939247),
+"scale": 1.08,
+"variant": 6,
+"yaw": -0.4769445872940219
+}, {
+"distance": 3354.159209251404,
+"kind": "convenience_store",
+"position": Vector3(3002.164, 7.1058097, 27.0994),
+"scale": 0.97,
+"variant": 2,
+"yaw": -0.15431244969158908
+}, {
+"distance": 3390.4822034835815,
+"kind": "billboard",
+"position": Vector3(3028.1016, 5.972581, 111.921844),
+"scale": 0.97,
+"variant": 3,
+"yaw": -2.0013118069487703
+}],
+"theme": "seoul",
+"tree_count": 0,
+"world_bounds": [AABB(210.32722, 7.16558, -76.27679, 55.893326, 54.23631, 51.5636), AABB(353.81073, 12.395214, -36.959568, 6.0030518, 17.1072, 15.46656), AABB(360.77896, 18.565205, -78.37312, 5.201782, 3.0454693, 4.810631), AABB(402.2449, 30.880749, -84.81532, 43.696136, 14.404499, 43.750015), AABB(601.8856, 53.987343, -183.56775, 2.1645508, 16.768044, 15.165054), AABB(753.7967, 55.205956, -321.26724, 49.780396, 52.472153, 45.091675), AABB(838.2437, 56.24307, -317.07373, 52.211853, 16.5676, 48.92987), AABB(875.5052, 55.760757, -205.77063, 9.957153, 16.737839, 13.779602), AABB(933.12726, 57.877583, -254.72543, 5.5183716, 4.264572, 7.7032623), AABB(930.54236, 64.55765, -183.07542, 40.146362, 14.66227, 40.332123), AABB(994.5069, 62.680256, -303.38477, 77.88507, 22.906132, 78.95024), AABB(1148.7113, 54.86311, -91.949776, 12.538696, 15.932529, 10.379654), AABB(1394.1515, 31.583952, 83.62637, 12.68335, 17.107203, 12.099869), AABB(1946.9117, 88.88625, -115.49339, 5.57251, 15.364807, 13.86483), AABB(2045.3413, 89.76959, -297.00797, 66.372314, 57.44635, 62.939682), AABB(2130.6038, 88.70911, -313.42053, 58.53247, 18.446404, 54.928375), AABB(2207.2578, 84.503174, -212.39993, 5.498535, 15.364807, 13.876022), AABB(2247.3137, 79.309715, -264.494, 3.9550781, 3.616188, 6.5344543), AABB(2268.8296, 74.40982, -204.91449, 32.297363, 14.404503, 32.576096), AABB(2294.3076, 69.54384, -346.42938, 70.173584, 24.839996, 72.06018), AABB(2491.7954, 61.922047, -169.57094, 11.3515625, 16.668499, 12.738846), AABB(2734.2195, 31.515764, -8.222192, 13.937012, 16.85501, 9.918026), AABB(2798.3523, 22.778368, -28.10206, 4.3310547, 2.8738747, 5.027073), AABB(2774.8567, 17.325445, 37.096973, 47.557373, 16.038, 47.66917), AABB(2852.1135, 12.690807, -77.92268, 87.576904, 24.84, 88.47403), AABB(2974.986, 7.1058097, 8.185662, 52.566895, 16.5676, 49.329163), AABB(3024.4028, 5.739781, 105.24641, 7.4890137, 15.364801, 13.392975)]
+}
+

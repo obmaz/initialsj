@@ -25,8 +25,17 @@ def text(path):
 
 
 def resource_refs(source):
-    """GLB의 메시 노드 연결점은 # 뒤에 있고 파일 검사는 원본 경로에 적용합니다."""
-    return [ref.partition("#")[0] if ".glb#" in ref else ref for ref in RESOURCE.findall(source)]
+    """GLB 메시(#)와 공유 자원(::) 연결점의 실제 파일·선언을 검사합니다."""
+    result = []
+    for ref in RESOURCE.findall(source):
+        ref = ref.partition("#")[0] if ".glb#" in ref else ref
+        path, separator, subresource = ref.partition("::")
+        if separator and (ROOT / path).is_file() and path.endswith((".tscn", ".tres")):
+            declaration = r'\[sub_resource[^\n]+id="' + re.escape(subresource) + r'"\]'
+            if not re.search(declaration, text(ROOT / path)):
+                errors.append(f"Missing subresource: {ref}")
+        result.append(path)
+    return result
 
 
 def live_resources():

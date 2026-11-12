@@ -18,7 +18,7 @@ const KEEP := [
 	"warmed",
 	"draining"
 ]
-const SLICE := 8
+const SLICE := 4
 
 
 static func folder(road: Node3D) -> String:
@@ -107,12 +107,29 @@ static func read_file(context: Dictionary, path: String) -> void:
 		packed = Pool.fetch(GeometryMap.scene(path))
 		if GeometryMap.shared(path):
 			Pool.shared_world_scenes[path] = packed
-	var scene: Node3D = packed.instantiate()
+	# 메시 조회를 위해 GLB의 모든 노드를 생성·해제하지 않는다. 정적 GLB의 저장 속성을 읽는다.
+	var mesh_paths := {}
+	read_mesh_properties(packed.get_state(), "", mesh_paths)
 	for ref: String in context.refs:
 		var resolved := GeometryMap.resolve(ref)
 		if resolved.get_slice("#", 0) == path:
-			context.meshes[ref] = scene.get_node(NodePath(resolved.get_slice("#", 1))).mesh
-	scene.free()
+			var node_path := resolved.get_slice("#", 1)
+			assert(mesh_paths.has(node_path), "정적 GLB 메시 연결점이 없습니다: " + resolved)
+			context.meshes[ref] = mesh_paths[node_path]
+
+
+# 공용 식생의 .tscn 래퍼가 참조하는 GLB 인스턴스도 같은 노드 경로로 펼친다.
+static func read_mesh_properties(state: SceneState, prefix: String, meshes: Dictionary) -> void:
+	for index in range(state.get_node_count()):
+		var local_path := str(state.get_node_path(index)).trim_prefix("./")
+		var node_path := prefix if local_path == "." else prefix.path_join(local_path)
+		var instance := state.get_node_instance(index)
+		if instance != null:
+			read_mesh_properties(instance.get_state(), node_path, meshes)
+		for property in range(state.get_node_property_count(index)):
+			if state.get_node_property_name(index, property) == &"mesh":
+				meshes[node_path] = state.get_node_property_value(index, property)
+				break
 
 
 static func bind_geometry(context: Dictionary, begin: int, end: int) -> void:
@@ -154,7 +171,27 @@ static func bind_geometry(context: Dictionary, begin: int, end: int) -> void:
 					node.set_surface_override_material(i, materials[i])
 
 
+# 작은 조립 씬의 자식만 원래 부모로 옮겨 저장된 노드 경로·좌표를 그대로 유지한다.
+static func attach_part(root: Node3D, part: Dictionary) -> void:
+	var packed: PackedScene = Pool.fetch(part.path)
+	var chunk: Node3D = packed.instantiate()
+	var parent: Node = root.get_node(NodePath(part.parent))
+	for child in chunk.get_children():
+		for member in nodes(child):
+			member.owner = null
+		chunk.remove_child(child)
+		parent.add_child(child)
+	chunk.free()
+
+
+static func assemble(root: Node3D) -> void:
+	for part in root.get_meta(&"assembly_parts", []):
+		attach_part(root, part)
+	root.remove_meta(&"assembly_parts")
+
+
 static func geometry(root: Node3D) -> void:
+	assemble(root)
 	var context := prepare(root)
 	for path in context.files:
 		read_file(context, path)
@@ -243,8 +280,18 @@ static func finish(context: Dictionary, road: Node3D) -> void:
 
 static func queue(road: Node3D) -> void:
 	var root: Node3D = Pool.fetch(folder(road) + "model.tscn").instantiate()
-	var context := prepare(root)
-	road.asset_context = context
+	road.asset_context = {"root": root}
+	var steps: Array[Callable] = []
+	for part in root.get_meta(&"assembly_parts", []):
+		steps.append(func(): attach_part(root, part))
+	steps.append(func(): root.remove_meta(&"assembly_parts"))
+	steps.append(func(): queue_bindings(root, road))
+	road.queue_next(steps)
+
+
+static func queue_bindings(root: Node3D, road: Node3D) -> void:
+	var context: Dictionary = road.asset_context
+	context.merge(prepare(root), true)
 	var steps: Array[Callable] = []
 	for path in context.files:
 		steps.append(func(): read_file(context, path))
@@ -265,11 +312,27 @@ static func queue(road: Node3D) -> void:
 
 
 static func warm(road: Node3D) -> void:
+	var shared := folder(road) + "assembly/resources.tres"
+	if ResourceLoader.exists(shared) and not road.has_meta(&"assembly_resources_ready"):
+		# 외부 하위 자원의 ::경로는 공유 묶음이 읽힌 뒤에만 작업 스레드에서 요청한다.
+		road.set_meta(&"assembly_prefetch", shared)
+		Pool.warm(shared)
+		return
 	for path in road.asset_paths:
 		Pool.warm(path)
 
 
 static func available(road: Node3D) -> bool:
+	if road.has_meta(&"assembly_prefetch"):
+		var shared: String = road.get_meta(&"assembly_prefetch")
+		if (
+			Pool.warming.has(shared)
+			and ResourceLoader.load_threaded_get_status(shared) == ResourceLoader.THREAD_LOAD_IN_PROGRESS
+		):
+			return false
+		road.set_meta(&"assembly_resources_ready", Pool.fetch(shared))
+		road.remove_meta(&"assembly_prefetch")
+		warm(road)
 	for path in road.asset_paths:
 		if (
 			Pool.warming.has(path)

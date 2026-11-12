@@ -1,0 +1,63 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_1_2/assembly/resources.tres" id="assembly"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_3_1_2/assembly/resources.tres::ShaderMaterial_xasff" id="shared_ShaderMaterial_xasff"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0189" type="MeshInstance3D" parent="." unique_id=80645233]
+material_override = ExtResource("shared_ShaderMaterial_xasff")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0127"
+
+[node name="Part0190" type="MeshInstance3D" parent="." unique_id=1900723882]
+material_override = ExtResource("shared_ShaderMaterial_xasff")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0128"
+
+[node name="Part0191" type="MeshInstance3D" parent="." unique_id=98515994]
+material_override = ExtResource("shared_ShaderMaterial_xasff")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0129"
+
+[node name="Part0192" type="MeshInstance3D" parent="." unique_id=26706394]
+material_override = ExtResource("shared_ShaderMaterial_xasff")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0130"
+
+[node name="Part0193" type="MeshInstance3D" parent="." unique_id=783946924]
+material_override = ExtResource("shared_ShaderMaterial_xasff")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0131"
+
+[node name="Part0194" type="MeshInstance3D" parent="." unique_id=1867505476]
+material_override = ExtResource("shared_ShaderMaterial_xasff")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0132"
+
+[node name="Part0195" type="MeshInstance3D" parent="." unique_id=2121424484]
+material_override = ExtResource("shared_ShaderMaterial_xasff")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0133"
+
+[node name="Part0196" type="MeshInstance3D" parent="." unique_id=1500583103]
+material_override = ExtResource("shared_ShaderMaterial_xasff")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0134"
+
+[node name="Part0197" type="MeshInstance3D" parent="." unique_id=1828752595]
+material_override = ExtResource("shared_ShaderMaterial_xasff")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0135"
+
+[node name="Part0198" type="MeshInstance3D" parent="." unique_id=157813660]
+material_override = ExtResource("shared_ShaderMaterial_xasff")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0136"
+
+[node name="Part0199" type="MeshInstance3D" parent="." unique_id=1016926015]
+material_override = ExtResource("shared_ShaderMaterial_xasff")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_1_2/geometry.glb#Geometry0137"
+

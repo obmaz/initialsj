@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_1_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_1_1/assembly/resources.tres::StandardMaterial3D_7roku" id="shared_StandardMaterial3D_7roku"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0373" type="MeshInstance3D" parent="." unique_id=278803315]
+material_override = ExtResource("shared_StandardMaterial3D_7roku")
+metadata/mesh_ref = "res://models/world/tour_3_1_1/geometry.glb#Geometry0174"
+
