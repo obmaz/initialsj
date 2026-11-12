@@ -32,6 +32,32 @@ func run(tree: SceneTree) -> int:
 		budget.last_tick = Time.get_ticks_usec() - 33334
 		budget.tick(race)
 	check(budget.level == 0, "Manual high quality must honor the player's choice")
+	var saved_size := tree.root.size
+	var saved_content_size := tree.root.content_scale_size
+	var saved_content_mode := tree.root.content_scale_mode
+	tree.root.content_scale_size = Vector2i(1280, 720)
+	tree.root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	budget.mobile = true
+	tree.root.size = Vector2i(2340, 1800)
+	await tree.process_frame
+	budget.set_mode(1, race)
+	var pixels: Vector2 = Vector2(budget.viewport_size) * tree.root.scaling_3d_scale
+	check(pixels.x <= 1920.1 and pixels.y <= 1080.1 and budget.level == 0, "모바일 고화질은 화면 비율을 유지하며 1920×1080 안에서 렌더한다")
+	check(maxf(pixels.x / 1920, pixels.y / 1080) > .999, "큰 화면을 상한보다 불필요하게 더 축소하지 않는다")
+	check(
+		(
+			race.sun_light.directional_shadow_mode == DirectionalLight3D.SHADOW_ORTHOGONAL
+			and race.sun_light.directional_shadow_max_distance == 140
+		),
+		"모바일 고화질은 가까운 그림자를 유지하면서 이중 그림자 패스를 제거한다"
+	)
+	tree.root.size = Vector2i(1280, 720)
+	budget.resize(race)
+	check(tree.root.scaling_3d_scale == 1, "상한보다 작은 모바일 화면을 불필요하게 축소하지 않는다")
+	budget.mobile = false
+	tree.root.size = saved_size
+	tree.root.content_scale_size = saved_content_size
+	tree.root.content_scale_mode = saved_content_mode
 	budget.set_mode(0, race)
 	race.state = "paused"
 	budget.last_tick = Time.get_ticks_usec() - 2000000

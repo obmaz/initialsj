@@ -3,6 +3,7 @@ extends "res://scripts/track/track.gd"
 var course_id := 0
 var map_bounds := Rect2()
 var world_collision: Node3D
+var curvature_lookup: RefCounted
 
 
 func reset(_stage: int = 0, _node_index: int = 0) -> void:
@@ -29,6 +30,7 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 		preload("res://scripts/track/gorge_course.gd").build(active)
 	else:
 		preload("res://scripts/track/fuji_course.gd").build(active)
+	curvature_lookup = preload("res://scripts/track/circuit_curvature.gd").new(active.curve, active.length)
 	map_bounds = Rect2(Vector2(active.point(0).x, active.point(0).z), Vector2.ZERO)
 	for sample in range(800):
 		var p := active.point(active.length * sample / 800)
@@ -47,6 +49,10 @@ func build_previews(_staged: bool = false) -> void:
 
 func maintain(_distance: float) -> void:
 	pass
+
+
+func curvature(distance: float) -> float:
+	return curvature_lookup.at(distance) if curvature_lookup != null else active.curvature(distance)
 
 
 func update_ground() -> void:

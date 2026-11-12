@@ -3,6 +3,7 @@ extends RefCounted
 const SurfaceState = preload("res://scripts/track/road_surface_state.gd")
 const AirState = preload("res://scripts/physics/air_state.gd")
 const DECISION_INTERVAL := .24
+const FAR_PLAN_INTERVAL := .12
 var car: Node3D
 var id := 0
 var active := false
@@ -13,6 +14,11 @@ var lane := 0.0
 var target_lane := 0.0
 # 다음 차선 판단까지 남은 시간.
 var decision := 0.0
+# 먼 차량도 이동과 타이머는 매 틱 진행하고 속도 계획만 짧게 재사용한다.
+var plan_time := 0.0
+var curve_limit := INF
+var traffic_limit := INF
+var boost_curve := 0.0
 var surface: RefCounted
 var air: RefCounted
 var boosting := false

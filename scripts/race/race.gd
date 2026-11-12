@@ -997,7 +997,7 @@ func _physics_process(delta: float) -> void:
 	speed_ambience.update(self)
 	speed_effect.visible = state == RaceState.RACING and not motion_reduced and speed > 35 and render_budget.level < 2
 	speed_effect.material.set_shader_parameter("strength", clampf((speed - 35) / 53 * 1.2, 0, 1))
-	speed_effect.material.set_shader_parameter("high_quality", render_budget.level == 0)
+	speed_effect.material.set_shader_parameter("high_quality", render_budget.level == 0 and not render_budget.mobile)
 	update_camera(delta)
 	player.road_speed = speed if state == RaceState.RACING else 0.0
 	player.effects_quality = render_budget.level

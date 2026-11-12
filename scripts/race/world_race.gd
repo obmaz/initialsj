@@ -111,6 +111,10 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		rival.lane = lane
 		rival.target_lane = lane
 		rival.decision = RivalState.decision_phase(rival.id)
+		rival.plan_time = 0
+		rival.curve_limit = INF
+		rival.traffic_limit = INF
+		rival.boost_curve = 0
 		rival.lod_time = 0
 		rival.world_stuck = 0.0
 		rival.world_reverse = 0.0
@@ -659,11 +663,8 @@ func carry_rival(index: int, rival: RivalState, target_lane: float, target_speed
 	)
 	var old := Vector2(rival.lane, rival.distance)
 	var next_distance: float = tracker.distance + next_speed * dt
-	var next_lane := move_toward(
-		tracker.lane,
-		clampf(target_lane, -race.track.half_width(next_distance) + 2.0, race.track.half_width(next_distance) - 2.0),
-		dt * 2.5
-	)
+	var edge: float = race.track.half_width(next_distance) - 2.0
+	var next_lane := move_toward(tracker.lane, clampf(target_lane, -edge, edge), dt * 2.5)
 	var up := road_up(next_distance)
 	var forward: Vector3 = (
 		race.track.point(next_distance + 2, next_lane) - race.track.point(next_distance - 2, next_lane)
@@ -683,6 +684,31 @@ func carry_rival(index: int, rival: RivalState, target_lane: float, target_speed
 	rival.drifting = false
 	rival.surface.contact(race.track.active, old, Vector2(next_lane, next_distance), next_speed)
 	rival.boosting = rival.surface.pad_time > 0 or rival.nitro_active
+
+
+func plan_rival_speed(index: int, d: float, look: float, forward: Vector3) -> void:
+	var rival: RivalState = race.rivals[index - 1]
+	rival.curve_limit = INF
+	for ahead in [0.0, 25.0, 55.0, 95.0, 145.0]:
+		var curve: float = absf(race.track.curvature(d + ahead))
+		var safe: float = sqrt(rival.specification.grip * float(rival.style.corner) / maxf(curve, 0.0001))
+		rival.curve_limit = minf(
+			rival.curve_limit, sqrt(safe * safe + 2 * minf(28, float(rival.specification.brake)) * ahead)
+		)
+	rival.boost_curve = absf(race.track.curvature(d + look))
+	rival.traffic_limit = INF
+	var right := Vector3(-forward.z, 0, forward.x).normalized()
+	for j in range(bodies.size()):
+		if j == index or (j > 0 and not race.rivals[j - 1].active):
+			continue
+		var relative := bodies[j].position - bodies[index].position
+		var gap := relative.dot(forward)
+		if gap > 0 and gap < 40 and absf(relative.dot(right)) < 2.4 and absf(relative.y) < 3:
+			var other_speed := speed_of(bodies[j])
+			rival.traffic_limit = minf(
+				rival.traffic_limit,
+				sqrt(other_speed * other_speed + 2 * minf(30, float(rival.specification.brake)) * maxf(0, gap - 7))
+			)
 
 
 func update_rivals(delta: float) -> void:
@@ -709,7 +735,8 @@ func update_rivals(delta: float) -> void:
 		var dt := owed
 		var was_airborne: bool = rival.air.active
 		var d: float = trackers[i].distance
-		var look := clampf(speed_of(body) * 0.65, 15, 48)
+		var now := speed_of(body)
+		var look := clampf(now * 0.65, 15, 48)
 		var target_lane := rival_lane(i, d, look, dt)
 		if race.track.active.collapse != null:
 			var collapse: Node3D = race.track.active.collapse
@@ -726,9 +753,7 @@ func update_rivals(delta: float) -> void:
 		var right := Vector3(-forward.z, 0, forward.x).normalized()
 		var angle := atan2(direction.dot(right), direction.dot(forward))
 		var wheel: float = (
-			(0.46 + rival.specification.handling * 0.007)
-			/ (1 + speed_of(body) * 0.035)
-			* WorldCar.steering_scale(speed_of(body))
+			(0.46 + rival.specification.handling * 0.007) / (1 + now * 0.035) * WorldCar.steering_scale(now)
 		)
 		var axis := clampf(atan(5.4 * sin(angle) / look) / wheel, -1, 1)
 		if absf(angle) > 1.1:
@@ -739,31 +764,20 @@ func update_rivals(delta: float) -> void:
 			target_speed = minf(target_speed, 10)
 		var dirt := clampf((absf(rival.lane) + 0.8 - race.track.half_width(d)) / 1.6, 0, 1)
 		target_speed *= lerpf(1, 0.58, dirt)
-		var curve_cap := INF
-		for ahead in [0.0, 25.0, 55.0, 95.0, 145.0]:
-			var curve: float = absf(race.track.curvature(d + ahead))
-			var safe: float = sqrt(rival.specification.grip * float(rival.style.corner) / maxf(curve, 0.0001))
-			curve_cap = minf(curve_cap, sqrt(safe * safe + 2 * minf(28, float(rival.specification.brake)) * ahead))
-			target_speed = minf(target_speed, curve_cap)
-		var blocked := false
-		for j in range(bodies.size()):
-			if j == i:
-				continue
-			if j > 0 and not race.rivals[j - 1].active:
-				continue
-			var relative := bodies[j].position - body.position
-			var gap := relative.dot(forward)
-			if gap > 0 and gap < 40 and absf(relative.dot(right)) < 2.4 and absf(relative.y) < 3:
-				blocked = true
-				target_speed = minf(
-					target_speed,
-					sqrt(
-						(
-							speed_of(bodies[j]) * speed_of(bodies[j])
-							+ 2 * minf(30, float(rival.specification.brake)) * maxf(0, gap - 7)
-						)
-					)
-				)
+		rival.plan_time -= dt
+		# 150m 밖의 운반 차량만 계획을 재사용한다. 근접 복귀·접촉·공중 상태는 즉시 갱신한다.
+		if (
+			not carried
+			or not body.grounded
+			or rival.air.active
+			or not body.last_contacts.is_empty()
+			or rival.plan_time <= 0
+		):
+			plan_rival_speed(i, d, look, forward)
+			rival.plan_time = RivalState.FAR_PLAN_INTERVAL
+		var curve_cap: float = rival.curve_limit
+		target_speed = minf(target_speed, minf(curve_cap, rival.traffic_limit))
+		var blocked: bool = rival.traffic_limit < INF
 		var lap: int = maxi(0, floori((d - 80) / race.track.length))
 		if lap > rival.boost_lap:
 			rival.boost_lap = lap
@@ -771,8 +785,8 @@ func update_rivals(delta: float) -> void:
 		var used_nitro := RivalDriving.nitro(
 			rival,
 			dt,
-			absf(race.track.curvature(d + look)),
-			speed_of(body),
+			rival.boost_curve,
+			now,
 			not blocked and body.grounded and rival.world_reverse <= 0 and absf(angle) < 0.35
 		)
 		if used_nitro:
@@ -786,7 +800,7 @@ func update_rivals(delta: float) -> void:
 		rival.world_reverse_cooldown = maxf(0, rival.world_reverse_cooldown - dt)
 		var reversing_cpu: float = maxf(0, rival.world_reverse - dt)
 		var stuck: float = (
-			rival.world_stuck + dt if body.grounded and speed_of(body) < 1.5 and (blocked or target_speed > 5) else 0.0
+			rival.world_stuck + dt if body.grounded and now < 1.5 and (blocked or target_speed > 5) else 0.0
 		)
 		if stuck > 1.25 and reversing_cpu <= 0 and rival.world_reverse_cooldown <= 0 and rival_rear_clear(i):
 			reversing_cpu = 1.0
@@ -802,11 +816,9 @@ func update_rivals(delta: float) -> void:
 		var signed_speed: float = body.velocity.dot(forward)
 		var acceleration: float = rival.specification.boost_accel if used_nitro else rival.specification.accel
 		if body.grounded:
-			acceleration *= Corner.engine_factor(speed_of(body), target_speed, body.corner_demand, body.corner_grip)
+			acceleration *= Corner.engine_factor(now, target_speed, body.corner_demand, body.corner_grip)
 		var desired := move_toward(
-			speed_of(body),
-			target_speed,
-			dt * (rival.specification.brake if target_speed < speed_of(body) else acceleration)
+			now, target_speed, dt * (rival.specification.brake if target_speed < now else acceleration)
 		)
 		if reversing_cpu > 0:
 			# A bounded physical manoeuvre, never a curve reposition or teleport.

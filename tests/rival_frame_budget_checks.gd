@@ -68,6 +68,31 @@ func run(tree: SceneTree) -> int:
 		fast += session.trackers[i].fast_updates
 	check(after == before and fast == 15, "원거리15대가 동시에 근접해도 전체 투영 검색 대신 근방 검색을 사용한다")
 	check(not session.trackers[0].has_previous_world, "플레이어 순간이동에는 원거리 상대의 신뢰 시드를 적용하지 않는다")
+	for rival in race.rivals:
+		rival.active = false
+	var planned: RefCounted = race.rivals[0]
+	planned.active = true
+	session.teleport(0, 1000, 0)
+	session.teleport(1, 1800, 0)
+	session.bodies[1].velocity = session.bodies[1].forward_direction() * 35
+	session.bodies[1].grounded = true
+	planned.plan_time = .1
+	planned.traffic_limit = 3
+	var distance_before: float = planned.distance
+	session.update_rivals(.02)
+	check(planned.traffic_limit == 3 and planned.plan_time < .1, "먼 차량은 유효한 속도 계획을 재사용한다")
+	check(planned.distance > distance_before, "계획을 재사용해도 원거리 차량은 매 틱 이동한다")
+	planned.plan_time = .001
+	session.update_rivals(.02)
+	check(planned.traffic_limit == INF, "유효 시간이 끝나면 원거리 차량도 현재 앞차를 다시 판단한다")
+	planned.traffic_limit = 3
+	planned.plan_time = .1
+	session.teleport(0, planned.distance - 20, 0)
+	session.update_rivals(.02)
+	check(planned.traffic_limit == INF, "150m 안으로 돌아온 차량은 오래된 원거리 계획을 즉시 갱신한다")
+	planned.plan_time = .1
+	session.teleport(1, 2200, 0)
+	check(planned.plan_time == 0, "순간이동과 복구 뒤 원거리 계획을 남기지 않는다")
 	race.free()
 	await tree.process_frame
 	print("16대 AI 판단 위상 / 복구 시간 초기화 / 운반 시드의 게이트 보존 / 동시 근접 전체 검색 방지: ", "PASS" if failures == 0 else "FAIL")
