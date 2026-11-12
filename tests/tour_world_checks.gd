@@ -57,7 +57,7 @@ func run(tree: SceneTree) -> int:
 	race.step(1.0 / 60, 0, false, false, false)
 	check(race.world_race.player_body.position.distance_to(actual) < 2, "계측 좌표가 실제 차체 위치를 강제해서는 안 된다")
 	set_car(race, 120, 0, 50)
-	for frame in range(70):
+	for frame in range(ceili(50.0 / float(race.vehicle.brake) * 60)):
 		race.step(1.0 / 60, 0, false, true, true)
 	check(race.speed < 1.6 and race.braking, "브레이크는 실제 차체 속도를 줄여야 한다")
 	# 실제 체크포인트를 통과하고 모든 차량으로 좌·우 분기를 연속 주행한다.

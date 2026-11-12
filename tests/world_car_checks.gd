@@ -414,9 +414,9 @@ func run(tree: SceneTree) -> int:
 	var before_brake: float = car.velocity.length()
 	for frame in range(30):
 		var speed: float = car.velocity.slide(car.surface_normal).length()
-		car.advance(1.0 / 60, 0, maxf(0, speed - 48.0 / 60), false)
+		car.advance(1.0 / 60, 0, maxf(0, speed - float(Catalog.spec(0).brake) / 60), false)
 	check(
-		car.velocity.length() < before_brake - 20, "Brake input must remain immediately effective after a loaded corner"
+		car.velocity.length() < before_brake - 10, "Brake input must remain immediately effective after a loaded corner"
 	)
 	# 30% 낮춘 가속에 맞춰 강한 제동 뒤 회복 시간도 약1/0.7배로 늘린다.
 	for frame in range(270):

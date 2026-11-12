@@ -47,7 +47,7 @@ func run(tree: SceneTree) -> int:
 		)
 	for result in ["finished", "failed"]:
 		race.state = result
-		check(race.navigate_back() and race.state == "ready", "Result Back must return to vehicle selection")
+		check(race.navigate_back() and race.state == "menu", "투어 결과의 뒤로가기는 모드 선택으로 돌아간다")
 	race.state = "racing"
 	race.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
 	check(race.state == "paused", "Native Android back notification must use the same pause action")

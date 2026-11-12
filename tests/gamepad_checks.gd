@@ -195,10 +195,10 @@ func run(tree: SceneTree) -> int:
 	check(race.state == state_before, "Pad presses must be ignored during a screen transition")
 	race.screen_transition = null
 	transition.free()
-	# Results: A to the garage, X to retry.
+	# 결과 확인은 모드별 선택 화면으로 돌아가고 X는 같은 경기를 재도전한다.
 	race.state = "finished"
 	tap(JOY_BUTTON_A)
-	check(race.state == "ready", "Result A must return to the garage")
+	check(race.state == ("courses" if race.mode == "track" else "menu"), "결과 확인은 모드에 맞는 선택 화면으로 돌아간다")
 	# The pad's Back (View) button pauses a running race instead of restarting it.
 	race.restart()
 	race.state = "racing"

@@ -731,7 +731,7 @@ func update_rivals(delta: float) -> void:
 		for ahead in [0.0, 25.0, 55.0, 95.0, 145.0]:
 			var curve: float = absf(race.track.curvature(d + ahead))
 			var safe: float = sqrt(rival.specification.grip * float(rival.style.corner) / maxf(curve, 0.0001))
-			curve_cap = minf(curve_cap, sqrt(safe * safe + 2 * 28 * ahead))
+			curve_cap = minf(curve_cap, sqrt(safe * safe + 2 * minf(28, float(rival.specification.brake)) * ahead))
 			target_speed = minf(target_speed, curve_cap)
 		var blocked := false
 		for j in range(bodies.size()):
@@ -744,7 +744,13 @@ func update_rivals(delta: float) -> void:
 			if gap > 0 and gap < 40 and absf(relative.dot(right)) < 2.4 and absf(relative.y) < 3:
 				blocked = true
 				target_speed = minf(
-					target_speed, sqrt(speed_of(bodies[j]) * speed_of(bodies[j]) + 2 * 30 * maxf(0, gap - 7))
+					target_speed,
+					sqrt(
+						(
+							speed_of(bodies[j]) * speed_of(bodies[j])
+							+ 2 * minf(30, float(rival.specification.brake)) * maxf(0, gap - 7)
+						)
+					)
 				)
 		var lap: int = maxi(0, floori((d - 80) / race.track.length))
 		if lap > rival.boost_lap:

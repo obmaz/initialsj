@@ -367,7 +367,7 @@ func navigate_back() -> bool:
 		RaceState.SETTINGS:
 			navigate(close_settings)
 		RaceState.FINISHED, RaceState.FAILED:
-			navigate(open_garage)
+			leave_results()
 		_:
 			return false
 	return true
@@ -435,6 +435,15 @@ func start_race() -> void:
 func cycle_graphics() -> void:
 	graphics_mode = (graphics_mode + 1) % 3
 	render_budget.set_mode(graphics_mode, self)
+
+
+func result_button_label() -> String:
+	return "SELECT TRACK" if mode == "track" else "SELECT MODE"
+
+
+func leave_results() -> void:
+	if state in RaceState.ENDED:
+		navigate(open_courses if mode == "track" else open_menu)
 
 
 func open_courses() -> void:

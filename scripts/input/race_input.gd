@@ -68,11 +68,14 @@ func handle(event: InputEvent) -> void:
 			else:
 				race.navigate(race.open_menu)
 			return
+		if race.state in RaceState.ENDED and event.keycode == KEY_ESCAPE:
+			race.leave_results()
+			return
 		if event.keycode == KEY_ENTER:
 			if race.state == RaceState.READY:
 				race.start_race()
 			elif race.state in RaceState.ENDED:
-				race.navigate(race.open_garage)
+				race.leave_results()
 		elif race.state == RaceState.READY and event.keycode >= KEY_1 and event.keycode < KEY_1 + Catalog.SPECS.size():
 			race.select_vehicle(event.keycode - KEY_1)
 		elif race.state == RaceState.READY and event.keycode in [KEY_A, KEY_LEFT]:
@@ -192,9 +195,9 @@ func pad_pressed(button: int) -> void:
 					race.start_race()
 		RaceState.FINISHED, RaceState.FAILED:
 			match button:
-				JOY_BUTTON_A:
-					race.navigate(race.open_garage)
-				JOY_BUTTON_X, JOY_BUTTON_BACK:
+				JOY_BUTTON_A, JOY_BUTTON_B, JOY_BUTTON_BACK:
+					race.leave_results()
+				JOY_BUTTON_X:
 					race.start_race()
 
 

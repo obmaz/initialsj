@@ -38,6 +38,7 @@ var yaw_rate := 0.0
 # nose is eased back toward it.
 var road_heading := Vector3.ZERO
 var realign_time := 0.0
+var rail_escape := Vector3.ZERO
 var last_contacts: Array[Dictionary] = []
 var corner_demand := 0.0
 var corner_grip := 14.5
@@ -111,12 +112,20 @@ func visual_frame(ride_offset: float) -> Transform3D:
 # Only part of the angle is removed, so a hard hit still leaves the car visibly turned.
 func realigned(forward: Vector3, delta: float) -> Vector3:
 	var road := road_heading.slide(surface_normal).normalized()
+	if rail_escape.length_squared() > .5:
+		var blend := smoothstep(.45, .8, realign_time)
+		road = road.lerp(rail_escape, blend).normalized()
 	if road.length_squared() < 0.5 or forward.dot(road) < 0:
 		return forward
 	var error := forward.signed_angle_to(road, surface_normal)
 	if absf(error) > REALIGN_MAX_ERROR:
 		error = signf(error) * REALIGN_MAX_ERROR
-	var step := error * clampf(delta * REALIGN_RATE * (realign_time / REALIGN_TIME + 0.3), 0, 0.6)
+	var follow := (
+		1 - exp(-delta * 12)
+		if rail_escape.length_squared() > .5
+		else clampf(delta * REALIGN_RATE * (realign_time / REALIGN_TIME + 0.3), 0, 0.6)
+	)
+	var step := error * follow
 	return forward.rotated(surface_normal, step).normalized()
 
 
@@ -278,6 +287,8 @@ func advance(
 		realign_time = maxf(0, realign_time - delta)
 		if grounded and road_heading.length_squared() > 0.5:
 			forward = realigned(forward, delta)
+	if realign_time <= 0:
+		rail_escape = Vector3.ZERO
 	if forward.length_squared() < 0.5:
 		forward = Vector3.FORWARD
 	global_basis = Basis.looking_at(forward, surface_normal)
@@ -379,6 +390,7 @@ func advance(
 				if barrier:
 					var hardness := clampf(closing / 45.0, 0, 1)
 					if severe:
+						rail_escape = Vector3.ZERO
 						# 속도와 진입각이 모두 임계값을 넘는 충돌만 비행으로 넘긴다.
 						velocity = (
 							tangent * lerpf(0.92, 0.62, hardness)
@@ -396,18 +408,25 @@ func advance(
 						var road := road_heading.slide(surface_normal).normalized()
 						if road.length_squared() > .5:
 							var current := forward_direction()
-							var error := current.signed_angle_to(road, surface_normal)
+							# 지주 앞면의 법선은 뒤쪽을 향할 수 있다. 접점의 도로 좌우 위치로 안쪽을 구한다.
+							var road_right := road.cross(surface_normal).normalized()
+							var side := (collision.get_position() - global_position).dot(road_right)
+							var inward := -signf(side) * road_right if absf(side) > .2 else away
+							var low_speed := smoothstep(18, 3, incoming_speed)
+							var escape_slope := minf(lerpf(.08, .28, low_speed), 1.8 / maxf(incoming_speed, 1))
+							rail_escape = (road + inward * escape_slope).normalized()
+							var error := current.signed_angle_to(rail_escape, surface_normal)
 							var aligned := (
-								road
+								rail_escape
 								if current.dot(road) < 0
-								else current.rotated(surface_normal, clampf(error * .65, -.5, .5))
+								else current.rotated(surface_normal, clampf(error * .85, -.65, .65))
 							)
+							move_and_collide(inward * lerpf(.12, .24, low_speed), false, .012)
 							global_basis = Basis.looking_at(aligned, surface_normal)
-							# 반복 접촉은 전진 성분을 매번 투영해 없애지 않는다.
 							var pace := maxf(before.dot(road), incoming_speed * .65)
-							var direction := road.slide(away).normalized()
-							velocity = direction * pace + away * clampf(closing * GLIDE_REBOUND, 1.5, GLIDE_REBOUND_MAX)
-							move_and_collide(away * .35, false, .012)
+							velocity = rail_escape * pace + inward * clampf(closing * .12, .5, 1.8)
+							yaw_rate = 0
+							steering = 0
 						realign_time = REALIGN_TIME
 				elif collider.has_method("receive_debris_hit"):
 					collider.receive_debris_hit()
@@ -415,6 +434,7 @@ func advance(
 					remaining = collision.get_remainder()
 					continue
 				elif collider.has_method("receive_traffic_push"):
+					rail_escape = Vector3.ZERO
 					var incoming := before.slide(surface_normal)
 					var side := global_basis.x.slide(surface_normal).normalized()
 					var side_sign := signf(normal.dot(side))

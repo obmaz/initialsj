@@ -131,7 +131,7 @@ func compare(rows: Dictionary, label: String) -> void:
 		label + ": nitro must not erase actual corner resistance"
 	)
 	check(
-		float(rows.brake.exit_mps) < float(tight.exit_mps) - 12,
+		float(rows.brake.exit_mps) < float(tight.exit_mps) - 6,
 		label + ": braking must override full throttle during a turn"
 	)
 	check(

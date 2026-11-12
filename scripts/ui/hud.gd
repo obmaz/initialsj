@@ -272,7 +272,7 @@ func handle_pointer(event: InputEvent) -> void:
 			if race.state == RaceState.PAUSED:
 				race.resume_tour()
 			else:
-				race.navigate(race.open_garage)
+				race.leave_results()
 		return
 	if recovery_visible() and recovery_touch_rect().has_point(p):
 		recovery_touches[index] = true
@@ -374,7 +374,7 @@ func draw_pad_hints() -> void:
 		RaceState.PAUSED:
 			pad_hints([["confirm", "RESUME"], ["alt", "MAIN MENU"], ["alt2", "RESTART"]], 704)
 		RaceState.FINISHED, RaceState.FAILED:
-			pad_hints([["confirm", "CHOOSE CAR"], ["alt", "RETRY"]], 704)
+			pad_hints([["confirm", race.result_button_label()], ["back", "BACK"], ["alt", "RETRY"]], 704)
 
 
 func draw_pad_badges() -> void:
@@ -1041,7 +1041,7 @@ func draw_menu() -> void:
 			draw_record_panel()
 			preload("res://scripts/ui/driving_challenges_ui.gd").draw_result(self)
 		slant(START_BUTTON, CYAN, 13)
-		var cta := "RESUME" if race.state == RaceState.PAUSED else ("CHOOSE CAR")
+		var cta: String = "RESUME" if race.state == RaceState.PAUSED else race.result_button_label()
 		centered(Vector2(640, 536), cta, 32, Color("0a1b2b"))
 		if race.state == RaceState.PAUSED:
 			slant(MAIN_MENU_BUTTON, Color("253548"), 8)
