@@ -49,6 +49,7 @@ var previews: Node
 var customization := preload("res://scripts/vehicles/customization_store.gd").new()
 var tuning_shop: CanvasLayer
 var resume_state := RaceState.RACING
+var shot_recharge := 0.0
 var nitro_charges := 0
 var nitro_burst_left := 0.0
 var nitro_cooldown := 0.0
@@ -902,6 +903,7 @@ func open_garage() -> void:
 
 
 func reset_nitro() -> void:
+	shot_recharge = 0
 	nitro = vehicle.energy_start
 	nitro_charges = vehicle.charges
 	nitro_seconds = 0
@@ -1043,7 +1045,7 @@ func _physics_process(delta: float) -> void:
 	player.reduced_motion = motion_reduced
 	player.boost_shot = nitro_burst_left > 0
 	player.shift_amount = sound_state.shift
-	player.set_protection(protection_left > 0)
+	player.update_protection(protection_left, motion_reduced)
 	player.animate(
 		steer,
 		drifting and not air.active and state == RaceState.RACING,

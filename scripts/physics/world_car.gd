@@ -86,6 +86,7 @@ func reset_pose(feet: Vector3, forward: Vector3, up: Vector3 = Vector3.UP) -> vo
 	yaw_rate = 0
 	# 충돌 보정의 방향·남은 시간이 재시작이나 복구 후 새 출발 방향을 꺾지 않게 한다.
 	road_heading = Vector3.ZERO
+	rail_escape = Vector3.ZERO
 	realign_time = 0
 	slip_angle = 0
 	coast_slide = 0
@@ -115,7 +116,7 @@ func realigned(forward: Vector3, delta: float) -> Vector3:
 	if rail_escape.length_squared() > .5:
 		var blend := smoothstep(.45, .8, realign_time)
 		road = road.lerp(rail_escape, blend).normalized()
-	if road.length_squared() < 0.5 or forward.dot(road) < 0:
+	if road.length_squared() < 0.5 or (forward.dot(road) < 0 and rail_escape.length_squared() < .5):
 		return forward
 	var error := forward.signed_angle_to(road, surface_normal)
 	if absf(error) > REALIGN_MAX_ERROR:
@@ -125,7 +126,7 @@ func realigned(forward: Vector3, delta: float) -> Vector3:
 		if rail_escape.length_squared() > .5
 		else clampf(delta * REALIGN_RATE * (realign_time / REALIGN_TIME + 0.3), 0, 0.6)
 	)
-	var step := error * follow
+	var step := clampf(error * follow, -delta * 2.8, delta * 2.8)
 	return forward.rotated(surface_normal, step).normalized()
 
 
@@ -407,7 +408,6 @@ func advance(
 						)
 						var road := road_heading.slide(surface_normal).normalized()
 						if road.length_squared() > .5:
-							var current := forward_direction()
 							# 지주 앞면의 법선은 뒤쪽을 향할 수 있다. 접점의 도로 좌우 위치로 안쪽을 구한다.
 							var road_right := road.cross(surface_normal).normalized()
 							var side := (collision.get_position() - global_position).dot(road_right)
@@ -415,14 +415,7 @@ func advance(
 							var low_speed := smoothstep(18, 3, incoming_speed)
 							var escape_slope := minf(lerpf(.08, .28, low_speed), 1.8 / maxf(incoming_speed, 1))
 							rail_escape = (road + inward * escape_slope).normalized()
-							var error := current.signed_angle_to(rail_escape, surface_normal)
-							var aligned := (
-								rail_escape
-								if current.dot(road) < 0
-								else current.rotated(surface_normal, clampf(error * .85, -.65, .65))
-							)
 							move_and_collide(inward * lerpf(.12, .24, low_speed), false, .012)
-							global_basis = Basis.looking_at(aligned, surface_normal)
 							var pace := maxf(before.dot(road), incoming_speed * .65)
 							velocity = rail_escape * pace + inward * clampf(closing * .12, .5, 1.8)
 							yaw_rate = 0

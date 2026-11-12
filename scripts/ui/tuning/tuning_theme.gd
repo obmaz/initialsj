@@ -32,7 +32,7 @@ static func create_theme() -> Theme:
 			var fill := AQUA if state == "pressed" else (Color("e3f8fa") if state == "hover" else PAPER)
 			var border := AQUA if state in ["pressed", "hover", "focus"] else Color("c3ceda")
 			var style := create_panel_style(fill, border, 2 if state in ["pressed", "focus"] else 1)
-			style.skew = Vector2(.22, 0) if type == "Button" else Vector2.ZERO
+			style.skew = Vector2.ZERO
 			if state == "focus":
 				style.bg_color = Color.TRANSPARENT
 			if state == "disabled":
@@ -60,7 +60,7 @@ static func apply_accent_style(button: Button, fill: Color) -> void:
 		if state == "disabled":
 			color = fill.lightened(.35)
 		var style := create_panel_style(color, color)
-		style.skew = Vector2(.28, 0)
+		style.skew = Vector2.ZERO
 		button.add_theme_stylebox_override(state, style)
 
 

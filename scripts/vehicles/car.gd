@@ -324,3 +324,14 @@ func set_protection(active: bool) -> void:
 	for i in range(protection_parts.size()):
 		var original: Material = protection_originals[i]
 		protection_parts[i].material_override = protection_materials[original] if active else original
+
+
+# 무적 마지막1.2초 동안 원래 재질로 돌아오며, 모션 감소 설정은 점멸 없이 감쇠한다.
+func update_protection(seconds: float, reduce_motion: bool = false) -> void:
+	set_protection(seconds > 0)
+	if not protection_active:
+		return
+	var fade := clampf(seconds / 1.2, 0, 1)
+	var pulse := 1.0 if reduce_motion or seconds >= 1.2 else .25 + .75 * (.5 + .5 * sin(seconds * TAU * 2.5))
+	for material in protection_materials.values():
+		material.set_shader_parameter("protection_amount", fade * pulse)

@@ -149,7 +149,7 @@ func draw_settings() -> void:
 	# 배경 홈 화면의 글자를 모달 위에 겹쳐 그리지 않는다.
 	hud.menu_text.begin()
 	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(.85, .95, .97, .94))
-	MenuTheme.panel(hud, Rect2(300, 28, 680, 664), MenuTheme.PAPER)
+	MenuTheme.panel(hud, Rect2(300, 28, 680, 664 if OS.has_feature("web") else 584), MenuTheme.PAPER)
 	MenuTheme.label(hud, Rect2(365, 40, 300, 48), "SETTINGS", 36)
 	MenuTheme.label(hud, Rect2(730, 46, 185, 40), hud.AppVersion.label(), 22, MenuTheme.MUTED, true)
 	var rows: Array = [
@@ -177,45 +177,21 @@ func draw_settings() -> void:
 			MenuTheme.TEAL,
 			true
 		)
-	MenuTheme.button(hud, hud.SETTINGS_FULLSCREEN, race.shell.fullscreen_label(), MenuTheme.SOFT, 28)
-	for item in [
-		[hud.SETTINGS_WEATHER, "WEATHER", race.track_environment.weather.to_upper()],
-		[hud.SETTINGS_PERIOD, "TIME OF DAY", race.track_environment.time_of_day.to_upper()]
-	]:
-		var rect: Rect2 = item[0]
-		MenuTheme.panel(hud, rect, MenuTheme.SOFT)
-		MenuTheme.label(
-			hud, Rect2(rect.position + Vector2(16, 4), Vector2(rect.size.x - 32, 30)), item[1], 22, MenuTheme.MUTED
-		)
-		MenuTheme.label(
-			hud, Rect2(rect.position + Vector2(16, 34), Vector2(rect.size.x - 32, 36)), item[2], 26, MenuTheme.TEAL
-		)
-	MenuTheme.label(
-		hud,
-		Rect2(350, 575, 580, 18),
-		hud.install_note if not hud.install_note.is_empty() else "TRACKS · NEXT RACE",
-		18,
-		MenuTheme.MUTED,
-		true,
-		16
-	)
-	MenuTheme.button(hud, hud.SETTINGS_INSTALL, "INSTALL", MenuTheme.SOFT)
-	MenuTheme.button(hud, hud.SETTINGS_CLOSE, "DONE", MenuTheme.YELLOW, 30)
+	if OS.has_feature("web"):
+		MenuTheme.button(hud, hud.SETTINGS_FULLSCREEN, race.shell.fullscreen_label(), MenuTheme.SOFT, 28)
+		MenuTheme.button(hud, hud.SETTINGS_INSTALL, "INSTALL", MenuTheme.SOFT, 28)
+		MenuTheme.label(hud, Rect2(350, 552, 580, 24), hud.install_note, 22, MenuTheme.MUTED, true)
+	MenuTheme.button(hud, hud.settings_close_rect(), "DONE", MenuTheme.YELLOW, 30)
 	if hud.pad_on():
 		var targets: Array[Rect2] = [
-			hud.SETTINGS_SOUND,
-			hud.SETTINGS_MOTION,
-			hud.SETTINGS_GRAPHICS,
-			hud.SETTINGS_FPS,
-			hud.SETTINGS_AUTO,
-			hud.SETTINGS_FULLSCREEN,
-			hud.SETTINGS_WEATHER,
-			hud.SETTINGS_PERIOD,
-			hud.SETTINGS_INSTALL,
-			hud.SETTINGS_CLOSE
+			hud.SETTINGS_SOUND, hud.SETTINGS_MOTION, hud.SETTINGS_GRAPHICS, hud.SETTINGS_FPS, hud.SETTINGS_AUTO
 		]
+		if OS.has_feature("web"):
+			targets.append_array([hud.SETTINGS_FULLSCREEN, hud.SETTINGS_INSTALL])
+		targets.append(hud.settings_close_rect())
 		hud.draw_rect(targets[clampi(race.settings_focus, 0, targets.size() - 1)].grow(3), MenuTheme.TEAL, false, 3)
-	race.shell.sync_control(hud.SETTINGS_FULLSCREEN)
+	if OS.has_feature("web"):
+		race.shell.sync_control(hud.SETTINGS_FULLSCREEN)
 
 
 func draw_garage() -> void:
@@ -226,6 +202,7 @@ func draw_garage() -> void:
 	MenuTheme.label(hud, Rect2(950, 29, 260, 30), "PERSONAL GHOST", 22, MenuTheme.INK, true)
 	MenuTheme.label(hud, Rect2(950, 62, 260, 32), "ON" if race.show_ghost else "OFF", 23, MenuTheme.TEAL, true)
 	MenuTheme.cover(hud, art(GARAGE_BG), Rect2(48, 122, 735, 346))
+	hud.draw_rect(Rect2(48, 122, 735, 346), Color(1, 1, 1, .6))
 	hud.draw_rect(Rect2(48, 122, 735, 88), Color(1, 1, 1, .9))
 	MenuTheme.label(hud, Rect2(76, 129, 650, 47), race.vehicle.name, 39)
 	MenuTheme.label(hud, Rect2(78, 176, 600, 34), race.vehicle["class"], 24, MenuTheme.TEAL)

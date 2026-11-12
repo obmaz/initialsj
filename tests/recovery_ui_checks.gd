@@ -94,10 +94,12 @@ func run(tree: SceneTree) -> int:
 		race.hud.SETTINGS_SOUND,
 		race.hud.SETTINGS_MOTION,
 		race.hud.SETTINGS_GRAPHICS,
-		race.hud.SETTINGS_FULLSCREEN,
-		race.hud.SETTINGS_INSTALL,
-		race.hud.SETTINGS_CLOSE
+		race.hud.SETTINGS_FPS,
+		race.hud.SETTINGS_AUTO,
+		race.hud.settings_close_rect()
 	]
+	if OS.has_feature("web"):
+		setting_rects.append_array([race.hud.SETTINGS_FULLSCREEN, race.hud.SETTINGS_INSTALL])
 	for i in range(setting_rects.size()):
 		check(
 			setting_rects[i].size.y * 414.0 / 720 >= 44,

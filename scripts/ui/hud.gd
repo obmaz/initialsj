@@ -1,4 +1,5 @@
 extends Control
+const MenuLayout = preload("res://scripts/ui/menu_layout.gd")
 const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
 const RaceState = preload("res://scripts/race/race_state.gd")
 
@@ -21,7 +22,7 @@ const PAUSE_BUTTON := Rect2(814, 15, 66, 60)
 const HOME_TOUR := Rect2(100, 470, 520, 170)
 const HOME_TRACK := Rect2(660, 470, 520, 170)
 const HOME_PASSPORT := Rect2(30, 24, 260, 84)
-const PASSPORT_CLOSE := Rect2(1020, 24, 220, 84)
+const PASSPORT_CLOSE := MenuLayout.BACK
 const GARAGE_PAINT := Rect2(80, 630, 225, 80)
 const GARAGE_PLATE := Rect2(325, 630, 245, 80)
 const GARAGE_TUNING := Rect2(590, 630, 245, 80)
@@ -36,17 +37,15 @@ const COURSE_GORGE := Rect2(1016, 136, 236, 430)
 var menu_text := preload("res://scripts/ui/menu_text.gd").new(self)
 var menus := preload("res://scripts/ui/hud_menus.gd").new(self)
 const GARAGE_GHOST := Rect2(940, 24, 280, 84)
-const GARAGE_BACK := Rect2(60, 24, 220, 84)
-const SETTINGS_SOUND := Rect2(365, 98, 550, 77)
-const SETTINGS_MOTION := Rect2(365, 178, 550, 77)
-const SETTINGS_GRAPHICS := Rect2(365, 258, 550, 77)
-const SETTINGS_FPS := Rect2(365, 338, 265, 77)
-const SETTINGS_AUTO := Rect2(650, 338, 265, 77)
-const SETTINGS_FULLSCREEN := Rect2(365, 418, 550, 77)
-const SETTINGS_WEATHER := Rect2(365, 498, 265, 77)
-const SETTINGS_PERIOD := Rect2(650, 498, 265, 77)
-const SETTINGS_INSTALL := Rect2(365, 592, 265, 77)
-const SETTINGS_CLOSE := Rect2(650, 592, 265, 77)
+const GARAGE_BACK := MenuLayout.BACK
+const SETTINGS_SOUND := Rect2(350, 104, 580, 80)
+const SETTINGS_MOTION := Rect2(350, 196, 580, 80)
+const SETTINGS_GRAPHICS := Rect2(350, 288, 580, 80)
+const SETTINGS_FPS := Rect2(350, 380, 280, 80)
+const SETTINGS_AUTO := Rect2(650, 380, 280, 80)
+const SETTINGS_FULLSCREEN := Rect2(350, 472, 580, 80)
+const SETTINGS_INSTALL := Rect2(350, 576, 280, 80)
+const SETTINGS_CLOSE := Rect2(350, 492, 580, 80)
 const RECOVERY_BUTTON := Rect2(500, 176, 280, 64)
 const GARAGE_START := Rect2(855, 630, 345, 80)
 const MAIN_MENU_BUTTON := Rect2(390, 578, 500, 78)
@@ -160,12 +159,11 @@ func draw_icon(texture: Texture2D, center: Vector2, bounds: Vector2, rotation: f
 
 
 func ui_scale() -> float:
-	var viewport := get_viewport_rect().size
-	return minf(viewport.x / DESIGN.x, viewport.y / DESIGN.y)
+	return MenuLayout.scale_for(MenuLayout.safe_rect(get_viewport_rect().size))
 
 
 func ui_offset() -> Vector2:
-	return (get_viewport_rect().size - DESIGN * ui_scale()) / 2.0
+	return MenuLayout.origin_for(MenuLayout.safe_rect(get_viewport_rect().size))
 
 
 func to_design(pos: Vector2) -> Vector2:
@@ -250,16 +248,12 @@ func handle_pointer(event: InputEvent) -> void:
 			race.toggle_auto_accelerate()
 		elif SETTINGS_FPS.has_point(p):
 			race.toggle_fps()
-		elif SETTINGS_FULLSCREEN.has_point(p):
+		elif OS.has_feature("web") and SETTINGS_FULLSCREEN.has_point(p):
 			if race.has_method("toggle_fullscreen"):
 				race.shell.toggle_fullscreen()
-		elif SETTINGS_WEATHER.has_point(p):
-			race.cycle_track_weather()
-		elif SETTINGS_PERIOD.has_point(p):
-			race.cycle_track_period()
-		elif SETTINGS_INSTALL.has_point(p):
+		elif OS.has_feature("web") and SETTINGS_INSTALL.has_point(p):
 			install_game()
-		elif SETTINGS_CLOSE.has_point(p):
+		elif settings_close_rect().has_point(p):
 			race.navigate(race.close_settings)
 		return
 	if race.state == RaceState.READY:
@@ -626,9 +620,10 @@ func draw_content() -> void:
 		draw_pad_hints()
 		return
 	if race.state in [RaceState.MENU, RaceState.SETTINGS]:
-		menus.draw_home()
 		if race.state == RaceState.SETTINGS:
 			menus.draw_settings()
+		else:
+			menus.draw_home()
 		draw_pad_hints()
 		return
 	if race.state == RaceState.READY:
@@ -984,6 +979,10 @@ func draw_nitro() -> void:
 	if race.vehicle.mode == "hybrid":
 		for i in range(2):
 			draw_circle(Vector2(807 + i * 22, 642), 7, color if i < race.nitro_charges else Color("304252"))
+			if i == race.nitro_charges and race.shot_recharge > 0:
+				draw_arc(
+					Vector2(807 + i * 22, 642), 8, -PI / 2, -PI / 2 + TAU * race.shot_recharge / 100, 24, color, 3, true
+				)
 	if race.state == RaceState.RACING and race.slipstream.charge > .01:
 		var charge_color: Color = GOLD if race.slipstream.ready else CYAN
 		var label := (
@@ -1005,6 +1004,8 @@ func draw_nitro() -> void:
 		for i in range(3):
 			var rect := Rect2(445 + i * 129, 667, 120, 17)
 			draw_rect(rect, color if i < race.nitro_charges else Color("25374a"))
+			if i == race.nitro_charges and race.shot_recharge > 0:
+				draw_rect(Rect2(rect.position, Vector2(rect.size.x * race.shot_recharge / 100, rect.size.y)), color)
 			if i == race.nitro_charges and race.nitro_burst_left > 0:
 				rect.size.x *= race.nitro_burst_left / race.vehicle.burst_duration
 				draw_rect(rect, GOLD)
@@ -1531,3 +1532,7 @@ func draw_heart(center: Vector2, size: float, color: Color) -> void:
 			center + Vector2(16 * pow(sin(t), 3), -(13 * cos(t) - 5 * cos(2 * t) - 2 * cos(3 * t) - cos(4 * t))) * size
 		)
 	draw_colored_polygon(polygon, color)
+
+
+func settings_close_rect() -> Rect2:
+	return Rect2(650, 576, 280, 80) if OS.has_feature("web") else SETTINGS_CLOSE

@@ -4,7 +4,7 @@ const RaceState = preload("res://scripts/race/race_state.gd")
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const Pad = preload("res://scripts/input/gamepad_input.gd")
 # 설정 화면에서 패드로 고를 수 있는 줄 수.
-const SETTINGS_ROWS := 10
+var settings_rows := 8 if OS.has_feature("web") else 6
 var race: Node3D
 
 
@@ -171,9 +171,9 @@ func pad_pressed(button: int) -> void:
 		RaceState.SETTINGS:
 			match button:
 				JOY_BUTTON_DPAD_UP:
-					race.settings_focus = posmod(race.settings_focus - 1, SETTINGS_ROWS)
+					race.settings_focus = posmod(race.settings_focus - 1, settings_rows)
 				JOY_BUTTON_DPAD_DOWN:
-					race.settings_focus = posmod(race.settings_focus + 1, SETTINGS_ROWS)
+					race.settings_focus = posmod(race.settings_focus + 1, settings_rows)
 				JOY_BUTTON_A:
 					settings_activate(race.settings_focus)
 				JOY_BUTTON_B, JOY_BUTTON_START:
@@ -304,12 +304,12 @@ func settings_activate(index: int) -> void:
 		4:
 			race.toggle_auto_accelerate()
 		5:
-			race.shell.toggle_fullscreen()
+			if OS.has_feature("web"):
+				race.shell.toggle_fullscreen()
+			else:
+				race.navigate(race.close_settings)
 		6:
-			race.cycle_track_weather()
-		7:
-			race.cycle_track_period()
-		8:
-			race.hud.install_game()
+			if OS.has_feature("web"):
+				race.hud.install_game()
 		_:
 			race.navigate(race.close_settings)

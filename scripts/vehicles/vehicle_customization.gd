@@ -80,9 +80,10 @@ static func apply(car: Node3D, data: Dictionary, vehicle: int) -> void:
 	if previous.get("wheel", -1) != data.wheel:
 		var mesh: Mesh = cached_part(car, WHEELS[data.wheel]) if data.wheel > 0 else null
 		for wheel in car.wheels:
-			var old: Node = wheel.get_node_or_null("TuningRim")
-			if old != null:
-				old.free()
+			for name in ["TuningRim", "TuningRimInner"]:
+				var old: Node = wheel.get_node_or_null(name)
+				if old != null:
+					old.free()
 			wheel.material_override = wheel_material
 			if mesh != null:
 				var cover := MeshInstance3D.new()
@@ -92,6 +93,11 @@ static func apply(car: Node3D, data: Dictionary, vehicle: int) -> void:
 				cover.scale = Vector3.ONE * car.wheel_radius
 				cover.position.y = car.wheel_thickness * .5 + .012
 				wheel.add_child(cover)
+				var inner := cover.duplicate() as MeshInstance3D
+				inner.name = "TuningRimInner"
+				inner.position.y = -cover.position.y
+				inner.rotation.x = PI
+				wheel.add_child(inner)
 	if not car.has_meta("tuning_aero_recorded"):
 		car.set_meta("tuning_aero_recorded", true)
 		if car.active_aero != null:

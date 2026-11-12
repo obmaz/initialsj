@@ -7,6 +7,7 @@ uniform int vehicle_column = 0;
 uniform float finish_roughness = .25;
 uniform float finish_metallic = .6;
 uniform bool protection = false;
+uniform float protection_amount = 1.0;
 void fragment() {
 	vec3 base=base_paint.rgb;
 	if(livery>0) {
@@ -17,5 +18,5 @@ void fragment() {
 	}
 	ALBEDO=base; METALLIC=finish_metallic; ROUGHNESS=finish_roughness;
 	CLEARCOAT=finish_roughness<.5 ? .85 : .05; CLEARCOAT_ROUGHNESS=.2;
-	if(protection){ ALBEDO=mix(base,vec3(.12,.55,.72),.65);EMISSION=vec3(.03,.4,.6)*(.6+.15*sin(TIME*8.)); }
+	if(protection){ ALBEDO=mix(base,vec3(.12,.55,.72),.65*protection_amount);EMISSION=vec3(.03,.4,.6)*protection_amount; }
 }

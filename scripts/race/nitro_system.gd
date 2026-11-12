@@ -19,9 +19,9 @@ static func update(race: Node3D, delta: float, held: bool, cell: bool) -> void:
 		race.nitro_pending = false
 		race.cell_pending = false
 	elif race.nitro_burst_left <= 0 and race.nitro_cooldown <= 0:
-		if pressed and v.mode == "charges":
+		if pressed and v.mode == "charges" and race.nitro_charges > 0:
 			race.nitro_pending = true
-		if cell_pressed and v.mode == "hybrid":
+		if cell_pressed and v.mode == "hybrid" and race.nitro_charges > 0:
 			race.cell_pending = true
 	if (
 		race.nitro_burst_left <= 0
@@ -55,3 +55,18 @@ static func update(race: Node3D, delta: float, held: bool, cell: bool) -> void:
 		race.nitro_burst_left = maxf(0, race.nitro_burst_left - delta)
 		if race.nitro_burst_left <= 0:
 			race.nitro_cooldown = 0.35
+
+	if (
+		v.mode in ["charges", "hybrid"]
+		and not race.nitro_active
+		and not race.braking
+		and race.impact < .15
+		and race.speed > 5
+	):
+		if race.nitro_charges < v.charges:
+			race.shot_recharge += delta * (8.0 if race.drifting else 4.0)
+			if race.shot_recharge >= 100:
+				race.nitro_charges += 1
+				race.shot_recharge = 0
+		else:
+			race.shot_recharge = 0

@@ -45,6 +45,8 @@ func draw(rect: Rect2, value: String, font_size: int, color: Color, centered: bo
 	label.size = rect.size
 	label.scale = Vector2.ONE * hud.ui_scale()
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if centered else HORIZONTAL_ALIGNMENT_LEFT
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.max_lines_visible = 1
 	label.visible = true
 
 
@@ -52,3 +54,10 @@ func finish() -> void:
 	for index in range(used, labels.size()):
 		if labels[index].visible:
 			labels[index].visible = false
+
+
+func draw_wrapped(rect: Rect2, value: String, font_size: int, color: Color) -> void:
+	draw(rect, value, font_size, color, false)
+	var label := labels[used - 1]
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.max_lines_visible = 2

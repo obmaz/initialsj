@@ -72,6 +72,9 @@ func run(tree: SceneTree) -> int:
 			),
 			"도장 변경은 재질·휠·윙을 다시 생성하지 않고 유니폼만 바꾼다"
 		)
+		for wheel in car.wheels:
+			if wheel.has_node("TuningRim"):
+				check(wheel.has_node("TuningRimInner"), "교체한 휠은 차량 양쪽 면에 모두 표시한다")
 		car.set_protection(true)
 		check(shell.material_override.get_shader_parameter("protection"), "리버리에도 리스폰 보호 표시가 적용된다")
 		car.set_protection(false)

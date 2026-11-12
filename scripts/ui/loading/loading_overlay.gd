@@ -4,6 +4,7 @@ const AppVersion = preload("res://scripts/platform/app_version.gd")
 const GAME_LOGO = preload("res://assets/ui/branding/initialsj_logo.svg")
 const BACKGROUND_ART = preload("res://assets/ui/backgrounds/loading_coast.png")
 const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
+const MenuLayout = preload("res://scripts/ui/menu_layout.gd")
 const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
 const CYAN := MenuTheme.AQUA
 const INK := MenuTheme.INK
@@ -66,8 +67,9 @@ func _draw() -> void:
 		var factor := maxf(size.x / BACKGROUND_ART.get_width(), size.y / BACKGROUND_ART.get_height())
 		var art_size := BACKGROUND_ART.get_size() * factor
 		draw_texture_rect(BACKGROUND_ART, Rect2((size - art_size) * .5, art_size), false)
-	var scale_factor := minf(size.x / 1280.0, size.y / 720.0)
-	var origin := (size - Vector2(1280, 720) * scale_factor) * 0.5
+	var safe := MenuLayout.safe_rect(size)
+	var scale_factor := MenuLayout.scale_for(safe)
+	var origin := MenuLayout.origin_for(safe)
 	draw_set_transform(origin, 0, Vector2.ONE * scale_factor)
 	if show_illustration:
 		draw_rect(Rect2(0, 540, 1280, 180), Color(.97, 1, 1, .93))
@@ -84,22 +86,23 @@ func _draw() -> void:
 		Rect2(bar.position + Vector2(bar.size.x * load_progress - 26, 0), Vector2(26, bar.size.y)).intersection(bar),
 		Color("ffdf45")
 	)
-	_centered(Vector2(640, 644 if show_illustration else 430), STEP_LABELS[step_index], 18, Color("187f97"), FONT)
+	_centered(Vector2(640, 644 if show_illustration else 430), STEP_LABELS[step_index], 24, Color("187f97"), FONT)
 	if show_illustration:
-		_centered(Vector2(640, 681), LOADING_TIPS[tip_index], 16, Color("536e83"), FONT)
-	_centered(Vector2(1140, 706), AppVersion.label(), 18, Color("536e83"), FONT)
+		_centered(Vector2(640, 681), LOADING_TIPS[tip_index], 22, Color("536e83"), FONT)
+	_centered(Vector2(1140, 706), AppVersion.label(), 22, Color("536e83"), FONT)
 
 
 func _centered(pos: Vector2, value: String, size_px: int, color: Color, face: Font) -> void:
+	value = tr(value)
+	var available := minf(pos.x, 1280 - pos.x) * 2 - 40
+	while size_px > 22 and face.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, size_px).x > available:
+		size_px -= 1
+	if face.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, size_px).x > available:
+		while (
+			not value.is_empty()
+			and face.get_string_size(value + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, size_px).x > available
+		):
+			value = value.left(value.length() - 1)
+		value += "…"
 	var width := face.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, size_px).x
-	draw_string_outline(
-		face,
-		pos - Vector2(width * 0.5, 0) + Vector2(0.5, 1.5),
-		value,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		-1,
-		size_px,
-		2,
-		Color(1, 1, 1, .75)
-	)
 	draw_string(face, pos - Vector2(width * 0.5, 0), value, HORIZONTAL_ALIGNMENT_LEFT, -1, size_px, color)

@@ -289,4 +289,4 @@ func run(tree: SceneTree) -> int:
 
 
 func rows() -> int:
-	return race.controls.SETTINGS_ROWS
+	return race.controls.settings_rows
