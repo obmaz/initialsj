@@ -1,6 +1,7 @@
 extends Node3D
 # 배기구에 붙어 있는 GLB 화염·빔. 월드에 잔류하는 발사체나 방출기를 만들지 않는다.
 const HEAT_SECONDS := 3.2
+var mega := false
 var held := 0.0
 var heat := 0.0
 var envelope := 0.0
@@ -70,6 +71,10 @@ func advance(active: bool, delta: float, reduced: bool, _quality: int, shot: boo
 			width = 1.25 + heat * .5 + shot_peak * 1.4
 		_:
 			tint = accent.lerp(Color("9b7cff"), heat).lerp(Color("fff0c0"), heat * heat * .5)
+	# 장착 효과는 같은 GLB만 확대하며 입자·광원 수를 늘리지 않는다.
+	if mega:
+		length_scale *= 1.7 if reduced else 2.8
+		width *= 1.35 if reduced else 2.0
 	var pulse := 1.0 if reduced or style == "gt" else 1.0 + sin(clock * 39) * .055
 	for i in range(flames.size()):
 		var flame := flames[i]

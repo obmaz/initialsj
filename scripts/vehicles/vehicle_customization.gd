@@ -32,6 +32,31 @@ static func cached_part(car: Node3D, id: String) -> Mesh:
 
 
 static func apply(car: Node3D, data: Dictionary, vehicle: int) -> void:
+	car.equipped_effects = preload("res://scripts/vehicles/effect_items.gd").sanitize(data.get("effects", []), vehicle)
+	if car.boost_fx != null:
+		car.boost_fx.mega = "mega_exhaust" in car.equipped_effects
+	var open_top: bool = "open_top" in car.equipped_effects
+	if car.has_meta("open_top_variants"):
+		var variants: Dictionary = car.get_meta("open_top_variants")
+		if not car.has_meta("closed_top_meshes"):
+			car.set_meta(
+				"closed_top_meshes",
+				{"PaintShell": car.body.get_node("PaintShell").mesh, "TrimShell": car.body.get_node("TrimShell").mesh}
+			)
+		for name in ["PaintShell", "TrimShell"]:
+			car.body.get_node(NodePath(name)).mesh = (
+				variants["Open" + name].mesh if open_top else car.get_meta("closed_top_meshes")[name]
+			)
+		var cabin: MeshInstance3D = car.body.get_node_or_null("OpenCabin")
+		if cabin == null and open_top:
+			cabin = MeshInstance3D.new()
+			cabin.name = "OpenCabin"
+			cabin.mesh = variants.OpenCabin.mesh
+			cabin.transform = variants.OpenCabin.transform
+			cabin.material_override = car.paint_material()
+			car.body.add_child(cabin)
+		if cabin != null:
+			cabin.visible = open_top
 	car.set_protection(false)
 	car.protection_parts.clear()
 	car.protection_originals.clear()

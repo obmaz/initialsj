@@ -1,7 +1,8 @@
 extends RefCounted
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
+const Effects = preload("res://scripts/vehicles/effect_items.gd")
 const Custom = preload("res://scripts/vehicles/vehicle_customization.gd")
-const VERSION := 1
+const VERSION := 2
 var path := "user://vehicle_customization.cfg"
 var selections: Dictionary = {}
 var read_only := false
@@ -15,7 +16,8 @@ static func defaults(vehicle: int) -> Dictionary:
 		"finish": 0,
 		"livery": 0,
 		"wheel": 0,
-		"wing": 0
+		"wing": 0,
+		"effects": []
 	}
 
 
@@ -30,6 +32,7 @@ static func sanitize(value: Variant, vehicle: int) -> Dictionary:
 		var limit: int = {"finish": 3, "livery": 4, "wheel": 3, "wing": 4}[key]
 		if value.get(key) is int and value[key] >= 0 and value[key] < limit:
 			result[key] = value[key]
+	result.effects = Effects.sanitize(value.get("effects", []), vehicle)
 	return result
 
 

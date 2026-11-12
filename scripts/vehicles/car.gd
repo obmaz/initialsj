@@ -20,6 +20,8 @@ var wheels: Array[MeshInstance3D] = []
 var nitro_glows: Array[MeshInstance3D] = []
 var smoke: Array[CPUParticles3D] = []
 var brake_lights: Array[StandardMaterial3D] = []
+var equipped_effects: Array[String] = []
+var presentation: Node3D
 var body: Node3D
 var boost_shot := false
 var protection_active := false
@@ -65,7 +67,13 @@ func _ready() -> void:
 		restore_paint()
 		return
 	body = Node3D.new()
-	add_child(body)
+	if not traffic:
+		presentation = Node3D.new()
+		presentation.name = "Presentation"
+		add_child(presentation)
+		presentation.add_child(body)
+	else:
+		add_child(body)
 	preload("res://models/vehicle_models.gd").build(self, model_definition)
 	body.position.y = ride_offset
 	if not traffic:
@@ -159,6 +167,8 @@ func animate(
 
 
 func reset_driving_effects() -> void:
+	if presentation != null:
+		set_presentation_rotation(Vector3.ZERO)
 	body_motion.reset()
 	shift_amount = 0
 	if body != null:
@@ -216,12 +226,12 @@ func add_boost_jet(pos: Vector3, radius: float) -> void:
 func add_headlight(pos: Vector3) -> void:
 	headlight = SpotLight3D.new()
 	headlight.position = pos
-	headlight.spot_range = 95
+	headlight.spot_range = 165
 	headlight.spot_angle = 38
-	headlight.rotation.x = -deg_to_rad(7)
+	headlight.rotation.x = -deg_to_rad(4)
 	headlight.light_color = Color("eaf3ff")
-	headlight.light_energy = 3.8
-	headlight.spot_angle_attenuation = 1.6
+	headlight.light_energy = 7.0
+	headlight.spot_angle_attenuation = 1.2
 	headlight.shadow_enabled = false
 	headlight.visible = false
 	body.add_child(headlight)
@@ -335,3 +345,10 @@ func update_protection(seconds: float, reduce_motion: bool = false) -> void:
 	var pulse := 1.0 if reduce_motion or seconds >= 1.2 else .25 + .75 * (.5 + .5 * sin(seconds * TAU * 2.5))
 	for material in protection_materials.values():
 		material.set_shader_parameter("protection_amount", fade * pulse)
+
+
+func set_presentation_rotation(value: Vector3) -> void:
+	if presentation != null:
+		presentation.basis = Basis.from_euler(value)
+		var center := Vector3(0, .65, 0)
+		presentation.position = center - presentation.basis * center

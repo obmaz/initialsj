@@ -16,6 +16,11 @@ static func build(car: Node3D, item: Resource) -> void:
 	var meshes := SceneSource.collect_meshes(model)
 	var split := meshes.any(func(node): return node.name == "PaintShell")
 	for node in meshes:
+		if str(node.name).begins_with("Open"):
+			var variants: Dictionary = car.get_meta("open_top_variants", {})
+			variants[str(node.name)] = {"mesh": node.mesh, "transform": node.transform}
+			car.set_meta("open_top_variants", variants)
+			continue
 		# 직렬화된 투어 교통 차량은 기존 BodyShell 전체 메시를 계속 참조한다.
 		if (
 			split
