@@ -34,10 +34,17 @@ func run(tree: SceneTree) -> int:
 	check(sites.size() > 35, "재시작마다 넓은 후보 영역에서 낙석 위치가 달라져야 한다")
 	hazard.reset_effect(71)
 	var first: float = hazard.plans[0].distance
+	hazard.advance(.1, first - 300, 0, 60)
+	check(hazard.plans[0].elapsed < 0, "멀리 떨어져 있을 때는 미리 착지하지 않고 접근을 기다린다")
 	hazard.advance(1.0, first - 200, 0)
 	check(hazard.plans[0].bodies.size() == 9 and not hazard.plans[0].landed, "떨어지기 전 경고와 실제 공중 바위가 있어야 한다")
 	for body in hazard.plans[0].bodies:
 		check(body.collision_layer == 0, "공중 경고 단계에서 보이지 않는 벽을 만들면 안 된다")
+	check(hazard.plans[0].sizes[9].length() > hazard.plans[0].sizes[0].length() * 1.5, "추가 공중 조각은 크게 표시한다")
+	for i in range(9):
+		var size: Vector3 = hazard.plans[0].sizes[i]
+		check(size.x <= 1.9 and size.y <= 1.7 and size.z <= 2.2, "도로에 남는 바위의 크기·충돌 폭은 유지한다")
+	check(hazard.plans[0].poses[0].origin.y > hazard.plans[0].targets[0].y + 29, "접근 후에도 낙하 예고 시간을 확보한다")
 	for i in range(hazard.plans[0].bodies.size()):
 		var body: StaticBody3D = hazard.plans[0].bodies[i]
 		check(
@@ -47,7 +54,7 @@ func run(tree: SceneTree) -> int:
 		# Headless의 더미 렌더러는 MultiMesh 변환을 읽어도 항등행렬을 돌려준다.
 		# 여기서는 제출한 포즈와 충돌체를 비교하고 실제 GPU 변환은 웹 출력에서 확인한다.
 		check(body.transform.is_equal_approx(hazard.plans[0].poses[i]), "낙하 중 렌더 제출 포즈와 충돌체의 변환이 일치해야 한다")
-	hazard.advance(3.0, first - 180, 0)
+	hazard.advance(5.0, first - 180, 0)
 	await tree.physics_frame
 	await tree.physics_frame
 	check(hazard.plans[0].landed, "낙석은 실제 도로에 착지해야 한다")
@@ -83,7 +90,7 @@ func run(tree: SceneTree) -> int:
 		scenic.node.get_child_count() == 1 and scenic.batch.multimesh.instance_count == 24,
 		"도로 밖 낙석은 물리 노드 없이 공간별 MultiMesh 하나로 그려야 한다"
 	)
-	hazard.advance(4.0, scenic.distance - 180, 0)
+	hazard.advance(5.0, scenic.distance - 180, 0)
 	check(scenic.landed, "도로 밖 낙석도 착지해 남아야 한다")
 	var settled_pose: Transform3D = scenic.poses[0]
 	hazard.advance(60, scenic.distance, 0)

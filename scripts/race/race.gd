@@ -692,6 +692,7 @@ func restart(start_countdown: bool = true) -> void:
 		track.active.collapse.reset_effect()
 	if track.active.rockfall != null:
 		track.active.rockfall.reset_effect()
+	preload("res://scripts/environment/roadside_guidance.gd").reset(track.active)
 	preload("res://scripts/environment/advertisement_library.gd").reshuffle(get_tree())
 	distance = 80
 	completed_distance = 0
@@ -1053,6 +1054,7 @@ func _physics_process(delta: float) -> void:
 func sync_world_rendering() -> void:
 	if not is_instance_valid(rendering_viewport) or not is_instance_valid(player):
 		return
+	preload("res://scripts/environment/roadside_guidance.gd").sync_visuals(self)
 	var world_visible := warming_world or state not in RaceState.MENUS
 	# GLES3는 첫 렌더 전 교체된 Sky의 대기 중 큐브맵을 남길 수 있다.
 	# 가려진 코스 선택에서는 만들지 않고 실제 렌더·프리워밍 때 생성한다.
@@ -1122,10 +1124,11 @@ func step(
 		track.active.collapse.advance(delta, distance, motion_reduced)
 		hazard_text = track.active.collapse.warning(distance)
 	if track.active.rockfall != null:
-		track.active.rockfall.advance(delta, distance, laps_completed)
+		track.active.rockfall.advance(delta, distance, laps_completed, speed)
 		var rock_warning: String = track.active.rockfall.warning(distance)
 		if not rock_warning.is_empty():
 			hazard_text = rock_warning
+	preload("res://scripts/environment/roadside_guidance.gd").advance(self, delta)
 
 	if track.active.closed_loop and track.active.course_id == 3:
 		hazard_text = preload("res://scripts/track/riviera_profile.gd").warning(fposmod(distance, track.length))

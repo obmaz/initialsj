@@ -95,6 +95,7 @@ func reset(stage: int = 0, node_index: int = 0) -> void:
 
 func add_world_collision(section: Section) -> void:
 	section.add_child(preload("res://scripts/physics/world_collision.gd").build(section))
+	preload("res://scripts/environment/roadside_guidance.gd").attach(section)
 
 
 # 저장 충돌도 노면·장벽의 첫 물리 연결을 나눠 끝낸 뒤 구간을 보이게 한다.
@@ -110,6 +111,7 @@ func stage_world_collision(section: Section) -> void:
 				func():
 					Collision.convert_trucks(section)
 					section.move_child(saved, section.get_child_count() - 1),
+				func(): preload("res://scripts/environment/roadside_guidance.gd").attach(section),
 				func(): warm_section(section)
 			]
 		)
@@ -120,6 +122,7 @@ func stage_world_collision(section: Section) -> void:
 		steps.append(func(): Collision.walls(section, state, 400.0))
 	steps.append(func(): state.ground_body = Collision.body("RoadSurfaceBody", state.ground, 1))
 	steps.append(func(): section.add_child(Collision.finish(state)))
+	steps.append(func(): preload("res://scripts/environment/roadside_guidance.gd").attach(section))
 	steps.append(func(): warm_section(section))
 	section.queue_next(steps)
 
@@ -169,6 +172,9 @@ func build_previews(staged: bool = false) -> void:
 			Library.theme(section.stage, section.route_node), active.region_metadata.weather, weather_seed
 		)
 		section.staged = staged
+		section.asset_paths.append_array(
+			preload("res://scripts/environment/roadside_guidance.gd").dependencies(section)
+		)
 		if staged:
 			preload("res://scripts/rendering/world_assets.gd").warm(section)
 		section.visible = not staged

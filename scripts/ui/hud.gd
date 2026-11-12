@@ -1300,15 +1300,8 @@ func draw_pace_feedback() -> void:
 		hint("CLOSE PASS +150", GOLD, minf(1, race.near_miss_flash * 2.5))
 	elif race.overtake_flash > 0:
 		hint("PASS", CYAN, minf(1, race.overtake_flash * 2.5))
-	elif race.boosting:
-		hint(
-			(
-				("OVERDRIVE" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO")
-				if race.nitro_active
-				else ("SKILL BOOST" if race.reward_boost_active() else "SLIPSTREAM")
-			),
-			CYAN
-		)
+	elif race.boosting and not race.nitro_active:
+		hint("SKILL BOOST" if race.reward_boost_active() else "SLIPSTREAM", CYAN)
 	if race.corner_warning > 0.15:
 		toast(
 			Vector2(640, status),

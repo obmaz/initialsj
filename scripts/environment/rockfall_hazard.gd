@@ -4,6 +4,10 @@ const ROAD_REMAINS := 9
 const ROAD_FALL_COUNT := 24
 const SCENIC_FALL_COUNT := 24
 const SCENIC_BURSTS := 10
+const PRE_FALL := .95
+const FALL_DURATION := 1.9
+const STAGGER := .06
+const BOUNCE_TIME := .42
 var section: Node3D
 var rng := RandomNumberGenerator.new()
 var plans: Array[Dictionary] = []
@@ -129,6 +133,11 @@ func start_fall(plan: Dictionary) -> void:
 		if scenic:
 			lane = float(plan.side) * (section.half_width(d) + section.rail_setback(d, plan.side) + 5.5 + (i % 3) * 2.4)
 		var size := Vector3(rng.randf_range(1.4, 1.9), rng.randf_range(1.1, 1.7), rng.randf_range(1.7, 2.2))
+		# 도로에 남는9개의 치수는 유지한다. 큰 낙하 조각은 추가분과 도로 밖 연출로 제한한다.
+		if scenic:
+			size *= 1.6
+		elif i >= ROAD_REMAINS:
+			size *= 2.1
 		var target: Vector3 = (
 			(section.roadside_point(d, lane) if scenic else section.point(d, lane)) + Vector3.UP * size.y * .85
 		)
@@ -165,14 +174,15 @@ func start_fall(plan: Dictionary) -> void:
 	plan.marker = marker
 
 
-func advance(delta: float, distance: float, lap: int) -> void:
+func advance(delta: float, distance: float, lap: int, speed: float = 70) -> void:
 	plan_lap(lap)
 	var d := fposmod(distance, section.length)
 	for plan in plans + scenic_plans:
 		if plan.landed:
 			continue
 		if plan.elapsed < 0:
-			if int(plan.lap) != lap or d < float(plan.distance) - 380 or d > float(plan.distance) + 30:
+			var lead := clampf(speed * 3.4, 160, 310)
+			if int(plan.lap) != lap or d < float(plan.distance) - lead or d > float(plan.distance) + 30:
 				continue
 			plan.elapsed = 0.0
 			start_fall(plan)
@@ -180,13 +190,14 @@ func advance(delta: float, distance: float, lap: int) -> void:
 		var scenic: bool = plan.get("scenic", false)
 		var all_landed := true
 		if is_instance_valid(plan.marker):
-			plan.marker.visible = float(plan.elapsed) < 3.5 and fposmod(float(plan.elapsed), .3) < .2
+			plan.marker.visible = fposmod(float(plan.elapsed), .3) < .2
 		for i in range(plan.targets.size()):
 			if i < plan.bodies.size() and plan.bodies[i].broken:
 				continue
 			var target: Vector3 = plan.targets[i]
-			var t := clampf((float(plan.elapsed) - .75 - i * .055) / 1.4, 0, 1)
-			var bounce := sin(clampf((float(plan.elapsed) - 2.15 - i * .055) / .5, 0, 1) * PI) * .65
+			var lands_at := PRE_FALL + FALL_DURATION + i * STAGGER
+			var t := clampf((float(plan.elapsed) - PRE_FALL - i * STAGGER) / FALL_DURATION, 0, 1)
+			var bounce := sin(clampf((float(plan.elapsed) - lands_at) / BOUNCE_TIME, 0, 1) * PI) * .65
 			var position_at := (
 				target + Vector3(float(plan.side) * 22 * (1 - t), (30 + i * 1.5) * (1 - t * t) + bounce, 0)
 			)
@@ -201,7 +212,7 @@ func advance(delta: float, distance: float, lap: int) -> void:
 				plan.bodies[i].transform = pose
 				if t >= 1:
 					plan.bodies[i].collision_layer = 8
-			if t < 1 or float(plan.elapsed) < 2.65 + i * .055:
+			if t < 1 or float(plan.elapsed) < lands_at + BOUNCE_TIME:
 				all_landed = false
 		if all_landed:
 			plan.landed = true

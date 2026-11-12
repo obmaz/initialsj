@@ -37,6 +37,7 @@ func reset(_stage: int = 0, _node_index: int = 0) -> void:
 	# All circuits are driven by real 3D physics on their actual road and rail triangles.
 	world_collision = preload("res://scripts/physics/world_collision.gd").build(active)
 	active.add_child(world_collision)
+	preload("res://scripts/environment/roadside_guidance.gd").attach(active)
 	update_ground()
 
 
