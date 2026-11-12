@@ -1,0 +1,11 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "speed_display"
+scene_path = "res://models/props/speed_display/model.tscn"
+material_path = "res://models/props/speed_display/material.tres"
+source_path = "res://models/props/speed_display/SOURCE.md"
+parameters = {"screen_width": 18.2}

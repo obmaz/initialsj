@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://models/props/bend_arrow_60/model.glb" id="1"]
+
+[ext_resource type="Material" path="res://models/props/bend_arrow_60/material.tres" id="2"]
+
+[node name="bend_arrow_60" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1")]
+
+[node name="Visual" parent="Model" index="0"]
+material_override = ExtResource("2")

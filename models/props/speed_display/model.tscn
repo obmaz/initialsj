@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://models/props/speed_display/model.glb" id="1"]
+
+[ext_resource type="Material" path="res://models/props/speed_display/material.tres" id="2"]
+
+[node name="speed_display" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1")]
+
+[node name="Screen" type="Marker3D" parent="."]
+position = Vector3(0, 12.1, 0.64)
+
+[node name="Visual" parent="Model" index="0"]
+material_override = ExtResource("2")

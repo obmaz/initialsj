@@ -1,0 +1,11 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "lake_cruiser"
+scene_path = "res://models/props/lake_cruiser/model.tscn"
+material_path = "res://models/props/lake_cruiser/material.tres"
+source_path = "res://models/props/lake_cruiser/SOURCE.md"
+parameters = {"waterline_y": 0.0}
