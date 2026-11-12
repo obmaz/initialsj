@@ -50,6 +50,9 @@ var customization := preload("res://scripts/vehicles/customization_store.gd").ne
 var tuning_shop: CanvasLayer
 var resume_state := RaceState.RACING
 var shot_recharge := 0.0
+var nitro_buffer := 0.0
+var cell_buffer := 0.0
+var nitro_pause := 0.0
 var nitro_charges := 0
 var nitro_burst_left := 0.0
 var nitro_cooldown := 0.0
@@ -921,6 +924,9 @@ func reset_nitro() -> void:
 
 
 func cancel_nitro() -> void:
+	nitro_buffer = 0
+	cell_buffer = 0
+	nitro_pause = 0
 	surface.cancel_boost()
 	boost_kick = 0
 	rain_lens.reset()

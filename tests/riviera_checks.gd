@@ -80,8 +80,8 @@ func run(tree: SceneTree) -> int:
 			)
 			safe = minf(safe, sqrt(cap * cap + 2 * 25 * ahead))
 		var bend: float = absf(race.track.curvature(race.distance + 25))
-		var tap: bool = race.speed > 28 and not race.drifting and bend > 0.0015
-		if race.drifting and bend < 0.0008:
+		var tap: bool = frame % 12 == 0 and race.speed > 28 and not race.drifting and bend > 0.0015
+		if race.drifting and bend < 0.0008 and frame % 12 == 0:
 			tap = true
 		await tree.physics_frame
 		race.step(1.0 / 60, axis, tap, true, race.speed > safe + 0.5)
@@ -91,6 +91,7 @@ func run(tree: SceneTree) -> int:
 		if race.laps_completed >= 1:
 			break
 	check(race.laps_completed == 1 and race.wall_hits == 0, "실제 입력으로 드리프트하며 장벽 접촉 없이 한 바퀴를 완주해야 합니다")
+	print("Riviera 실제 드리프트 프레임=", drift_frames, " 하트=", earned_hearts, " 점수=", race.score)
 	check(drift_frames > 90 and earned_hearts > 0 and race.score > 500, "실제 물리 주행에서 슬립과 하트·점수가 발생해야 합니다")
 	race.open_courses()
 	race.menu_focus = 3
@@ -98,7 +99,7 @@ func run(tree: SceneTree) -> int:
 	check(race.selected_course == 3, "패드로 네 번째 카드에 진입할 수 있어야 합니다")
 	race.choose_mode("track", 0)
 	await tree.physics_frame
-	check(not race.world_race.player_body.coast_profile, "기존 코스에는 새 슬라이드 설정을 적용하지 않습니다")
+	check(race.world_race.player_body.coast_profile, "기존 코스도 공통 슬라이드 설정을 사용합니다")
 	race.queue_free()
 	await tree.process_frame
 	print("Riviera / rolling coast / lane paint / heart chains / course input: ", "PASS" if failures == 0 else "FAIL")

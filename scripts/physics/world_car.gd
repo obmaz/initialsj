@@ -46,7 +46,7 @@ var last_corner_loss := 0.0
 var contact_shape: CollisionShape3D
 # CPU cars settle onto the floor every other tick: one sweep less per car per frame.
 var cheap_adhesion := false
-# 투어와 TRACK04·05는 미끄러짐 진입과 복귀를 완만하게 한다.
+# 플레이어는 모든 코스에서 같은 미끄러짐 진입·복귀를 사용한다.
 var coast_profile := false
 var coast_slide := 0.0
 var coast_angle := 0.0

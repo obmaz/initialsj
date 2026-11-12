@@ -33,7 +33,7 @@ func setup() -> void:
 		var body: CharacterBody3D = WorldCar.new()
 		body.name = "PlayerWorldBody" if i == 0 else "RivalWorldBody" + str(i)
 		body.cheap_adhesion = i > 0
-		body.coast_profile = i == 0 and race.coast_handling
+		body.coast_profile = i == 0
 		add_child(body)
 		bodies.append(body)
 		var tracker: RefCounted = Progress.new() if race.mode == "track" else TourProgress.new()
@@ -202,11 +202,7 @@ func step(
 		accel *= Corner.engine_factor(race.speed, cap, player_body.corner_demand, player_body.corner_grip)
 	var target: float = Power.target(race.speed, cap, accel, delta, gas, race.offroad_amount)
 	if race.drifting:
-		target = (
-			move_toward(race.speed, cap * 0.98, accel * 0.45 * delta)
-			if race.coast_handling and gas
-			else maxf(0, race.speed - delta * 0.35)
-		)
+		target = Power.target(race.speed, cap * .98, accel * .45, delta, gas, race.offroad_amount)
 	if brake:
 		target = maxf(0, race.speed - race.vehicle.brake * delta)
 	reverse_wait = reverse_wait + delta if brake and race.speed < 1.5 else 0.0
@@ -405,20 +401,20 @@ func update_drift(delta: float, pressed: bool, brake: bool, gas: bool) -> void:
 	race.brake_armed = maxf(0, race.brake_armed - delta)
 	if (
 		not ended
+		and player_body.grounded
 		and race.speed > 25
-		and absf(race.steer) > (0.08 if race.coast_handling else 0.2)
-		and (race.drift_pending > 0 or (race.previous_brake and race.brake_armed > 0 and gas))
+		and absf(race.steer) > 0.08
+		and (
+			race.drift_pending > 0
+			or (race.previous_brake and not brake and race.brake_armed > 0.25 and gas and absf(race.steer) > 0.35)
+		)
 	):
 		race.drift_latched = true
 		race.drift_sign = signf(race.steer)
 		race.drift_pending = 0
-	if (
-		not player_body.grounded
-		or race.speed < 22
-		or brake and absf(race.steer) < (0.04 if race.coast_handling else 0.14)
-	):
+	if not player_body.grounded or race.speed < 22 or brake and absf(race.steer) < 0.04:
 		race.drift_latched = false
-	if absf(race.steer) < (0.04 if race.coast_handling else 0.12) and absf(player_body.slip_angle) < 0.12:
+	if absf(race.steer) < 0.04 and absf(player_body.slip_angle) < 0.12:
 		race.drift_straight += delta
 		if race.drift_straight > 0.4:
 			race.drift_latched = false
@@ -1002,8 +998,8 @@ func update_camera(delta: float) -> void:
 	if race.state == RaceState.PAUSED:
 		return
 	var forward: Vector3 = player_body.forward_direction()
-	if race.coast_handling and race.drifting and player_body.velocity.length() > 25:
-		forward = forward.lerp(player_body.velocity.normalized(), 0.65).normalized()
+	if player_body.coast_slide > .01 and player_body.velocity.length() > 25:
+		forward = forward.lerp(player_body.velocity.normalized(), 0.65 * player_body.coast_slide).normalized()
 	var right := Vector3(-forward.z, 0, forward.x).normalized()
 	var pace := clampf(race.speed / 88, 0, 1)
 	var up := Vector3.UP.lerp(player_body.surface_normal, 0.3).normalized()

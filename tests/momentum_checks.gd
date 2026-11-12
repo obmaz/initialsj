@@ -30,7 +30,36 @@ func run(tree: SceneTree) -> int:
 		)
 		check(braking.exit_mps < held.exit_mps - 5, "관성을 보존해도 실제 브레이크는 충분히 감속한다")
 		check(held.wall_hits == 0 and held.offroad == 0 and not held.airborne, "관성 비교는 접지한 평지에서 수행한다")
+		var corner: Dictionary = await helper.world_trial(tree, race, .35, true, false, false, false, entry)
+		check(corner.exit_mps < held.exit_mps - 2, "초과 속도의 급조향에서도 실제 타이어 저항이 속도를 줄인다")
+		race.world_race.teleport(0, 400, race.track.half_width(400) + 3)
+		race.world_race.player_body.velocity = race.world_race.player_body.forward_direction() * entry
+		race.speed = entry
+		for tick in range(33):
+			await tree.physics_frame
+			race.step(1.0 / 60, 0, false, true, false)
+		check(race.offroad_amount > .9 and race.speed < held.exit_mps - 4, "실제 노면 이탈도 관성으로 지름길 이득을 만들지 않는다")
 		rows.append({"vehicle": race.vehicle.id, "held": held, "released": released, "braking": braking})
+	race.open_garage()
+	race.select_vehicle(0)
+	for curve in [0.0, .01]:
+		helper.fixture_curve(race, curve, 0, Vector3(8000, 100, 8000))
+		race.track.curvature_cache = preload("res://scripts/track/circuit_curvature.gd").new(
+			race.track.active.curve, race.track.length
+		)
+		for rival in race.rivals:
+			rival.active = false
+		var rival = race.rivals[0]
+		rival.active = true
+		race.world_race.teleport(0, 90 if curve == 0 else 200, -3 if curve > 0 else 0)
+		race.world_race.player_body.velocity = race.world_race.player_body.forward_direction() * 20
+		race.world_race.teleport(1, 80)
+		var cpu: CharacterBody3D = race.world_race.bodies[1]
+		cpu.velocity = cpu.forward_direction() * 80
+		cpu.grounded = true
+		await tree.physics_frame
+		race.world_race.update_rivals(1.0 / 60)
+		check(cpu.velocity.length() < 79.8, "상대 차량은 관성 중에도 앞차·실제 곡률에 제동한다")
 	var speed := 100.0
 	for tick in range(3600):
 		speed = Power.target(speed, 72, 16, 1.0 / 60, true)
