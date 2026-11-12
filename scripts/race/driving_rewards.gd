@@ -95,11 +95,21 @@ func observe_traffic(id: int, ahead: float, lateral: float, height: float, clean
 
 
 func drift_step(
-	delta: float, drifting: bool, slip: float, speed: float, metres: float, curvature: float, clean: bool, key: String
+	delta: float,
+	drifting: bool,
+	slip: float,
+	speed: float,
+	metres: float,
+	curvature: float,
+	clean: bool,
+	key: String,
+	contact_hold: bool = false
 ) -> int:
 	if not clean or speed < 25 or metres < 0 or metres > speed * delta * 2 + 1:
 		cancel_drift()
 		exit_boost = 0
+		return 0
+	if contact_hold:
 		return 0
 	if drifting:
 		settle = 0

@@ -1369,7 +1369,7 @@ func finish() -> void:
 func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vector3.INF) -> void:
 	# Separation and speed loss happen at the contact site. Feedback is emitted
 	# once per cooldown, and parked/gentle contacts do not create a crash burst.
-	if bump_cooldown > 0:
+	if bump_cooldown > 0 and (strength < .15 or impact_recoil >= .15):
 		return
 	strength = clampf(strength, 0, 1)
 	if strength < 0.07:
@@ -1383,12 +1383,9 @@ func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vecto
 		hitstop_until = Time.get_ticks_msec() + int(50 + strength * 70)
 	if strength > 0:
 		haptics.pulse(0.35 + 0.65 * strength, 0.5 + 0.5 * strength, 0.1 + 0.3 * strength, 3)
-	cancel_nitro()
-	drifting = false
-	drift_charge = 0
-	drift_latched = false
-	drift_pending = 0
-	bump_cooldown = 0.45
+	if strength >= .15:
+		interrupt_drive()
+	bump_cooldown = .45 if strength >= .15 else .08
 	if strength > 0 and DisplayServer.get_name() != "headless":
 		var f := (track.point(distance + 2) - track.point(distance)).normalized()
 		if world_race != null:
@@ -1398,6 +1395,16 @@ func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vecto
 		if world_at.is_finite():
 			at = world_at
 		impacts.burst(at, -right * normal.x + f * normal.y - f * 0.7, motion_reduced, strength)
+
+
+func interrupt_drive() -> void:
+	cancel_nitro()
+	drifting = false
+	drift_charge = 0
+	drift_latched = false
+	drift_pending = 0
+	rewards.cancel_drift()
+	rewards.exit_boost = 0
 
 
 # Called every frame the car grinds along a rail: rumble, camera shake and a stream of sparks.

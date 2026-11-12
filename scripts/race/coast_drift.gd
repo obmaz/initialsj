@@ -22,7 +22,9 @@ func reset() -> void:
 	broken = false
 
 
-func step(delta: float, speed: float, slip: float, drifting: bool, grounded: bool, clean: bool) -> float:
+func step(
+	delta: float, speed: float, slip: float, drifting: bool, grounded: bool, clean: bool, contact_hold: bool = false
+) -> float:
 	visible_time = maxf(0, visible_time - delta)
 	if not clean:
 		if active:
@@ -31,6 +33,8 @@ func step(delta: float, speed: float, slip: float, drifting: bool, grounded: boo
 			hearts = 0
 			grace = 0
 			visible_time = 0.85
+		return 0
+	if contact_hold:
 		return 0
 	var sliding := drifting and grounded and speed > 25 and absf(slip) >= 0.12 and absf(slip) < 1.1
 	if not sliding:

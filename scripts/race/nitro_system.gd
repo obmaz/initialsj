@@ -13,7 +13,7 @@ static func update(race: Node3D, delta: float, held: bool, cell: bool) -> void:
 	race.nitro_cooldown = maxf(0, race.nitro_cooldown - delta)
 	race.nitro_buffer = maxf(0, race.nitro_buffer - delta)
 	race.cell_buffer = maxf(0, race.cell_buffer - delta)
-	var hard_block: bool = race.braking or race.impact >= .15
+	var hard_block: bool = race.braking or race.impact >= .15 or race.world_race.contact_flow.sustained()
 	if hard_block:
 		race.nitro_burst_left = 0
 		race.nitro_pending = false

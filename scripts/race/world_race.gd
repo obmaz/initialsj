@@ -25,6 +25,7 @@ var landing_velocity := 0.0
 var wrong_way_time := 0.0
 var crash_flight := false
 var outside_time := 0.0
+var contact_flow := preload("res://scripts/race/contact_flow.gd").new()
 var camera_state := preload("res://scripts/effects/chase_camera_state.gd").new()
 
 
@@ -57,6 +58,7 @@ func road_up(d: float) -> Vector3:
 
 func reset() -> void:
 	camera_state.reset()
+	contact_flow.reset()
 	reverse_wait = 0
 	reversing = false
 	recovery_clock = 0
@@ -89,6 +91,7 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		trackers[index].reposition(d)
 	trackers[index].lane = lane
 	if index == 0:
+		contact_flow.reset()
 		race.distance = d
 		race.lane = lane
 		race.speed = 0
@@ -268,6 +271,7 @@ func step(
 	if race.surface.mud_time > 0 and player_body.grounded:
 		player_body.velocity = player_body.velocity.move_toward(Vector3(0, player_body.velocity.y, 0), 24 * delta)
 	for hit in contacts:
+		contact_flow.contact(bool(hit.get("barrier", false)))
 		impact(hit)
 		# Gliding along a rail throws sparks and rumbles until the car leaves it.
 		if hit.get("barrier", false) and not hit.get("severe", false) and race.speed > Tuning.SCRAPE_SPEED:
@@ -291,6 +295,7 @@ func step(
 		elif rail_gap < 1.25:
 			race.edge_rumble = maxf(race.edge_rumble, 0.5)
 			race.haptics.pulse(0.08, 0.12, 0.05, 1)
+	advance_contact(delta)
 	if race.mode == "tour":
 		race.speed = speed_of(player_body)
 	update_rivals(delta)
@@ -308,9 +313,15 @@ func step(
 			race.slip_angle,
 			race.drifting,
 			player_body.grounded,
-			race.offroad_amount < 0.15 and race.impact < 0.15 and not race.crash.active
+			(
+				race.offroad_amount < 0.15
+				and race.impact < 0.15
+				and not race.crash.active
+				and not contact_flow.sustained()
+			),
+			contact_flow.reward_hold > 0
 		)
-	elif race.drifting and player_body.grounded and race.offroad_amount < 0.15:
+	elif race.drifting and player_body.grounded and race.offroad_amount < 0.15 and contact_flow.reward_hold <= 0:
 		race.score += delta * race.speed * (2 + race.drift_charge)
 	var clean_exit: bool = (
 		player_body.grounded
@@ -319,6 +330,7 @@ func step(
 		and race.offroad_amount < 0.15
 		and race.impact < 0.15
 		and race.throttling
+		and not contact_flow.sustained()
 	)
 	var corner_key: String = (
 		"%s:%s:%d:%d:%d"
@@ -332,7 +344,8 @@ func step(
 		race.distance - old_position.y,
 		race.track.curvature(race.distance),
 		clean_exit,
-		corner_key
+		corner_key,
+		contact_flow.reward_hold > 0
 	)
 	if was_airborne and player_body.grounded:
 		race.route_challenges.land(race, clean_exit and not crash_flight)
@@ -384,6 +397,28 @@ func step(
 	race.corner_warning = move_toward(
 		race.corner_warning, clampf((race.speed - race.recommended_speed - 4) / 15, 0, 1), delta * 3
 	)
+
+
+func advance_contact(delta: float) -> void:
+	if not contact_flow.wall_latched:
+		contact_flow.advance(delta, false)
+		return
+	var side := signf(race.lane)
+	var edge: float = race.track.half_width(race.distance) + race.track.active.rail_setback(race.distance, side)
+	var right: Vector3 = (race.track.point(race.distance, 1) - race.track.point(race.distance, -1)).normalized()
+	var pressed: bool = (
+		player_body.grounded
+		and not fork_area()
+		and not race.crash.active
+		and edge - absf(race.lane) - 1.1 < .2
+		and player_body.velocity.dot(right) * side > -.4
+	)
+	contact_flow.advance(delta, pressed)
+	if contact_flow.sustained():
+		race.interrupt_drive()
+		var vertical: Vector3 = player_body.surface_normal * player_body.velocity.dot(player_body.surface_normal)
+		player_body.velocity = vertical + (player_body.velocity - vertical).move_toward(Vector3.ZERO, 12 * delta)
+		race.speed = speed_of(player_body)
 
 
 func update_drift(delta: float, pressed: bool, brake: bool, gas: bool) -> void:
@@ -556,7 +591,8 @@ func impact(hit: Dictionary) -> void:
 		reversing = false
 		# A recent gentle scrape must not suppress a genuine severe impact.
 		race.bump_cooldown = 0
-	if race.bump_cooldown > 0:
+	var strength := smoothstep(2.5, 65, float(hit.speed))
+	if race.bump_cooldown > 0 and (strength < .15 or race.impact_recoil >= .15):
 		return
 	if (
 		hit.collider is CharacterBody3D
@@ -566,7 +602,7 @@ func impact(hit: Dictionary) -> void:
 		race.traffic_hits += 1
 	else:
 		race.wall_hits += 1
-	race.register_impact(smoothstep(2.5, 65, float(hit.speed)), local, hit.point)
+	race.register_impact(strength, local, hit.point)
 	# 일반 접촉은 멈춤 연출 없이 반동이 바로 보이도록 한다.
 	if not hit.get("severe", false):
 		race.hitstop_until = 0
