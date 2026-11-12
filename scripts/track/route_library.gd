@@ -73,7 +73,7 @@ static func checkpoint_bonus(node: int) -> float:
 
 static func canopy_span(stage: int, node: int) -> Vector2:
 	if stage == 2 and node == 1:
-		return Vector2(760, 856)
+		return Vector2(760, 1080)
 	if stage == 4 and node == 1:
 		return Vector2(1180, 1264)
 	return Vector2.ZERO

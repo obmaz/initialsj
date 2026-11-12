@@ -1,3 +1,4 @@
+; vegetation-size-schema=1
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/track/road_section.gd" id="1_2i5ug"]
@@ -67,6 +68,12 @@
 
 [ext_resource type="Material" path="res://models/shared/bridge_soffit.tres" id="UnderpassConcrete"]
 
+[ext_resource type="Material" path="res://models/props/skyway_abutment/material.tres" id="abutment_color"]
+
+[sub_resource type="MultiMesh" id="SkywayAbutments"]
+transform_format = 1
+instance_count = 32
+buffer = PackedFloat32Array(1.4088343, 0, 8.2810135, 439.58054, 0, 0.7734456, 0, 46.444454, -8.2810135, 0, 1.4088343, 34.825565, 1.3438048, 0, 8.291814, 447.48648, 0, 1.7010036, 0, 46.79385, -8.291814, 0, 1.3438048, 33.508286, 1.2771162, 0, 8.302347, 455.41144, 0, 2.6558171, 0, 46.91116, -8.302347, 0, 1.2771162, 32.260147, 1.1931224, 0, 8.314833, 463.35376, 0, 3.550505, 0, 46.93303, -8.314833, 0, 1.1931224, 31.078987, 1.1162701, 0, 8.3255, 471.30438, 0, 4.297685199999999, 0, 46.933205, -8.3255, 0, 1.1162701, 29.973488, 1.0250579, 0, 8.337221, 479.27124, 0, 4.8099776, 0, 46.933205, -8.337221, 0, 1.0250579, 28.95094, 0.9351569, 0, 8.347783, 487.24738, 0, 5.0, 0, 46.933205, -8.347783, 0, 0.9351569, 28.008371, 0.8452669, 0, 8.357364, 495.2343, 0, 5.0, 0, 46.933205, -8.357364, 0, 0.8452669, 27.162086, 0.7352559, 0, 8.367759, 503.2372, 0, 5.0, 0, 46.933205, -8.367759, 0, 0.7352559, 26.405432, 0.63700026, 0, 8.375812, 511.2446, 0, 5.0, 0, 46.933205, -8.375812, 0, 0.63700026, 25.746763, 0.522741, 0, 8.3837185, 519.2655, 0, 5.0, 0, 46.933205, -8.3837185, 0, 0.522741, 25.19352, 0.4125893, 0, 8.389861, 527.29114, 0, 5.0, 0, 46.933205, -8.389861, 0, 0.4125893, 24.739506, 0.30420473, 0, 8.394489, 535.322, 0, 5.0, 0, 46.933205, -8.394489, 0, 0.30420473, 24.402632, 0.17400017, 0, 8.398197, 543.36426, 0, 5.0, 0, 46.933205, -8.398197, 0, 0.17400017, 24.173334, 0.059604965, 0, 8.399788, 551.40344, 0, 5.0, 0, 46.933205, -8.399788, 0, 0.059604965, 24.058908, -0.07151249, 0, 8.399695, 559.4492, 0, 5.0, 0, 46.933205, -8.399695, 0, -0.07151249, 24.066805, -0.19593735, 0, 8.397714, 567.49176, 0, 5.0, 0, 46.933205, -8.397714, 0, -0.19593735, 24.187683, -0.316887, 0, 8.39402, 575.5301, 0, 5.0, 0, 46.933205, -8.39402, 0, -0.316887, 24.440094, -0.46017224, 0, 8.387385, 583.5715, 0, 5.0, 0, 46.933205, -8.387385, 0, -0.46017224, 24.812283, -0.58445406, 0, 8.3796425, 591.5996, 0, 5.0, 0, 46.933205, -8.3796425, 0, -0.58445406, 25.309721, -0.72530985, 0, 8.368628, 599.6244, 0, 5.0, 0, 46.933205, -8.368628, 0, -0.72530985, 25.93978, -0.85726684, 0, 8.356141, 607.6356, 0, 5.0, 0, 46.933205, -8.356141, 0, -0.85726684, 26.69027, -0.9843077, 0, 8.34213, 615.63086, 0, 5.0, 0, 46.933205, -8.34213, 0, -0.9843077, 27.57952, -1.1330891, 0, 8.323227, 623.619, 0, 5.0, 0, 46.933205, -8.323227, 0, -1.1330891, 28.594408, -1.2608039, 0, 8.30484, 631.5823, 0, 5.0, 0, 46.933205, -8.30484, 0, -1.2608039, 29.738136, -1.404196, 0, 8.281801, 639.5307, 0, 4.987368999999999, 0, 46.933205, -8.281801, 0, -1.404196, 31.01793, -1.5371488, 0, 8.258158, 647.45483, 0, 4.708184999999999, 0, 46.933205, -8.258158, 0, -1.5371488, 32.419415, -1.6640748, 0, 8.23352, 655.3512, 0, 4.1286784, 0, 46.933205, -8.23352, 0, -1.6640748, 33.95991, -1.8113415, 0, 8.202379, 663.22943, 0, 3.3362306, 0, 46.933205, -8.202379, 0, -1.8113415, 35.625835, -1.9366838, 0, 8.173693, 671.07227, 0, 2.4182237, 0, 46.933205, -8.173693, 0, -1.9366838, 37.41815, -2.0762782, 0, 8.139353, 678.8887, 0, 1.4620384, 0, 46.933205, -8.139353, 0, -2.0762782, 39.343735, -2.204576, 0, 8.105544, 686.6712, 0, 0.5550563000000001, 0, 46.933205, -8.105544, 0, -2.204576, 41.38694)
 [sub_resource type="Curve3D" id="Curve3D_2p4j5"]
 bake_interval = 2.0
 _data = {
@@ -1639,7 +1646,7 @@ buffer = PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(1.7251303, 0, 2.6867313, 167.02426, 0, 3.1928985, 0, 5.708855, -2.6867313, 0, 1.7251303, 54.683678, 1, 1, 1, 1)
+buffer = PackedFloat32Array(1.8759347, 0, 2.9215953, 167.02426, 0, 3.4720097, 0, 5.708855, -2.9215953, 0, 1.8759347, 54.683678, 1, 1, 1, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kgrrs"]
 vertex_color_use_as_albedo = true
@@ -1659,7 +1666,7 @@ roughness = 0.96
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-3.4123836, 0, -0.8983006, 204.58235, 0, 3.5286407, 0, 6.112241, 0.8983006, 0, -3.4123836, 76.21783, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-3.5966664, 0, -0.94681255, 204.58235, 0, 3.7192019, 0, 6.112241, 0.94681255, 0, -3.5966664, 76.21783, 1, 1, 1, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vxckt"]
 vertex_color_use_as_albedo = true
@@ -1679,7 +1686,7 @@ roughness = 0.96
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(3.0088043, 0, -1.5863006, 248.19858, 0, 3.4013605, 0, 7.290595, 1.5863006, 0, 3.0088043, 95.35785, 1, 1, 1, 1)
+buffer = PackedFloat32Array(2.9014973, 0, -1.5297263, 248.19858, 0, 3.2800533, 0, 7.290595, 1.5297263, 0, 2.9014973, 95.35785, 1, 1, 1, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qv7p7"]
 vertex_color_use_as_albedo = true
@@ -1699,7 +1706,7 @@ roughness = 0.96
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-1.201181, 0, 3.3633711, 298.14938, 0, 3.5714285, 0, 10.657075, -3.3633711, 0, -1.201181, 104.9395, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-1.5450849, 0, 4.3263204, 298.14938, 0, 4.5939456, 0, 10.657075, -4.3263204, 0, -1.5450849, 104.9395, 1, 1, 1, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_h58xe"]
 vertex_color_use_as_albedo = true
@@ -1719,7 +1726,7 @@ roughness = 0.96
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-1.3146824, 0, -3.113208, 340.8659, 0, 3.3794162, 0, 21.395752, 3.113208, 0, -1.3146824, 80.916794, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-1.6943117, 0, -4.0121817, 340.8659, 0, 4.3552605, 0, 21.395752, 4.0121817, 0, -1.6943117, 80.916794, 1, 1, 1, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r3ojq"]
 vertex_color_use_as_albedo = true
@@ -1739,7 +1746,7 @@ roughness = 0.96
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(2.1883578, 0, 0.9999987, 381.86374, 0, 2.406015, 0, 33.801758, -0.9999987, 0, 2.1883578, 80.09168, 1, 1, 1, 1)
+buffer = PackedFloat32Array(2.6327785, 0, 1.2030825, 381.86374, 0, 2.8946384, 0, 33.801758, -1.2030825, 0, 2.6327785, 80.09168, 1, 1, 1, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i12qd"]
 vertex_color_use_as_albedo = true
@@ -1759,7 +1766,7 @@ roughness = 0.96
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-1.9070017, 0, 0.61920905, 422.59695, 0, 2.0050125, 0, 43.425037, -0.61920905, 0, -1.9070017, 78.49927, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.2931212, 0, 0.74458319, 422.59695, 0, 2.4109767, 0, 43.425037, -0.74458319, 0, -2.2931212, 78.49927, 1, 1, 1, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wa5pp"]
 vertex_color_use_as_albedo = true
@@ -1779,337 +1786,337 @@ roughness = 0.96
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(1.5705006, 0, -2.7799513, 463.32434, 0, 3.1928985, 0, 46.9165, 2.7799513, 0, 1.5705006, 77.52446, 1, 1, 1, 1)
+buffer = PackedFloat32Array(1.2668854, 0, -2.2425204, 463.32434, 0, 2.5756351, 0, 46.9165, 2.2425204, 0, 1.2668854, 77.52446, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_nqnr5"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(0.7987904, 0, 3.4370391, 500.8993, 0, 3.5286407, 0, 46.673336, -3.4370391, 0, 0.7987904, 54.748466, 1, 1, 1, 1)
+buffer = PackedFloat32Array(0.75384336, 0, 3.2436408, 500.8993, 0, 3.3300881, 0, 46.673336, -3.2436408, 0, 0.75384336, 54.748466, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_dcjgw"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-2.80755, 0, -1.9201344, 541.3061, 0, 3.4013605, 0, 46.792953, 1.9201344, 0, -2.80755, 59.27691, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.311025, 0, -1.5805519, 541.3061, 0, 2.799818, 0, 46.792953, 1.5805519, 0, -2.311025, 59.27691, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_2mfra"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(3.5351062, 0, -0.5080615, 580.3324, 0, 3.5714285, 0, 46.85975, 0.5080615, 0, 3.5351062, 67.37459, 1, 1, 1, 1)
+buffer = PackedFloat32Array(2.8521033, 0, -0.40990109, 580.3324, 0, 2.8814079, 0, 46.85975, 0.40990109, 0, 2.8521033, 67.37459, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_4106y"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-2.1392753, 0, 2.6160953, 617.76764, 0, 3.3794162, 0, 46.667046, -2.6160953, 0, -2.1392753, 78.32848, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-1.9429284, 0, 2.3759849, 617.76764, 0, 3.0692467, 0, 46.667046, -2.3759849, 0, -1.9429284, 78.32848, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_gxhyl"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-0.13738112, 0, -2.4020896, 659.0149, 0, 2.406015, 0, 46.654774, 2.4020896, 0, -0.13738112, 67.923744, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-0.10011979, 0, -1.7505805, 659.0149, 0, 1.7534412, 0, 46.654774, 1.7505805, 0, -0.10011979, 67.923744, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_1lm5c"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(0.67217946, 0, -1.8889812, 716.19946, 0, 2.0050125, 0, 46.808666, 1.8889812, 0, 0.67217946, 18.217674, 1, 1, 1, 1)
+buffer = PackedFloat32Array(0.44488863, 0, -1.2502409, 716.19946, 0, 1.3270374, 0, 46.808666, 1.2502409, 0, 0.44488863, 18.217674, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_4e1l5"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-3.191604, 0, -0.090919375, 730.1327, 0, 3.1928985, 0, 46.476227, 0.090919375, 0, -3.191604, 102.225586, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.1875866, 0, -0.062317885, 730.1327, 0, 2.1884739, 0, 46.476227, 0.062317885, 0, -2.1875866, 102.22559, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_5vncu"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-3.2111082, 0, -1.4629045, 801.95703, 0, 3.5286407, 0, 47.651794, 1.4629045, 0, -3.2111082, 45.353462, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.0555409, 0, -0.93645551, 801.95703, 0, 2.2588043, 0, 47.651794, 0.93645551, 0, -2.0555409, 45.353462, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_3y3pn"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-0.3872223, 0, 3.3792472, 808.4384, 0, 3.4013605, 0, 47.891228, -3.3792472, 0, -0.3872223, 122.53667, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-0.35302186, 0, 3.0807837, 808.4384, 0, 3.1009439, 0, 47.891228, -3.0807837, 0, -0.35302186, 122.53667, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_l3m25"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-1.7531219, 0, 3.1115377, 871.97437, 0, 3.5714285, 0, 48.07436, -3.1115377, 0, -1.7531219, 101.079605, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-1.8110218, 0, 3.2143017, 871.97437, 0, 3.6893812, 0, 48.07436, -3.2143017, 0, -1.8110218, 101.07961, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_1xbj8"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(3.3122528, 0, 0.6703995, 867.41174, 0, 3.3794162, 0, 50.783478, -0.6703995, 0, 3.3122528, 177.98624, 1, 1, 1, 1)
+buffer = PackedFloat32Array(3.5606953, 0, 0.72068423, 867.41174, 0, 3.6328964, 0, 50.783478, -0.72068423, 0, 3.5606953, 177.98624, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_mhc5d"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(1.9875286, 0, 1.3559637, 949.3186, 0, 2.406015, 0, 55.204617, -1.3559637, 0, 1.9875286, 144.62509, 1, 1, 1, 1)
+buffer = PackedFloat32Array(2.6408712, 0, 1.8016976, 949.3186, 0, 3.1969229, 0, 55.204617, -1.8016976, 0, 2.6408712, 144.62509, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_veqas"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(0.56432724, 0, -1.9239569, 934.17163, 0, 2.0050125, 0, 51.877174, 1.9239569, 0, 0.56432724, 222.6502, 1, 1, 1, 1)
+buffer = PackedFloat32Array(0.6975726, 0, -2.3782294, 934.17163, 0, 2.4784233, 0, 51.877174, 2.3782294, 0, 0.6975726, 222.6502, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_j1m31"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(2.0183678, 0, -2.4740236, 1003.97424, 0, 3.1928985, 0, 47.996998, 2.4740236, 0, 2.0183678, 213.85445, 1, 1, 1, 1)
+buffer = PackedFloat32Array(2.445903, 0, -2.9980768, 1003.9742, 0, 3.8692254, 0, 47.996998, 2.9980768, 0, 2.445903, 213.85445, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_vpq62"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-3.2886667, 0, -1.2790527, 979.74634, 0, 3.5286407, 0, 48.152073, 1.2790527, 0, -3.2886667, 289.5104, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.9028093, 0, -1.1289822, 979.74634, 0, 3.1146273, 0, 48.152073, 1.1289822, 0, -2.9028093, 289.5104, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_oxeyo"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-2.4420552, 0, -2.367619, 1068.0237, 0, 3.4013605, 0, 46.798855, 2.367619, 0, -2.4420552, 274.74142, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.2976288, 0, -2.2275948, 1068.0237, 0, 3.2001995, 0, 46.798855, 2.2275948, 0, -2.2976288, 274.74142, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_8ogik"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-1.5744344, 0, 3.2056603, 1038.2754, 0, 3.5714285, 0, 44.64184, -3.2056603, 0, -1.5744344, 347.2999, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-1.2608582, 0, 2.5671968, 1038.2754, 0, 2.8601159, 0, 44.64184, -2.5671968, 0, -1.2608582, 347.2999, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_devjg"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-2.551194, 0, 2.2162726, 1106.572, 0, 3.3794162, 0, 41.241142, -2.2162726, 0, -2.551194, 352.4823, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-1.946439, 0, 1.69091, 1106.572, 0, 2.5783329, 0, 41.241142, -1.69091, 0, -1.946439, 352.4823, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_h8ber"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(2.0609987, 0, 1.2414477, 1076.162, 0, 2.406015, 0, 36.75895, -1.2414477, 0, 2.0609987, 421.7086, 1, 1, 1, 1)
+buffer = PackedFloat32Array(1.4552961, 0, 0.87660121, 1076.162, 0, 1.6989162, 0, 36.75895, -0.87660121, 0, 1.4552961, 421.7086, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_nhc6e"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(1.1806763, 0, 1.620518, 1156.9052, 0, 2.0050125, 0, 32.8301, -1.620518, 0, 1.1806763, 418.5151, 1, 1, 1, 1)
+buffer = PackedFloat32Array(0.76025829, 0, 1.0434801, 1156.9052, 0, 1.2910629, 0, 32.8301, -1.0434801, 0, 0.76025829, 418.5151, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_kb4jv"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(1.8752828, 0, -2.5841663, 1135.9967, 0, 3.1928985, 0, 29.240883, 2.5841663, 0, 1.8752828, 484.2662, 1, 1, 1, 1)
+buffer = PackedFloat32Array(1.7065608, 0, -2.351665, 1135.9967, 0, 2.9056287, 0, 29.240883, 2.351665, 0, 1.7065608, 484.2662, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_hlv07"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(3.0191932, 0, -1.8264112, 1196.3306, 0, 3.5286407, 0, 27.68277, 1.8264112, 0, 3.0191932, 488.7777, 1, 1, 1, 1)
+buffer = PackedFloat32Array(2.9552413, 0, -1.7877245, 1196.3306, 0, 3.4538978, 0, 27.68277, 1.7877245, 0, 2.9552413, 488.7777, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_o3fmb"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-2.5719755, 0, -2.2258022, 1183.4767, 0, 3.4013605, 0, 28.449654, 2.2258022, 0, -2.5719755, 561.0542, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.529522, 0, -2.1890627, 1183.4767, 0, 3.3452171, 0, 28.449654, 2.1890627, 0, -2.529522, 561.0542, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_p6u0c"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-1.5804837, 0, -3.2026823, 1265.3911, 0, 3.5714285, 0, 30.622059, 3.2026823, 0, -1.5804837, 524.5073, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-1.4460542, 0, -2.9302752, 1265.3911, 0, 3.2676573, 0, 30.622059, 2.9302752, 0, -1.4460542, 524.5073, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_dc55s"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-2.4218366, 0, 2.3569388, 1263.7115, 0, 3.3794162, 0, 34.207886, -2.3569388, 0, -2.4218366, 606.62885, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-3.3396662, 0, 3.2501733, 1263.7115, 0, 4.66015, 0, 34.207886, -3.2501733, 0, -3.3396662, 606.62885, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_g10qh"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-2.240734, 0, 0.8763666, 1323.6041, 0, 2.406015, 0, 38.405018, -0.8763666, 0, -2.240734, 568.9377, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.8089057, 0, 1.0985825, 1323.6041, 0, 3.0160961, 0, 38.405018, -1.0985825, 0, -2.8089057, 568.9377, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_rfgaf"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(1.270385, 0, 1.5511922, 1349.3193, 0, 2.0050125, 0, 43.56346, -1.5511922, 0, 1.270385, 642.2015, 1, 1, 1, 1)
+buffer = PackedFloat32Array(1.1982588, 0, 1.4631232, 1349.3193, 0, 1.8911778, 0, 43.56346, -1.4631232, 0, 1.1982588, 642.2015, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_pif8f"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-0.19481045, 0, 3.523259, 1715.6836, 0, 3.5286407, 0, 75.862816, -3.523259, 0, -0.19481045, 500.10706, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-0.13968585, 0, 2.5262989, 1715.6836, 0, 2.5301578, 0, 75.862816, -2.5262989, 0, -0.13968585, 500.10706, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_mgxh0"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(3.2886524, 0, -0.86834264, 1764.9095, 0, 3.4013605, 0, 76.317314, 0.86834264, 0, 3.2886524, 555.44977, 1, 1, 1, 1)
+buffer = PackedFloat32Array(2.4890319, 0, -0.65720919, 1764.9095, 0, 2.5743356, 0, 76.317314, 0.65720919, 0, 2.4890319, 555.44977, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_gqyve"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(3.53606, 0, 0.5013798, 1805.6019, 0, 3.5714285, 0, 76.02436, -0.5013798, 0, 3.53606, 504.53235, 1, 1, 1, 1)
+buffer = PackedFloat32Array(2.2629144, 0, 0.32085981, 1805.6019, 0, 2.2855486, 0, 76.02436, -0.32085981, 0, 2.2629144, 504.53235, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_obhaq"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-0.58020544, 0, -3.3292365, 1844.1761, 0, 3.3794162, 0, 77.62451, 3.3292365, 0, -0.58020544, 566.9048, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-0.53625958, 0, -3.0770738, 1844.1761, 0, 3.1234528, 0, 77.62451, 3.0770738, 0, -0.53625958, 566.9048, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_agtog"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(0.5402189, 0, -2.3445833, 1894.9896, 0, 2.406015, 0, 82.30934, 2.3445833, 0, 0.5402189, 503.10318, 1, 1, 1, 1)
+buffer = PackedFloat32Array(0.58808659, 0, -2.552332, 1894.9896, 0, 2.6192071, 0, 82.30934, 2.552332, 0, 0.58808659, 503.10318, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_gdibk"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-1.9974419, 0, 0.17407182, 1924.55, 0, 2.0050125, 0, 82.1635, -0.17407182, 0, -1.9974419, 568.2814, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-1.9648955, 0, 0.17123549, 1924.55, 0, 1.9723427, 0, 82.1635, -0.17123549, 0, -1.9648955, 568.2814, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_ext0h"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-3.0386775, 0, -0.98032653, 1977.3727, 0, 3.1928985, 0, 76.22127, 0.98032653, 0, -3.0386775, 535.6243, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-3.2993866, 0, -1.0644355, 1977.3727, 0, 3.4668393, 0, 76.22127, 1.0644355, 0, -3.2993866, 535.6243, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_fuibl"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(0.004658563, 0, 3.5286376, 1996.4915, 0, 3.5286407, 0, 76.04501, -3.5286376, 0, 0.004658563, 605.55, 1, 1, 1, 1)
+buffer = PackedFloat32Array(0.0056204459, 0, 4.2572176, 1996.4915, 0, 4.2572214, 0, 76.04501, -4.2572176, 0, 0.0056204459, 605.55, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_7jtnu"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-1.3172863, 0, 3.1359227, 2064.3467, 0, 3.4013605, 0, 76.27089, -3.1359227, 0, -1.3172863, 555.6865, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-1.5895665, 0, 3.784111, 2064.3467, 0, 4.1044142, 0, 76.27089, -3.784111, 0, -1.5895665, 555.6865, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_hnu2j"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(3.5587475, 0, 0.300697, 2073.513, 0, 3.5714285, 0, 75.74612, -0.300697, 0, 3.5587475, 630.8445, 1, 1, 1, 1)
+buffer = PackedFloat32Array(3.4135478, 0, 0.28842833, 2073.513, 0, 3.4257114, 0, 75.74612, -0.28842833, 0, 3.4135478, 630.8445, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_48gy1"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(2.9923635, 0, 1.5704185, 2136.5342, 0, 3.3794162, 0, 75.56979, -1.5704185, 0, 2.9923635, 607.71356, 1, 1, 1, 1)
+buffer = PackedFloat32Array(2.5639128, 0, 1.3455638, 2136.5342, 0, 2.8955468, 0, 75.56979, -1.3455638, 0, 2.5639128, 607.71356, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_prv5d"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(0.40684214, 0, -2.3713684, 2133.8162, 0, 2.406015, 0, 75.08969, 2.3713684, 0, 0.40684214, 685.154, 1, 1, 1, 1)
+buffer = PackedFloat32Array(0.36379634, 0, -2.1204665, 2133.8162, 0, 2.1514474, 0, 75.08969, 2.1204665, 0, 0.36379634, 685.154, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_b8rf3"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(1.0801321, 0, -1.689198, 2215.3125, 0, 2.0050125, 0, 74.9425, 1.689198, 0, 1.0801321, 650.43774, 1, 1, 1, 1)
+buffer = PackedFloat32Array(0.89264249, 0, -1.3959866, 2215.3125, 0, 1.6569819, 0, 74.9425, 1.3959866, 0, 0.89264249, 650.43774, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_8lk45"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-3.0892396, 0, -0.8069697, 2202.1565, 0, 3.1928985, 0, 74.75924, 0.8069697, 0, -3.0892396, 728.0976, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.1403144, 0, -0.55909191, 2202.1565, 0, 2.2121323, 0, 74.75924, 0.55909191, 0, -2.1403144, 728.0976, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_nypq0"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-2.7994297, 0, -2.1481388, 2270.6174, 0, 3.5286407, 0, 74.48458, 2.1481388, 0, -2.7994297, 720.61957, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.0801613, 0, -1.5962091, 2270.6174, 0, 2.6220133, 0, 74.48458, 1.5962091, 0, -2.0801613, 720.61957, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_x2iwg"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-1.1379173, 0, 3.2053702, 2247.4316, 0, 3.4013605, 0, 74.7823, -3.2053702, 0, -1.1379173, 795.7646, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-0.76312804, 0, 2.1496359, 2247.4316, 0, 2.281074, 0, 74.7823, -2.1496359, 0, -0.76312804, 795.7646, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_ihemq"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-2.4085069, 0, 2.6370811, 2335.2297, 0, 3.5714285, 0, 73.59104, -2.6370811, 0, -2.4085069, 780.5316, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.5185321, 0, 2.757548, 2335.2297, 0, 3.7345781, 0, 73.59104, -2.757548, 0, -2.5185321, 780.5316, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_ukao6"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(3.0763493, 0, 1.3987597, 2306.0903, 0, 3.3794162, 0, 67.59709, -1.3987597, 0, 3.0763493, 853.5418, 1, 1, 1, 1)
+buffer = PackedFloat32Array(2.8099491, 0, 1.2776324, 2306.0903, 0, 3.0867715, 0, 67.59709, -1.2776324, 0, 2.8099491, 853.5418, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_qkcd6"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(1.6313056, 0, 1.7685447, 2373.8357, 0, 2.406015, 0, 55.955597, -1.7685447, 0, 1.6313056, 854.913, 1, 1, 1, 1)
+buffer = PackedFloat32Array(1.5946961, 0, 1.7288553, 2373.8357, 0, 2.3520196, 0, 55.955597, -1.7288553, 0, 1.5946961, 854.913, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_p3o4r"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(0.9829207, 0, -1.7475532, 2343.2383, 0, 2.0050125, 0, 43.074966, 1.7475532, 0, 0.9829207, 926.15137, 1, 1, 1, 1)
+buffer = PackedFloat32Array(1.2784859, 0, -2.2730441, 2343.2383, 0, 2.6079217, 0, 43.074966, 2.2730441, 0, 1.2784859, 926.15137, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_qhlty"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(2.5234334, 0, -1.9562422, 2429.4712, 0, 3.1928985, 0, 30.602987, 1.9562422, 0, 2.5234334, 911.07916, 1, 1, 1, 1)
+buffer = PackedFloat32Array(3.6260388, 0, -2.8110154, 2429.4712, 0, 4.5880244, 0, 30.602987, 2.8110154, 0, 3.6260388, 911.07916, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_4tyku"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-2.9163804, 0, -1.9864619, 2404.1045, 0, 3.5286407, 0, 17.475973, 1.9864619, 0, -2.9163804, 983.183, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-3.5347988, 0, -2.4076911, 2404.1045, 0, 4.2768888, 0, 17.475973, 2.4076911, 0, -3.5347988, 983.183, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_v0qov"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-1.8464625, 0, -2.8565416, 2470.273, 0, 3.4013605, 0, 10.379193, 2.8565416, 0, -1.8464625, 977.47614, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-1.7679209, 0, -2.735035, 2470.273, 0, 3.2566793, 0, 10.379193, 2.735035, 0, -1.7679209, 977.47614, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_vlouw"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-2.255591, 0, 2.769009, 2458.8481, 0, 3.5714285, 0, 8.056803, -2.769009, 0, -2.255591, 1052.2944, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.0084953, 0, 2.4656693, 2458.8481, 0, 3.1801852, 0, 8.056803, -2.4656693, 0, -2.0084953, 1052.2944, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_p4tg5"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(-2.9845903, 0, 1.5851415, 2536.1924, 0, 3.3794162, 0, 6.74863, -1.5851415, 0, -2.9845903, 1019.42395, 1, 1, 1, 1)
+buffer = PackedFloat32Array(-2.5890995, 0, 1.375093, 2536.1924, 0, 2.9316067, 0, 6.74863, -1.375093, 0, -2.5890995, 1019.4239, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_lvs6g"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(1.728667, 0, 1.6735048, 2541.1577, 0, 2.406015, 0, 5.9037175, -1.6735048, 0, 1.728667, 1091.2985, 1, 1, 1, 1)
+buffer = PackedFloat32Array(1.1168241, 0, 1.081186, 2541.1577, 0, 1.5544322, 0, 5.9037175, -1.081186, 0, 1.1168241, 1091.2985, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_eh4yl"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(0.7856031, 0, 1.8446959, 2598.6406, 0, 2.0050125, 0, 5.6250777, -1.8446959, 0, 0.7856031, 1065.3129, 1, 1, 1, 1)
+buffer = PackedFloat32Array(0.59906235, 0, 1.4066745, 2598.6406, 0, 1.5289241, 0, 5.6250777, -1.4066745, 0, 0.59906235, 1065.3129, 1, 1, 1, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_t5fc2"]
 transform_format = 1
 use_colors = true
 instance_count = 1
-buffer = PackedFloat32Array(2.4088194, 0, -2.0957553, 2615.4885, 0, 3.1928985, 0, 5.8383775, 2.0957553, 0, 2.4088194, 1136.1644, 1, 1, 1, 1)
+buffer = PackedFloat32Array(1.8366397, 0, -1.5979394, 2615.4885, 0, 2.4344723, 0, 5.8383775, 1.5979394, 0, 1.8366397, 1136.1644, 1, 1, 1, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qj8ba"]
 cull_mode = 2
@@ -6478,3 +6485,11 @@ metadata/mesh_ref = "res://models/world/tour_1_1_2/geometry.glb#SkywayConcreteSo
 [node name="UrbanUnderpass" type="MeshInstance3D" parent="."]
 material_override = ExtResource("UnderpassConcrete")
 metadata/mesh_ref = "res://models/world/tour_1_1_2/geometry.glb#UrbanUnderpass"
+
+[node name="TourLandmarks" type="Node3D" parent="Part0179"]
+[node name="SkywayAbutments" type="MultiMeshInstance3D" parent="Part0179/TourLandmarks"]
+material_override = ExtResource("abutment_color")
+multimesh = SubResource("SkywayAbutments")
+metadata/mesh_ref = "res://models/props/skyway_abutment/model.glb#Model/Visual"
+metadata/world_barrier = true
+metadata/collision_transforms = Array[Transform3D]([Transform3D(1.4088343, 0, -8.2810135, 0, 0.7734456, 0, 8.2810135, 0, 1.4088343, 439.58054, 46.444454, 34.825565), Transform3D(1.3438048, 0, -8.291814, 0, 1.7010036, 0, 8.291814, 0, 1.3438048, 447.48648, 46.79385, 33.508286), Transform3D(1.2771162, 0, -8.302347, 0, 2.6558171, 0, 8.302347, 0, 1.2771162, 455.41144, 46.91116, 32.260147), Transform3D(1.1931224, 0, -8.314833, 0, 3.550505, 0, 8.314833, 0, 1.1931224, 463.35376, 46.93303, 31.078987), Transform3D(1.1162701, 0, -8.3255, 0, 4.297685199999999, 0, 8.3255, 0, 1.1162701, 471.30438, 46.933205, 29.973488), Transform3D(1.0250579, 0, -8.337221, 0, 4.8099776, 0, 8.337221, 0, 1.0250579, 479.27124, 46.933205, 28.95094), Transform3D(0.9351569, 0, -8.347783, 0, 5.0, 0, 8.347783, 0, 0.9351569, 487.24738, 46.933205, 28.008371), Transform3D(0.8452669, 0, -8.357364, 0, 5.0, 0, 8.357364, 0, 0.8452669, 495.2343, 46.933205, 27.162086), Transform3D(0.7352559, 0, -8.367759, 0, 5.0, 0, 8.367759, 0, 0.7352559, 503.2372, 46.933205, 26.405432), Transform3D(0.63700026, 0, -8.375812, 0, 5.0, 0, 8.375812, 0, 0.63700026, 511.2446, 46.933205, 25.746763), Transform3D(0.522741, 0, -8.3837185, 0, 5.0, 0, 8.3837185, 0, 0.522741, 519.2655, 46.933205, 25.19352), Transform3D(0.4125893, 0, -8.389861, 0, 5.0, 0, 8.389861, 0, 0.4125893, 527.29114, 46.933205, 24.739506), Transform3D(0.30420473, 0, -8.394489, 0, 5.0, 0, 8.394489, 0, 0.30420473, 535.322, 46.933205, 24.402632), Transform3D(0.17400017, 0, -8.398197, 0, 5.0, 0, 8.398197, 0, 0.17400017, 543.36426, 46.933205, 24.173334), Transform3D(0.059604965, 0, -8.399788, 0, 5.0, 0, 8.399788, 0, 0.059604965, 551.40344, 46.933205, 24.058908), Transform3D(-0.07151249, 0, -8.399695, 0, 5.0, 0, 8.399695, 0, -0.07151249, 559.4492, 46.933205, 24.066805), Transform3D(-0.19593735, 0, -8.397714, 0, 5.0, 0, 8.397714, 0, -0.19593735, 567.49176, 46.933205, 24.187683), Transform3D(-0.316887, 0, -8.39402, 0, 5.0, 0, 8.39402, 0, -0.316887, 575.5301, 46.933205, 24.440094), Transform3D(-0.46017224, 0, -8.387385, 0, 5.0, 0, 8.387385, 0, -0.46017224, 583.5715, 46.933205, 24.812283), Transform3D(-0.58445406, 0, -8.3796425, 0, 5.0, 0, 8.3796425, 0, -0.58445406, 591.5996, 46.933205, 25.309721), Transform3D(-0.72530985, 0, -8.368628, 0, 5.0, 0, 8.368628, 0, -0.72530985, 599.6244, 46.933205, 25.93978), Transform3D(-0.85726684, 0, -8.356141, 0, 5.0, 0, 8.356141, 0, -0.85726684, 607.6356, 46.933205, 26.69027), Transform3D(-0.9843077, 0, -8.34213, 0, 5.0, 0, 8.34213, 0, -0.9843077, 615.63086, 46.933205, 27.57952), Transform3D(-1.1330891, 0, -8.323227, 0, 5.0, 0, 8.323227, 0, -1.1330891, 623.619, 46.933205, 28.594408), Transform3D(-1.2608039, 0, -8.30484, 0, 5.0, 0, 8.30484, 0, -1.2608039, 631.5823, 46.933205, 29.738136), Transform3D(-1.404196, 0, -8.281801, 0, 4.987368999999999, 0, 8.281801, 0, -1.404196, 639.5307, 46.933205, 31.01793), Transform3D(-1.5371488, 0, -8.258158, 0, 4.708184999999999, 0, 8.258158, 0, -1.5371488, 647.45483, 46.933205, 32.419415), Transform3D(-1.6640748, 0, -8.23352, 0, 4.1286784, 0, 8.23352, 0, -1.6640748, 655.3512, 46.933205, 33.95991), Transform3D(-1.8113415, 0, -8.202379, 0, 3.3362306, 0, 8.202379, 0, -1.8113415, 663.22943, 46.933205, 35.625835), Transform3D(-1.9366838, 0, -8.173693, 0, 2.4182237, 0, 8.173693, 0, -1.9366838, 671.07227, 46.933205, 37.41815), Transform3D(-2.0762782, 0, -8.139353, 0, 1.4620384, 0, 8.139353, 0, -2.0762782, 678.8887, 46.933205, 39.343735), Transform3D(-2.204576, 0, -8.105544, 0, 0.5550563000000001, 0, 8.105544, 0, -2.204576, 686.6712, 46.933205, 41.38694)])
