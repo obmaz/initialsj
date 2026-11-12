@@ -35,6 +35,7 @@ Godot **4.7.2 / GL Compatibility** 기반의 가로 화면 3D 아케이드 레�
 | 코드 책임·주행과 시각 모델 경계·메모리 수명 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | 특정 오브젝트·차량·빌딩만 제작·검사·커밋 | [MODEL_PIPELINE.md](docs/MODEL_PIPELINE.md), [모델 제작 스킬](.agents/skills/model-authoring/SKILL.md) |
 | 차량별 음원 제작·재생 | [VEHICLE_AUDIO.md](docs/VEHICLE_AUDIO.md) |
+| 프레임 저하 원인 분석·개선 제안 | [PERFORMANCE.md](docs/PERFORMANCE.md) |
 | 출처·라이선스 | [ASSET_LICENSES.md](docs/ASSET_LICENSES.md) |
 | 요청받은 APK 빌드·Dropbox 전달 | [ANDROID.md](docs/ANDROID.md), [APK 전달 스킬](.agents/skills/dropbox-apk/SKILL.md) |
 
