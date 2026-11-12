@@ -66,6 +66,8 @@ func step(
 			race.route_confirm_title = race.route_banner()
 			changed = true
 	if changed:
+		if race.record_key() != race.loaded_record_key:
+			race.load_record()
 		race.rewards.cancel_drift()
 		race.route_challenges.invalidate()
 		race.tour_score_multiplier = race.TourChallenge.score_multiplier(race.track.history)

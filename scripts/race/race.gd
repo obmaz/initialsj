@@ -714,7 +714,7 @@ func restart(start_countdown: bool = true) -> void:
 	player.body.position = Vector3(0, player.ride_offset, 0)
 	recovery_distance = 80
 	recovery_lane = -3.2
-	if mode == "tour" and (track.active.stage != 0 or not track.history.is_empty()):
+	if mode == "tour":
 		track.reset()
 	if track.active.collapse != null:
 		track.active.collapse.reset_effect()

@@ -595,7 +595,8 @@ func arc_points(center: Vector2, radius: float, start: float, end: float, steps:
 
 
 func time_label(seconds: float) -> String:
-	return "%02d:%06.3f" % [int(seconds) / 60, fmod(seconds, 60)]
+	var ticks := roundi(maxf(0, seconds) * 1000)
+	return "%02d:%02d.%03d" % [ticks / 60000, (ticks / 1000) % 60, ticks % 1000]
 
 
 func standings() -> Array[Dictionary]:

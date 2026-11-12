@@ -163,7 +163,7 @@ func run(tree: SceneTree) -> int:
 			if [stage, node] in [[0, 0], [1, 1], [4, 4]]:
 				await fall(tree, race, race.track.length - 100, 0, "투어 분기·최종 골 접근")
 	# 중심 레이만 통과하는 좁은 받침은 차량을 지지하는 도로가 아니다.
-	race.track.disable_collisions(race.track)
+	race.track.disable_world_queries(race.track)
 	var ground := StaticBody3D.new()
 	ground.collision_layer = 1
 	var shape := CollisionShape3D.new()

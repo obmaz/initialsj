@@ -25,8 +25,8 @@ static func prepare_course(race: Node3D) -> void:
 	await worker.completed
 	if race.mode == "tour":
 		Pool.spatial_shaders_warmed = true
-	var storm_pending: bool = race.thunderstorm.eligible() and not race.track.has_meta("storm_views_warmed")
-	if race.track.active.closed_loop and (not race.track.has_meta("render_views_warmed") or storm_pending):
+	var storm_pending: bool = race.thunderstorm.eligible() and not race.track.active.has_meta("storm_views_warmed")
+	if race.track.active.closed_loop and (not race.track.active.has_meta("render_views_warmed") or storm_pending):
 		await prepare_views(race)
 
 
@@ -54,11 +54,11 @@ static func prepare_views(race: Node3D) -> void:
 	if storm_light != null:
 		storm_light.visible = light_visible
 		storm_light.light_energy = light_energy
-		race.track.set_meta("storm_views_warmed", true)
+		race.track.active.set_meta("storm_views_warmed", true)
 	camera.global_transform = saved
 	camera.reset_physics_interpolation()
 	race.set_physics_process(processing)
-	race.track.set_meta("render_views_warmed", true)
+	race.track.active.set_meta("render_views_warmed", true)
 
 
 func add_mesh(mesh: Mesh, material: Material, surfaces: Array, instanced: bool, color: bool, custom: bool) -> void:

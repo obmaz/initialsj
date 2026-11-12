@@ -57,11 +57,17 @@ func play(action: Callable) -> void:
 	await RenderingServer.frame_post_draw
 	action.call()
 	# 출발 카운트다운은 GPU 준비와 화면 공개가 끝난 뒤부터 진행한다.
-	var freeze_countdown: bool = race.state == RaceState.COUNTDOWN
+	var freeze_countdown: bool = (
+		race.state == RaceState.COUNTDOWN
+		or (race.state == RaceState.PAUSED and race.resume_state == RaceState.COUNTDOWN)
+	)
 	var was_processing: bool = race.is_physics_processing()
 	if freeze_countdown:
 		race.set_physics_process(false)
-	race.warming_world = freeze_countdown and prepared_road_instance_id != race.track.active.get_instance_id()
+	var storm_pending: bool = race.thunderstorm.eligible() and not race.track.active.has_meta("storm_views_warmed")
+	race.warming_world = (
+		freeze_countdown and (prepared_road_instance_id != race.track.active.get_instance_id() or storm_pending)
+	)
 	race.sync_world_rendering()
 	if loading_title != "":
 		loading_overlay.advance(2, 0.7)

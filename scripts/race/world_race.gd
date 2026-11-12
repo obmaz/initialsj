@@ -156,7 +156,11 @@ func place_cars() -> void:
 	race.player.body.rotation.y = 0
 	for i in range(1, bodies.size()):
 		var rival: RivalState = race.rivals[i - 1]
-		rival.car.global_transform = frame(bodies[i], rival.car)
+		var pose := frame(bodies[i], rival.car)
+		# 건너뛴 틱은 시각적으로만 예측한다. 실제 차체는 누적 시간으로 한 번만 적분한다.
+		if bodies[i].grounded and rival.lod_time > 0:
+			pose.origin += bodies[i].velocity.slide(bodies[i].surface_normal) * rival.lod_time
+		rival.car.global_transform = pose
 		rival.car.body.rotation.y = 0
 		rival.car.visible = rival.active and bodies[i].position.distance_to(player_body.position) < 460
 		rival.car.set_detail(bodies[i].position.distance_to(player_body.position))
@@ -167,6 +171,9 @@ func place_cars() -> void:
 func step(
 	delta: float, axis: float, drift_input: bool, gas: bool, brake: bool, nitro_input: bool, cell_input: bool
 ) -> void:
+	if race.mode == "track":
+		# 기한 뒤의 이동으로 체크포인트 보너스나 완주를 얻지 못하게 한다.
+		delta = minf(delta, maxf(0, race.time_left))
 	for i in range(1, bodies.size()):
 		var layer := 4 if race.rivals[i - 1].active else 0
 		if bodies[i].collision_layer != layer:
@@ -400,11 +407,12 @@ func step(
 				race.time_left += race.checkpoint_award
 				race.checkpoint_flash = 2
 			race.circuit_checkpoint += 1
-		if race.time_left <= 0:
+		if race.time_left <= 0 and int(data.finished_laps) < 3:
 			race.state = RaceState.FAILED
 			race.result_age = 0
 			race.cancel_nitro()
 			race.personal_run.finish(race, false)
+			return
 	var laps: int = int(data.finished_laps)
 	if laps > race.laps_completed:
 		race.laps_completed = laps
@@ -807,6 +815,9 @@ func plan_rival_speed(index: int, d: float, look: float, forward: Vector3) -> vo
 
 
 func update_rivals(delta: float) -> void:
+	if race.mode == "track":
+		# 기한 뒤의 이동으로 체크포인트 보너스나 완주를 얻지 못하게 한다.
+		delta = minf(delta, maxf(0, race.time_left))
 	for i in range(1, bodies.size()):
 		var rival: RivalState = race.rivals[i - 1]
 		if not rival.active:
@@ -821,10 +832,6 @@ func update_rivals(delta: float) -> void:
 		# Stride-2 cars take turns: odd cars on odd ticks, even cars on even ticks.
 		if stride > 1 and (Engine.get_physics_frames() + i) % stride != 0:
 			rival.lod_time = owed
-			var glide := body.velocity * delta
-			glide.y = 0
-			body.global_position += glide
-			rival.distance += float(rival.speed) * delta
 			continue
 		rival.lod_time = 0.0
 		var dt := owed

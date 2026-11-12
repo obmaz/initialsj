@@ -31,19 +31,30 @@ func bind(race: Node3D) -> void:
 	if file.load(storage_path) == OK:
 		var best: Variant = file.get_value(SAVE_GROUP, "personal_laps_v2", {})
 		if best is Dictionary:
-			personal = best
+			for vehicle in best:
+				if vehicle is String and not vehicle.is_empty() and valid_time(best[vehicle]):
+					personal[vehicle] = float(best[vehicle])
 		var saved: Variant = file.get_value(SAVE_GROUP, SAVE_KEY, [])
 		if saved is Array:
 			for row in saved:
-				if row is Dictionary and float(row.get("time", 0)) > 0:
-					records.append(row)
+				if (
+					row is Dictionary
+					and valid_time(row.get("time"))
+					and row.get("vehicle") is String
+					and not row.vehicle.is_empty()
+				):
+					records.append({"time": float(row.time), "vehicle": row.vehicle})
 	records.sort_custom(func(a, b): return float(a.time) < float(b.time))
 	records.resize(mini(records.size(), 3))
 	refresh()
 
 
+static func valid_time(value: Variant) -> bool:
+	return (value is float or value is int) and is_finite(float(value)) and float(value) > 0
+
+
 func add_result(seconds: float, vehicle: String, persist: bool) -> void:
-	if seconds <= 0:
+	if not valid_time(seconds) or vehicle.is_empty():
 		return
 	last_lap = seconds
 	personal[vehicle] = minf(seconds, float(personal.get(vehicle, seconds)))

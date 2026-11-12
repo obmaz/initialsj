@@ -327,11 +327,7 @@ func refresh_customization() -> void:
 			var color := Color(draft_customization[child.get_meta("color_key")])
 			TuningTheme.apply_swatch_style(child, color)
 			child.add_theme_color_override("font_color", TuningTheme.INK if color.get_luminance() > .4 else Color.WHITE)
-	var count_label := options_panel.get_node_or_null("EffectSlots") as Label
-	if count_label != null:
-		count_label.text = (
-			tr("EFFECT SLOTS %d / %d") % [draft_customization.effects.size(), Effects.slots(vehicle_index)]
-		)
+	refresh_effect_slot_label()
 	var data: Dictionary = saved_customization if is_comparing else draft_customization
 	Customization.apply(preview_car, data, vehicle_index)
 	effect_preview_time = 0
@@ -460,8 +456,19 @@ func handle_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+func refresh_effect_slot_label() -> void:
+	if not is_instance_valid(options_panel):
+		return
+	var count_label := options_panel.get_node_or_null("EffectSlots") as Label
+	if count_label != null:
+		count_label.text = (
+			tr("EFFECT SLOTS %d / %d") % [draft_customization.effects.size(), Effects.slots(vehicle_index)]
+		)
+
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED and is_instance_valid(content_root):
+		call_deferred("refresh_effect_slot_label")
 		call_deferred("fit_translated_text")
 
 

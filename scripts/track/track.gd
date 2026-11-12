@@ -42,12 +42,15 @@ func _ready() -> void:
 	update_ground()
 
 
-func disable_collisions(node: Node) -> void:
+func disable_world_queries(node: Node) -> void:
+	# queue_free가 실행되기 전에도 지난 차량을 보상·교통 관측에서 제외한다.
+	for group in node.get_groups():
+		node.remove_from_group(group)
 	if node is CollisionObject3D:
 		node.collision_layer = 0
 		node.collision_mask = 0
 	for child in node.get_children():
-		disable_collisions(child)
+		disable_world_queries(child)
 
 
 func retire(node: Node, staged: bool = false) -> void:
@@ -57,12 +60,15 @@ func retire(node: Node, staged: bool = false) -> void:
 			add_child(retirement_worker)
 		retirement_worker.schedule(node)
 		return
-	disable_collisions(node)
+	if node is Node3D:
+		node.visible = false
+	node.process_mode = Node.PROCESS_MODE_DISABLED
+	disable_world_queries(node)
 	node.queue_free()
 
 
 func _exit_tree() -> void:
-	disable_collisions(self)
+	disable_world_queries(self)
 
 
 func reset(stage: int = 0, node_index: int = 0) -> void:
