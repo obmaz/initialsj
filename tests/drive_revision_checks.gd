@@ -37,7 +37,9 @@ func run(tree: SceneTree) -> int:
 	for frame in range(12):
 		await tree.physics_frame
 		race._physics_process(1.0 / 60)
-	check(race.braking and race.speed < accelerated - 5, "자동 가속 중에도 옮겨진 브레이크 입력이 우선한다")
+	check(
+		race.braking and race.speed < accelerated - float(race.vehicle.brake) * .2 * .8, "자동 가속 중에도 옮겨진 브레이크 입력이 우선한다"
+	)
 	race.hud.fingers.clear()
 	race.toggle_auto_accelerate()
 	check(race.hud.hit_button("gas", gas_at) and not race.hud.hit_button("brake", gas_at), "자동 가속을 끄면 수동 페달 두 개로 복귀한다")
