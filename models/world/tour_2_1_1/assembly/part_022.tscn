@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_2_1_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_1/assembly/resources.tres::StandardMaterial3D_jlavh" id="shared_StandardMaterial3D_jlavh"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_1/assembly/resources.tres::MultiMesh_4gcgm" id="shared_MultiMesh_4gcgm"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_1/assembly/resources.tres::StandardMaterial3D_dv4qm" id="shared_StandardMaterial3D_dv4qm"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_1/assembly/resources.tres::MultiMesh_o4m7i" id="shared_MultiMesh_o4m7i"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_1/assembly/resources.tres::StandardMaterial3D_bjh42" id="shared_StandardMaterial3D_bjh42"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_1/assembly/resources.tres::MultiMesh_oyehc" id="shared_MultiMesh_oyehc"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0427" type="MultiMeshInstance3D" parent="." unique_id=1988456007]
+material_override = ExtResource("shared_StandardMaterial3D_jlavh")
+multimesh = ExtResource("shared_MultiMesh_4gcgm")
+metadata/mesh_ref = "res://models/world/tour_2_1_1/geometry.glb#Geometry0149"
+
+[node name="Part0428" type="MultiMeshInstance3D" parent="." unique_id=234849051]
+material_override = ExtResource("shared_StandardMaterial3D_dv4qm")
+multimesh = ExtResource("shared_MultiMesh_o4m7i")
+metadata/mesh_ref = "res://models/world/tour_2_1_1/geometry.glb#Geometry0150"
+
+[node name="Part0429" type="MultiMeshInstance3D" parent="." unique_id=481029063]
+material_override = ExtResource("shared_StandardMaterial3D_bjh42")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_oyehc")
+metadata/mesh_ref = "res://models/world/tour_2_1_1/geometry.glb#Geometry0151"

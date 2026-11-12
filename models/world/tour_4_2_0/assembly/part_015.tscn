@@ -1,0 +1,175 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_2_0/assembly/resources.tres" id="assembly"]
+[ext_resource type="Material" path="res://models/props/basalt/material.tres" id="27_vdp7i"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_whuub" id="shared_MultiMesh_whuub"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_xelta" id="shared_MultiMesh_xelta"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_xl5q3" id="shared_MultiMesh_xl5q3"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_3svs7" id="shared_MultiMesh_3svs7"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_h1qq1" id="shared_MultiMesh_h1qq1"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_45xql" id="shared_MultiMesh_45xql"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_rdty5" id="shared_MultiMesh_rdty5"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_yx0yp" id="shared_MultiMesh_yx0yp"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_2kw4u" id="shared_MultiMesh_2kw4u"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_xvyea" id="shared_MultiMesh_xvyea"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_jbohw" id="shared_MultiMesh_jbohw"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_151mm" id="shared_MultiMesh_151mm"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_gadys" id="shared_MultiMesh_gadys"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_mbwqy" id="shared_MultiMesh_mbwqy"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_xbebj" id="shared_MultiMesh_xbebj"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_akvb7" id="shared_MultiMesh_akvb7"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_svj0e" id="shared_MultiMesh_svj0e"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_34tcc" id="shared_MultiMesh_34tcc"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_trjf1" id="shared_MultiMesh_trjf1"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_x1dg7" id="shared_MultiMesh_x1dg7"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_2_0/assembly/resources.tres::MultiMesh_imnes" id="shared_MultiMesh_imnes"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Regional3D_basalt_0" type="MultiMeshInstance3D" parent="." unique_id=1904689199]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_whuub")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0246" type="MultiMeshInstance3D" parent="." unique_id=1814733]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_xelta")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0247" type="MultiMeshInstance3D" parent="." unique_id=650572841]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_xl5q3")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0248" type="MultiMeshInstance3D" parent="." unique_id=540528547]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_3svs7")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0249" type="MultiMeshInstance3D" parent="." unique_id=2115341972]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_h1qq1")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0250" type="MultiMeshInstance3D" parent="." unique_id=386498508]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_45xql")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0251" type="MultiMeshInstance3D" parent="." unique_id=1274303495]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_rdty5")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0252" type="MultiMeshInstance3D" parent="." unique_id=390272519]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_yx0yp")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0253" type="MultiMeshInstance3D" parent="." unique_id=560725231]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_2kw4u")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0254" type="MultiMeshInstance3D" parent="." unique_id=265507310]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_xvyea")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0255" type="MultiMeshInstance3D" parent="." unique_id=1816843903]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_jbohw")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0256" type="MultiMeshInstance3D" parent="." unique_id=974841344]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_151mm")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0257" type="MultiMeshInstance3D" parent="." unique_id=1204518012]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_gadys")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0258" type="MultiMeshInstance3D" parent="." unique_id=1955442679]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_mbwqy")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0259" type="MultiMeshInstance3D" parent="." unique_id=2043283581]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_xbebj")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0260" type="MultiMeshInstance3D" parent="." unique_id=561504926]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_akvb7")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0261" type="MultiMeshInstance3D" parent="." unique_id=1934463829]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_svj0e")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0262" type="MultiMeshInstance3D" parent="." unique_id=993985548]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_34tcc")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0263" type="MultiMeshInstance3D" parent="." unique_id=1055636343]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_trjf1")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0264" type="MultiMeshInstance3D" parent="." unique_id=1184751448]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_x1dg7")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0265" type="MultiMeshInstance3D" parent="." unique_id=1584499033]
+material_override = ExtResource("27_vdp7i")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_imnes")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"

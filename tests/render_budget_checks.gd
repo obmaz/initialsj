@@ -51,6 +51,24 @@ func run(tree: SceneTree) -> int:
 		),
 		"모바일 고화질은 가까운 그림자를 유지하면서 이중 그림자 패스를 제거한다"
 	)
+	var region: Dictionary = race.track.active.region_metadata.duplicate()
+	race.track.active.region_metadata = {"weather": "rain", "time_of_day": "night"}
+	budget.tick(race)
+	pixels = Vector2(budget.framebuffer_size_px) * tree.root.scaling_3d_scale
+	check(pixels.x <= 1600.1 and pixels.y <= 900.1 and budget.level == 0, "모바일 야간 비는 고화질 선택을 유지하며3D 픽셀만 제한한다")
+	check(
+		budget.local_light_limit() == 2 and not race.sun_light.shadow_enabled,
+		"비구름 낀 모바일 밤에는 실제 광원을2개로 제한하고 달 그림자 패스를 생략한다"
+	)
+	check(tree.root.content_scale_size == Vector2i(1280, 720), "강수 예산 변경은 UI의 논리 해상도를 바꾸지 않는다")
+	race.track.active.region_metadata = region
+	budget.tick(race)
+	pixels = Vector2(budget.framebuffer_size_px) * tree.root.scaling_3d_scale
+	check(
+		maxf(pixels.x / 1920, pixels.y / 1080) > .999 and race.sun_light.shadow_enabled,
+		"다른 날씨로 전환하면 원래 해상도·그림자·광원 예산을 복구한다"
+	)
+	check(budget.local_light_limit() == 4, "맑은 고화질의 광원 상한을 강수 이후에도 축소하지 않는다")
 	tree.root.size = Vector2i(1280, 720)
 	budget.resize(race)
 	check(tree.root.scaling_3d_scale == 1, "상한보다 작은 모바일 화면을 불필요하게 축소하지 않는다")

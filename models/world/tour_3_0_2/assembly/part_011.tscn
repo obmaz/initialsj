@@ -1,0 +1,368 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_0_2/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/regional_props_3d.gd" id="29_i8hig"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="RegionalForeground3D" type="Node3D" parent="." unique_id=710420730]
+script = ExtResource("29_i8hig")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Regional3D_broken_column_0")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Regional3D_basalt_0")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0192")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0193")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0194")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0195")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0196")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0197")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0198")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0199")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0200")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0201")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0202")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0203")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0204")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0205")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0206")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0207")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0208")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0209")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0210")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0211")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0212")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0213")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0214")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0215")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0216")
+}, {
+&"$node": NodePath("Part0166/Part0188/RegionalForeground3D/Part0217")
+}],
+"kinds": ["charred", "broken_column", "basalt"],
+"placements": [{
+"distance": 237.62342739105225,
+"kind": "broken_column",
+"position": Vector3(220.79944, 6.4926977, 79.984),
+"scale": 1.2407355,
+"variant": 0,
+"yaw": -2.0281377794208884
+}, {
+"distance": 312.4399104118347,
+"kind": "charred",
+"position": Vector3(303.04288, 9.933968, 89.9487),
+"scale": 0.9,
+"variant": 1,
+"yaw": -1.297950104693136
+}, {
+"distance": 385.85549688339233,
+"kind": "basalt",
+"position": Vector3(375.84412, 24.865568, 72.06735),
+"scale": 0.89800775,
+"variant": 2,
+"yaw": -1.5984742938845222
+}, {
+"distance": 459.0329780578613,
+"kind": "broken_column",
+"position": Vector3(444.66205, 47.14874, 60.78591),
+"scale": 0.93160206,
+"variant": 0,
+"yaw": -1.5572400488651763
+}, {
+"distance": 530.4314374923706,
+"kind": "charred",
+"position": Vector3(514.87726, 54.68869, 57.55471),
+"scale": 0.9,
+"variant": 1,
+"yaw": -1.6558832449505827
+}, {
+"distance": 604.4546346664429,
+"kind": "basalt",
+"position": Vector3(586.8979, 54.730885, 53.625095),
+"scale": 1.160478,
+"variant": 2,
+"yaw": -1.3749059386310842
+}, {
+"distance": 668.3923900127411,
+"kind": "broken_column",
+"position": Vector3(650.3515, 54.75014, -6.3045883),
+"scale": 1.0449501,
+"variant": 0,
+"yaw": -1.586491571369974
+}, {
+"distance": 745.7656526565552,
+"kind": "charred",
+"position": Vector3(721.6304, 54.58804, 62.914566),
+"scale": 1.0252975,
+"variant": 1,
+"yaw": -1.7665511578770563
+}, {
+"distance": 820.4229412078857,
+"kind": "basalt",
+"position": Vector3(805.35626, 55.33997, 27.232939),
+"scale": 0.9028113,
+"variant": 2,
+"yaw": -1.695310852079593
+}, {
+"distance": 885.9039695262909,
+"kind": "broken_column",
+"position": Vector3(848.06573, 57.20766, 103.252014),
+"scale": 0.9940266,
+"variant": 0,
+"yaw": -2.024806483199552
+}, {
+"distance": 956.5053431987762,
+"kind": "charred",
+"position": Vector3(939.68604, 58.51926, 71.538185),
+"scale": 1.0929823,
+"variant": 1,
+"yaw": -1.978420523769517
+}, {
+"distance": 1031.7453002929688,
+"kind": "basalt",
+"position": Vector3(974.7055, 67.4821, 160.2899),
+"scale": 1.1389916,
+"variant": 2,
+"yaw": -2.153241469686512
+}, {
+"distance": 1102.8285837173462,
+"kind": "broken_column",
+"position": Vector3(1063.9724, 57.871983, 155.8689),
+"scale": 0.9308667,
+"variant": 0,
+"yaw": -1.8884776996348125
+}, {
+"distance": 1180.647756576538,
+"kind": "charred",
+"position": Vector3(1089.2084, 57.873158, 245.82536),
+"scale": 1.18,
+"variant": 1,
+"yaw": -2.681010237475318
+}, {
+"distance": 1250.2615308761597,
+"kind": "basalt",
+"position": Vector3(1166.4114, 60.05322, 267.65546),
+"scale": 0.90315014,
+"variant": 2,
+"yaw": -2.3418313685927927
+}, {
+"distance": 1321.3732619285583,
+"kind": "broken_column",
+"position": Vector3(1180.3752, 66.12928, 347.32086),
+"scale": 1.1970406,
+"variant": 0,
+"yaw": -2.612794447811892
+}, {
+"distance": 1395.1549997329712,
+"kind": "charred",
+"position": Vector3(1255.3491, 54.808258, 382.9372),
+"scale": 1.18,
+"variant": 1,
+"yaw": -2.8247996466776906
+}, {
+"distance": 1464.1099605560305,
+"kind": "basalt",
+"position": Vector3(1256.8407, 38.71168, 462.7869),
+"scale": 1.2169383,
+"variant": 2,
+"yaw": -2.5926806915116334
+}, {
+"distance": 1538.9815773963928,
+"kind": "broken_column",
+"position": Vector3(1341.243, 32.77876, 494.1917),
+"scale": 0.8789455,
+"variant": 0,
+"yaw": -2.327057227835558
+}, {
+"distance": 1608.3162531852722,
+"kind": "charred",
+"position": Vector3(1345.7098, 42.738796, 579.65753),
+"scale": 0.97034085,
+"variant": 1,
+"yaw": -2.1426233265147543
+}, {
+"distance": 1676.7030577659607,
+"kind": "basalt",
+"position": Vector3(1431.373, 46.319233, 587.2737),
+"scale": 0.80961406,
+"variant": 2,
+"yaw": -1.9723267505430404
+}, {
+"distance": 1755.8578872680664,
+"kind": "broken_column",
+"position": Vector3(1471.471, 55.362316, 669.13306),
+"scale": 1.1534014,
+"variant": 0,
+"yaw": -1.688493070118327
+}, {
+"distance": 1827.1170072555544,
+"kind": "charred",
+"position": Vector3(1550.924, 46.393517, 656.67267),
+"scale": 1.18,
+"variant": 1,
+"yaw": -1.4704641213327736
+}, {
+"distance": 1900.0932731628416,
+"kind": "basalt",
+"position": Vector3(1617.4812, 47.61532, 703.799),
+"scale": 1.0192423,
+"variant": 2,
+"yaw": -1.8681977296685923
+}, {
+"distance": 1972.8070135116575,
+"kind": "broken_column",
+"position": Vector3(1688.3295, 54.498127, 660.3306),
+"scale": 0.8474013,
+"variant": 0,
+"yaw": -1.3439573864804502
+}, {
+"distance": 2041.5363931655884,
+"kind": "charred",
+"position": Vector3(1762.1794, 66.14251, 697.22845),
+"scale": 0.95616186,
+"variant": 1,
+"yaw": -1.5929903441310451
+}, {
+"distance": 2111.6136770248413,
+"kind": "basalt",
+"position": Vector3(1817.7991, 79.470955, 627.73627),
+"scale": 0.8991891,
+"variant": 2,
+"yaw": -1.402208230389459
+}, {
+"distance": 2184.417004108429,
+"kind": "broken_column",
+"position": Vector3(1899.5464, 89.718834, 664.1495),
+"scale": 0.82476187,
+"variant": 0,
+"yaw": -1.5607993926170731
+}, {
+"distance": 2253.7572677135468,
+"kind": "charred",
+"position": Vector3(1959.0367, 91.196014, 602.0884),
+"scale": 1.0191547,
+"variant": 1,
+"yaw": -1.674583979738407
+}, {
+"distance": 2326.655410051346,
+"kind": "basalt",
+"position": Vector3(2035.1959, 74.22826, 644.2915),
+"scale": 0.8305417,
+"variant": 2,
+"yaw": -1.2735259580134508
+}, {
+"distance": 2401.0843029022217,
+"kind": "broken_column",
+"position": Vector3(2107.8306, 66.01335, 598.1577),
+"scale": 0.81789666,
+"variant": 0,
+"yaw": -1.5046813731839792
+}, {
+"distance": 2469.6867649555206,
+"kind": "charred",
+"position": Vector3(2173.0212, 72.40482, 647.34),
+"scale": 0.9,
+"variant": 1,
+"yaw": -1.7114173379316022
+}, {
+"distance": 2546.5351972579956,
+"kind": "basalt",
+"position": Vector3(2255.4822, 67.67786, 612.23456),
+"scale": 0.9312133,
+"variant": 2,
+"yaw": -1.4507665936383738
+}, {
+"distance": 2615.806218624115,
+"kind": "broken_column",
+"position": Vector3(2310.1592, 66.03793, 677.65295),
+"scale": 1.0948925,
+"variant": 0,
+"yaw": -1.9915073184510377
+}, {
+"distance": 2683.973379611969,
+"kind": "charred",
+"position": Vector3(2390.617, 66.00078, 655.31256),
+"scale": 0.9,
+"variant": 1,
+"yaw": -1.9303795788722824
+}, {
+"distance": 2755.5077080726624,
+"kind": "basalt",
+"position": Vector3(2436.7966, 66.0619, 724.7981),
+"scale": 0.9147195,
+"variant": 2,
+"yaw": -2.241820632065012
+}, {
+"distance": 2832.920171737671,
+"kind": "broken_column",
+"position": Vector3(2524.6274, 65.04206, 731.43945),
+"scale": 0.9038183,
+"variant": 0,
+"yaw": -2.162493903421594
+}, {
+"distance": 2908.0683088302612,
+"kind": "charred",
+"position": Vector3(2556.5186, 52.05318, 809.45746),
+"scale": 1.1505331,
+"variant": 1,
+"yaw": -2.4646979393581905
+}, {
+"distance": 2972.6486778259277,
+"kind": "basalt",
+"position": Vector3(2627.6074, 33.13409, 826.0915),
+"scale": 1.0001163,
+"variant": 2,
+"yaw": -2.606541900849467
+}, {
+"distance": 3044.3426418304443,
+"kind": "broken_column",
+"position": Vector3(2641.1553, 16.90492, 906.2636),
+"scale": 0.9761643,
+"variant": 0,
+"yaw": -2.3631118948211545
+}, {
+"distance": 3115.037649154663,
+"kind": "charred",
+"position": Vector3(2713.1492, 11.247192, 939.75555),
+"scale": 0.9928655,
+"variant": 1,
+"yaw": -2.7219998379079136
+}, {
+"distance": 3187.8955006599426,
+"kind": "basalt",
+"position": Vector3(2727.001, 7.4372654, 1020.2038),
+"scale": 0.8864745,
+"variant": 2,
+"yaw": -2.6472244411403865
+}],
+"theme": "ruins",
+"tree_count": 14,
+"world_bounds": [AABB(216.78177, 6.4926977, 74.56797, 7.737625, 8.747186, 11.437012), AABB(301.17932, 9.933968, 89.23698, 3.8477783, 8.91, 1.4234467), AABB(372.87567, 24.730867, 69.91051, 5.8381653, 2.6940231, 5.1116333), AABB(443.44397, 47.14874, 56.81118, 2.4430237, 6.567795, 8.455666), AABB(513.0137, 54.68869, 56.842983, 3.8478394, 8.91, 1.4234543), AABB(582.71216, 54.556812, 50.283897, 8.475708, 3.4814339, 7.7161903), AABB(648.96686, 54.75014, -10.765579, 2.760376, 7.3668976, 9.489758), AABB(719.5074, 54.58804, 62.103752, 4.383484, 10.150448, 1.6216278), AABB(802.1141, 55.204548, 24.79951, 6.3080444, 2.708435, 5.6557198), AABB(844.8594, 57.20766, 98.91043, 6.1757813, 7.007885, 9.168617), AABB(937.42285, 58.51926, 70.67385, 4.6729126, 10.820522, 1.7286682), AABB(969.63654, 67.31126, 156.07297, 9.498413, 3.4169693, 9.22821), AABB(1061.4733, 57.871983, 151.74721, 4.84021, 6.5626106, 8.723923), AABB(1086.765, 57.873158, 244.89221, 5.044922, 11.682003, 1.8663025), AABB(1162.3098, 59.917747, 264.1314, 7.586914, 2.7094498, 7.5717163), AABB(1174.6661, 66.12928, 343.46234, 10.856567, 8.43914, 8.045197), AABB(1252.9058, 54.808258, 382.00403, 5.044922, 11.681999, 1.866333), AABB(1251.4701, 38.52914, 457.97693, 9.761719, 3.650814, 10.0972595), AABB(1337.5527, 32.77876, 490.72052, 7.0528564, 6.1965675, 7.289795), AABB(1343.7006, 42.738796, 578.8902, 4.1485596, 9.606373, 1.534668), AABB(1427.9608, 46.197792, 584.53125, 6.478882, 2.4288406, 6.1220703), AABB(1469.39, 55.362316, 664.0957, 4.088257, 8.131481, 10.697144), AABB(1548.4806, 46.393517, 655.7395, 5.044922, 11.681999, 1.866333), AABB(1613.3878, 47.462433, 700.5832, 7.8374023, 3.057724, 7.274658), AABB(1686.4874, 54.498127, 656.5832, 3.7877197, 5.9741783, 7.9435425), AABB(1760.1996, 66.14251, 696.4723, 4.0878906, 9.466003, 1.5123291), AABB(1814.5973, 79.336075, 625.2127, 6.4624023, 2.6975708, 5.8500366), AABB(1898.4805, 89.718834, 660.6341, 2.1363525, 5.8145676, 7.478943), AABB(1956.9264, 91.196014, 601.2824, 4.3573, 10.08963, 1.6119385), AABB(2032.0775, 74.103676, 641.6921, 6.3858643, 2.491623, 5.927368), AABB(2106.5808, 66.01335, 594.6217, 2.5288086, 5.7661743, 7.515503), AABB(2171.1577, 72.40482, 646.6283, 3.8476563, 8.909996, 1.4234619), AABB(2252.249, 67.53818, 609.7463, 6.4868164, 2.7936401, 5.8101196), AABB(2306.7664, 66.03793, 672.8465, 6.5424805, 7.718994, 10.156067), AABB(2388.7534, 66.00078, 654.6008, 3.8476563, 8.910004, 1.4234619), AABB(2432.6685, 65.92469, 721.3103, 7.6884766, 2.744156, 7.5655518), AABB(2521.2732, 65.04206, 727.62115, 6.4345703, 6.3719177, 8.0442505), AABB(2554.1362, 52.05318, 808.5476, 4.9189453, 11.390278, 1.8197021), AABB(2623.209, 32.984074, 822.143, 7.9865723, 3.0003471, 8.278137), AABB(2636.9668, 16.90492, 902.4816, 7.9992676, 6.881958, 7.9364624), AABB(2711.0933, 11.247192, 938.9704, 4.244873, 9.829369, 1.5703125), AABB(2723.1465, 7.304294, 1016.7194, 6.977539, 2.6594234, 7.2770386)]
+}

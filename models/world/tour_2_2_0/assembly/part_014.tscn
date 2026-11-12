@@ -1,0 +1,223 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_2_2_0/assembly/resources.tres" id="assembly"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_2_2_0/assembly/resources.tres::ShaderMaterial_4tovx" id="shared_ShaderMaterial_4tovx"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_dq2p7" id="shared_MultiMesh_dq2p7"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_q6xtm" id="shared_MultiMesh_q6xtm"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_35qux" id="shared_MultiMesh_35qux"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_jpu71" id="shared_MultiMesh_jpu71"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_oxoo2" id="shared_MultiMesh_oxoo2"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_aqsxp" id="shared_MultiMesh_aqsxp"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_nr2as" id="shared_MultiMesh_nr2as"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_jgspw" id="shared_MultiMesh_jgspw"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_8sr2s" id="shared_MultiMesh_8sr2s"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_hvp21" id="shared_MultiMesh_hvp21"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_kttbf" id="shared_MultiMesh_kttbf"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_s2d6n" id="shared_MultiMesh_s2d6n"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_qjr8a" id="shared_MultiMesh_qjr8a"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_t4uk8" id="shared_MultiMesh_t4uk8"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_7yync" id="shared_MultiMesh_7yync"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_r1ewl" id="shared_MultiMesh_r1ewl"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_crn2n" id="shared_MultiMesh_crn2n"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_v25lo" id="shared_MultiMesh_v25lo"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_ll83k" id="shared_MultiMesh_ll83k"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_wg8lv" id="shared_MultiMesh_wg8lv"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_vj8f6" id="shared_MultiMesh_vj8f6"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_3npsb" id="shared_MultiMesh_3npsb"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_8ukpf" id="shared_MultiMesh_8ukpf"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_2_0/assembly/resources.tres::MultiMesh_c7nfr" id="shared_MultiMesh_c7nfr"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Regional3D_hareubang_0" type="MultiMeshInstance3D" parent="." unique_id=207823794]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_dq2p7")
+metadata/mesh_ref = "res://models/props/hareubang/model.glb#Visual"
+
+[node name="Regional3D_dol_wall_0" type="MultiMeshInstance3D" parent="." unique_id=531650339]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_q6xtm")
+metadata/mesh_ref = "res://models/props/dol_wall/model.glb#Visual"
+
+[node name="Part0227" type="MultiMeshInstance3D" parent="." unique_id=2053091802]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_35qux")
+metadata/mesh_ref = "res://models/props/dol_wall/model.glb#Visual"
+
+[node name="Part0228" type="MultiMeshInstance3D" parent="." unique_id=752422067]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_jpu71")
+metadata/mesh_ref = "res://models/props/hareubang/model.glb#Visual"
+
+[node name="Part0229" type="MultiMeshInstance3D" parent="." unique_id=519709081]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_oxoo2")
+metadata/mesh_ref = "res://models/props/dol_wall/model.glb#Visual"
+
+[node name="Part0230" type="MultiMeshInstance3D" parent="." unique_id=600487301]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_aqsxp")
+metadata/mesh_ref = "res://models/props/hareubang/model.glb#Visual"
+
+[node name="Part0231" type="MultiMeshInstance3D" parent="." unique_id=1686935017]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_nr2as")
+metadata/mesh_ref = "res://models/props/dol_wall/model.glb#Visual"
+
+[node name="Part0232" type="MultiMeshInstance3D" parent="." unique_id=1356547942]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_jgspw")
+metadata/mesh_ref = "res://models/props/hareubang/model.glb#Visual"
+
+[node name="Part0233" type="MultiMeshInstance3D" parent="." unique_id=1302897194]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_8sr2s")
+metadata/mesh_ref = "res://models/props/dol_wall/model.glb#Visual"
+
+[node name="Part0234" type="MultiMeshInstance3D" parent="." unique_id=719982161]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_hvp21")
+metadata/mesh_ref = "res://models/props/hareubang/model.glb#Visual"
+
+[node name="Part0235" type="MultiMeshInstance3D" parent="." unique_id=1684122252]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_kttbf")
+metadata/mesh_ref = "res://models/props/dol_wall/model.glb#Visual"
+
+[node name="Part0236" type="MultiMeshInstance3D" parent="." unique_id=550227160]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_s2d6n")
+metadata/mesh_ref = "res://models/props/hareubang/model.glb#Visual"
+
+[node name="Part0237" type="MultiMeshInstance3D" parent="." unique_id=1784359660]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_qjr8a")
+metadata/mesh_ref = "res://models/props/hareubang/model.glb#Visual"
+
+[node name="Part0238" type="MultiMeshInstance3D" parent="." unique_id=655347386]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_t4uk8")
+metadata/mesh_ref = "res://models/props/dol_wall/model.glb#Visual"
+
+[node name="Part0239" type="MultiMeshInstance3D" parent="." unique_id=1007083183]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_7yync")
+metadata/mesh_ref = "res://models/props/hareubang/model.glb#Visual"
+
+[node name="Part0240" type="MultiMeshInstance3D" parent="." unique_id=94680939]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_r1ewl")
+metadata/mesh_ref = "res://models/props/dol_wall/model.glb#Visual"
+
+[node name="Part0241" type="MultiMeshInstance3D" parent="." unique_id=1937858093]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_crn2n")
+metadata/mesh_ref = "res://models/props/hareubang/model.glb#Visual"
+
+[node name="Part0242" type="MultiMeshInstance3D" parent="." unique_id=1120252470]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_v25lo")
+metadata/mesh_ref = "res://models/props/dol_wall/model.glb#Visual"
+
+[node name="Part0243" type="MultiMeshInstance3D" parent="." unique_id=656878780]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ll83k")
+metadata/mesh_ref = "res://models/props/hareubang/model.glb#Visual"
+
+[node name="Part0244" type="MultiMeshInstance3D" parent="." unique_id=818797513]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_wg8lv")
+metadata/mesh_ref = "res://models/props/dol_wall/model.glb#Visual"
+
+[node name="Part0245" type="MultiMeshInstance3D" parent="." unique_id=1410619995]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_vj8f6")
+metadata/mesh_ref = "res://models/props/dol_wall/model.glb#Visual"
+
+[node name="Part0246" type="MultiMeshInstance3D" parent="." unique_id=2141862080]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_3npsb")
+metadata/mesh_ref = "res://models/props/hareubang/model.glb#Visual"
+
+[node name="Part0247" type="MultiMeshInstance3D" parent="." unique_id=2030926162]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_8ukpf")
+metadata/mesh_ref = "res://models/props/dol_wall/model.glb#Visual"
+
+[node name="Part0248" type="MultiMeshInstance3D" parent="." unique_id=1218104463]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_c7nfr")
+metadata/mesh_ref = "res://models/props/hareubang/model.glb#Visual"

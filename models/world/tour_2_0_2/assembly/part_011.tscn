@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_2_0_2/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/road_biome.gd" id="22_6n6ek"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0225" type="Node3D" parent="." unique_id=1914588414]
+script = ExtResource("22_6n6ek")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0225/Part0228")
+}],
+"building_manifest": [],
+"distant_art": {
+&"$node": NodePath("Part0225/Part0294")
+},
+"ground_nodes": [{
+&"$node": NodePath("Part0225/Part0226")
+}, {
+&"$node": NodePath("Part0225/Part0227")
+}],
+"landmarks": null,
+"local_lights": [],
+"rng": {
+&"$rng": 174600518011826454,
+&"seed": 2068
+},
+"roadside_art": {
+&"$node": NodePath("Part0225/Part0229")
+},
+"rotating": [],
+"theme": "pyramid",
+"track": {
+&"$node": NodePath(".")
+},
+"tree_positions": [Vector3(264.92612, 7.919636, 86.574356), Vector3(372.9362, 31.141165, 80.511795), Vector3(474.2274, 48.205162, 68.58208), Vector3(581.278, 48.343536, 61.424133), Vector3(682.558, 48.852047, 78.36441), Vector3(806.5673, 50.623035, 47.235207), Vector3(875.46436, 55.494972, 145.4261), Vector3(1007.99963, 54.14576, 147.17685), Vector3(1039.1616, 54.5479, 266.10315), Vector3(1165.595, 52.601326, 303.16766), Vector3(1186.4756, 49.703255, 418.26672), Vector3(1295.2076, 64.61004, 480.2723), Vector3(1322.2174, 65.78099, 594.64343), Vector3(1444.0864, 54.24175, 608.01514), Vector3(1533.4894, 57.955673, 684.57086), Vector3(1638.98, 70.80739, 628.9763), Vector3(1751.0099, 82.96061, 662.0658), Vector3(1851.568, 87.31046, 584.28595), Vector3(1960.754, 85.5478, 628.88965), Vector3(2068.3184, 85.19466, 585.1805), Vector3(2170.7207, 85.45795, 658.7655), Vector3(2290.0762, 85.81369, 639.6814), Vector3(2360.7278, 85.37312, 738.1158), Vector3(2478.8433, 66.272224, 759.40497), Vector3(2509.1982, 31.628716, 870.21606), Vector3(2617.6206, 9.112115, 922.244), Vector3(2653.9895, 5.9023027, 1036.5199)],
+"water": null
+}

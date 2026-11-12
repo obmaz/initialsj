@@ -1,0 +1,77 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_1_2/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/tour_vegetation.gd" id="29_nfa8g"]
+[ext_resource type="Resource" path="res://models/vegetation/town_oak_0/definition.tres" id="30_ooppv"]
+[ext_resource type="Resource" path="res://models/vegetation/town_oak_1/definition.tres" id="31_vss0b"]
+[ext_resource type="Resource" path="res://models/vegetation/dark_fir/definition.tres" id="32_qisx0"]
+[ext_resource type="Resource" path="res://models/vegetation/black_pine/definition.tres" id="33_excwd"]
+[ext_resource type="Resource" path="res://models/vegetation/spire_cypress/definition.tres" id="34_xrelb"]
+[ext_resource type="Resource" path="res://models/vegetation/juniper/definition.tres" id="35_n1ua0"]
+[ext_resource type="Resource" path="res://models/vegetation/thorn_bramble/definition.tres" id="36_2g4j3"]
+[ext_resource type="Script" path="res://scripts/environment/distant_ridges.gd" id="39_wnidy"]
+[ext_resource type="Material" path="res://models/props/skyway_abutment/material.tres" id="abutment_color"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_2/assembly/resources.tres::SkywayAbutments" id="shared_SkywayAbutments"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_1_2/assembly/resources.tres::StandardMaterial3D_ik7qc" id="shared_StandardMaterial3D_ik7qc"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_2/assembly/resources.tres::MultiMesh_giboj" id="shared_MultiMesh_giboj"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_1_2/assembly/resources.tres::StandardMaterial3D_jvs4q" id="shared_StandardMaterial3D_jvs4q"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_2/assembly/resources.tres::MultiMesh_r2882" id="shared_MultiMesh_r2882"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_1_2/assembly/resources.tres::StandardMaterial3D_bboan" id="shared_StandardMaterial3D_bboan"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_2/assembly/resources.tres::MultiMesh_7d4jb" id="shared_MultiMesh_7d4jb"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0272" type="Node3D" parent="." unique_id=765378728]
+script = ExtResource("39_wnidy")
+metadata/scene_state = {
+"positions": [],
+"scenery": {
+&"$node": NodePath("Part0193")
+},
+"sprite_batch": null,
+"widths": []
+}
+
+[node name="TourNativeVegetation" type="Node3D" parent="." unique_id=605639308]
+script = ExtResource("29_nfa8g")
+metadata/scene_state = {
+"bank_counts": {
+-1: 0,
+1: 0
+},
+"batch_slices": 0,
+"definitions": [ExtResource("30_ooppv"), ExtResource("31_vss0b"), ExtResource("32_qisx0"), ExtResource("33_excwd"), ExtResource("34_xrelb"), ExtResource("35_n1ua0"), ExtResource("36_2g4j3")],
+"groups": {},
+"planning_slices": 0,
+"plantings": [],
+"scenery": {
+&"$node": NodePath("Part0193")
+},
+"tree_count": 0,
+"variant_counts": {}
+}
+
+[node name="Part0274" type="MultiMeshInstance3D" parent="." unique_id=1966240546]
+material_override = ExtResource("shared_StandardMaterial3D_ik7qc")
+multimesh = ExtResource("shared_MultiMesh_giboj")
+metadata/mesh_ref = "res://models/world/tour_4_1_2/geometry.glb#Geometry0183"
+
+[node name="Part0275" type="MultiMeshInstance3D" parent="." unique_id=53911323]
+material_override = ExtResource("shared_StandardMaterial3D_jvs4q")
+multimesh = ExtResource("shared_MultiMesh_r2882")
+metadata/mesh_ref = "res://models/world/tour_4_1_2/geometry.glb#Geometry0184"
+
+[node name="Part0276" type="MultiMeshInstance3D" parent="." unique_id=937373378]
+material_override = ExtResource("shared_StandardMaterial3D_bboan")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_7d4jb")
+metadata/mesh_ref = "res://models/world/tour_4_1_2/geometry.glb#Geometry0185"
+
+[node name="TourLandmarks" type="Node3D" parent="."]
+[node name="SkywayAbutments" type="MultiMeshInstance3D" parent="TourLandmarks"]
+material_override = ExtResource("abutment_color")
+multimesh = ExtResource("shared_SkywayAbutments")
+metadata/mesh_ref = "res://models/props/skyway_abutment/model.glb#Model/Visual"
+metadata/world_barrier = true
+metadata/collision_transforms = Array[Transform3D]([Transform3D(2.971253, 0, -7.8569493, 0, 0.8199255, 0, 7.8569493, 0, 2.971253, 1864.972, 74.99411, 597.1267), Transform3D(2.9120507, 0, -7.879083, 0, 1.7510782000000003, 0, 7.879083, 0, 2.9120507, 1872.3112, 76.39578, 594.3776), Transform3D(2.8488991, 0, -7.902137, 0, 2.7049116, 0, 7.902137, 0, 2.8488991, 1879.6719, 77.80087, 591.6952), Transform3D(2.7721367, 0, -7.9293914, 0, 3.594044, 0, 7.9293914, 0, 2.7721367, 1887.046, 79.20215, 589.0755), Transform3D(2.7010899, 0, -7.9538736, 0, 4.3310944, 0, 7.9538736, 0, 2.7010899, 1894.4509, 80.59211, 586.5255), Transform3D(2.6122992, 0, -7.9834757, 0, 4.8286815999999995, 0, 7.9834757, 0, 2.6122992, 1901.8724, 81.96376, 584.05066), Transform3D(2.532956, 0, -8.009003, 0, 5.0, 0, 8.009003, 0, 2.532956, 1909.3291, 83.310425, 581.64813), Transform3D(2.4390173, 0, -8.038108, 0, 5.0, 0, 8.038108, 0, 2.4390173, 1916.8097, 84.62169, 579.3323), Transform3D(2.3471863, 0, -8.065402, 0, 5.0, 0, 8.065402, 0, 2.3471863, 1924.3221, 85.89454, 577.09344), Transform3D(2.2565382, 0, -8.091231, 0, 5.0, 0, 8.091231, 0, 2.2565382, 1931.8717, 87.11363, 574.94885), Transform3D(2.145447, 0, -8.121395, 0, 5.0, 0, 8.121395, 0, 2.145447, 1939.4408, 88.277596, 572.89355), Transform3D(2.0477045, 0, -8.146588, 0, 5.0, 0, 8.146588, 0, 2.0477045, 1947.0538, 89.37442, 570.9314), Transform3D(1.9292498, 0, -8.17545, 0, 5.0, 0, 8.17545, 0, 1.9292498, 1954.6896, 90.39526, 569.0706), Transform3D(1.8254938, 0, -8.199242, 0, 5.0, 0, 8.199242, 0, 1.8254938, 1962.3666, 91.3372, 567.30273), Transform3D(1.714553, 0, -8.223156, 0, 5.0, 0, 8.223156, 0, 1.714553, 1970.0762, 92.1795, 565.64764), Transform3D(1.5913754, 0, -8.24788, 0, 5.0, 0, 8.24788, 0, 1.5913754, 1977.8085, 92.92736, 564.0933), Transform3D(1.4798087, 0, -8.268625, 0, 5.0, 0, 8.268625, 0, 1.4798087, 1985.5801, 93.5618, 562.6507), Transform3D(1.3473802, 0, -8.291234, 0, 5.0, 0, 8.291234, 0, 1.3473802, 1993.367, 94.07873, 561.32117), Transform3D(1.2319803, 0, -8.309165, 0, 5.0, 0, 8.309165, 0, 1.2319803, 2001.1897, 94.47679, 560.0991), Transform3D(1.1085541, 0, -8.32653, 0, 5.0, 0, 8.32653, 0, 1.1085541, 2009.0308, 94.76178, 559.00226), Transform3D(0.9770321, 0, -8.342985, 0, 5.0, 0, 8.342985, 0, 0.9770321, 2016.8838, 94.9893, 558.01636), Transform3D(0.85786575, 0, -8.356079, 0, 5.0, 0, 8.356079, 0, 0.85786575, 2024.7599, 95.18626, 557.1542), Transform3D(0.7175693, 0, -8.369294, 0, 5.0, 0, 8.369294, 0, 0.7175693, 2032.6356, 95.36206, 556.41235), Transform3D(0.5966167, 0, -8.378785, 0, 5.0, 0, 8.378785, 0, 0.5966167, 2040.534, 95.51719, 555.7862), Transform3D(0.4684051, 0, -8.3869295, 0, 5.0, 0, 8.3869295, 0, 0.4684051, 2048.438, 95.64935, 555.29047), Transform3D(0.33327422, 0, -8.393386, 0, 4.98161, 0, 8.393386, 0, 0.33327422, 2056.344, 95.76126, 554.9095), Transform3D(0.21136901, 0, -8.39734, 0, 4.684533699999999, 0, 8.39734, 0, 0.21136901, 2064.2642, 95.85059, 554.6558), Transform3D(0.06933988, 0, -8.3997135, 0, 4.091710699999999, 0, 8.3997135, 0, 0.06933988, 2072.1748, 95.91845, 554.52374), Transform3D(-0.052425124, 0, -8.399836, 0, 3.2905217, 0, 8.399836, 0, -0.052425124, 2080.0994, 95.965355, 554.5094), Transform3D(-0.18073854, 0, -8.398055, 0, 2.3683482000000002, 0, 8.398055, 0, -0.18073854, 2088.0188, 95.98904, 554.6258), Transform3D(-0.31482366, 0, -8.394098, 0, 1.4125713000000002, 0, 8.394098, 0, -0.31482366, 2095.932, 95.992294, 554.85614), Transform3D(-0.4354059, 0, -8.388708, 0, 0.5105725, 0, 8.388708, 0, -0.4354059, 2103.8489, 95.97286, 555.2134)])

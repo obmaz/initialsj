@@ -1,0 +1,225 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_1_0/assembly/resources.tres" id="assembly"]
+[ext_resource type="Material" path="res://models/props/containers/material.tres" id="21_ylmwr"]
+[ext_resource type="Material" path="res://models/props/container_stack/material.tres" id="23_ghnvd"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_0hpgp" id="shared_MultiMesh_0hpgp"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_1_0/assembly/resources.tres::ShaderMaterial_4tovx" id="shared_ShaderMaterial_4tovx"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_2nhb6" id="shared_MultiMesh_2nhb6"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_qopyc" id="shared_MultiMesh_qopyc"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_1_0/assembly/resources.tres::ShaderMaterial_yclrh" id="shared_ShaderMaterial_yclrh"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_7b18b" id="shared_MultiMesh_7b18b"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_ymmkx" id="shared_MultiMesh_ymmkx"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_b1rhe" id="shared_MultiMesh_b1rhe"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_1_0/assembly/resources.tres::ShaderMaterial_wk8hd" id="shared_ShaderMaterial_wk8hd"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_rsdm5" id="shared_MultiMesh_rsdm5"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_thtp0" id="shared_MultiMesh_thtp0"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_ctb8e" id="shared_MultiMesh_ctb8e"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_xnk87" id="shared_MultiMesh_xnk87"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_vb31a" id="shared_MultiMesh_vb31a"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_iu4f0" id="shared_MultiMesh_iu4f0"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_0c5ds" id="shared_MultiMesh_0c5ds"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_oxb2g" id="shared_MultiMesh_oxb2g"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_73mc6" id="shared_MultiMesh_73mc6"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_7domo" id="shared_MultiMesh_7domo"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_0ca6m" id="shared_MultiMesh_0ca6m"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_jbplt" id="shared_MultiMesh_jbplt"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_738cu" id="shared_MultiMesh_738cu"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_boi7u" id="shared_MultiMesh_boi7u"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_7ogkb" id="shared_MultiMesh_7ogkb"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_1y8b3" id="shared_MultiMesh_1y8b3"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_cvwv0" id="shared_MultiMesh_cvwv0"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_1_0/assembly/resources.tres::MultiMesh_ura2n" id="shared_MultiMesh_ura2n"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Regional3D_containers_0" type="MultiMeshInstance3D" parent="." unique_id=762696629]
+material_override = ExtResource("21_ylmwr")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_0hpgp")
+metadata/mesh_ref = "res://models/props/containers/model.glb#Visual"
+
+[node name="Regional3D_dock_crane_0" type="MultiMeshInstance3D" parent="." unique_id=23415301]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_2nhb6")
+metadata/mesh_ref = "res://models/props/dock_crane/model.glb#Visual"
+
+[node name="Regional3D_container_stack_0" type="MultiMeshInstance3D" parent="." unique_id=337290487]
+material_override = ExtResource("23_ghnvd")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_qopyc")
+metadata/mesh_ref = "res://models/props/container_stack/model.glb#Visual"
+
+[node name="Regional3D_warehouse_shed_0" type="MultiMeshInstance3D" parent="." unique_id=1967311872]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_7b18b")
+metadata/mesh_ref = "res://models/props/warehouse_shed/model.glb#Visual"
+
+[node name="Regional3D_fuel_tank_0" type="MultiMeshInstance3D" parent="." unique_id=1994081514]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ymmkx")
+metadata/mesh_ref = "res://models/props/fuel_tank/model.glb#Visual"
+
+[node name="Part0204" type="MultiMeshInstance3D" parent="." unique_id=1861366078]
+material_override = ExtResource("23_ghnvd")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_b1rhe")
+metadata/mesh_ref = "res://models/props/container_stack/model.glb#Visual"
+
+[node name="Regional3D_cargo_ship_0" type="MultiMeshInstance3D" parent="." unique_id=1965538720]
+material_override = ExtResource("shared_ShaderMaterial_wk8hd")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_rsdm5")
+metadata/mesh_ref = "res://models/props/cargo_ship/model.glb#Visual"
+
+[node name="Part0206" type="MultiMeshInstance3D" parent="." unique_id=1018160805]
+material_override = ExtResource("21_ylmwr")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_thtp0")
+metadata/mesh_ref = "res://models/props/containers/model.glb#Visual"
+
+[node name="Part0207" type="MultiMeshInstance3D" parent="." unique_id=734272303]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ctb8e")
+metadata/mesh_ref = "res://models/props/dock_crane/model.glb#Visual"
+
+[node name="Part0208" type="MultiMeshInstance3D" parent="." unique_id=870578107]
+material_override = ExtResource("23_ghnvd")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_xnk87")
+metadata/mesh_ref = "res://models/props/container_stack/model.glb#Visual"
+
+[node name="Part0209" type="MultiMeshInstance3D" parent="." unique_id=435509131]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_vb31a")
+metadata/mesh_ref = "res://models/props/fuel_tank/model.glb#Visual"
+
+[node name="Part0210" type="MultiMeshInstance3D" parent="." unique_id=1575082168]
+material_override = ExtResource("23_ghnvd")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_iu4f0")
+metadata/mesh_ref = "res://models/props/container_stack/model.glb#Visual"
+
+[node name="Part0211" type="MultiMeshInstance3D" parent="." unique_id=1536161751]
+material_override = ExtResource("shared_ShaderMaterial_wk8hd")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_0c5ds")
+metadata/mesh_ref = "res://models/props/cargo_ship/model.glb#Visual"
+
+[node name="Part0212" type="MultiMeshInstance3D" parent="." unique_id=1512269514]
+material_override = ExtResource("21_ylmwr")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_oxb2g")
+metadata/mesh_ref = "res://models/props/containers/model.glb#Visual"
+
+[node name="Part0213" type="MultiMeshInstance3D" parent="." unique_id=200061155]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_73mc6")
+metadata/mesh_ref = "res://models/props/dock_crane/model.glb#Visual"
+
+[node name="Part0214" type="MultiMeshInstance3D" parent="." unique_id=131262700]
+material_override = ExtResource("23_ghnvd")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_7domo")
+metadata/mesh_ref = "res://models/props/container_stack/model.glb#Visual"
+
+[node name="Part0215" type="MultiMeshInstance3D" parent="." unique_id=1156992961]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_0ca6m")
+metadata/mesh_ref = "res://models/props/warehouse_shed/model.glb#Visual"
+
+[node name="Part0216" type="MultiMeshInstance3D" parent="." unique_id=1295247162]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_jbplt")
+metadata/mesh_ref = "res://models/props/fuel_tank/model.glb#Visual"
+
+[node name="Part0217" type="MultiMeshInstance3D" parent="." unique_id=2119981432]
+material_override = ExtResource("23_ghnvd")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_738cu")
+metadata/mesh_ref = "res://models/props/container_stack/model.glb#Visual"
+
+[node name="Part0218" type="MultiMeshInstance3D" parent="." unique_id=1442608884]
+material_override = ExtResource("shared_ShaderMaterial_wk8hd")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_boi7u")
+metadata/mesh_ref = "res://models/props/cargo_ship/model.glb#Visual"
+
+[node name="Part0219" type="MultiMeshInstance3D" parent="." unique_id=965701196]
+material_override = ExtResource("21_ylmwr")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_7ogkb")
+metadata/mesh_ref = "res://models/props/containers/model.glb#Visual"
+
+[node name="Part0220" type="MultiMeshInstance3D" parent="." unique_id=515967170]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_1y8b3")
+metadata/mesh_ref = "res://models/props/dock_crane/model.glb#Visual"
+
+[node name="Part0221" type="MultiMeshInstance3D" parent="." unique_id=734152847]
+material_override = ExtResource("23_ghnvd")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_cvwv0")
+metadata/mesh_ref = "res://models/props/container_stack/model.glb#Visual"
+
+[node name="Part0222" type="MultiMeshInstance3D" parent="." unique_id=769102671]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ura2n")
+metadata/mesh_ref = "res://models/props/fuel_tank/model.glb#Visual"

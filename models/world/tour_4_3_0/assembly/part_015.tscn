@@ -1,0 +1,473 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_3_0/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/regional_props_3d.gd" id="28_uiu2f"]
+[ext_resource type="Material" path="res://models/props/basalt/material.tres" id="29_llxhv"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_f7kfc" id="shared_MultiMesh_f7kfc"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_4838w" id="shared_MultiMesh_4838w"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_hgu3u" id="shared_MultiMesh_hgu3u"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_i2tgh" id="shared_MultiMesh_i2tgh"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_6hjwp" id="shared_MultiMesh_6hjwp"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_ir2tk" id="shared_MultiMesh_ir2tk"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_e4guu" id="shared_MultiMesh_e4guu"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_dokj8" id="shared_MultiMesh_dokj8"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_f0vwv" id="shared_MultiMesh_f0vwv"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_xt6ds" id="shared_MultiMesh_xt6ds"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_hbtqx" id="shared_MultiMesh_hbtqx"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_ce3bs" id="shared_MultiMesh_ce3bs"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_jb7kj" id="shared_MultiMesh_jb7kj"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_pq3e6" id="shared_MultiMesh_pq3e6"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_fqg4j" id="shared_MultiMesh_fqg4j"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_vpi83" id="shared_MultiMesh_vpi83"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_wemgv" id="shared_MultiMesh_wemgv"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_yi64y" id="shared_MultiMesh_yi64y"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_nrf4g" id="shared_MultiMesh_nrf4g"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_xuarp" id="shared_MultiMesh_xuarp"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_qj77x" id="shared_MultiMesh_qj77x"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_ihbyu" id="shared_MultiMesh_ihbyu"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_0/assembly/resources.tres::MultiMesh_fbxfh" id="shared_MultiMesh_fbxfh"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="RegionalForeground3D" type="Node3D" parent="." unique_id=798131519]
+script = ExtResource("28_uiu2f")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Regional3D_basalt_0")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0256")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0257")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0258")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0259")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0260")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0261")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0262")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0263")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0264")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0265")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0266")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0267")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0268")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0269")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0270")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0271")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0272")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0273")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0274")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0275")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0276")
+}, {
+&"$node": NodePath("Part0250/Part0253/RegionalForeground3D/Part0277")
+}],
+"kinds": ["basalt"],
+"placements": [{
+"distance": 308.1806581020355,
+"kind": "basalt",
+"position": Vector3(262.3244, 8.862242, -114.821075),
+"scale": 1.0957001,
+"variant": 2,
+"yaw": -0.5655434274837546
+}, {
+"distance": 416.31431102752686,
+"kind": "basalt",
+"position": Vector3(296.83655, 16.14425, -211.54544),
+"scale": 1.0646858,
+"variant": 2,
+"yaw": -0.1741806647071441
+}, {
+"distance": 531.6756019592285,
+"kind": "basalt",
+"position": Vector3(330.0143, 40.29023, -321.2642),
+"scale": 0.8746772,
+"variant": 2,
+"yaw": -0.2141237761452307
+}, {
+"distance": 635.6606497764587,
+"kind": "basalt",
+"position": Vector3(379.07715, 72.048744, -413.26932),
+"scale": 0.86830163,
+"variant": 2,
+"yaw": -0.38855605365281554
+}, {
+"distance": 744.8197522163391,
+"kind": "basalt",
+"position": Vector3(457.59378, 89.65121, -496.40735),
+"scale": 0.9588923,
+"variant": 2,
+"yaw": -0.7391129640085133
+}, {
+"distance": 852.9084978103638,
+"kind": "basalt",
+"position": Vector3(579.1401, 89.5264, -493.5572),
+"scale": 1.1197184,
+"variant": 2,
+"yaw": -1.4267675786993068
+}, {
+"distance": 958.6126165390016,
+"kind": "basalt",
+"position": Vector3(673.125, 89.30176, -567.0257),
+"scale": 0.87587905,
+"variant": 2,
+"yaw": -1.3466715848183353
+}, {
+"distance": 1069.8109092712402,
+"kind": "basalt",
+"position": Vector3(778.9057, 89.71232, -504.00363),
+"scale": 0.8738625,
+"variant": 2,
+"yaw": -1.8128082531214829
+}, {
+"distance": 1173.2760677337646,
+"kind": "basalt",
+"position": Vector3(891.2453, 99.849075, -521.668),
+"scale": 0.8551974,
+"variant": 2,
+"yaw": -1.7257988912972553
+}, {
+"distance": 1288.2802896499634,
+"kind": "basalt",
+"position": Vector3(977.5286, 89.69273, -435.69894),
+"scale": 0.9068083,
+"variant": 2,
+"yaw": -1.8214116645476124
+}, {
+"distance": 1389.6768672466278,
+"kind": "basalt",
+"position": Vector3(1085.2037, 88.750305, -422.9333),
+"scale": 0.8509826,
+"variant": 2,
+"yaw": -1.9153391567097744
+}, {
+"distance": 1500.9151129722595,
+"kind": "basalt",
+"position": Vector3(1171.529, 81.07554, -343.28918),
+"scale": 1.0814167,
+"variant": 2,
+"yaw": -1.8139806936244751
+}, {
+"distance": 1609.2495107650757,
+"kind": "basalt",
+"position": Vector3(1281.5116, 67.59463, -365.23813),
+"scale": 1.1632835,
+"variant": 2,
+"yaw": -1.1974664627820817
+}, {
+"distance": 1719.3108806610107,
+"kind": "basalt",
+"position": Vector3(1396.3848, 56.221745, -355.10645),
+"scale": 1.2014122,
+"variant": 2,
+"yaw": -1.2347303702662
+}, {
+"distance": 1828.1493406295776,
+"kind": "basalt",
+"position": Vector3(1442.2067, 48.59462, -460.41922),
+"scale": 0.918882,
+"variant": 2,
+"yaw": -0.9036234964421668
+}, {
+"distance": 2149.1736555099487,
+"kind": "basalt",
+"position": Vector3(1555.199, 59.982178, -750.8586),
+"scale": 0.90546274,
+"variant": 2,
+"yaw": -0.17482982130524394
+}, {
+"distance": 2252.439012527466,
+"kind": "basalt",
+"position": Vector3(1557.984, 73.65551, -861.77795),
+"scale": 1.1531471,
+"variant": 2,
+"yaw": -0.7322208396617257
+}, {
+"distance": 2365.04944229126,
+"kind": "basalt",
+"position": Vector3(1668.5914, 81.60463, -909.13855),
+"scale": 1.1110926,
+"variant": 2,
+"yaw": -1.0033728568385678
+}, {
+"distance": 2476.044796943665,
+"kind": "basalt",
+"position": Vector3(1748.0824, 74.53389, -997.2698),
+"scale": 1.1816411,
+"variant": 2,
+"yaw": -1.069584552572681
+}, {
+"distance": 2584.7374897003174,
+"kind": "basalt",
+"position": Vector3(1861.8595, 84.31301, -973.85236),
+"scale": 1.132444,
+"variant": 2,
+"yaw": -1.3281461666145156
+}, {
+"distance": 2683.3675804138184,
+"kind": "basalt",
+"position": Vector3(1961.1434, 98.16667, -1007.44257),
+"scale": 1.0791774,
+"variant": 2,
+"yaw": -1.8092251630047504
+}, {
+"distance": 2800.0711879730225,
+"kind": "basalt",
+"position": Vector3(2066.994, 100.34411, -944.9618),
+"scale": 0.9764981,
+"variant": 2,
+"yaw": -1.8491155459924855
+}, {
+"distance": 2908.6900177001953,
+"kind": "basalt",
+"position": Vector3(2180.1882, 84.40597, -944.7521),
+"scale": 0.984957,
+"variant": 2,
+"yaw": -2.2334936607462654
+}, {
+"distance": 3016.00736618042,
+"kind": "basalt",
+"position": Vector3(2263.1362, 93.528755, -867.0552),
+"scale": 0.8868531,
+"variant": 2,
+"yaw": -2.1033057259699106
+}, {
+"distance": 3118.9901950359344,
+"kind": "basalt",
+"position": Vector3(2372.92, 84.25695, -869.9016),
+"scale": 1.1340635,
+"variant": 2,
+"yaw": -1.5932655476625457
+}, {
+"distance": 3229.610755443573,
+"kind": "basalt",
+"position": Vector3(2473.2576, 84.357056, -801.622),
+"scale": 0.96546865,
+"variant": 2,
+"yaw": -1.904765908441725
+}, {
+"distance": 3337.9304542541504,
+"kind": "basalt",
+"position": Vector3(2574.1467, 82.54707, -862.3302),
+"scale": 0.89913106,
+"variant": 2,
+"yaw": -0.9083596305669746
+}, {
+"distance": 3439.3057446479797,
+"kind": "basalt",
+"position": Vector3(2683.689, 60.000896, -871.0909),
+"scale": 0.82662326,
+"variant": 2,
+"yaw": -0.781356469466996
+}, {
+"distance": 3553.5915865898132,
+"kind": "basalt",
+"position": Vector3(2714.631, 30.966434, -988.5765),
+"scale": 1.2001603,
+"variant": 2,
+"yaw": -0.38472649952189786
+}, {
+"distance": 3660.27360534668,
+"kind": "basalt",
+"position": Vector3(2801.5454, 19.929392, -1066.6825),
+"scale": 1.1900871,
+"variant": 2,
+"yaw": 0.00490894650657369
+}, {
+"distance": 3764.132371902466,
+"kind": "basalt",
+"position": Vector3(2786.9363, 11.472586, -1179.3663),
+"scale": 1.1609778,
+"variant": 2,
+"yaw": -0.06715709607739662
+}, {
+"distance": 3879.078437805176,
+"kind": "basalt",
+"position": Vector3(2855.5852, 6.4438043, -1276.3062),
+"scale": 1.1628414,
+"variant": 2,
+"yaw": -0.1035901483284653
+}],
+"theme": "snow",
+"tree_count": 0,
+"world_bounds": [AABB(258.2945, 8.697886, -119.0777, 8.834198, 3.2871008, 9.115494), AABB(293.81674, 15.984548, -215.25732, 6.958435, 3.1940584, 7.6776733), AABB(327.43872, 40.159027, -324.37183, 5.8971252, 2.624031, 6.4538574), AABB(376.15933, 71.918495, -416.54785, 6.523773, 2.6049118, 6.9188232), AABB(453.87543, 89.50737, -500.122, 8.013245, 2.8766785, 8.065491), AABB(575.20215, 89.35844, -496.62445, 7.9245605, 3.3591614, 7.1359253), AABB(669.92645, 89.17038, -569.6113, 6.4978027, 2.6276321, 5.9489746), AABB(775.5043, 89.58124, -506.64047, 6.5438232, 2.6215897, 6.011963), AABB(888.103, 99.720795, -524.0478, 6.0947876, 2.56559, 5.501343), AABB(973.9808, 89.55671, -438.45514, 6.8203125, 2.7204285, 6.276184), AABB(1081.705, 88.62266, -425.71143, 6.6730957, 2.552948, 6.2456665), AABB(1167.3168, 80.91332, -346.55554, 8.102905, 3.244255, 7.4460144), AABB(1277.0443, 67.420135, -369.0733, 9.220337, 3.489853, 8.671936), AABB(1391.8181, 56.041534, -358.9718, 9.389648, 3.6042328, 8.775391), AABB(1438.5682, 48.456787, -463.87057, 7.722168, 2.7566452, 7.594574), AABB(1552.6292, 59.84636, -754.01636, 5.9208984, 2.7163887, 6.5319824), AABB(1553.519, 73.48254, -866.24817, 9.628662, 3.4594421, 9.700745), AABB(1664.1946, 81.437965, -913.1771, 9.245972, 3.3332748, 8.963257), AABB(1743.4338, 74.35664, -1001.4461, 9.714722, 3.5449219, 9.324707), AABB(1857.6924, 84.14314, -977.2481, 8.483032, 3.3973312, 7.7944946), AABB(1956.9519, 98.0048, -1010.689, 8.066406, 3.237526, 7.4057617), AABB(2063.1125, 100.19763, -947.99744, 7.4433594, 2.9294968, 6.885254), AABB(2175.7473, 84.258224, -948.4987, 8.275635, 2.9548721, 8.133606), AABB(2259.2344, 93.39573, -870.2719, 7.337158, 2.6605606, 7.07605), AABB(2369.1897, 84.08684, -872.60675, 7.3410645, 3.4021912, 6.41864), AABB(2469.308, 84.212234, -804.7508, 7.5390625, 2.896408, 7.043518), AABB(2570.5857, 82.4122, -865.7029, 7.554199, 2.6973953, 7.4244385), AABB(2680.4578, 59.876904, -874.2763, 6.935791, 2.4798698, 6.9397583), AABB(2710.608, 30.786411, -993.10364, 8.999512, 3.6004791, 9.55072), AABB(2798.7737, 19.75088, -1070.4294, 6.604492, 3.570261, 7.590332), AABB(2784.0056, 11.298439, -1183.1755, 6.887207, 3.482933, 7.786621), AABB(2852.5222, 6.269378, -1280.2078, 7.1464844, 3.488524, 8.009155)]
+}
+
+[node name="Regional3D_basalt_0" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1733744061]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_f7kfc")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0256" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1671955089]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_4838w")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0257" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1739625889]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_hgu3u")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0258" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=2077993049]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_i2tgh")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0259" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1019660761]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_6hjwp")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0260" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1149675376]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ir2tk")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0261" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=826718628]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_e4guu")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0262" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1831242159]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_dokj8")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0263" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1771281741]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_f0vwv")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0264" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=331275503]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_xt6ds")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0265" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1302126268]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_hbtqx")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0266" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1472218795]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ce3bs")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0267" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1679325833]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_jb7kj")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0268" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1109781460]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_pq3e6")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0269" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=2109575744]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_fqg4j")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0270" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=2049266397]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_vpi83")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0271" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=2035322541]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_wemgv")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0272" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=777034091]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_yi64y")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0273" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=881746529]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_nrf4g")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0274" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=508438408]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_xuarp")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0275" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1746342489]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_qj77x")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0276" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=366846943]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ihbyu")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0277" type="MultiMeshInstance3D" parent="RegionalForeground3D" unique_id=1293730420]
+material_override = ExtResource("29_llxhv")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_fbxfh")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"

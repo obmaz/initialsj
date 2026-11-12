@@ -128,11 +128,7 @@ static func walls(section: Node3D, state: Dictionary, span: float) -> bool:
 		var middle := d + step * 0.5
 		var basis := frame(section, middle)
 		for side in [-1.0, 1.0]:
-			if (
-				not section.closed_loop
-				and middle < (115 + section.entry_buffer_length if section.entry_buffer_length > 0 else 150)
-				and side == -section.entry_side
-			):
+			if not section.closed_loop and middle < 115 + section.entry_buffer_length and side == -section.entry_side:
 				continue
 			var lane: float = side * (section.half_width(middle) + section.rail_setback(middle, side))
 			var wall_basis := basis

@@ -22,6 +22,14 @@ func run(tree: SceneTree) -> int:
 	var road = preload("res://scripts/track/road_section.gd").new()
 	road.stage = 1
 	tree.root.add_child(road)
+	# 긴 월드 곡선의 전역 검색 없이도 이전 거리에서 실제 횡단면을 추적해야 한다.
+	for at in [100.0, 350.0, 800.0, 1400.0, road.length - 60]:
+		for lane in [-6.0, 0.0, 6.0]:
+			for hint in [at - 30, at + 30]:
+				var projected: float = preload("res://scripts/race/tour_progress.gd").project_distance(
+					road, road.point(at, lane), hint
+				)
+				check(absf(projected - at) < .1, "국소 투영은 굽은 도로·고저차·양 차선에서10cm 이내 거리를 복원한다")
 	road.add_child(preload("res://scripts/physics/world_collision.gd").build(road))
 	var cars: Array = road.features.filter(func(f): return f.kind == "car")
 	check(cars.size() >= 2, "투어 승용차 장애물 배치")

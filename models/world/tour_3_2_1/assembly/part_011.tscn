@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_2_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/road_biome.gd" id="23_3cn1t"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0222" type="Node3D" parent="." unique_id=1288914078]
+script = ExtResource("23_3cn1t")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0222/Part0226")
+}, {
+&"$node": NodePath("Part0222/Part0227")
+}],
+"building_manifest": [],
+"distant_art": {
+&"$node": NodePath("Part0222/Part0230")
+},
+"ground_nodes": [{
+&"$node": NodePath("Part0222/Part0223")
+}, {
+&"$node": NodePath("Part0222/Part0224")
+}],
+"landmarks": null,
+"local_lights": [],
+"rng": {
+&"$rng": 8015085446443236227,
+&"seed": 2133
+},
+"roadside_art": {
+&"$node": NodePath("Part0222/Part0228")
+},
+"rotating": [],
+"theme": "fuji",
+"track": {
+&"$node": NodePath(".")
+},
+"tree_positions": [],
+"water": {
+&"$node": NodePath("Part0222/Part0225")
+}
+}

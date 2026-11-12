@@ -1,0 +1,126 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_2_0_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Material" path="res://models/props/sandstone/material.tres" id="29_8ifwx"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_2_0_1/assembly/resources.tres::ShaderMaterial_4tovx" id="shared_ShaderMaterial_4tovx"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_unqnx" id="shared_MultiMesh_unqnx"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_qxkp5" id="shared_MultiMesh_qxkp5"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_ps36v" id="shared_MultiMesh_ps36v"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_cs74v" id="shared_MultiMesh_cs74v"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_rwsba" id="shared_MultiMesh_rwsba"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_aoe7g" id="shared_MultiMesh_aoe7g"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_ve1yg" id="shared_MultiMesh_ve1yg"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_3supg" id="shared_MultiMesh_3supg"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_awinc" id="shared_MultiMesh_awinc"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_4j5ls" id="shared_MultiMesh_4j5ls"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_h8768" id="shared_MultiMesh_h8768"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_5r04e" id="shared_MultiMesh_5r04e"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_u5rc2" id="shared_MultiMesh_u5rc2"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_k2yfs" id="shared_MultiMesh_k2yfs"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0255" type="MultiMeshInstance3D" parent="." unique_id=1609395897]
+material_override = ExtResource("29_8ifwx")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_unqnx")
+metadata/mesh_ref = "res://models/props/sandstone/model.glb#Visual"
+
+[node name="Part0256" type="MultiMeshInstance3D" parent="." unique_id=517239824]
+material_override = ExtResource("29_8ifwx")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_qxkp5")
+metadata/mesh_ref = "res://models/props/sandstone/model.glb#Visual"
+
+[node name="Part0257" type="MultiMeshInstance3D" parent="." unique_id=304291985]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ps36v")
+metadata/mesh_ref = "res://models/props/obelisk/model.glb#Visual"
+
+[node name="Part0258" type="MultiMeshInstance3D" parent="." unique_id=1370289764]
+material_override = ExtResource("29_8ifwx")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_cs74v")
+metadata/mesh_ref = "res://models/props/sandstone/model.glb#Visual"
+
+[node name="Part0259" type="MultiMeshInstance3D" parent="." unique_id=641431844]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_rwsba")
+metadata/mesh_ref = "res://models/props/obelisk/model.glb#Visual"
+
+[node name="Part0260" type="MultiMeshInstance3D" parent="." unique_id=1574502524]
+material_override = ExtResource("29_8ifwx")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_aoe7g")
+metadata/mesh_ref = "res://models/props/sandstone/model.glb#Visual"
+
+[node name="Part0261" type="MultiMeshInstance3D" parent="." unique_id=1557606593]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ve1yg")
+metadata/mesh_ref = "res://models/props/obelisk/model.glb#Visual"
+
+[node name="Part0262" type="MultiMeshInstance3D" parent="." unique_id=1552065709]
+material_override = ExtResource("29_8ifwx")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_3supg")
+metadata/mesh_ref = "res://models/props/sandstone/model.glb#Visual"
+
+[node name="Part0263" type="MultiMeshInstance3D" parent="." unique_id=2096984381]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_awinc")
+metadata/mesh_ref = "res://models/props/obelisk/model.glb#Visual"
+
+[node name="Part0264" type="MultiMeshInstance3D" parent="." unique_id=1324023108]
+material_override = ExtResource("29_8ifwx")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_4j5ls")
+metadata/mesh_ref = "res://models/props/sandstone/model.glb#Visual"
+
+[node name="Part0265" type="MultiMeshInstance3D" parent="." unique_id=1914335011]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_h8768")
+metadata/mesh_ref = "res://models/props/obelisk/model.glb#Visual"
+
+[node name="Part0266" type="MultiMeshInstance3D" parent="." unique_id=235118516]
+material_override = ExtResource("29_8ifwx")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_5r04e")
+metadata/mesh_ref = "res://models/props/sandstone/model.glb#Visual"
+
+[node name="Part0267" type="MultiMeshInstance3D" parent="." unique_id=1971215632]
+material_override = ExtResource("29_8ifwx")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_u5rc2")
+metadata/mesh_ref = "res://models/props/sandstone/model.glb#Visual"
+
+[node name="Part0268" type="MultiMeshInstance3D" parent="." unique_id=811448845]
+material_override = ExtResource("shared_ShaderMaterial_4tovx")
+cast_shadow = 0
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_k2yfs")
+metadata/mesh_ref = "res://models/props/obelisk/model.glb#Visual"

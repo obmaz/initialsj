@@ -8,6 +8,7 @@ var previews: Array[Section] = []
 var history: Array[int] = []
 var weather_seed := int(Time.get_ticks_usec() % 100000)
 var retirement_worker: Node
+var maintenance_frame := -1
 const RegionMetadata = preload("res://scripts/environment/tour_region_metadata.gd")
 var base_material: StandardMaterial3D
 var ground_plane: MeshInstance3D
@@ -65,6 +66,7 @@ func _exit_tree() -> void:
 
 
 func reset(stage: int = 0, node_index: int = 0) -> void:
+	maintenance_frame = -1
 	for node in [active, previous, sibling]:
 		if is_instance_valid(node):
 			retire(node)
@@ -199,6 +201,11 @@ func finish_previews() -> void:
 
 
 func maintain(distance: float) -> void:
+	# 저FPS의 보충 물리 틱이 같은 화면 프레임에서 준비 예산을 반복 소비하지 않게 한다.
+	var frame := Engine.get_process_frames()
+	if maintenance_frame == frame:
+		return
+	maintenance_frame = frame
 	# 지나온 구간을 한 프레임에 하나씩 먼저 해제한 뒤에 다음 구간을 만들어, 동시에 살아 있는 구간 수를 줄인다.
 	if distance > 420:
 		if is_instance_valid(sibling):

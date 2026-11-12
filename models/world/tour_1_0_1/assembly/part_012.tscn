@@ -1,0 +1,371 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_1_0_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/tour_vegetation.gd" id="27_l63rk"]
+[ext_resource type="Resource" path="res://models/vegetation/town_oak_0/definition.tres" id="28_k22wi"]
+[ext_resource type="Resource" path="res://models/vegetation/town_oak_1/definition.tres" id="29_fv5my"]
+[ext_resource type="Resource" path="res://models/vegetation/dark_fir/definition.tres" id="30_57m7c"]
+[ext_resource type="Resource" path="res://models/vegetation/black_pine/definition.tres" id="31_r2mof"]
+[ext_resource type="Resource" path="res://models/vegetation/spire_cypress/definition.tres" id="32_s0q4q"]
+[ext_resource type="Resource" path="res://models/vegetation/juniper/definition.tres" id="33_q1one"]
+[ext_resource type="Resource" path="res://models/vegetation/thorn_bramble/definition.tres" id="34_rghid"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="NativeTreeModels" type="Node3D" parent="." unique_id=861471968]
+script = ExtResource("27_l63rk")
+metadata/scene_state = {
+"bank_counts": {
+-1: 0,
+1: 0
+},
+"batch_slices": 29,
+"definitions": [ExtResource("28_k22wi"), ExtResource("29_fv5my"), ExtResource("30_57m7c"), ExtResource("31_r2mof"), ExtResource("32_s0q4q"), ExtResource("33_q1one"), ExtResource("34_rghid")],
+"groups": {},
+"planning_slices": 0,
+"plantings": [{
+"position": Vector3(236.57124, 6.654028, -26.917437),
+"scale": 0.99134845,
+"variant": 0,
+"yaw": -1.7782534141693194
+}, {
+"position": Vector3(284.58917, 8.825341, -34.059464),
+"scale": 1.0638232,
+"variant": 0,
+"yaw": -1.0662508174341043
+}, {
+"position": Vector3(321.21997, 9.810098, 7.817999),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.367703341481403
+}, {
+"position": Vector3(359.59372, 12.929238, -15.506454),
+"scale": 0.90099186,
+"variant": 0,
+"yaw": -1.1972988550280663
+}, {
+"position": Vector3(362.88544, 15.520552, -74.468994),
+"scale": 1.0416862,
+"variant": 0,
+"yaw": -1.00431735525909
+}, {
+"position": Vector3(403.71313, 19.903418, -92.749504),
+"scale": 1.074543,
+"variant": 0,
+"yaw": -1.4025079012489157
+}, {
+"position": Vector3(449.1718, 22.971193, -65.78045),
+"scale": 1.0698258,
+"variant": 0,
+"yaw": -0.9483212905058068
+}, {
+"position": Vector3(492.44708, 28.345743, -81.105865),
+"scale": 1.1727887,
+"variant": 0,
+"yaw": -1.2632985751439585
+}, {
+"position": Vector3(491.0227, 30.888163, -138.75572),
+"scale": 1.18,
+"variant": 0,
+"yaw": -1.487925876687161
+}, {
+"position": Vector3(532.8866, 36.341267, -153.08409),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.5597492844863654
+}, {
+"position": Vector3(578.15045, 42.41368, -108.7551),
+"scale": 1.0794647,
+"variant": 0,
+"yaw": -0.9562612802391222
+}, {
+"position": Vector3(621.38336, 55.232754, -129.5444),
+"scale": 1.0478733,
+"variant": 0,
+"yaw": -1.1166451670901931
+}, {
+"position": Vector3(625.19684, 58.913303, -186.50548),
+"scale": 1.18,
+"variant": 0,
+"yaw": -1.3222394750401865
+}, {
+"position": Vector3(680.34436, 66.52165, -179.89612),
+"scale": 0.9462445,
+"variant": 0,
+"yaw": -1.147605475068458
+}, {
+"position": Vector3(710.97186, 67.56183, -142.9222),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.3057815430015884
+}, {
+"position": Vector3(752.66034, 67.589264, -139.32402),
+"scale": 0.9745519,
+"variant": 0,
+"yaw": -1.5123101749483252
+}, {
+"position": Vector3(780.32495, 67.40381, -193.17572),
+"scale": 0.9740089,
+"variant": 0,
+"yaw": -1.8778512988082323
+}, {
+"position": Vector3(832.0489, 64.787964, -185.31348),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.7746520750505856
+}, {
+"position": Vector3(847.08105, 66.70131, -130.57253),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.4342150921155803
+}, {
+"position": Vector3(893.5158, 62.60906, -128.1347),
+"scale": 1.1304134,
+"variant": 0,
+"yaw": -1.9549509749578609
+}, {
+"position": Vector3(927.54083, 62.59505, -176.9858),
+"scale": 1.18,
+"variant": 0,
+"yaw": -2.056991808107413
+}, {
+"position": Vector3(973.60657, 56.741802, -162.6901),
+"scale": 1.18,
+"variant": 0,
+"yaw": -1.4971621913171818
+}, {
+"position": Vector3(980.3774, 52.72983, -110.509125),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.639307264913883
+}, {
+"position": Vector3(1232.8264, 31.209112, 13.490568),
+"scale": 0.94351375,
+"variant": 0,
+"yaw": -2.454629301443127
+}, {
+"position": Vector3(1277.7828, 38.86014, 45.17449),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.9194503373049705
+}, {
+"position": Vector3(1319.7853, 39.62341, 6.607666),
+"scale": 0.9617622,
+"variant": 0,
+"yaw": -1.9214228455813496
+}, {
+"position": Vector3(1366.824, 39.769333, 25.350338),
+"scale": 1.1266418,
+"variant": 0,
+"yaw": -1.6397496489227876
+}, {
+"position": Vector3(1360.1302, 41.854412, 95.52539),
+"scale": 1.0224637,
+"variant": 0,
+"yaw": -1.6978920006278837
+}, {
+"position": Vector3(1415.9143, 40.57944, 106.53798),
+"scale": 0.9562055,
+"variant": 0,
+"yaw": -1.9035196850120015
+}, {
+"position": Vector3(1448.8936, 37.029842, 49.413437),
+"scale": 0.9,
+"variant": 0,
+"yaw": -2.07298060180307
+}, {
+"position": Vector3(1492.9049, 29.88296, 61.409218),
+"scale": 0.9988221,
+"variant": 0,
+"yaw": -1.5904348447710617
+}, {
+"position": Vector3(1515.1859, 30.136524, 119.27179),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.4386693562370292
+}, {
+"position": Vector3(1560.1414, 30.905237, 105.63569),
+"scale": 1.125025,
+"variant": 0,
+"yaw": -1.544498747935029
+}, {
+"position": Vector3(1574.4819, 32.289036, 44.50331),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.296207559624974
+}, {
+"position": Vector3(1621.8755, 37.10141, 34.59862),
+"scale": 1.0871493,
+"variant": 0,
+"yaw": -0.9464893843513428
+}, {
+"position": Vector3(1665.1194, 40.12543, 82.73351),
+"scale": 1.1278706,
+"variant": 0,
+"yaw": -0.861564036428595
+}, {
+"position": Vector3(1708.824, 49.834564, 49.55185),
+"scale": 1.0337259,
+"variant": 0,
+"yaw": -0.8729156504428197
+}, {
+"position": Vector3(1699.738, 55.801483, -4.088169),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.1393390996402688
+}, {
+"position": Vector3(1738.818, 69.558655, -22.294018),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.285061843773377
+}, {
+"position": Vector3(1786.1583, 75.40955, 5.0043354),
+"scale": 0.9553086,
+"variant": 0,
+"yaw": -1.36850277141165
+}, {
+"position": Vector3(1824.1387, 77.56032, -24.531384),
+"scale": 0.9255571,
+"variant": 0,
+"yaw": -0.8441632425473329
+}, {
+"position": Vector3(1826.4211, 78.35302, -74.293045),
+"scale": 0.94395155,
+"variant": 0,
+"yaw": -0.7726470450777849
+}, {
+"position": Vector3(1869.4434, 83.821365, -95.857),
+"scale": 1.18,
+"variant": 0,
+"yaw": -0.969661457210137
+}, {
+"position": Vector3(1905.4927, 85.16455, -64.306366),
+"scale": 1.0974438,
+"variant": 0,
+"yaw": -1.062882786374424
+}, {
+"position": Vector3(1949.5122, 78.75533, -85.23159),
+"scale": 0.964422,
+"variant": 0,
+"yaw": -1.003233062915773
+}, {
+"position": Vector3(1958.1587, 77.47672, -140.48276),
+"scale": 1.18,
+"variant": 0,
+"yaw": -1.1710745795591573
+}, {
+"position": Vector3(2005.9722, 77.654465, -153.08704),
+"scale": 1.18,
+"variant": 0,
+"yaw": -1.31740514396297
+}, {
+"position": Vector3(2035.4039, 77.790504, -112.64139),
+"scale": 1.0240916,
+"variant": 0,
+"yaw": -1.048045086552975
+}, {
+"position": Vector3(2083.0256, 78.31873, -126.66916),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.318065100384073
+}, {
+"position": Vector3(2099.461, 78.62205, -171.65225),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.4396012232563975
+}, {
+"position": Vector3(2146.736, 79.272194, -180.22356),
+"scale": 1.18,
+"variant": 0,
+"yaw": -1.474070237899057
+}, {
+"position": Vector3(2172.7957, 79.56898, -143.41246),
+"scale": 0.91547537,
+"variant": 0,
+"yaw": -1.439335449482246
+}, {
+"position": Vector3(2223.0923, 80.24062, -147.99919),
+"scale": 1.1207057,
+"variant": 0,
+"yaw": -1.5641958836283625
+}, {
+"position": Vector3(2250.4604, 80.52482, -188.92152),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.6634864335743225
+}, {
+"position": Vector3(2291.1199, 80.79699, -187.78825),
+"scale": 0.91920406,
+"variant": 0,
+"yaw": -1.6920759937553933
+}, {
+"position": Vector3(2317.76, 80.94237, -130.7876),
+"scale": 0.91367924,
+"variant": 0,
+"yaw": -1.390197985892239
+}, {
+"position": Vector3(2359.8823, 80.90532, -130.38933),
+"scale": 1.1669126,
+"variant": 0,
+"yaw": -1.8214640264380255
+}, {
+"position": Vector3(2389.1829, 80.43914, -173.23376),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.8171263607060224
+}, {
+"position": Vector3(2440.9646, 71.837135, -163.97874),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.8607236612096312
+}, {
+"position": Vector3(2446.8452, 64.28944, -102.573235),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.9267796349393456
+}, {
+"position": Vector3(2489.1533, 49.51231, -89.170944),
+"scale": 1.1250007,
+"variant": 0,
+"yaw": -1.8861798452043348
+}, {
+"position": Vector3(2528.1458, 43.59981, -132.95262),
+"scale": 1.0696985,
+"variant": 0,
+"yaw": -2.113201216612584
+}, {
+"position": Vector3(2573.2788, 27.72315, -108.87442),
+"scale": 1.18,
+"variant": 0,
+"yaw": -1.8368305626254724
+}, {
+"position": Vector3(2566.5498, 21.366877, -52.55893),
+"scale": 1.1473979,
+"variant": 0,
+"yaw": -1.8251138102440527
+}, {
+"position": Vector3(2610.3425, 8.722238, -34.54292),
+"scale": 0.9855194,
+"variant": 0,
+"yaw": -2.403231067979503
+}, {
+"position": Vector3(2658.628, 7.6677003, -70.9783),
+"scale": 0.94524014,
+"variant": 0,
+"yaw": -2.241623538836036
+}, {
+"position": Vector3(2692.9817, 6.1311083, -44.906967),
+"scale": 0.9,
+"variant": 0,
+"yaw": -2.0206450313803734
+}, {
+"position": Vector3(2706.1033, 5.751384, 11.758803),
+"scale": 0.9,
+"variant": 0,
+"yaw": -1.723841628220779
+}],
+"scenery": null,
+"tree_count": 68,
+"variant_counts": {}
+}

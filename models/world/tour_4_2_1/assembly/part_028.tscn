@@ -1,0 +1,181 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_2_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/rendering/tunnel_lights.gd" id="40_8uqje"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_2_1/assembly/resources.tres::StandardMaterial3D_esk65" id="shared_StandardMaterial3D_esk65"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0455" type="MeshInstance3D" parent="." unique_id=1211895320]
+material_override = ExtResource("shared_StandardMaterial3D_esk65")
+metadata/mesh_ref = "res://models/world/tour_4_2_1/geometry.glb#Geometry0123"
+
+[node name="Part0456" type="Node3D" parent="." unique_id=494480244]
+script = ExtResource("40_8uqje")
+metadata/scene_state = {
+"ceiling": 6.4,
+"families": [0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2, 0, 0],
+"fixtures": {
+"amber": [Transform3D(-0.23395641, 0.14323033, -0.0681441, 0, 0.4110094, 0.028558351, 0.5197734, 0.06446975, -0.0306725, 1582.6603, 41.01067, 100.133865), Transform3D(0.5227084, 0.061779033, -0.029862355, 0, 0.4118297, 0.028164973, 0.2273233, -0.14205505, 0.06866567, 1588.1979, 41.012535, 114.81197), Transform3D(-0.058263674, 0.1388134, -0.075472735, 0, 0.41728574, 0.025371693, 0.5670144, 0.014263798, -0.007755215, 1662.2434, 47.246075, 52.589596), Transform3D(0.56867033, 0.0094402945, -0.0051844004, 0, 0.41770297, 0.0251437, 0.038910653, -0.13796775, 0.07576883, 1672.4615, 47.247154, 64.84347)],
+"cool": [Transform3D(0.045580227, 0, -9.736842, 0, 0.1, 0, 0.19473685, 0, 2.2790112, 1553.2795, 41.330757, 111.16721), Transform3D(0.045580227, 0, -9.736842, 0, 0.1, 0, 0.19473685, 0, 2.2790112, 1555.96, 41.330757, 122.61936), Transform3D(0.1120279, 0, -8.283983, 0, 0.1, 0, 0.16567968, 0, 5.6013947, 1638.3386, 45.5198, 73.07007), Transform3D(0.1120279, 0, -8.283983, 0, 0.1, 0, 0.16567968, 0, 5.6013947, 1645.0886, 45.5198, 83.052826)],
+"rim": [Transform3D(0.15088162, 0, -0.89543533, 0, 0.18, 0, 1.4923923, 0, 0.09052897, 1522.7064, 42.116932, 118.45413), Transform3D(0.15088162, 0, -0.89543533, 0, 0.18, 0, 1.4923923, 0, 0.09052897, 1523.4552, 42.116932, 125.85986), Transform3D(0.09571847, 0, -10.223684, 0, 0.18, 0, 0.40894738, 0, 2.392962, 1553.2795, 41.430756, 111.16721), Transform3D(0.09571847, 0, -10.223684, 0, 0.18, 0, 0.40894738, 0, 2.392962, 1555.96, 41.430756, 122.61936), Transform3D(-0.3283599, 0.21159026, -0.59626085, 0, 0.60717297, 0.24988557, 0.72950655, 0.09523939, -0.26838437, 1582.3365, 41.14632, 99.988174), Transform3D(0.7336259, 0.09126448, -0.26129562, 0, 0.6083848, 0.24644351, 0.31905025, -0.20985405, 0.6008246, 1588.056, 41.14632, 115.13814), Transform3D(0.6963589, 0, -0.7971388, 0, 0.18, 0, 1.3285648, 0, 0.41781533, 1612.5455, 44.274563, 91.048454), Transform3D(0.6963589, 0, -0.7971388, 0, 0.18, 0, 1.3285648, 0, 0.41781533, 1616.1234, 44.274563, 97.87447), Transform3D(0.23525858, 0, -8.698183, 0, 0.18, 0, 0.3479273, 0, 5.8814645, 1638.3386, 45.619797, 73.07007), Transform3D(0.23525858, 0, -8.698183, 0, 0.18, 0, 0.3479273, 0, 5.8814645, 1645.0886, 45.619797, 83.052826), Transform3D(-0.08177358, 0.20506524, -0.66038644, 0, 0.6164448, 0.22200233, 0.7958097, 0.021071518, -0.06785813, 1661.8849, 47.36659, 52.552757), Transform3D(0.7981338, 0.01394589, -0.045363504, 0, 0.6170612, 0.22000737, 0.054611444, -0.203816, 0.6629773, 1672.4369, 47.36659, 65.20337), Transform3D(1.0513053, 0, -0.64195997, 0, 0.18, 0, 1.0699333, 0, 0.63078314, 1687.961, 52.657867, 34.725628), Transform3D(1.0513053, 0, -0.64195997, 0, 0.18, 0, 1.0699333, 0, 0.63078314, 1693.421, 52.657867, 40.2823)],
+"warm": [Transform3D(0.11567591, 0, -0.6467033, 0, 0.14, 0, 1.1441674, 0, 0.06538203, 1522.7064, 41.98693, 118.45413), Transform3D(0.11567591, 0, -0.6467033, 0, 0.14, 0, 1.1441674, 0, 0.06538203, 1523.4552, 41.98693, 125.85986), Transform3D(0.53387517, 0, -0.57571137, 0, 0.14, 0, 1.0185663, 0, 0.30175552, 1612.5455, 44.14456, 91.048454), Transform3D(0.53387517, 0, -0.57571137, 0, 0.14, 0, 1.0185663, 0, 0.30175552, 1616.1234, 44.14456, 97.87447), Transform3D(0.80600065, 0, -0.46363774, 0, 0.14, 0, 0.82028216, 0, 0.45556557, 1687.961, 52.527866, 34.725628), Transform3D(0.80600065, 0, -0.46363774, 0, 0.14, 0, 0.82028216, 0, 0.45556557, 1693.421, 52.527866, 40.2823)]
+},
+"lights": [{
+&"$node": NodePath("Part0240/Part0456/Part0457")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0458")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0459")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0460")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0461")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0462")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0463")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0464")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0465")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0466")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0467")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0468")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0469")
+}, {
+&"$node": NodePath("Part0240/Part0456/Part0470")
+}],
+"selection_passes": 1,
+"span": Vector2(1760, 1980),
+"track": {
+&"$node": NodePath(".")
+},
+"update_clock": 0.0,
+"visibility_changes": 12
+}
+
+[node name="Part0457" type="OmniLight3D" parent="Part0456" unique_id=364553669]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1522.7064, 41.98693, 118.45413)
+light_color = Color(1, 0.8117647, 0.5411765, 1)
+light_energy = 2.0
+omni_range = 25.0
+omni_attenuation = 1.25
+
+[node name="Part0458" type="OmniLight3D" parent="Part0456" unique_id=1071767321]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1523.4552, 41.98693, 125.85986)
+light_color = Color(1, 0.8117647, 0.5411765, 1)
+light_energy = 2.0
+omni_range = 25.0
+omni_attenuation = 1.25
+
+[node name="Part0459" type="OmniLight3D" parent="Part0456" unique_id=327396739]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1553.2795, 41.330757, 111.16721)
+visible = false
+light_color = Color(0.7137255, 0.89411765, 1, 1)
+light_energy = 1.7
+omni_range = 26.0
+omni_attenuation = 1.25
+
+[node name="Part0460" type="OmniLight3D" parent="Part0456" unique_id=1972096553]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1555.96, 41.330757, 122.61936)
+visible = false
+light_color = Color(0.7137255, 0.89411765, 1, 1)
+light_energy = 1.7
+omni_range = 26.0
+omni_attenuation = 1.25
+
+[node name="Part0461" type="SpotLight3D" parent="Part0456" unique_id=2058345733]
+transform = Transform3D(-0.41044986, 0.3255235, -0.8518012, 0, 0.93411225, 0.3569794, 0.9118832, 0.14652215, -0.38340625, 1582.3365, 41.14632, 99.988174)
+visible = false
+light_color = Color(1, 0.83137256, 0.5529412, 1)
+light_energy = 3.2
+spot_range = 29.0
+spot_attenuation = 0.7
+spot_angle = 53.0
+
+[node name="Part0462" type="SpotLight3D" parent="Part0456" unique_id=1110011074]
+transform = Transform3D(0.91703236, 0.14040689, -0.37327945, 0, 0.9359766, 0.35206217, 0.3988128, -0.3228524, 0.85832083, 1588.056, 41.14632, 115.13814)
+visible = false
+light_color = Color(1, 0.83137256, 0.5529412, 1)
+light_energy = 3.2
+spot_range = 29.0
+spot_attenuation = 0.7
+spot_angle = 53.0
+
+[node name="Part0463" type="OmniLight3D" parent="Part0456" unique_id=1202475278]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1612.5455, 44.14456, 91.048454)
+visible = false
+light_color = Color(1, 0.8117647, 0.5411765, 1)
+light_energy = 2.0
+omni_range = 25.0
+omni_attenuation = 1.25
+
+[node name="Part0464" type="OmniLight3D" parent="Part0456" unique_id=1244244689]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1616.1234, 44.14456, 97.87447)
+visible = false
+light_color = Color(1, 0.8117647, 0.5411765, 1)
+light_energy = 2.0
+omni_range = 25.0
+omni_attenuation = 1.25
+
+[node name="Part0465" type="OmniLight3D" parent="Part0456" unique_id=101326363]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1638.3386, 45.5198, 73.07007)
+visible = false
+light_color = Color(0.7137255, 0.89411765, 1, 1)
+light_energy = 1.7
+omni_range = 26.0
+omni_attenuation = 1.25
+
+[node name="Part0466" type="OmniLight3D" parent="Part0456" unique_id=2028176661]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1645.0886, 45.5198, 83.052826)
+visible = false
+light_color = Color(0.7137255, 0.89411765, 1, 1)
+light_energy = 1.7
+omni_range = 26.0
+omni_attenuation = 1.25
+
+[node name="Part0467" type="SpotLight3D" parent="Part0456" unique_id=1276229398]
+transform = Transform3D(-0.102216974, 0.315485, -0.9434092, 0, 0.94837666, 0.31714618, 0.9947621, 0.032417722, -0.09694019, 1661.8849, 47.36659, 52.552757)
+visible = false
+light_color = Color(1, 0.83137256, 0.5529412, 1)
+light_energy = 3.2
+spot_range = 29.0
+spot_attenuation = 0.7
+spot_angle = 53.0
+
+[node name="Part0468" type="SpotLight3D" parent="Part0456" unique_id=869306004]
+transform = Transform3D(0.99766725, 0.021455215, -0.06480501, 0, 0.94932497, 0.31429625, 0.068264306, -0.31356308, 0.9471104, 1672.4369, 47.36659, 65.20337)
+visible = false
+light_color = Color(1, 0.83137256, 0.5529412, 1)
+light_energy = 3.2
+spot_range = 29.0
+spot_attenuation = 0.7
+spot_angle = 53.0
+
+[node name="Part0469" type="OmniLight3D" parent="Part0456" unique_id=344008513]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1687.961, 52.527866, 34.725628)
+visible = false
+light_color = Color(1, 0.8117647, 0.5411765, 1)
+light_energy = 2.0
+omni_range = 25.0
+omni_attenuation = 1.25
+
+[node name="Part0470" type="OmniLight3D" parent="Part0456" unique_id=614968506]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1693.421, 52.527866, 40.2823)
+visible = false
+light_color = Color(1, 0.8117647, 0.5411765, 1)
+light_energy = 2.0
+omni_range = 25.0
+omni_attenuation = 1.25
+
+[node name="Part0471" type="Label3D" parent="." unique_id=983805272]
+transform = Transform3D(0.04899252, 0, -0.99879915, 0, 1, 0, 0.99879915, 0, 0.04899252, 1511.1168, 44.739697, 123.05442)
+pixel_size = 0.009
+text = "TUNNEL / 220 m"
+font_size = 72

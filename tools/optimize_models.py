@@ -61,6 +61,9 @@ def inputs(root, accept=False):
     if inventory.get("schema") != 1:
         raise ValueError("원본 목록의 계약 버전을 확인하세요")
     records = inventory["files"]
+    source_only = inventory.get("source_only", [])
+    if not isinstance(source_only, list) or any(not isinstance(name, str) or name not in records for name in source_only):
+        raise ValueError("원본 전용 항목은 보호 목록에 등록된 경로여야 합니다")
     # 입력을 모두 검사한 후에만 생성물을 기록한다. 수동으로 목록을 줄여 원본을 지우지 않는다.
     for name in records:
         source_path(root, name)
@@ -74,10 +77,12 @@ def inputs(root, accept=False):
         inventory["files"] = found
         atomic_write(registry_path, encoded(inventory))
     recipe = json.loads((source / "world-vegetation.json").read_text(encoding="utf-8"))
-    return found, recipe
+    if set(source_only) & {tree["source"] for tree in recipe["trees"].values()}:
+        raise ValueError("연결된 공통 식생은 원본 전용으로 바꿀 수 없습니다")
+    return found, recipe, sorted(set(source_only))
 
 
-def generate(root, records, recipe):
+def generate(root, records, recipe, source_only=()):
     outputs = {}
     references, dependencies, scenes = {}, {}, {}
     for name, tree in recipe["trees"].items():
@@ -106,7 +111,7 @@ def generate(root, records, recipe):
                                '[node name="' + name + '" instance=ExtResource("1")]\n').encode()
         scenes["res://models/" + path] = "res://" + scene_path
     for name in records:
-        if name in {tree["source"] for tree in recipe["trees"].values()}:
+        if name in source_only or name in {tree["source"] for tree in recipe["trees"].values()}:
             continue
         data = source_path(root, name).read_bytes()
         if name.startswith("world/"):
@@ -133,19 +138,19 @@ def generate(root, records, recipe):
     return outputs
 
 
-def state(root, records, recipe, outputs):
+def state(root, records, recipe, outputs, source_only=()):
     tool_hash = digest(Path(__file__).read_bytes() + Path(__file__).with_name("glb_geometry.py").read_bytes())
-    return {"schema": VERSION, "tool_sha256": tool_hash, "sources": records, "recipe_sha256": digest(encoded(recipe)),
+    return {"schema": VERSION, "tool_sha256": tool_hash, "sources": records, "source_only": list(source_only), "recipe_sha256": digest(encoded(recipe)),
             "outputs": {name: digest(data) for name, data in sorted(outputs.items())}}
 
 
 def run(root=ROOT, check=False, accept=False):
-    records, recipe = inputs(root, accept)
+    records, recipe, source_only = inputs(root, accept)
     stamp_path = root / "models/shared/world_vegetation/generated.json"
     if check:
         stamp = json.loads(stamp_path.read_text(encoding="utf-8"))
-        actual = state(root, records, recipe, {})
-        for key in ("schema", "tool_sha256", "sources", "recipe_sha256"):
+        actual = state(root, records, recipe, {}, source_only)
+        for key in ("schema", "tool_sha256", "sources", "source_only", "recipe_sha256"):
             if stamp.get(key) != actual[key]:
                 raise ValueError("최적화 결과가 오래됐습니다. tools/optimize_models.py를 실행하세요: " + key)
         for name, checksum in stamp["outputs"].items():
@@ -158,7 +163,7 @@ def run(root=ROOT, check=False, accept=False):
             raise ValueError("원본·생성 목록에 등록되지 않은 배포 GLB가 있습니다: " + ", ".join(sorted(actual_glbs ^ registered)))
         print("GLB 원본 보존·입력 해시·생성물 일치: PASS (%d개 원본)" % len(records))
         return
-    outputs = generate(root, records, recipe)
+    outputs = generate(root, records, recipe, source_only)
     # 출력 경로를 전부 검증하고 원본 해시를 재확인한다. 중간에 편집한 입력으로 기록하지 않는다.
     for name in outputs:
         output_path(root, name)
@@ -167,7 +172,7 @@ def run(root=ROOT, check=False, accept=False):
             raise ValueError("생성 도중 원본이 변경됐습니다: " + name)
     for name, data in outputs.items():
         atomic_write(output_path(root, name), data)
-    atomic_write(stamp_path, encoded(state(root, records, recipe, outputs)))
+    atomic_write(stamp_path, encoded(state(root, records, recipe, outputs, source_only)))
     print("GLB 생성 완료: 원본 %d개 보존, 배포 파일 %d개" % (len(records), len(outputs)))
 
 

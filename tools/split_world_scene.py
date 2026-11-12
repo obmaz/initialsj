@@ -79,7 +79,7 @@ def split(folder, budget=24):
             body += block
         body = convert(body)
         filename = f'part_{len(parts):03d}.tscn'
-        (assembly / filename).write_text('[gd_scene format=3]\n\n' + f'[ext_resource type="Resource" path="{resource_path}" id="assembly"]\n' + headers(body) + '\n' + body)
+        (assembly / filename).write_text(('[gd_scene format=3]\n\n' + f'[ext_resource type="Resource" path="{resource_path}" id="assembly"]\n' + headers(body) + '\n' + body).rstrip() + '\n')
         parts.append({'path': 'res://' + (assembly / filename).relative_to(ROOT).as_posix(), 'parent': parent})
 
     def group(parent):
@@ -116,8 +116,15 @@ def split(folder, budget=24):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--world', required=True, help='models/world 안의 코스 ID')
+    selection = parser.add_mutually_exclusive_group(required=True)
+    selection.add_argument('--world', help='models/world 안의 코스 ID')
+    selection.add_argument('--tour', action='store_true', help='모든 투어 변형의 큰 조립 씬을 분할')
     args = parser.parse_args()
+    if args.tour:
+        for folder in sorted((ROOT / 'models/world').glob('tour_*')):
+            if folder.is_dir():
+                split(folder)
+        return
     folder = (ROOT / 'models/world' / args.world).resolve()
     if folder.parent != (ROOT / 'models/world').resolve():
         raise ValueError('코스 팩 ID만 지정하세요')

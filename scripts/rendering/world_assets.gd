@@ -89,10 +89,11 @@ static func profile(road: Node3D) -> void:
 		road.sampling_curve = road.curve.duplicate()
 		var transform := placement(road)
 		road.sampling_transform = transform
-		for i in range(road.curve.point_count):
-			road.curve.set_point_position(i, transform * road.curve.get_point_position(i))
-			road.curve.set_point_in(i, transform.basis * road.curve.get_point_in(i))
-			road.curve.set_point_out(i, transform.basis * road.curve.get_point_out(i))
+		if not transform.is_equal_approx(Transform3D.IDENTITY):
+			for i in range(road.curve.point_count):
+				road.curve.set_point_position(i, transform * road.curve.get_point_position(i))
+				road.curve.set_point_in(i, transform.basis * road.curve.get_point_in(i))
+				road.curve.set_point_out(i, transform.basis * road.curve.get_point_out(i))
 
 
 static func nodes(root: Node) -> Array[Node]:
@@ -130,7 +131,7 @@ static func prepare(root: Node3D) -> Dictionary:
 	}
 
 
-static func read_file(context: Dictionary, path: String) -> void:
+static func mesh_scene(path: String) -> PackedScene:
 	var packed: PackedScene
 	if GeometryMap.shared(path) and Pool.shared_world_scenes.has(path):
 		packed = Pool.shared_world_scenes[path]
@@ -138,15 +139,71 @@ static func read_file(context: Dictionary, path: String) -> void:
 		packed = Pool.fetch(GeometryMap.scene(path))
 		if GeometryMap.shared(path):
 			Pool.shared_world_scenes[path] = packed
+	return packed
+
+
+static func finish_read(context: Dictionary, path: String, mesh_paths: Dictionary) -> void:
 	# 메시 조회를 위해 GLB의 모든 노드를 생성·해제하지 않는다. 정적 GLB의 저장 속성을 읽는다.
-	var mesh_paths := {}
-	read_mesh_properties(packed.get_state(), "", mesh_paths)
 	for ref: String in context.refs:
 		var resolved := GeometryMap.resolve(ref)
 		if resolved.get_slice("#", 0) == path:
 			var node_path := resolved.get_slice("#", 1)
 			assert(mesh_paths.has(node_path), "정적 GLB 메시 연결점이 없습니다: " + resolved)
 			context.meshes[ref] = mesh_paths[node_path]
+
+
+static func read_file(context: Dictionary, path: String) -> void:
+	var mesh_paths := {}
+	read_mesh_properties(mesh_scene(path).get_state(), "", mesh_paths)
+	finish_read(context, path, mesh_paths)
+
+
+# 파일을 미리 읽었어도 큰 GLB의 수천 노드 속성 순회는 주 스레드 일이다.
+# 원래 조회 순서와 인스턴스 경로를 유지하며 노드24개·0.5ms 단위로 나눈다.
+static func read_file_staged(context: Dictionary, path: String, road: Node3D) -> void:
+	if not road.staged:
+		read_file(context, path)
+		return
+	if not context.has("reading"):
+		context.reading = {"pending": [{"state": mesh_scene(path).get_state(), "prefix": "", "index": 0}], "meshes": {}}
+	var reader: Dictionary = context.reading
+	var started := Time.get_ticks_usec()
+	var count := 0
+	while not reader.pending.is_empty():
+		var cursor: Dictionary = reader.pending.back()
+		if cursor.has("mesh_path"):
+			reader.meshes[cursor.mesh_path] = cursor.mesh
+			reader.pending.pop_back()
+			continue
+		var state: SceneState = cursor.state
+		if cursor.index >= state.get_node_count():
+			reader.pending.pop_back()
+			continue
+		var index: int = cursor.index
+		cursor.index += 1
+		var local_path := str(state.get_node_path(index)).trim_prefix("./")
+		var node_path: String = cursor.prefix if local_path == "." else str(cursor.prefix).path_join(local_path)
+		var instance := state.get_node_instance(index)
+		for property in range(state.get_node_property_count(index)):
+			if state.get_node_property_name(index, property) == &"mesh":
+				var mesh: Mesh = state.get_node_property_value(index, property)
+				if instance == null:
+					reader.meshes[node_path] = mesh
+				else:
+					# 인스턴스의 기본값을 읽은 다음 바깥 씬의 재정의를 적용한다.
+					reader.pending.append({"mesh_path": node_path, "mesh": mesh})
+				break
+		if instance != null:
+			reader.pending.append({"state": instance.get_state(), "prefix": node_path, "index": 0})
+		count += 1
+		if count >= 24 or Time.get_ticks_usec() - started >= 500:
+			break
+	if reader.pending.is_empty():
+		finish_read(context, path, reader.meshes)
+		context.erase("reading")
+	else:
+		var steps: Array[Callable] = [func(): read_file_staged(context, path, road)]
+		road.queue_next(steps)
 
 
 # 공용 식생의 .tscn 래퍼가 참조하는 GLB 인스턴스도 같은 노드 경로로 펼친다.
@@ -279,7 +336,15 @@ static func finish_state(context: Dictionary, road: Node3D) -> void:
 	for key in root.get_meta(State.KEY):
 		if not KEEP.has(key):
 			road.set(key, root.get(key))
-	for node in context.members:
+	for key in root.get_meta_list():
+		if key not in [State.KEY, &"asset_root", &"scene_bound", &"scene_meshes"]:
+			road.set_meta(key, root.get_meta(key))
+
+
+static func finish_members(context: Dictionary, road: Node3D, begin: int, end: int) -> void:
+	var root: Node3D = context.root
+	for index in range(begin, end):
+		var node: Node = context.members[index]
 		rebase_metadata(node, content_placement(road))
 		if node.has_meta(&"ad_record") or node.has_meta(&"ad_index"):
 			node.add_to_group(&"racing_advertisement", true)
@@ -290,10 +355,7 @@ static func finish_state(context: Dictionary, road: Node3D) -> void:
 		if node != root:
 			node.owner = null
 			node.remove_meta(State.KEY)
-	for key in root.get_meta_list():
-		if key not in [State.KEY, &"asset_root", &"scene_bound", &"scene_meshes"]:
-			road.set_meta(key, root.get_meta(key))
-	bind_records(context.members)
+	bind_records(context.members.slice(begin, end))
 
 
 static func move_child(root: Node3D, road: Node3D, child: Node) -> void:
@@ -331,18 +393,22 @@ static func queue_bindings(root: Node3D, road: Node3D) -> void:
 	context.merge(prepare(root), true)
 	var steps: Array[Callable] = []
 	for path in context.files:
-		steps.append(func(): read_file(context, path))
+		steps.append(func(): read_file_staged(context, path, road))
 	steps.append(func(): root.set_meta(&"scene_meshes", context.meshes))
 	for begin in range(0, context.members.size(), SLICE):
 		steps.append(func(): bind_geometry(context, begin, mini(begin + SLICE, context.members.size())))
-	for begin in range(0, context.members.size(), SLICE):
+	for node: Node in context.members:
+		# 저장 상태가 없는 시각 노드마다 빈 작업을 만들어 준비 완료를 늦추지 않는다.
+		if not node.has_meta(State.KEY) and not (road.entry_buffer_length > 0 and node.has_meta(&"ad_record")):
+			continue
 		steps.append(
 			func():
-				for index in range(begin, mini(begin + SLICE, context.members.size())):
-					TourEntry.shift_node(context.members[index], root, road.entry_buffer_length)
-					State.bind(context.members[index])
+				TourEntry.shift_node(node, root, road.entry_buffer_length)
+				State.bind(node)
 		)
 	steps.append(func(): finish_state(context, road))
+	for begin in range(0, context.members.size(), SLICE):
+		steps.append(func(): finish_members(context, road, begin, mini(begin + SLICE, context.members.size())))
 	for child in root.get_children():
 		steps.append(func(): move_child(root, road, child))
 	if not road.entry_scene_path.is_empty():

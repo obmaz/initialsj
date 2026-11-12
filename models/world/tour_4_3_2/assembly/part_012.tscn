@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_3_2/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/road_biome.gd" id="23_p2nrs"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0250" type="Node3D" parent="." unique_id=559790571]
+script = ExtResource("23_p2nrs")
+metadata/scene_state = {
+"batches": [],
+"building_manifest": [],
+"distant_art": {
+&"$node": NodePath("Part0250/Part0278")
+},
+"ground_nodes": [{
+&"$node": NodePath("Part0250/Part0251")
+}, {
+&"$node": NodePath("Part0250/Part0252")
+}],
+"landmarks": null,
+"local_lights": [],
+"rng": {
+&"$rng": -101025061973077005,
+&"seed": 2181
+},
+"roadside_art": {
+&"$node": NodePath("Part0250/Part0253")
+},
+"rotating": [],
+"theme": "snow",
+"track": {
+&"$node": NodePath(".")
+},
+"tree_positions": [],
+"water": null
+}

@@ -1,0 +1,169 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_0_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/scenic_landmarks.gd" id="42_nyanc"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0300" type="Node3D" parent="." unique_id=396360456]
+script = ExtResource("42_nyanc")
+metadata/scene_state = {
+"ad_size": Vector2(20, 8.75),
+"ad_spacing": 135.0,
+"advertisement_spans": [],
+"batches": [{
+&"$node": NodePath("Part0237/Part0300/BillboardSteelSupports")
+}, {
+&"$node": NodePath("Part0237/Part0300/BillboardRimAndTruss")
+}, {
+&"$node": NodePath("Part0237/Part0300/BillboardPanelBacks")
+}, {
+&"$node": NodePath("Part0237/Part0300/BillboardConcreteFeet")
+}, {
+&"$node": NodePath("Part0237/Part0300/BillboardLampHousings")
+}, {
+&"$node": NodePath("Part0237/Part0300/BillboardLampLenses")
+}, {
+&"$node": NodePath("Part0237/Part0300/Part0322")
+}, {
+&"$node": NodePath("Part0237/Part0300/Part0323")
+}, {
+&"$node": NodePath("Part0237/Part0300/Part0324")
+}, {
+&"$node": NodePath("Part0237/Part0300/Part0325")
+}, {
+&"$node": NodePath("Part0237/Part0300/Part0326")
+}, {
+&"$node": NodePath("Part0237/Part0300/Part0327")
+}],
+"billboard_manifest": [{
+"ad_index": 29,
+"basis": Basis(0.8164901, 0, -0.57735944, 0, 1, 0, 0.57735944, 0, 0.8164901),
+"distance": 400.0,
+"height": 8.75,
+"lane": -28.51118830207684,
+"position": Vector3(368.72736, 33.866684, -85.52742),
+"width": 20.0
+}, {
+"ad_index": 25,
+"basis": Basis(0.1763347, 0, -0.9843303, 0, 1, 0, 0.9843303, 0, 0.1763347),
+"distance": 535.0,
+"height": 8.75,
+"lane": 29.07931465942921,
+"position": Vector3(507.5856, 73.43121, -107.468506),
+"width": 20.0
+}, {
+"ad_index": 12,
+"basis": Basis(0.71436214, 0, -0.6997762, 0, 1, 0, 0.6997762, 0, 0.71436214),
+"distance": 670.0,
+"height": 8.75,
+"lane": -29.165105672300356,
+"position": Vector3(599.20325, 74.18518, -222.69974),
+"width": 20.0
+}, {
+"ad_index": 26,
+"basis": Basis(-0.17006734, 0, -0.98543245, 0, 1, 0, 0.98543245, 0, -0.17006734),
+"distance": 805.0,
+"height": 8.75,
+"lane": 29.04049129120092,
+"position": Vector3(745.0274, 74.18518, -209.32779),
+"width": 20.0
+}, {
+"ad_index": 31,
+"basis": Basis(0.36399132, 0, -0.9314023, 0, 1, 0, 0.9314023, 0, 0.36399132),
+"distance": 940.0,
+"height": 8.75,
+"lane": -28.319675080560938,
+"position": Vector3(873.2744, 80.22521, -278.93152),
+"width": 20.0
+}, {
+"ad_index": 34,
+"basis": Basis(-0.5171188, 0, -0.85591364, 0, 1, 0, 0.85591364, 0, -0.5171188),
+"distance": 1075.0,
+"height": 8.75,
+"lane": 26.184617962340248,
+"position": Vector3(1001.37634, 90.6403, -211.41766),
+"width": 20.0
+}, {
+"ad_index": 0,
+"basis": Basis(0.012606244, 0, -0.99992055, 0, 1, 0, 0.99992055, 0, 0.012606244),
+"distance": 1210.0,
+"height": 8.75,
+"lane": -24.56137523015949,
+"position": Vector3(1143.7041, 82.12192, -222.7466),
+"width": 20.0
+}, {
+"ad_index": 20,
+"basis": Basis(-0.7476477, 0, -0.6640956, 0, 1, 0, 0.6640956, 0, -0.7476477),
+"distance": 1345.0,
+"height": 8.75,
+"lane": 23.04,
+"position": Vector3(1243.0085, 103.443634, -122.49621),
+"width": 20.0
+}, {
+"ad_index": 43,
+"basis": Basis(-0.25560465, 0, -0.9667814, 0, 1, 0, 0.9667814, 0, -0.25560465),
+"distance": 1480.0,
+"height": 8.75,
+"lane": -23.525342488386368,
+"position": Vector3(1379.4572, 94.663284, -87.803154),
+"width": 20.0
+}, {
+"ad_index": 32,
+"basis": Basis(0.7190643, 0, -0.69494355, 0, 1, 0, 0.69494355, 0, 0.7190643),
+"distance": 2490.0,
+"height": 8.75,
+"lane": -28.432519480813127,
+"position": Vector3(2241.4114, 106.41505, -208.62096),
+"width": 20.0
+}, {
+"ad_index": 1,
+"basis": Basis(-0.100470416, 0, -0.99494004, 0, 1, 0, 0.99494004, 0, -0.100470416),
+"distance": 2625.0,
+"height": 8.75,
+"lane": 26.395842566851492,
+"position": Vector3(2386.0378, 92.07378, -201.75998),
+"width": 20.0
+}, {
+"ad_index": 33,
+"basis": Basis(0.4354277, 0, -0.90022373, 0, 1, 0, 0.90022373, 0, 0.4354277),
+"distance": 2760.0,
+"height": 8.75,
+"lane": -23.04,
+"position": Vector3(2510.748, 86.260605, -271.88647),
+"width": 20.0
+}, {
+"ad_index": 40,
+"basis": Basis(-0.42489663, 0, -0.90524185, 0, 1, 0, 0.90524185, 0, -0.42489663),
+"distance": 2895.0,
+"height": 8.75,
+"lane": 23.685262176871472,
+"position": Vector3(2643.8862, 86.260605, -221.63028),
+"width": 20.0
+}, {
+"ad_index": 47,
+"basis": Basis(0.030057985, 0, -0.99954814, 0, 1, 0, 0.99954814, 0, 0.030057985),
+"distance": 3030.0,
+"height": 8.75,
+"lane": -24.118028598336977,
+"position": Vector3(2785.0566, 74.067474, -235.33679),
+"width": 20.0
+}, {
+"ad_index": 4,
+"basis": Basis(-0.75685024, 0, -0.65358835, 0, 1, 0, 0.65358835, 0, -0.75685024),
+"distance": 3165.0,
+"height": 8.75,
+"lane": 24.28133874568561,
+"position": Vector3(2881.8877, 36.145943, -136.70175),
+"width": 20.0
+}],
+"bridge_clearance": 68.0,
+"bridge_span": Vector2(0, 0),
+"canyon_spans": [Vector2(300, 1700), Vector2(2390, 3468.02)],
+"texture_regions": [Vector3(368.90778, 21.366686, -85.78258), Vector3(507.89322, 60.931217, -107.523605), Vector3(599.42194, 61.685177, -222.92297), Vector3(745.3353, 61.685177, -209.27464), Vector3(873.5655, 67.72521, -279.04526), Vector3(1001.64386, 78.1403, -211.25607), Vector3(1144.0166, 69.62192, -222.75055), Vector3(1243.2161, 90.943634, -122.262566), Vector3(1379.7593, 82.163284, -87.723274), Vector3(2241.6287, 93.91505, -208.84566), Vector3(2386.3489, 79.57378, -201.72859), Vector3(2511.0295, 73.760605, -272.02255), Vector3(2644.1692, 73.760605, -221.4975), Vector3(2785.3691, 61.56747, -235.34618), Vector3(2882.0918, 23.645945, -136.46524)],
+"tower_distances": [],
+"track": {
+&"$node": NodePath(".")
+}
+}

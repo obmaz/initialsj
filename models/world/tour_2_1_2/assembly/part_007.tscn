@@ -1,0 +1,144 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_2_1_2/assembly/resources.tres" id="assembly"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_su5iu" id="shared_StandardMaterial3D_su5iu"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_2_1_2/assembly/resources.tres::ShaderMaterial_ovpk6" id="shared_ShaderMaterial_ovpk6"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_2_1_2/assembly/resources.tres::ShaderMaterial_ijan2" id="shared_ShaderMaterial_ijan2"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_4t4yu" id="shared_StandardMaterial3D_4t4yu"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_lmxlk" id="shared_StandardMaterial3D_lmxlk"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_adtmy" id="shared_StandardMaterial3D_adtmy"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_otohd" id="shared_StandardMaterial3D_otohd"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_hr5bf" id="shared_StandardMaterial3D_hr5bf"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_woliw" id="shared_StandardMaterial3D_woliw"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_jwvq1" id="shared_StandardMaterial3D_jwvq1"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_q55o1" id="shared_StandardMaterial3D_q55o1"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_2_1_2/assembly/resources.tres::ShaderMaterial_hikge" id="shared_ShaderMaterial_hikge"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_2_1_2/assembly/resources.tres::ShaderMaterial_430ny" id="shared_ShaderMaterial_430ny"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_c4j2p" id="shared_StandardMaterial3D_c4j2p"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_bobg7" id="shared_StandardMaterial3D_bobg7"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_yxmlm" id="shared_StandardMaterial3D_yxmlm"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_ljp55" id="shared_StandardMaterial3D_ljp55"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_f2g5r" id="shared_StandardMaterial3D_f2g5r"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_amdyv" id="shared_StandardMaterial3D_amdyv"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_2_1_2/assembly/resources.tres::StandardMaterial3D_xi7kd" id="shared_StandardMaterial3D_xi7kd"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_2_1_2/assembly/resources.tres::ShaderMaterial_mg78h" id="shared_ShaderMaterial_mg78h"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_2_1_2/assembly/resources.tres::ShaderMaterial_af2uc" id="shared_ShaderMaterial_af2uc"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="ParkedTruck" type="Node3D" parent="." unique_id=1884755773]
+transform = Transform3D(-0.76586294, -0.00015879385, -0.6430039, 0, 1, -0.00024695628, 0.6430039, -0.00018913466, -0.76586294, 1027.9119, 68.0454, 238.57613)
+metadata/parked_truck = true
+
+[node name="Part0146" type="MeshInstance3D" parent="ParkedTruck" unique_id=1768632104]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+material_override = ExtResource("shared_StandardMaterial3D_su5iu")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0047"
+
+[node name="Part0147" type="MeshInstance3D" parent="ParkedTruck" unique_id=1824480640]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.45, 1.95)
+material_override = ExtResource("shared_ShaderMaterial_ovpk6")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0048"
+
+[node name="Part0148" type="MeshInstance3D" parent="ParkedTruck" unique_id=655145563]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9, -4.75)
+material_override = ExtResource("shared_ShaderMaterial_ijan2")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0049"
+
+[node name="Part0149" type="MeshInstance3D" parent="ParkedTruck" unique_id=507980530]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 6.3)
+material_override = ExtResource("shared_StandardMaterial3D_4t4yu")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0050"
+
+[node name="Part0150" type="MeshInstance3D" parent="ParkedTruck" unique_id=1690898546]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0.5, -4.45)
+material_override = ExtResource("shared_StandardMaterial3D_lmxlk")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0051"
+
+[node name="Part0151" type="MeshInstance3D" parent="ParkedTruck" unique_id=586066534]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0.5, -4.45)
+material_override = ExtResource("shared_StandardMaterial3D_adtmy")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0052"
+
+[node name="Part0152" type="MeshInstance3D" parent="ParkedTruck" unique_id=677979517]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0.5, 3.85)
+material_override = ExtResource("shared_StandardMaterial3D_otohd")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0053"
+
+[node name="Part0153" type="MeshInstance3D" parent="ParkedTruck" unique_id=1684403887]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0.5, 3.85)
+material_override = ExtResource("shared_StandardMaterial3D_hr5bf")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0054"
+
+[node name="Part0154" type="MeshInstance3D" parent="ParkedTruck" unique_id=430475892]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0.5, 2.35)
+material_override = ExtResource("shared_StandardMaterial3D_woliw")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0055"
+
+[node name="Part0155" type="MeshInstance3D" parent="ParkedTruck" unique_id=1330984186]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0.5, 2.35)
+material_override = ExtResource("shared_StandardMaterial3D_jwvq1")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0056"
+
+[node name="Part0156" type="Node3D" parent="." unique_id=1437833269]
+transform = Transform3D(-0.06818343, -0.2411464, -0.96809065, 0, 0.97034883, -0.2417089, 0.9976728, -0.016480543, -0.066161714, 1437.0609, 45.20369, 632.9935)
+metadata/parked_truck = true
+
+[node name="Part0157" type="MeshInstance3D" parent="Part0156" unique_id=450462637]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+material_override = ExtResource("shared_StandardMaterial3D_q55o1")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0057"
+
+[node name="Part0158" type="MeshInstance3D" parent="Part0156" unique_id=688269557]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.45, 1.95)
+material_override = ExtResource("shared_ShaderMaterial_hikge")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0058"
+
+[node name="Part0159" type="MeshInstance3D" parent="Part0156" unique_id=1604414432]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9, -4.75)
+material_override = ExtResource("shared_ShaderMaterial_430ny")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0059"
+
+[node name="Part0160" type="MeshInstance3D" parent="Part0156" unique_id=950119435]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 6.3)
+material_override = ExtResource("shared_StandardMaterial3D_c4j2p")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0060"
+
+[node name="Part0161" type="MeshInstance3D" parent="Part0156" unique_id=1830372254]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0.5, -4.45)
+material_override = ExtResource("shared_StandardMaterial3D_bobg7")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0061"
+
+[node name="Part0162" type="MeshInstance3D" parent="Part0156" unique_id=12211113]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0.5, -4.45)
+material_override = ExtResource("shared_StandardMaterial3D_yxmlm")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0062"
+
+[node name="Part0163" type="MeshInstance3D" parent="Part0156" unique_id=935933369]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0.5, 3.85)
+material_override = ExtResource("shared_StandardMaterial3D_ljp55")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0063"
+
+[node name="Part0164" type="MeshInstance3D" parent="Part0156" unique_id=1517873466]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0.5, 3.85)
+material_override = ExtResource("shared_StandardMaterial3D_f2g5r")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0064"
+
+[node name="Part0165" type="MeshInstance3D" parent="Part0156" unique_id=58023214]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0.5, 2.35)
+material_override = ExtResource("shared_StandardMaterial3D_amdyv")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0065"
+
+[node name="Part0166" type="MeshInstance3D" parent="Part0156" unique_id=1187727314]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0.5, 2.35)
+material_override = ExtResource("shared_StandardMaterial3D_xi7kd")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0066"
+
+[node name="Part0167" type="MeshInstance3D" parent="." unique_id=910081693]
+material_override = ExtResource("shared_ShaderMaterial_mg78h")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0067"
+
+[node name="Part0168" type="MeshInstance3D" parent="." unique_id=579335560]
+material_override = ExtResource("shared_ShaderMaterial_af2uc")
+metadata/mesh_ref = "res://models/world/tour_2_1_2/geometry.glb#Geometry0068"

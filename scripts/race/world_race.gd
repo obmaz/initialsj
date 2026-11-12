@@ -1023,5 +1023,11 @@ func update_camera(delta: float) -> void:
 func fork_area() -> bool:
 	return (
 		race.mode == "tour"
-		and (race.distance > race.track.length - 5 or (race.distance < 275 and is_instance_valid(race.track.sibling)))
+		and (
+			race.distance > race.track.length - 5
+			or (
+				race.distance < preload("res://scripts/track/route_library.gd").FORK_RECONSIDER + 5
+				and is_instance_valid(race.track.sibling)
+			)
+		)
 	)

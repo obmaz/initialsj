@@ -1,0 +1,18 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_3_0/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/distant_ridges.gd" id="30_4xtpu"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0278" type="Node3D" parent="." unique_id=1086098661]
+script = ExtResource("30_4xtpu")
+metadata/scene_state = {
+"positions": [],
+"scenery": {
+&"$node": NodePath("Part0250")
+},
+"sprite_batch": null,
+"widths": []
+}

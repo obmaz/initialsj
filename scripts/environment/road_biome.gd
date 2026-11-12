@@ -11,6 +11,7 @@ var ground_nodes: Array[MeshInstance3D] = []
 var roadside_art: Node3D
 var distant_art: Node3D
 var local_lights: Array[OmniLight3D] = []
+var light_update_left := 0.0
 var building_manifest: Array[Dictionary] = []
 var landmarks: Node3D
 var water: MeshInstance3D
@@ -126,9 +127,17 @@ func tunnel_profile(d: float) -> Array[Vector3]:
 
 
 func _process(delta: float) -> void:
+	if not is_visible_in_tree():
+		return
+	light_update_left -= delta
 	var camera := get_viewport().get_camera_3d()
-	if camera != null:
+	if camera != null and light_update_left <= 0:
+		light_update_left = .15
 		for light in local_lights:
-			light.visible = light.global_position.distance_to(camera.global_position) < light.omni_range + 40
+			var nearby := (
+				light.global_position.distance_squared_to(camera.global_position) < pow(light.omni_range + 40, 2)
+			)
+			if light.visible != nearby:
+				light.visible = nearby
 	for node in rotating:
 		node.rotate_object_local(Vector3.FORWARD, delta * 0.16)

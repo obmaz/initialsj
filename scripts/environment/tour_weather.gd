@@ -4,6 +4,7 @@ var race: Node
 var particles: CPUParticles3D
 var current_weather := ""
 var current_quality := -1
+var current_mobile_night_rain := false
 
 
 func _ready() -> void:
@@ -35,7 +36,10 @@ func _ready() -> void:
 
 func configure(weather: String) -> void:
 	current_weather = weather
-	current_quality = race.render_budget.level if race != null and race.track_environment.supported(race) else -1
+	current_quality = race.render_budget.level if race != null else -1
+	current_mobile_night_rain = (
+		race != null and race.render_budget.is_mobile_platform and race.render_budget.night_rain(race)
+	)
 	particles.emitting = false
 	if weather == "clear":
 		particles.restart()
@@ -44,9 +48,11 @@ func configure(weather: String) -> void:
 	var rain := weather == "rain"
 	var snow := weather == "snow"
 	particles.amount = 360 if rain else (180 if snow else 200)
-	if race != null and race.track_environment.supported(race) and rain:
+	if race != null and rain:
 		current_quality = race.render_budget.level
 		particles.amount = [240, 160, 90][current_quality]
+		if current_mobile_night_rain:
+			particles.amount = mini(particles.amount, 160)
 	particles.lifetime = 1.6 if rain else 3.2
 	particles.direction = Vector3(.1, -1, 0) if rain else (Vector3(.35, -.8, .1) if snow else Vector3(1, .08, .2))
 	particles.gravity = Vector3(0, -4, 0) if rain else Vector3(0, -.3, 0)
@@ -76,10 +82,12 @@ func _process(_delta: float) -> void:
 	var weather: String = road.region_metadata.get("weather", "clear")
 	if (
 		weather != current_weather
-		or (race.track_environment.supported(race) and current_quality != race.render_budget.level)
+		or current_quality != race.render_budget.level
+		or current_mobile_night_rain != (race.render_budget.is_mobile_platform and race.render_budget.night_rain(race))
 	):
 		configure(weather)
-	var at: float = road.curve.get_closest_offset(race.player.global_position)
+	# 레이스의 기존 계측값을 공유해 렌더 프레임마다 전체 곡선을 검색하지 않는다.
+	var at: float = race.distance
 	particles.emitting = weather != "clear" and not road.in_tunnel(at) and not race.motion_reduced
 	var camera: Camera3D = get_viewport().get_camera_3d()
 	# 이 노드는 실제 레이스 SubViewport 안에 둔다.

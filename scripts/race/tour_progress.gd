@@ -22,17 +22,22 @@ func reposition(d: float) -> void:
 	reset(d)
 
 
-func sample(world: Vector3, hint: float) -> Dictionary:
+static func project_distance(road: Node3D, world: Vector3, hint: float) -> float:
 	var d := hint
 	# 진행 방향의 투영만 보정하므로 겹치는 교량·반대 분기로 건너뛰지 않는다.
 	for iteration in range(8):
-		var center: Vector3 = section.point(d)
-		var tangent: Vector3 = section.point(d + 1) - section.point(d - 1)
+		var center: Vector3 = road.point(d)
+		var tangent: Vector3 = road.point(d + 1) - road.point(d - 1)
 		tangent.y = 0
 		var residual := (world - center).dot(tangent.normalized())
 		d += clampf(residual / maxf(0.45, tangent.length() * 0.5), -12, 12)
 		if absf(residual) < 0.015:
 			break
+	return d
+
+
+func sample(world: Vector3, hint: float) -> Dictionary:
+	var d := project_distance(section, world, hint)
 	var forward: Vector3 = section.point(d + 1) - section.point(d - 1)
 	forward.y = 0
 	var right := Vector3(-forward.z, 0, forward.x).normalized()

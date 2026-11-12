@@ -865,7 +865,7 @@ func load_record() -> void:
 
 func record_key() -> String:
 	if mode == "tour":
-		return "tour_routes_v2_" + str(vehicle.id) + "_" + TourChallenge.route_id(track.history)
+		return "tour_routes_v3_" + str(vehicle.id) + "_" + TourChallenge.route_id(track.history)
 	return Catalog.record_key(selected_vehicle, mode, selected_course)
 
 

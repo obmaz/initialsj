@@ -1,0 +1,41 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_0_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/tour_vegetation.gd" id="32_g1n7s"]
+[ext_resource type="Resource" path="res://models/vegetation/town_oak_0/definition.tres" id="33_vegum"]
+[ext_resource type="Resource" path="res://models/vegetation/town_oak_1/definition.tres" id="34_vwx34"]
+[ext_resource type="Resource" path="res://models/vegetation/dark_fir/definition.tres" id="35_rr08q"]
+[ext_resource type="Resource" path="res://models/vegetation/black_pine/definition.tres" id="36_dj6va"]
+[ext_resource type="Resource" path="res://models/vegetation/spire_cypress/definition.tres" id="37_2pfu8"]
+[ext_resource type="Resource" path="res://models/vegetation/juniper/definition.tres" id="38_x2h0d"]
+[ext_resource type="Resource" path="res://models/vegetation/thorn_bramble/definition.tres" id="39_ae8m0"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="TourNativeVegetation" type="Node3D" parent="." unique_id=1900858332]
+script = ExtResource("32_g1n7s")
+metadata/scene_state = {
+"bank_counts": {
+-1: 38,
+1: 38
+},
+"batch_slices": 76,
+"definitions": [ExtResource("33_vegum"), ExtResource("34_vwx34"), ExtResource("35_rr08q"), ExtResource("36_dj6va"), ExtResource("37_2pfu8"), ExtResource("38_x2h0d"), ExtResource("39_ae8m0")],
+"groups": {},
+"planning_slices": 10,
+"plantings": [],
+"scenery": {
+&"$node": NodePath("Part0166")
+},
+"tree_count": 76,
+"variant_counts": {
+"black_pine": 11,
+"dark_fir": 11,
+"juniper": 11,
+"spire_cypress": 11,
+"thorn_bramble": 10,
+"town_oak_0": 11,
+"town_oak_1": 11
+}
+}

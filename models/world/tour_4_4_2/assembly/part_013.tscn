@@ -1,0 +1,42 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_4_2/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/road_biome.gd" id="22_mpd58"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0268" type="Node3D" parent="." unique_id=1414541273]
+script = ExtResource("22_mpd58")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0268/Part0271")
+}, {
+&"$node": NodePath("Part0268/Part0272")
+}],
+"building_manifest": [],
+"distant_art": {
+&"$node": NodePath("Part0268/Part0336")
+},
+"ground_nodes": [{
+&"$node": NodePath("Part0268/Part0269")
+}, {
+&"$node": NodePath("Part0268/Part0270")
+}],
+"landmarks": null,
+"local_lights": [],
+"rng": {
+&"$rng": -2591173698834905616,
+&"seed": 2198
+},
+"roadside_art": {
+&"$node": NodePath("Part0268/Part0273")
+},
+"rotating": [],
+"theme": "volcano",
+"track": {
+&"$node": NodePath(".")
+},
+"tree_positions": [],
+"water": null
+}

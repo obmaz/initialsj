@@ -1,3 +1,5 @@
 # 투어 진입 연결부
 
-[진입 프로필 도구](../../../tools/author_tour_entry.gd)의120m 곡선을 [GLB 도구](../../../tools/bake_tour_entry.py)로 시각 형상에 저장합니다. 도로 반폭8.1m·갓길1.5m와 바깥쪽 가드레일을 보존합니다. 이전 코스 GLB는 수정하지 않고 새 원본은 [공용 원본](../../../model_sources/shared/tour_entry/model.glb)에 보존합니다. 픽셀 이미지는 기존 노면을 공유하며 동적 메시 생성은 하지 않습니다.
+현재 기본 진입 길이는0이며 이 연결부는 실행 프로필에서 참조하지 않습니다. 편집 원본은 `inventory.json`의 `source_only`로 보호하며 사용하지 않는 배포 GLB·씬·재질은 제거했습니다.
+
+연결부를 다시 저작할 때는 원본 전용 분류를 해제한 뒤 [진입 프로필 도구](../../../tools/author_tour_entry.gd)의 곡선을 [GLB 도구](../../../tools/bake_tour_entry.py)로 시각 형상에 저장합니다. 도로 반폭8.1m·갓길1.5m와 바깥쪽 가드레일을 보존합니다. 이전 코스 GLB는 수정하지 않고 새 원본은 [공용 원본](../../../model_sources/shared/tour_entry/model.glb)에 보존합니다. 픽셀 이미지는 기존 노면을 공유하며 동적 메시 생성은 하지 않습니다.

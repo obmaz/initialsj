@@ -1,0 +1,92 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_2_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/rendering/world_asset_preview.gd" id="46_iuyin"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_2_1/assembly/resources.tres::StandardMaterial3D_8uic3" id="shared_StandardMaterial3D_8uic3"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_2_1/assembly/resources.tres::StandardMaterial3D_wce0e" id="shared_StandardMaterial3D_wce0e"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_2_1/assembly/resources.tres::StandardMaterial3D_rqc03" id="shared_StandardMaterial3D_rqc03"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_2_1/assembly/resources.tres::StandardMaterial3D_l8qoi" id="shared_StandardMaterial3D_l8qoi"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_2_1/assembly/resources.tres::StandardMaterial3D_8gjas" id="shared_StandardMaterial3D_8gjas"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_2_1/assembly/resources.tres::StandardMaterial3D_g1etj" id="shared_StandardMaterial3D_g1etj"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_2_1/assembly/resources.tres::StandardMaterial3D_5emxa" id="shared_StandardMaterial3D_5emxa"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_2_1/assembly/resources.tres::MultiMesh_xt3dg" id="shared_MultiMesh_xt3dg"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_2_1/assembly/resources.tres::StandardMaterial3D_1d0g1" id="shared_StandardMaterial3D_1d0g1"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_2_1/assembly/resources.tres::MultiMesh_ci2aa" id="shared_MultiMesh_ci2aa"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_3_2_1/assembly/resources.tres::ShaderMaterial_f26li" id="shared_ShaderMaterial_f26li"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0397" type="Node3D" parent="." unique_id=1333430681]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3355.045, 6, 6.690123)
+
+[node name="Part0398" type="MeshInstance3D" parent="Part0397" unique_id=1446473241]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.8, 4.3, 0)
+material_override = ExtResource("shared_StandardMaterial3D_8uic3")
+metadata/mesh_ref = "res://models/world/tour_3_2_1/geometry.glb#Geometry0130"
+
+[node name="Part0399" type="MeshInstance3D" parent="Part0397" unique_id=771958619]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.8, 0.25, 0)
+material_override = ExtResource("shared_StandardMaterial3D_wce0e")
+metadata/mesh_ref = "res://models/world/tour_3_2_1/geometry.glb#Geometry0131"
+
+[node name="Part0400" type="MeshInstance3D" parent="Part0397" unique_id=1787296300]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.8, 8.85, 0)
+material_override = ExtResource("shared_StandardMaterial3D_rqc03")
+metadata/mesh_ref = "res://models/world/tour_3_2_1/geometry.glb#Geometry0132"
+
+[node name="Part0401" type="MeshInstance3D" parent="Part0397" unique_id=768541136]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.8, 4.3, 0)
+material_override = ExtResource("shared_StandardMaterial3D_8uic3")
+metadata/mesh_ref = "res://models/world/tour_3_2_1/geometry.glb#Geometry0133"
+
+[node name="Part0402" type="MeshInstance3D" parent="Part0397" unique_id=1467329230]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.8, 0.25, 0)
+material_override = ExtResource("shared_StandardMaterial3D_l8qoi")
+metadata/mesh_ref = "res://models/world/tour_3_2_1/geometry.glb#Geometry0134"
+
+[node name="Part0403" type="MeshInstance3D" parent="Part0397" unique_id=575611425]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.8, 8.85, 0)
+material_override = ExtResource("shared_StandardMaterial3D_rqc03")
+metadata/mesh_ref = "res://models/world/tour_3_2_1/geometry.glb#Geometry0135"
+
+[node name="Part0404" type="MeshInstance3D" parent="Part0397" unique_id=792482016]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.1, 0)
+material_override = ExtResource("shared_StandardMaterial3D_8uic3")
+metadata/mesh_ref = "res://models/world/tour_3_2_1/geometry.glb#Geometry0136"
+
+[node name="Part0405" type="MeshInstance3D" parent="Part0397" unique_id=1863308627]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.2, 0)
+material_override = ExtResource("shared_StandardMaterial3D_8gjas")
+metadata/mesh_ref = "res://models/world/tour_3_2_1/geometry.glb#Geometry0137"
+
+[node name="Part0406" type="MeshInstance3D" parent="Part0397" unique_id=1898616744]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.2, -0.01)
+material_override = ExtResource("shared_StandardMaterial3D_g1etj")
+metadata/mesh_ref = "res://models/world/tour_3_2_1/geometry.glb#Geometry0138"
+
+[node name="EdgeStripLight" type="MultiMeshInstance3D" parent="Part0397" unique_id=1160051653]
+material_override = ExtResource("shared_StandardMaterial3D_5emxa")
+multimesh = ExtResource("shared_MultiMesh_xt3dg")
+metadata/mesh_ref = "res://models/world/tour_3_2_1/geometry.glb#Geometry0139"
+
+[node name="EdgeStripDark" type="MultiMeshInstance3D" parent="Part0397" unique_id=42416588]
+material_override = ExtResource("shared_StandardMaterial3D_1d0g1")
+multimesh = ExtResource("shared_MultiMesh_ci2aa")
+metadata/mesh_ref = "res://models/world/tour_3_2_1/geometry.glb#Geometry0139"
+
+[node name="Part0409" type="Label3D" parent="Part0397" unique_id=360037937]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.2, 0.24)
+pixel_size = 0.0095
+modulate = Color(0.96862745, 0.9843137, 1, 1)
+text = "< BAMBOO PASS     SNOW PASS >"
+font_size = 110
+outline_size = 0
+
+[node name="ForkRoadArrows" type="MeshInstance3D" parent="." unique_id=2056425573]
+material_override = ExtResource("shared_ShaderMaterial_f26li")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_2_1/geometry.glb#Geometry0140"
+
+[node name="GLBPreview" type="Node" parent="." unique_id=400537523]
+script = ExtResource("46_iuyin")

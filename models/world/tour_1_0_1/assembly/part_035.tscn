@@ -1,0 +1,253 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_1_0_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/regional_props_3d.gd" id="26_4myf8"]
+[ext_resource type="Script" path="res://scripts/environment/tour_vegetation.gd" id="27_l63rk"]
+[ext_resource type="Resource" path="res://models/vegetation/town_oak_0/definition.tres" id="28_k22wi"]
+[ext_resource type="Resource" path="res://models/vegetation/town_oak_1/definition.tres" id="29_fv5my"]
+[ext_resource type="Resource" path="res://models/vegetation/dark_fir/definition.tres" id="30_57m7c"]
+[ext_resource type="Resource" path="res://models/vegetation/black_pine/definition.tres" id="31_r2mof"]
+[ext_resource type="Resource" path="res://models/vegetation/spire_cypress/definition.tres" id="32_s0q4q"]
+[ext_resource type="Resource" path="res://models/vegetation/juniper/definition.tres" id="33_q1one"]
+[ext_resource type="Resource" path="res://models/vegetation/thorn_bramble/definition.tres" id="34_rghid"]
+[ext_resource type="Material" path="res://models/props/jungle_vine/material.tres" id="45_jd8c1"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_1_0_1/assembly/resources.tres::StandardMaterial3D_kgrrs" id="shared_StandardMaterial3D_kgrrs"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_1_0_1/assembly/resources.tres::StandardMaterial3D_y8svu" id="shared_StandardMaterial3D_y8svu"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_1_0_1/assembly/resources.tres::StandardMaterial3D_vxckt" id="shared_StandardMaterial3D_vxckt"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_1_0_1/assembly/resources.tres::StandardMaterial3D_1ei5l" id="shared_StandardMaterial3D_1ei5l"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_1_0_1/assembly/resources.tres::ShaderMaterial_bmfmr" id="shared_ShaderMaterial_bmfmr"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_1/assembly/resources.tres::MultiMesh_xrw6q" id="shared_MultiMesh_xrw6q"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_1/assembly/resources.tres::MultiMesh_lv0ss" id="shared_MultiMesh_lv0ss"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_1/assembly/resources.tres::MultiMesh_jw7ut" id="shared_MultiMesh_jw7ut"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_1/assembly/resources.tres::MultiMesh_jme4x" id="shared_MultiMesh_jme4x"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_1/assembly/resources.tres::MultiMesh_vxrin" id="shared_MultiMesh_vxrin"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_1/assembly/resources.tres::MultiMesh_f03a1" id="shared_MultiMesh_f03a1"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0580" type="Node3D" parent="." unique_id=607194083]
+script = ExtResource("27_l63rk")
+metadata/scene_state = {
+"bank_counts": {
+-1: 0,
+1: 0
+},
+"batch_slices": 2,
+"definitions": [ExtResource("28_k22wi"), ExtResource("29_fv5my"), ExtResource("30_57m7c"), ExtResource("31_r2mof"), ExtResource("32_s0q4q"), ExtResource("33_q1one"), ExtResource("34_rghid")],
+"groups": {},
+"planning_slices": 0,
+"plantings": [{
+"position": Vector3(1169.1779, 67.37001, -69.95725),
+"scale": 0.9,
+"variant": 0,
+"yaw": 85.65
+}, {
+"position": Vector3(1153.1627, 67.33447, -41.899227),
+"scale": 0.9,
+"variant": 1,
+"yaw": 86.15
+}, {
+"position": Vector3(1196.9146, 63.9055, -53.73321),
+"scale": 0.9,
+"variant": 0,
+"yaw": 87.89000000000001
+}, {
+"position": Vector3(1180.2991, 63.822353, -25.981052),
+"scale": 0.9,
+"variant": 1,
+"yaw": 88.39000000000001
+}],
+"scenery": null,
+"tree_count": 4,
+"variant_counts": {}
+}
+
+[node name="Part0581" type="MultiMeshInstance3D" parent="Part0580" unique_id=597641239]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_xrw6q")
+metadata/mesh_ref = "res://models/world/tour_1_0_1/geometry.glb#Geometry0085"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_kgrrs"), ExtResource("shared_StandardMaterial3D_y8svu")])
+
+[node name="Part0582" type="MultiMeshInstance3D" parent="Part0580" unique_id=412249197]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_lv0ss")
+metadata/mesh_ref = "res://models/world/tour_1_0_1/geometry.glb#Geometry0088"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_vxckt"), ExtResource("shared_StandardMaterial3D_1ei5l")])
+
+[node name="Part0583" type="MeshInstance3D" parent="." unique_id=1721293908]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1205.5125, 30.327995, -29.638716)
+material_override = ExtResource("shared_ShaderMaterial_bmfmr")
+visibility_range_end = 500.0
+metadata/mesh_ref = "res://models/world/tour_1_0_1/geometry.glb#Geometry0094"
+
+[node name="Part0584" type="Node3D" parent="." unique_id=1023966945]
+script = ExtResource("27_l63rk")
+metadata/scene_state = {
+"bank_counts": {
+-1: 0,
+1: 0
+},
+"batch_slices": 2,
+"definitions": [ExtResource("28_k22wi"), ExtResource("29_fv5my"), ExtResource("30_57m7c"), ExtResource("31_r2mof"), ExtResource("32_s0q4q"), ExtResource("33_q1one"), ExtResource("34_rghid")],
+"groups": {},
+"planning_slices": 0,
+"plantings": [{
+"position": Vector3(1224.0791, 57.925655, -37.25685),
+"scale": 0.9,
+"variant": 0,
+"yaw": 90.13
+}, {
+"position": Vector3(1207.1572, 57.80655, -9.661665),
+"scale": 0.9,
+"variant": 1,
+"yaw": 90.63
+}, {
+"position": Vector3(1234.2183, 55.613102, -31.034813),
+"scale": 0.9,
+"variant": 0,
+"yaw": 90.97
+}, {
+"position": Vector3(1217.2654, 55.485344, -3.4510279),
+"scale": 0.9,
+"variant": 1,
+"yaw": 91.47
+}],
+"scenery": null,
+"tree_count": 4,
+"variant_counts": {}
+}
+
+[node name="Part0585" type="MultiMeshInstance3D" parent="Part0584" unique_id=1859297498]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_jw7ut")
+metadata/mesh_ref = "res://models/world/tour_1_0_1/geometry.glb#Geometry0085"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_kgrrs"), ExtResource("shared_StandardMaterial3D_y8svu")])
+
+[node name="Part0586" type="MultiMeshInstance3D" parent="Part0584" unique_id=433452300]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_jme4x")
+metadata/mesh_ref = "res://models/world/tour_1_0_1/geometry.glb#Geometry0088"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_vxckt"), ExtResource("shared_StandardMaterial3D_1ei5l")])
+
+[node name="JungleEntrance" type="MeshInstance3D" parent="." unique_id=1242874881]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1035.1373, 41.856506, -116.23147)
+material_override = ExtResource("shared_ShaderMaterial_bmfmr")
+visibility_range_end = 500.0
+metadata/mesh_ref = "res://models/world/tour_1_0_1/geometry.glb#Geometry0095"
+
+[node name="JungleEntranceVines" type="Node3D" parent="." unique_id=988156178]
+script = ExtResource("26_4myf8")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0164/JungleOvergrowth/JungleEntranceVines/Regional3D_jungle_vine_0")
+}],
+"kinds": ["jungle_vine"],
+"placements": [{
+"kind": "jungle_vine",
+"position": Vector3(1038.6168, 42.0236, -131.1349),
+"scale": 1.0,
+"yaw": -1.9323483930230665
+}, {
+"kind": "jungle_vine",
+"position": Vector3(1027.9276, 42.0236, -102.73267),
+"scale": 1.0,
+"yaw": -1.9323483930230665
+}, {
+"kind": "jungle_vine",
+"position": Vector3(1038.6168, 51.5236, -131.1349),
+"scale": 1.0,
+"yaw": -1.9323483930230665
+}, {
+"kind": "jungle_vine",
+"position": Vector3(1027.9276, 51.5236, -102.73267),
+"scale": 1.0,
+"yaw": -1.9323483930230665
+}, {
+"kind": "jungle_vine",
+"position": Vector3(1038.6168, 61.0236, -131.1349),
+"scale": 1.0,
+"yaw": -1.9323483930230665
+}, {
+"kind": "jungle_vine",
+"position": Vector3(1027.9276, 61.0236, -102.73267),
+"scale": 1.0,
+"yaw": -1.9323483930230665
+}],
+"theme": "jungle",
+"tree_count": 0,
+"world_bounds": [AABB(1035.8412, 44.197075, -135.22437, 5.5769043, 10.162525, 8.166962), AABB(1025.152, 44.197075, -106.82212, 5.5769043, 10.162525, 8.166946), AABB(1035.8412, 53.697075, -135.22437, 5.5769043, 10.162525, 8.166962), AABB(1025.152, 53.697075, -106.82212, 5.5769043, 10.162525, 8.166946), AABB(1035.8412, 63.197075, -135.22437, 5.5769043, 10.162529, 8.166962), AABB(1025.152, 63.197075, -106.82212, 5.5769043, 10.162529, 8.166946)]
+}
+
+[node name="Regional3D_jungle_vine_0" type="MultiMeshInstance3D" parent="JungleEntranceVines" unique_id=1823649779]
+material_override = ExtResource("45_jd8c1")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_vxrin")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="JungleExit" type="MeshInstance3D" parent="." unique_id=1813966998]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1229.1266, 26.25503, -15.162623)
+material_override = ExtResource("shared_ShaderMaterial_bmfmr")
+visibility_range_end = 500.0
+metadata/mesh_ref = "res://models/world/tour_1_0_1/geometry.glb#Geometry0096"
+
+[node name="JungleExitVines" type="Node3D" parent="." unique_id=1614195672]
+script = ExtResource("26_4myf8")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0164/JungleOvergrowth/JungleExitVines/Regional3D_jungle_vine_0")
+}],
+"kinds": ["jungle_vine"],
+"placements": [{
+"kind": "jungle_vine",
+"position": Vector3(1239.0803, 26.031282, -27.565624),
+"scale": 1.0,
+"yaw": -2.121897372114161
+}, {
+"kind": "jungle_vine",
+"position": Vector3(1222.5593, 26.031282, -0.67819405),
+"scale": 1.0,
+"yaw": -2.121897372114161
+}, {
+"kind": "jungle_vine",
+"position": Vector3(1239.0803, 35.53128, -27.565624),
+"scale": 1.0,
+"yaw": -2.121897372114161
+}, {
+"kind": "jungle_vine",
+"position": Vector3(1222.5593, 35.53128, -0.67819405),
+"scale": 1.0,
+"yaw": -2.121897372114161
+}, {
+"kind": "jungle_vine",
+"position": Vector3(1239.0803, 45.03128, -27.565624),
+"scale": 1.0,
+"yaw": -2.121897372114161
+}, {
+"kind": "jungle_vine",
+"position": Vector3(1222.5593, 45.03128, -0.67819405),
+"scale": 1.0,
+"yaw": -2.121897372114161
+}],
+"theme": "jungle",
+"tree_count": 0,
+"world_bounds": [AABB(1235.7928, 28.204756, -31.601137, 6.602173, 10.162527, 8.06411), AABB(1219.2719, 28.204756, -4.713706, 6.602173, 10.162527, 8.064109), AABB(1235.7928, 37.704754, -31.601137, 6.602173, 10.162525, 8.06411), AABB(1219.2719, 37.704754, -4.713706, 6.602173, 10.162525, 8.064109), AABB(1235.7928, 47.204754, -31.601137, 6.602173, 10.162525, 8.06411), AABB(1219.2719, 47.204754, -4.713706, 6.602173, 10.162525, 8.064109)]
+}
+
+[node name="Regional3D_jungle_vine_0" type="MultiMeshInstance3D" parent="JungleExitVines" unique_id=484546295]
+material_override = ExtResource("45_jd8c1")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_f03a1")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"

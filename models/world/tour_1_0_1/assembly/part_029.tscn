@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_1_0_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/jungle_overgrowth.gd" id="44_c2nlk"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_1_0_1/assembly/resources.tres::ShaderMaterial_bmfmr" id="shared_ShaderMaterial_bmfmr"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="JungleOvergrowth" type="Node3D" parent="." unique_id=1234447230]
+script = ExtResource("44_c2nlk")
+metadata/scene_state = {
+"hanging_clearance": 5.908572473526001,
+"material": ExtResource("shared_ShaderMaterial_bmfmr"),
+"road": {
+&"$node": NodePath(".")
+},
+"roof_sections": 4,
+"scenery": {
+&"$node": NodePath("Part0164")
+},
+"vine_count": 420
+}

@@ -1,0 +1,102 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_0_0_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/scenic_landmarks.gd" id="44_0vhny"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_0_0_1/assembly/resources.tres::ShaderMaterial_4p783" id="shared_ShaderMaterial_4p783"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_0_0_1/assembly/resources.tres::ShaderMaterial_pm6jp" id="shared_ShaderMaterial_pm6jp"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_0_0_1/assembly/resources.tres::ShaderMaterial_p6yrl" id="shared_ShaderMaterial_p6yrl"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_0_0_1/assembly/resources.tres::MultiMesh_esnov" id="shared_MultiMesh_esnov"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_0_0_1/assembly/resources.tres::ShaderMaterial_acgdy" id="shared_ShaderMaterial_acgdy"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_0_0_1/assembly/resources.tres::MultiMesh_88eap" id="shared_MultiMesh_88eap"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_0_0_1/assembly/resources.tres::ShaderMaterial_yhern" id="shared_ShaderMaterial_yhern"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_0_0_1/assembly/resources.tres::MultiMesh_1a7pw" id="shared_MultiMesh_1a7pw"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_0_0_1/assembly/resources.tres::ShaderMaterial_fwyge" id="shared_ShaderMaterial_fwyge"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_0_0_1/assembly/resources.tres::MultiMesh_wvuv5" id="shared_MultiMesh_wvuv5"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_0_0_1/assembly/resources.tres::ShaderMaterial_yflm1" id="shared_ShaderMaterial_yflm1"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_0_0_1/assembly/resources.tres::MultiMesh_mogw2" id="shared_MultiMesh_mogw2"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_0_0_1/assembly/resources.tres::ShaderMaterial_ow5ku" id="shared_ShaderMaterial_ow5ku"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_0_0_1/assembly/resources.tres::MultiMesh_0kx7k" id="shared_MultiMesh_0kx7k"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_0_0_1/assembly/resources.tres::ShaderMaterial_olpuf" id="shared_ShaderMaterial_olpuf"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_0_0_1/assembly/resources.tres::MultiMesh_0uhmo" id="shared_MultiMesh_0uhmo"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0214" type="Node3D" parent="." unique_id=606014028]
+script = ExtResource("44_0vhny")
+metadata/scene_state = {
+"ad_size": Vector2(20, 8.75),
+"ad_spacing": 135.0,
+"advertisement_spans": [],
+"batches": [{
+&"$node": NodePath("Part0131/Part0214/MainSuspensionCables")
+}, {
+&"$node": NodePath("Part0131/Part0214/VerticalHangers")
+}, {
+&"$node": NodePath("Part0131/Part0214/BridgeDeckGirders")
+}, {
+&"$node": NodePath("Part0131/Part0214/BridgeDiagonalBraces")
+}, {
+&"$node": NodePath("Part0131/Part0214/BridgeJointPlates")
+}, {
+&"$node": NodePath("Part0131/Part0214/BridgeConcreteFoundations")
+}, {
+&"$node": NodePath("Part0131/Part0214/BridgeStructuralDeck")
+}],
+"billboard_manifest": [],
+"bridge_clearance": 68.0,
+"bridge_span": Vector2(850, 1380),
+"canyon_spans": [],
+"texture_regions": [],
+"tower_distances": [945.0, 1285.0],
+"track": {
+&"$node": NodePath(".")
+}
+}
+
+[node name="ScarletBridgeTowers" type="MeshInstance3D" parent="Part0214" unique_id=928392812]
+material_override = ExtResource("shared_ShaderMaterial_pm6jp")
+metadata/mesh_ref = "res://models/world/tour_0_0_1/geometry.glb#Geometry0083"
+
+[node name="MainSuspensionCables" type="MultiMeshInstance3D" parent="Part0214" unique_id=946863117]
+material_override = ExtResource("shared_ShaderMaterial_p6yrl")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_esnov")
+metadata/mesh_ref = "res://models/world/tour_0_0_1/geometry.glb#Geometry0084"
+
+[node name="VerticalHangers" type="MultiMeshInstance3D" parent="Part0214" unique_id=1576400665]
+material_override = ExtResource("shared_ShaderMaterial_acgdy")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_88eap")
+metadata/mesh_ref = "res://models/world/tour_0_0_1/geometry.glb#Geometry0085"
+
+[node name="BridgeDeckGirders" type="MultiMeshInstance3D" parent="Part0214" unique_id=1998309386]
+material_override = ExtResource("shared_ShaderMaterial_yhern")
+multimesh = ExtResource("shared_MultiMesh_1a7pw")
+metadata/mesh_ref = "res://models/world/tour_0_0_1/geometry.glb#Geometry0086"
+
+[node name="BridgeDiagonalBraces" type="MultiMeshInstance3D" parent="Part0214" unique_id=945146613]
+material_override = ExtResource("shared_ShaderMaterial_fwyge")
+multimesh = ExtResource("shared_MultiMesh_wvuv5")
+metadata/mesh_ref = "res://models/world/tour_0_0_1/geometry.glb#Geometry0086"
+
+[node name="BridgeJointPlates" type="MultiMeshInstance3D" parent="Part0214" unique_id=451565417]
+material_override = ExtResource("shared_ShaderMaterial_yflm1")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_mogw2")
+metadata/mesh_ref = "res://models/world/tour_0_0_1/geometry.glb#Geometry0086"
+
+[node name="BridgeConcreteFoundations" type="MultiMeshInstance3D" parent="Part0214" unique_id=1210507959]
+material_override = ExtResource("shared_ShaderMaterial_ow5ku")
+multimesh = ExtResource("shared_MultiMesh_0kx7k")
+metadata/mesh_ref = "res://models/world/tour_0_0_1/geometry.glb#Geometry0086"
+
+[node name="BridgeStructuralDeck" type="MultiMeshInstance3D" parent="Part0214" unique_id=477610502]
+material_override = ExtResource("shared_ShaderMaterial_olpuf")
+multimesh = ExtResource("shared_MultiMesh_0uhmo")
+metadata/mesh_ref = "res://models/world/tour_0_0_1/geometry.glb#Geometry0086"
+
+[node name="BridgeBayWater" type="MeshInstance3D" parent="." unique_id=34380259]
+material_override = ExtResource("shared_ShaderMaterial_4p783")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_0_0_1/geometry.glb#Geometry0087"

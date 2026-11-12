@@ -1,0 +1,297 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_0_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/vehicles/car.gd" id="7_145jh"]
+[ext_resource type="Script" path="res://scripts/race/tour_traffic.gd" id="12_63cjc"]
+[ext_resource type="Resource" path="res://models/vehicles/hatch/definition.tres" id="15_1n4wh"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_0_1/assembly/resources.tres::ShaderMaterial_atky3" id="shared_ShaderMaterial_atky3"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_0_1/assembly/resources.tres::StandardMaterial3D_kqx3t" id="shared_StandardMaterial3D_kqx3t"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_0_1/assembly/resources.tres::ShaderMaterial_dsuk5" id="shared_ShaderMaterial_dsuk5"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_0_1/assembly/resources.tres::StandardMaterial3D_605h2" id="shared_StandardMaterial3D_605h2"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_0_1/assembly/resources.tres::StandardMaterial3D_kjhq3" id="shared_StandardMaterial3D_kjhq3"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_0_1/assembly/resources.tres::StandardMaterial3D_fl0lk" id="shared_StandardMaterial3D_fl0lk"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_0_1/assembly/resources.tres::StandardMaterial3D_03is7" id="shared_StandardMaterial3D_03is7"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_0_1/assembly/resources.tres::StandardMaterial3D_821kb" id="shared_StandardMaterial3D_821kb"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_0_1/assembly/resources.tres::ShaderMaterial_qgwsw" id="shared_ShaderMaterial_qgwsw"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_0_1/assembly/resources.tres::StandardMaterial3D_gi1tl" id="shared_StandardMaterial3D_gi1tl"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_0_1/assembly/resources.tres::StandardMaterial3D_yc1hf" id="shared_StandardMaterial3D_yc1hf"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_0_1/assembly/resources.tres::StandardMaterial3D_pcjhf" id="shared_StandardMaterial3D_pcjhf"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_0_1/assembly/resources.tres::StandardMaterial3D_weaag" id="shared_StandardMaterial3D_weaag"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_0_1/assembly/resources.tres::ShaderMaterial_ivd5g" id="shared_ShaderMaterial_ivd5g"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_0_1/assembly/resources.tres::ShaderMaterial_hhyba" id="shared_ShaderMaterial_hhyba"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_0_1/assembly/resources.tres::MultiMesh_nc1sd" id="shared_MultiMesh_nc1sd"]
+[ext_resource type="BoxShape3D" path="res://models/world/tour_4_0_1/assembly/resources.tres::BoxShape3D_kwups" id="shared_BoxShape3D_kwups"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0150" type="Node3D" parent="." unique_id=864804335]
+transform = Transform3D(-0.5476314, 0.064365655, -0.8342404, 5.573034e-06, 0.9970371, 0.07692255, 0.8367197, 0.042120554, -0.5460092, 2980.097, 13.827382, -108.18263)
+script = ExtResource("7_145jh")
+metadata/scene_state = {
+"active_aero": null,
+"aero_blend": 0.0,
+"aero_drop": 0.0,
+"aero_pitch": 0.0,
+"aero_rest": Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),
+"body": {
+&"$node": NodePath("Part0150/Part0151")
+},
+"boost_fx": null,
+"brake_lights": [ExtResource("shared_StandardMaterial3D_kqx3t")],
+"effects_quality": 0,
+"headlamp_lenses": [{
+&"$node": NodePath("Part0150/Part0151/NightHeadlamp")
+}, {
+&"$node": NodePath("Part0150/Part0151/Part0163")
+}],
+"headlight": {
+&"$node": NodePath("Part0150/Part0151/Part0161")
+},
+"model": "hatch",
+"model_definition": ExtResource("15_1n4wh"),
+"nitro_flames": [{
+&"$node": NodePath("Part0150/Part0151/Part0164")
+}],
+"nitro_glows": [{
+&"$node": NodePath("Part0150/Part0151/Part0165")
+}],
+"nitro_tint": Color(0.3372549, 0.8745098, 1, 1),
+"paint": Color(0.72, 0.324, 0.67577493, 1),
+"reduced_motion": false,
+"ride_offset": -0.12,
+"rim_scale": 0.86,
+"road_speed": 0.0,
+"smoke": [],
+"traffic": true,
+"traffic_wheels": {
+&"$node": NodePath("Part0150/Part0151/Part0166")
+},
+"wheel_half_base": 1.25,
+"wheel_half_track": 0.82,
+"wheel_radius": 0.37,
+"wheel_thickness": 0.22,
+"wheels": [{
+&"$node": NodePath("Part0150/Part0151/wheel_fl")
+}, {
+&"$node": NodePath("Part0150/Part0151/wheel_rl")
+}, {
+&"$node": NodePath("Part0150/Part0151/wheel_fr")
+}, {
+&"$node": NodePath("Part0150/Part0151/wheel_rr")
+}]
+}
+
+[node name="Part0151" type="Node3D" parent="Part0150" unique_id=1377489291]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12, 0)
+
+[node name="ActiveRearAero" type="MeshInstance3D" parent="Part0150/Part0151" unique_id=1950820132]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.065, 1.88)
+material_override = ExtResource("shared_ShaderMaterial_dsuk5")
+metadata/mesh_ref = "res://models/vehicles/hatch/model.glb#ActiveRearAero"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_605h2")])
+
+[node name="wheel_fl" type="MeshInstance3D" parent="Part0150/Part0151" unique_id=116735502]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.82, 0.39, -1.25)
+material_override = ExtResource("shared_ShaderMaterial_atky3")
+metadata/traffic_part = "wheels"
+metadata/mesh_ref = "res://models/vehicles/hatch/model.glb#wheel_fl"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_kjhq3")])
+
+[node name="wheel_rl" type="MeshInstance3D" parent="Part0150/Part0151" unique_id=1967250256]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.82, 0.39, 1.25)
+material_override = ExtResource("shared_ShaderMaterial_atky3")
+metadata/traffic_part = "wheels"
+metadata/mesh_ref = "res://models/vehicles/hatch/model.glb#wheel_rl"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_fl0lk")])
+
+[node name="wheel_fr" type="MeshInstance3D" parent="Part0150/Part0151" unique_id=1597429736]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.82, 0.39, -1.25)
+material_override = ExtResource("shared_ShaderMaterial_atky3")
+metadata/traffic_part = "wheels"
+metadata/mesh_ref = "res://models/vehicles/hatch/model.glb#wheel_fr"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_03is7")])
+
+[node name="wheel_rr" type="MeshInstance3D" parent="Part0150/Part0151" unique_id=535361071]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.82, 0.39, 1.25)
+material_override = ExtResource("shared_ShaderMaterial_atky3")
+metadata/traffic_part = "wheels"
+metadata/mesh_ref = "res://models/vehicles/hatch/model.glb#wheel_rr"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_821kb")])
+
+[node name="BodyShell" type="MeshInstance3D" parent="Part0150/Part0151" unique_id=350760444]
+material_override = ExtResource("shared_ShaderMaterial_qgwsw")
+metadata/mesh_ref = "res://models/vehicles/hatch/model.glb#BodyShell"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_gi1tl")])
+
+[node name="BrakeLights6" type="MeshInstance3D" parent="Part0150/Part0151" unique_id=1480704317]
+material_override = ExtResource("shared_StandardMaterial3D_kqx3t")
+metadata/traffic_brake = true
+metadata/mesh_ref = "res://models/vehicles/hatch/model.glb#BrakeLights6"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_yc1hf")])
+
+[node name="Part0159" type="Label3D" parent="Part0150/Part0151" unique_id=466182936]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.64, 2.273)
+pixel_size = 0.002
+modulate = Color(0.14901961, 0.19215687, 0.16470589, 1)
+text = "NIMORI"
+font_size = 40
+outline_size = 0
+
+[node name="Part0160" type="Label3D" parent="Part0150/Part0151" unique_id=1770979375]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.52, 1.006, 2.1)
+pixel_size = 0.0015
+modulate = Color(0.1254902, 0.15686275, 0.16862746, 1)
+text = "N-H"
+font_size = 40
+outline_size = 0
+
+[node name="Part0161" type="SpotLight3D" parent="Part0150/Part0151" unique_id=2017847802]
+transform = Transform3D(1, 0, 0, 0, 0.99254614, 0.12186935, 0, -0.12186935, 0.99254614, 0, 1.1, -1.95)
+visible = false
+light_color = Color(0.91764706, 0.9529412, 1, 1)
+light_energy = 3.8
+spot_range = 95.0
+spot_angle = 38.0
+spot_angle_attenuation = 1.6
+
+[node name="NightHeadlamp" type="MeshInstance3D" parent="Part0150/Part0151" unique_id=1068657781]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.55, 1.13, -1.967)
+visible = false
+material_override = ExtResource("shared_StandardMaterial3D_pcjhf")
+cast_shadow = 0
+metadata/traffic_part = "headlamp_lenses"
+metadata/mesh_ref = "res://models/world/tour_4_0_1/geometry.glb#Geometry0022"
+
+[node name="Part0163" type="MeshInstance3D" parent="Part0150/Part0151" unique_id=843618160]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.55, 1.13, -1.967)
+visible = false
+material_override = ExtResource("shared_StandardMaterial3D_weaag")
+cast_shadow = 0
+metadata/traffic_part = "headlamp_lenses"
+metadata/mesh_ref = "res://models/world/tour_4_0_1/geometry.glb#Geometry0022"
+
+[node name="Part0164" type="MeshInstance3D" parent="Part0150/Part0151" unique_id=1681197323]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, -0.61, 0.32, 2.71)
+visible = false
+material_override = ExtResource("shared_ShaderMaterial_ivd5g")
+metadata/traffic_part = "nitro_flames"
+metadata/mesh_ref = "res://models/world/tour_4_0_1/geometry.glb#Geometry0032"
+
+[node name="Part0165" type="MeshInstance3D" parent="Part0150/Part0151" unique_id=303208746]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.61, 0.32, 2.31)
+visible = false
+material_override = ExtResource("shared_ShaderMaterial_hhyba")
+metadata/traffic_part = "nitro_glows"
+metadata/mesh_ref = "res://models/world/tour_4_0_1/geometry.glb#Geometry0033"
+
+[node name="Part0166" type="MultiMeshInstance3D" parent="Part0150/Part0151" unique_id=1699452988]
+visible = false
+material_override = ExtResource("shared_ShaderMaterial_atky3")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_nc1sd")
+metadata/traffic_part = "traffic_wheels"
+metadata/mesh_ref = "res://models/vehicles/hatch/model.glb#wheel_fl"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_kjhq3")])
+
+[node name="Part0167" type="CharacterBody3D" parent="." unique_id=1905726150]
+transform = Transform3D(-0.5476314, 0.064365655, -0.8342404, 5.573034e-06, 0.9970371, 0.07692255, 0.8367197, 0.042120554, -0.5460092, 2980.1309, 14.355812, -108.1603)
+collision_layer = 4
+collision_mask = 7
+motion_mode = 1
+script = ExtResource("12_63cjc")
+metadata/parked_car = true
+metadata/scene_state = {
+"activated": false,
+"cheap_adhesion": false,
+"clock": null,
+"coast_angle": 0.0,
+"coast_direction": 0.0,
+"coast_profile": false,
+"coast_slide": 0.0,
+"contact_shape": {
+&"$node": NodePath("Part0167/Part0169")
+},
+"corner_demand": 0.0,
+"corner_grip": 14.5,
+"cruise_speed": 19.563800518329117,
+"distance": 3264.563800518329,
+"feature_record": {
+"distance": 3264.563800518329,
+"id": "4:0:19",
+"kind": "car",
+"lane": -3.260210323870744,
+"length": 4.5,
+"width": 2.05
+},
+"flight_time": 0.0,
+"ground_height": 13.707738,
+"grounded": false,
+"lane": -3.260210323870744,
+"last_contacts": [],
+"last_corner_loss": 0.0,
+"realign_time": 0.0,
+"road": {
+&"$node": NodePath(".")
+},
+"road_heading": Vector3(0, 0, 0),
+"slip_angle": 0.0,
+"specification": {
+"accel": 16.1,
+"accent": "56dfff",
+"audio": {
+"boost": "res://assets/audio/vehicles/nimori-boost.ogg",
+"boost_gain": 0.9,
+"boost_rise": 0.18,
+"boost_start": "res://assets/audio/vehicles/nimori-boost-start.wav",
+"drift": "res://assets/audio/vehicles/nimori-drift.ogg",
+"drift_gain": 1.0,
+"drift_pitch": 1.0,
+"engine": "res://assets/audio/vehicles/nimori-engine.ogg",
+"engine_gain": 1.0,
+"engine_gear": 0.07,
+"engine_pitch": 0.9,
+"engine_span": 0.36,
+"start_gain": 0.8
+},
+"boost_accel": 21.0,
+"boost_speed": 87.0,
+"brake": 48.0,
+"burst_duration": 0.0,
+"charges": 0,
+"class": "LIGHT HATCH",
+"description": "Light, agile and quick out of corners. Lower top speed; a long-lasting nitro gauge.",
+"drain": 15.0,
+"drift_grip": 30.0,
+"drift_regen": 6.0,
+"drift_steer_speed": 12.4,
+"energy_start": 85.0,
+"grip": 14.5,
+"handling": 10,
+"id": "nimori",
+"lateral_drift": 22.0,
+"lateral_grip": 40.0,
+"max_speed": 72.0,
+"mode": "gauge",
+"model": "hatch",
+"name": "NIMORI H",
+"nitro_help": "Drift to recharge. Release to save fuel.",
+"nitro_title": "GAUGE / HOLD",
+"overdrive_speed": 87.0,
+"paint": "f0f1ed",
+"regen": 2.4,
+"role": "AGILE / GAUGE",
+"steer_rate": 9.0,
+"steer_speed": 9.8,
+"tagline": "AGILE CORNERS. RECHARGE NITRO THROUGH DRIFTING."
+},
+"steering": 0.0,
+"surface_normal": Vector3(0.064365655, 0.9970371, 0.042120554),
+"visual": {
+&"$node": NodePath("Part0150")
+},
+"yaw_rate": 0.0
+}
+
+[node name="Part0169" type="CollisionShape3D" parent="Part0167" unique_id=888708723]
+shape = ExtResource("shared_BoxShape3D_kwups")

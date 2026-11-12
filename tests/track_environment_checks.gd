@@ -157,6 +157,7 @@ func run(tree: SceneTree) -> int:
 	race.state = "racing"
 	lens_checks(race)
 	var span: Vector2 = race.track.active.underpass_span()
+	race.distance = (span.x + span.y) / 2
 	race.player.global_position = race.track.point((span.x + span.y) / 2)
 	race.tour_weather._process(0)
 	check(not race.tour_weather.particles.emitting, "후지 지하차도 안에서는 비가 관통하지 않는다")

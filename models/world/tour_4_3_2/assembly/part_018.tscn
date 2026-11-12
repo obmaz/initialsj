@@ -1,0 +1,232 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_3_2/assembly/resources.tres" id="assembly"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_yqepu" id="shared_MultiMesh_yqepu"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_3_2/assembly/resources.tres::StandardMaterial3D_qv7p7" id="shared_StandardMaterial3D_qv7p7"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_3_2/assembly/resources.tres::StandardMaterial3D_3cx70" id="shared_StandardMaterial3D_3cx70"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_hfx3i" id="shared_MultiMesh_hfx3i"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_3_2/assembly/resources.tres::StandardMaterial3D_h58xe" id="shared_StandardMaterial3D_h58xe"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_3_2/assembly/resources.tres::StandardMaterial3D_wsw4f" id="shared_StandardMaterial3D_wsw4f"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_io1wy" id="shared_MultiMesh_io1wy"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_3_2/assembly/resources.tres::StandardMaterial3D_r3ojq" id="shared_StandardMaterial3D_r3ojq"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_3_2/assembly/resources.tres::StandardMaterial3D_afkib" id="shared_StandardMaterial3D_afkib"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_j7myb" id="shared_MultiMesh_j7myb"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_boghf" id="shared_MultiMesh_boghf"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_3_2/assembly/resources.tres::StandardMaterial3D_wa5pp" id="shared_StandardMaterial3D_wa5pp"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_3_2/assembly/resources.tres::StandardMaterial3D_8tunf" id="shared_StandardMaterial3D_8tunf"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_neu8r" id="shared_MultiMesh_neu8r"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_3_2/assembly/resources.tres::StandardMaterial3D_i12qd" id="shared_StandardMaterial3D_i12qd"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_3_2/assembly/resources.tres::StandardMaterial3D_n7qkk" id="shared_StandardMaterial3D_n7qkk"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_3rl1i" id="shared_MultiMesh_3rl1i"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_1013x" id="shared_MultiMesh_1013x"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_t6fp1" id="shared_MultiMesh_t6fp1"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_w8ktg" id="shared_MultiMesh_w8ktg"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_msr7x" id="shared_MultiMesh_msr7x"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_jp8pi" id="shared_MultiMesh_jp8pi"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_xx675" id="shared_MultiMesh_xx675"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_6b1li" id="shared_MultiMesh_6b1li"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_ald7y" id="shared_MultiMesh_ald7y"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_0xghl" id="shared_MultiMesh_0xghl"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_c3p6m" id="shared_MultiMesh_c3p6m"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_6nbxq" id="shared_MultiMesh_6nbxq"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_fxs0o" id="shared_MultiMesh_fxs0o"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_5g7mw" id="shared_MultiMesh_5g7mw"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_hdo8k" id="shared_MultiMesh_hdo8k"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_8o8lk" id="shared_MultiMesh_8o8lk"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_ju4ho" id="shared_MultiMesh_ju4ho"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_3_2/assembly/resources.tres::MultiMesh_0a6do" id="shared_MultiMesh_0a6do"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0280" type="MultiMeshInstance3D" parent="." unique_id=1975288518]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_yqepu")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0113"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_qv7p7"), ExtResource("shared_StandardMaterial3D_3cx70")])
+
+[node name="Part0281" type="MultiMeshInstance3D" parent="." unique_id=657554007]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_hfx3i")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0114"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_h58xe"), ExtResource("shared_StandardMaterial3D_wsw4f")])
+
+[node name="Part0282" type="MultiMeshInstance3D" parent="." unique_id=169971880]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_io1wy")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0115"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_r3ojq"), ExtResource("shared_StandardMaterial3D_afkib")])
+
+[node name="Part0283" type="MultiMeshInstance3D" parent="." unique_id=1760498394]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_j7myb")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0114"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_h58xe"), ExtResource("shared_StandardMaterial3D_wsw4f")])
+
+[node name="Part0284" type="MultiMeshInstance3D" parent="." unique_id=278058170]
+cast_shadow = 0
+visibility_range_end = 100.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_boghf")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0116"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_wa5pp"), ExtResource("shared_StandardMaterial3D_8tunf")])
+
+[node name="Part0285" type="MultiMeshInstance3D" parent="." unique_id=579647439]
+cast_shadow = 0
+visibility_range_end = 100.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_neu8r")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0117"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_i12qd"), ExtResource("shared_StandardMaterial3D_n7qkk")])
+
+[node name="Part0286" type="MultiMeshInstance3D" parent="." unique_id=1042980480]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_3rl1i")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0115"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_r3ojq"), ExtResource("shared_StandardMaterial3D_afkib")])
+
+[node name="Part0287" type="MultiMeshInstance3D" parent="." unique_id=962763624]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_1013x")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0113"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_qv7p7"), ExtResource("shared_StandardMaterial3D_3cx70")])
+
+[node name="Part0288" type="MultiMeshInstance3D" parent="." unique_id=1930603685]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_t6fp1")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0114"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_h58xe"), ExtResource("shared_StandardMaterial3D_wsw4f")])
+
+[node name="Part0289" type="MultiMeshInstance3D" parent="." unique_id=135419502]
+cast_shadow = 0
+visibility_range_end = 100.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_w8ktg")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0117"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_i12qd"), ExtResource("shared_StandardMaterial3D_n7qkk")])
+
+[node name="Part0290" type="MultiMeshInstance3D" parent="." unique_id=173780057]
+cast_shadow = 0
+visibility_range_end = 100.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_msr7x")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0116"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_wa5pp"), ExtResource("shared_StandardMaterial3D_8tunf")])
+
+[node name="Part0291" type="MultiMeshInstance3D" parent="." unique_id=882939]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_jp8pi")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0115"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_r3ojq"), ExtResource("shared_StandardMaterial3D_afkib")])
+
+[node name="Part0292" type="MultiMeshInstance3D" parent="." unique_id=830974724]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_xx675")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0113"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_qv7p7"), ExtResource("shared_StandardMaterial3D_3cx70")])
+
+[node name="Part0293" type="MultiMeshInstance3D" parent="." unique_id=562586831]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_6b1li")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0114"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_h58xe"), ExtResource("shared_StandardMaterial3D_wsw4f")])
+
+[node name="Part0294" type="MultiMeshInstance3D" parent="." unique_id=1083535222]
+cast_shadow = 0
+visibility_range_end = 100.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_ald7y")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0116"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_wa5pp"), ExtResource("shared_StandardMaterial3D_8tunf")])
+
+[node name="Part0295" type="MultiMeshInstance3D" parent="." unique_id=1712133931]
+cast_shadow = 0
+visibility_range_end = 100.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_0xghl")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0117"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_i12qd"), ExtResource("shared_StandardMaterial3D_n7qkk")])
+
+[node name="Part0296" type="MultiMeshInstance3D" parent="." unique_id=1731145662]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_c3p6m")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0113"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_qv7p7"), ExtResource("shared_StandardMaterial3D_3cx70")])
+
+[node name="Part0297" type="MultiMeshInstance3D" parent="." unique_id=792411417]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_6nbxq")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0114"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_h58xe"), ExtResource("shared_StandardMaterial3D_wsw4f")])
+
+[node name="Part0298" type="MultiMeshInstance3D" parent="." unique_id=1413323503]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_fxs0o")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0115"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_r3ojq"), ExtResource("shared_StandardMaterial3D_afkib")])
+
+[node name="Part0299" type="MultiMeshInstance3D" parent="." unique_id=1855890169]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_5g7mw")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0114"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_h58xe"), ExtResource("shared_StandardMaterial3D_wsw4f")])
+
+[node name="Part0300" type="MultiMeshInstance3D" parent="." unique_id=1644841409]
+cast_shadow = 0
+visibility_range_end = 100.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_hdo8k")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0117"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_i12qd"), ExtResource("shared_StandardMaterial3D_n7qkk")])
+
+[node name="Part0301" type="MultiMeshInstance3D" parent="." unique_id=1039453539]
+cast_shadow = 0
+visibility_range_end = 100.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_8o8lk")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0116"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_wa5pp"), ExtResource("shared_StandardMaterial3D_8tunf")])
+
+[node name="Part0302" type="MultiMeshInstance3D" parent="." unique_id=1450836077]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_ju4ho")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0115"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_r3ojq"), ExtResource("shared_StandardMaterial3D_afkib")])
+
+[node name="Part0303" type="MultiMeshInstance3D" parent="." unique_id=871188262]
+cast_shadow = 0
+visibility_range_end = 240.0
+visibility_range_end_margin = 25.0
+multimesh = ExtResource("shared_MultiMesh_0a6do")
+metadata/mesh_ref = "res://models/world/tour_4_3_2/geometry.glb#Geometry0113"
+metadata/surface_materials = Array[Material]([ExtResource("shared_StandardMaterial3D_qv7p7"), ExtResource("shared_StandardMaterial3D_3cx70")])

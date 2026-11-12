@@ -1,0 +1,101 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_3_3_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/rendering/world_asset_preview.gd" id="63_0flcb"]
+[ext_resource type="Material" path="res://models/shared/bridge_soffit.tres" id="MassSoffit"]
+[ext_resource type="PackedScene" path="res://models/world/tour_3_3_1/market.tscn" id="NeonMarket"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_3_1/assembly/resources.tres::StandardMaterial3D_x517f" id="shared_StandardMaterial3D_x517f"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_3_1/assembly/resources.tres::StandardMaterial3D_qc6yr" id="shared_StandardMaterial3D_qc6yr"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_3_1/assembly/resources.tres::StandardMaterial3D_om8mo" id="shared_StandardMaterial3D_om8mo"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_3_1/assembly/resources.tres::StandardMaterial3D_8wlyu" id="shared_StandardMaterial3D_8wlyu"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_3_1/assembly/resources.tres::StandardMaterial3D_4rnpv" id="shared_StandardMaterial3D_4rnpv"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_3_1/assembly/resources.tres::StandardMaterial3D_57lsb" id="shared_StandardMaterial3D_57lsb"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_3_1/assembly/resources.tres::StandardMaterial3D_ad2eu" id="shared_StandardMaterial3D_ad2eu"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_3_1/assembly/resources.tres::MultiMesh_islsy" id="shared_MultiMesh_islsy"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_3_3_1/assembly/resources.tres::StandardMaterial3D_dbi45" id="shared_StandardMaterial3D_dbi45"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_3_3_1/assembly/resources.tres::MultiMesh_f4pav" id="shared_MultiMesh_f4pav"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_3_3_1/assembly/resources.tres::ShaderMaterial_84k3t" id="shared_ShaderMaterial_84k3t"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0491" type="Node3D" parent="." unique_id=1796968356]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3327.9934, 6, -175.51341)
+
+[node name="Part0492" type="MeshInstance3D" parent="Part0491" unique_id=1342484806]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.8, 4.3, 0)
+material_override = ExtResource("shared_StandardMaterial3D_x517f")
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#Geometry0174"
+
+[node name="Part0493" type="MeshInstance3D" parent="Part0491" unique_id=1353956737]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.8, 0.25, 0)
+material_override = ExtResource("shared_StandardMaterial3D_qc6yr")
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#Geometry0175"
+
+[node name="Part0494" type="MeshInstance3D" parent="Part0491" unique_id=563671390]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.8, 8.85, 0)
+material_override = ExtResource("shared_StandardMaterial3D_om8mo")
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#Geometry0176"
+
+[node name="Part0495" type="MeshInstance3D" parent="Part0491" unique_id=541899262]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.8, 4.3, 0)
+material_override = ExtResource("shared_StandardMaterial3D_x517f")
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#Geometry0177"
+
+[node name="Part0496" type="MeshInstance3D" parent="Part0491" unique_id=959477902]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.8, 0.25, 0)
+material_override = ExtResource("shared_StandardMaterial3D_8wlyu")
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#Geometry0178"
+
+[node name="Part0497" type="MeshInstance3D" parent="Part0491" unique_id=1308263442]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.8, 8.85, 0)
+material_override = ExtResource("shared_StandardMaterial3D_om8mo")
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#Geometry0179"
+
+[node name="Part0498" type="MeshInstance3D" parent="Part0491" unique_id=2126897335]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.1, 0)
+material_override = ExtResource("shared_StandardMaterial3D_x517f")
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#Geometry0180"
+
+[node name="Part0499" type="MeshInstance3D" parent="Part0491" unique_id=325352382]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.2, 0)
+material_override = ExtResource("shared_StandardMaterial3D_4rnpv")
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#Geometry0181"
+
+[node name="Part0500" type="MeshInstance3D" parent="Part0491" unique_id=472535301]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.2, -0.01)
+material_override = ExtResource("shared_StandardMaterial3D_57lsb")
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#Geometry0182"
+
+[node name="EdgeStripLight" type="MultiMeshInstance3D" parent="Part0491" unique_id=754760670]
+material_override = ExtResource("shared_StandardMaterial3D_ad2eu")
+multimesh = ExtResource("shared_MultiMesh_islsy")
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#Geometry0183"
+
+[node name="EdgeStripDark" type="MultiMeshInstance3D" parent="Part0491" unique_id=408758387]
+material_override = ExtResource("shared_StandardMaterial3D_dbi45")
+multimesh = ExtResource("shared_MultiMesh_f4pav")
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#Geometry0183"
+
+[node name="Part0503" type="Label3D" parent="Part0491" unique_id=1813770566]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.2, 0.24)
+pixel_size = 0.0095
+modulate = Color(0.96862745, 0.9843137, 1, 1)
+text = "< SNOW PASS     VOLCANIC COAST >"
+font_size = 110
+outline_size = 0
+
+[node name="ForkRoadArrows" type="MeshInstance3D" parent="." unique_id=1059767159]
+material_override = ExtResource("shared_ShaderMaterial_84k3t")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#Geometry0184"
+
+[node name="GLBPreview" type="Node" parent="." unique_id=1393262421]
+script = ExtResource("63_0flcb")
+[node name="SkywayConcreteSoffit" type="MeshInstance3D" parent="."]
+material_override = ExtResource("MassSoffit")
+metadata/soffit_depth = 0.95
+metadata/mesh_ref = "res://models/world/tour_3_3_1/geometry.glb#SkywayConcreteSoffit"
+
+
+[node name="NeonMarketStreet" parent="." instance=ExtResource("NeonMarket")]

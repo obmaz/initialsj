@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_0_0/assembly/resources.tres" id="assembly"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_0_0/assembly/resources.tres::ShaderMaterial_6r5rq" id="shared_ShaderMaterial_6r5rq"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_0_0/assembly/resources.tres::MultiMesh_ybm12" id="shared_MultiMesh_ybm12"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_0_0/assembly/resources.tres::ShaderMaterial_cqr5s" id="shared_ShaderMaterial_cqr5s"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_0_0/assembly/resources.tres::MultiMesh_0sobs" id="shared_MultiMesh_0sobs"]
+[ext_resource type="StandardMaterial3D" path="res://models/world/tour_4_0_0/assembly/resources.tres::StandardMaterial3D_hc4hi" id="shared_StandardMaterial3D_hc4hi"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_0_0/assembly/resources.tres::MultiMesh_r17t6" id="shared_MultiMesh_r17t6"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_0_0/assembly/resources.tres::ShaderMaterial_un4br" id="shared_ShaderMaterial_un4br"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_0_0/assembly/resources.tres::ShaderMaterial_401tk" id="shared_ShaderMaterial_401tk"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0327" type="MultiMeshInstance3D" parent="." unique_id=84322691]
+material_override = ExtResource("shared_ShaderMaterial_6r5rq")
+multimesh = ExtResource("shared_MultiMesh_ybm12")
+metadata/mesh_ref = "res://models/world/tour_4_0_0/geometry.glb#Geometry0099"
+
+[node name="Part0328" type="MultiMeshInstance3D" parent="." unique_id=1332703439]
+material_override = ExtResource("shared_ShaderMaterial_cqr5s")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_0sobs")
+metadata/mesh_ref = "res://models/world/tour_4_0_0/geometry.glb#Geometry0099"
+
+[node name="Part0329" type="MultiMeshInstance3D" parent="." unique_id=1744279470]
+material_override = ExtResource("shared_StandardMaterial3D_hc4hi")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_r17t6")
+metadata/mesh_ref = "res://models/world/tour_4_0_0/geometry.glb#Geometry0099"
+
+[node name="LayeredCanyonWalls" type="MeshInstance3D" parent="." unique_id=1248242071]
+material_override = ExtResource("shared_ShaderMaterial_un4br")
+metadata/mesh_ref = "res://models/world/tour_4_0_0/geometry.glb#Geometry0100"
+
+[node name="Part0331" type="MeshInstance3D" parent="." unique_id=1908231643]
+material_override = ExtResource("shared_ShaderMaterial_401tk")
+metadata/mesh_ref = "res://models/world/tour_4_0_0/geometry.glb#Geometry0101"

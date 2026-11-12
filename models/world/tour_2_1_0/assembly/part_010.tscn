@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_2_1_0/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/road_biome.gd" id="22_1mime"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0201" type="Node3D" parent="." unique_id=877314772]
+script = ExtResource("22_1mime")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0201/Part0263")
+}, {
+&"$node": NodePath("Part0201/Part0264")
+}, {
+&"$node": NodePath("Part0201/Part0424")
+}, {
+&"$node": NodePath("Part0201/Part0425")
+}, {
+&"$node": NodePath("Part0201/Part0426")
+}],
+"building_manifest": [],
+"distant_art": {
+&"$node": NodePath("Part0201/Part0278")
+},
+"ground_nodes": [{
+&"$node": NodePath("Part0201/Part0202")
+}, {
+&"$node": NodePath("Part0201/Part0203")
+}, {
+&"$node": NodePath("Part0201/Part0204")
+}],
+"landmarks": null,
+"local_lights": [],
+"rng": {
+&"$rng": -2315548118850002157,
+&"seed": 2085
+},
+"roadside_art": {
+&"$node": NodePath("Part0201/Part0265")
+},
+"rotating": [{
+&"$node": NodePath("Part0201/Part0241")
+}],
+"theme": "amusement",
+"track": {
+&"$node": NodePath(".")
+},
+"tree_positions": [],
+"water": null
+}

@@ -23,8 +23,8 @@ func run(tree: SceneTree) -> int:
 	await tree.physics_frame
 	var left: Node3D = race.track.previews[0]
 	var right: Node3D = race.track.previews[1]
-	check(left.entry_buffer_length == 120 and right.entry_buffer_length == 120, "양 분기는 지역 앞에120m 진입 거리를 확보한다")
-	check(left.point(120).distance_to(right.point(120)) < 10, "진입부에서는 두 도로가 급하게 벌어지지 않는다")
+	check(left.entry_buffer_length == 0 and right.entry_buffer_length == 0, "양 분기는 추가 직진 연결부 없이 원래 지역으로 진입한다")
+	check(left.point(20).distance_to(right.point(20)) < 10, "분기 시작점의 두 도로는 부드럽게 이어진다")
 	var gap: Vector3 = (left.point(300) + right.point(300)) * .5
 	check(race.track.in_fork_gap(gap, race.track.length + 300), "두 분기 사이의 빈 틈을 낙하 전에 감지한다")
 	check(not race.track.in_fork_gap(left.point(300), race.track.length + 300), "정상 분기 노면은 중앙 틈으로 오인하지 않는다")
@@ -145,6 +145,8 @@ func run(tree: SceneTree) -> int:
 				"An unfinished fork road must stay hidden until its collision is registered"
 			)
 		build_frames += 1
+		# 화면 프레임마다 준비하는 계약을 실제 SceneTree 프레임으로 검증한다.
+		await tree.process_frame
 	check(
 		build_frames > 60 and build_frames < 4000,
 		"Fork roads built while driving must be spread over many frames, not one"

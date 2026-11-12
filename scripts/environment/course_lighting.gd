@@ -17,6 +17,7 @@ var is_night := false
 var lights: Array[SpotLight3D] = []
 var selection_clock := 0.0
 var local_materials: Dictionary = {}
+var assignments: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -28,6 +29,7 @@ func _ready() -> void:
 		light.spot_angle_attenuation = 1.3
 		add_child(light)
 		lights.append(light)
+		assignments.append({})
 
 
 func configure(owner: Node3D) -> void:
@@ -78,7 +80,8 @@ func _process(delta: float) -> void:
 	if selection_clock > 0:
 		return
 	selection_clock = .15
-	var capacity: int = [4, 3, 2][race.render_budget.level]
+	var capacity: int = race.render_budget.local_light_limit()
+	var street_range := 46.0 if race.render_budget.is_mobile_platform and race.render_budget.wet_night else 62.0
 	var camera_position: Vector3 = race.camera.global_position
 	var candidates: Array[Dictionary] = []
 	for kind in range(2):
@@ -100,12 +103,21 @@ func _process(delta: float) -> void:
 			break
 	for i in range(lights.size()):
 		var light := lights[i]
-		light.visible = i < selected.size()
+		if light.visible != (i < selected.size()):
+			light.visible = i < selected.size()
 		if not light.visible:
+			assignments[i].clear()
 			continue
 		var item: Dictionary = selected[i]
+		if (
+			assignments[i].get("anchor") == item.anchor
+			and assignments[i].get("ad") == item.ad
+			and assignments[i].get("range") == street_range
+		):
+			continue
+		assignments[i] = {"anchor": item.anchor, "ad": item.ad, "range": street_range}
 		light.global_transform = item.anchor
-		light.spot_range = 22 if item.ad else 62
+		light.spot_range = 22 if item.ad else street_range
 		light.spot_angle = 56 if item.ad else 58
 		light.light_energy = 4.2 if item.ad else (7.5 if race.selected_course == 1 else 5.0)
 		light.light_color = Color("fff1d6") if item.ad else Color("ffe7bd")

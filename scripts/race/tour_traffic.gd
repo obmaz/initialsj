@@ -33,9 +33,11 @@ func _physics_process(delta: float) -> void:
 		activated = true
 	if is_instance_valid(clock) and clock.state != RaceState.RACING:
 		return
-	var closest: float = road.curve.get_closest_offset(feet_position())
 	# 높이와 횡방향은 계측에만 사용한다. 차체를 곡선으로 순간 이동시키지 않는다.
-	distance = closest
+	# 생성 시 확정한 위치부터 국소 투영하며 매 물리 틱마다 전체 중심선을 순회하지 않는다.
+	distance = clampf(
+		preload("res://scripts/race/tour_progress.gd").project_distance(road, feet_position(), distance), 0, road.length
+	)
 	if not feature_record.is_empty():
 		feature_record.distance = distance
 	if distance > road.length - 20:

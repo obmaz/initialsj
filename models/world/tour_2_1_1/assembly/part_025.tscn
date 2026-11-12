@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_2_1_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="PackedScene" path="res://models/props/carnival_glass_gallery/model.tscn" id="gallery"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="GlassGallery1048" parent="." instance=ExtResource("gallery")]
+transform = Transform3D(-0.3810235, 0, -0.9245654, 0, 1, 0, 0.9245654, 0, -0.3810235, 984.0725, 73.81726, -163.06215)
+[node name="GlassGallery1056" parent="." instance=ExtResource("gallery")]
+transform = Transform3D(-0.39224714, 0, -0.9198599, 0, 1, 0, 0.9198599, 0, -0.39224714, 991.2713, 72.06745, -160.04404)
+[node name="GlassGallery1064" parent="." instance=ExtResource("gallery")]
+transform = Transform3D(-0.40156505, 0, -0.9158305, 0, 1, 0, 0.9158305, 0, -0.40156505, 998.4467, 70.37001, -156.94138)
+[node name="GlassGallery1072" parent="." instance=ExtResource("gallery")]
+transform = Transform3D(-0.41261432, 0, -0.91090584, 0, 1, 0, 0.91090584, 0, -0.41261432, 1005.64954, 69.03921, -153.73088)

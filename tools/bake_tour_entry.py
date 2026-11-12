@@ -62,7 +62,7 @@ def rails(points,side):
 
 
 def main():
-    data=json.loads((ROOT/'build/reports/circuit-weather/entry_curves.json').read_text())
+    data=json.loads((ROOT/'build/reports/tour-entry/curves.json').read_text())
     doc={'asset':{'version':'2.0','generator':'Initial SJ tour entry'},'buffers':[{}],'bufferViews':[],
          'accessors':[],'materials':[{'name':'entry'}],'meshes':[],'nodes':[{'name':'Model','children':[]}],
          'scenes':[{'nodes':[0]}],'scene':0}

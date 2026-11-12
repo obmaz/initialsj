@@ -1,0 +1,181 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_2_2_0/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/tour_vegetation.gd" id="31_htaew"]
+[ext_resource type="Resource" path="res://models/vegetation/town_oak_0/definition.tres" id="32_4qw3x"]
+[ext_resource type="Resource" path="res://models/vegetation/town_oak_1/definition.tres" id="33_ilk41"]
+[ext_resource type="Resource" path="res://models/vegetation/dark_fir/definition.tres" id="34_t8mmp"]
+[ext_resource type="Resource" path="res://models/vegetation/black_pine/definition.tres" id="35_hbrjg"]
+[ext_resource type="Resource" path="res://models/vegetation/spire_cypress/definition.tres" id="36_6x37u"]
+[ext_resource type="Resource" path="res://models/vegetation/juniper/definition.tres" id="37_ciar4"]
+[ext_resource type="Resource" path="res://models/vegetation/thorn_bramble/definition.tres" id="38_mbath"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="NativeTreeModels" type="Node3D" parent="." unique_id=2047246432]
+script = ExtResource("31_htaew")
+metadata/scene_state = {
+"bank_counts": {
+-1: 0,
+1: 0
+},
+"batch_slices": 24,
+"definitions": [ExtResource("32_4qw3x"), ExtResource("33_ilk41"), ExtResource("34_t8mmp"), ExtResource("35_hbrjg"), ExtResource("36_6x37u"), ExtResource("37_ciar4"), ExtResource("38_mbath")],
+"groups": {},
+"planning_slices": 0,
+"plantings": [{
+"position": Vector3(277.13104, 7.63736, -65.76276),
+"scale": 1.088876,
+"variant": 1,
+"yaw": -0.8354288970551607
+}, {
+"position": Vector3(320.44138, 10.744662, -120.870865),
+"scale": 0.9,
+"variant": 1,
+"yaw": -0.18852072586202345
+}, {
+"position": Vector3(385.72757, 46.35677, -247.79692),
+"scale": 0.9537438,
+"variant": 1,
+"yaw": -0.6365353511503762
+}, {
+"position": Vector3(428.84335, 51.236507, -300.4294),
+"scale": 1.18,
+"variant": 1,
+"yaw": -0.6819655467904441
+}, {
+"position": Vector3(524.0728, 51.31225, -393.74374),
+"scale": 0.9067706,
+"variant": 1,
+"yaw": -1.1800281108056907
+}, {
+"position": Vector3(592.10223, 51.28186, -420.3268),
+"scale": 0.9832644,
+"variant": 1,
+"yaw": -1.376614586471417
+}, {
+"position": Vector3(727.0866, 55.893845, -447.32352),
+"scale": 1.0395328,
+"variant": 1,
+"yaw": -1.693002114941833
+}, {
+"position": Vector3(787.39954, 57.448254, -438.9123),
+"scale": 1.18,
+"variant": 1,
+"yaw": -1.2971115721582145
+}, {
+"position": Vector3(931.56824, 56.13538, -420.90262),
+"scale": 0.9487819,
+"variant": 1,
+"yaw": -2.1029182362283665
+}, {
+"position": Vector3(995.0913, 57.702267, -407.6363),
+"scale": 0.91597694,
+"variant": 1,
+"yaw": -2.056878611118635
+}, {
+"position": Vector3(1132.9851, 77.05715, -365.99628),
+"scale": 0.84667695,
+"variant": 1,
+"yaw": -2.0204506219417584
+}, {
+"position": Vector3(1200.7614, 71.752754, -342.86203),
+"scale": 0.9,
+"variant": 1,
+"yaw": -1.767421687620763
+}, {
+"position": Vector3(1353.8118, 43.12496, -351.99316),
+"scale": 1.2426146,
+"variant": 1,
+"yaw": -1.451360039440437
+}, {
+"position": Vector3(1422.3158, 40.39667, -383.3378),
+"scale": 1.1412545,
+"variant": 1,
+"yaw": -0.7027585443836374
+}, {
+"position": Vector3(1512.847, 43.87138, -511.75766),
+"scale": 1.1152855,
+"variant": 1,
+"yaw": -0.410623881319018
+}, {
+"position": Vector3(1550.0521, 57.680225, -574.69147),
+"scale": 1.0909135,
+"variant": 1,
+"yaw": -0.5570513442311709
+}, {
+"position": Vector3(1593.8231, 88.21323, -703.86566),
+"scale": 0.91314834,
+"variant": 1,
+"yaw": -0.3916569440546428
+}, {
+"position": Vector3(1634.2765, 91.82062, -758.71356),
+"scale": 1.0596313,
+"variant": 1,
+"yaw": -0.27229985297599413
+}, {
+"position": Vector3(1725.0382, 84.749794, -860.05176),
+"scale": 0.94593316,
+"variant": 1,
+"yaw": -0.7554231179601171
+}, {
+"position": Vector3(1789.6954, 87.50419, -884.0714),
+"scale": 0.9057574,
+"variant": 1,
+"yaw": -1.13936576188226
+}, {
+"position": Vector3(1919.5175, 91.989265, -930.77606),
+"scale": 1.0002908,
+"variant": 1,
+"yaw": -1.4160065526410055
+}, {
+"position": Vector3(1989.6217, 87.383316, -923.37524),
+"scale": 0.92642534,
+"variant": 1,
+"yaw": -1.417119458932276
+}, {
+"position": Vector3(2124.9888, 79.555, -927.39764),
+"scale": 0.86228955,
+"variant": 1,
+"yaw": -1.9856360601978504
+}, {
+"position": Vector3(2198.2026, 73.6553, -904.62286),
+"scale": 1.0758326,
+"variant": 1,
+"yaw": -2.048569496328505
+}, {
+"position": Vector3(2339.7136, 69.08921, -872.22217),
+"scale": 0.81105655,
+"variant": 1,
+"yaw": -1.54206294597728
+}, {
+"position": Vector3(2411.1602, 66.90052, -853.6018),
+"scale": 1.18,
+"variant": 1,
+"yaw": -1.4141099755341924
+}, {
+"position": Vector3(2551.1167, 34.007145, -849.91003),
+"scale": 1.1061205,
+"variant": 1,
+"yaw": -1.732600267433973
+}, {
+"position": Vector3(2623.715, 18.984282, -872.9026),
+"scale": 1.1541269,
+"variant": 1,
+"yaw": -0.8392919997707755
+}, {
+"position": Vector3(2743.6677, 8.488777, -965.1051),
+"scale": 0.95823014,
+"variant": 1,
+"yaw": -1.0613200172339734
+}, {
+"position": Vector3(2796.6106, 6.028983, -1018.0797),
+"scale": 1.0890368,
+"variant": 1,
+"yaw": -0.6282562801910578
+}],
+"scenery": null,
+"tree_count": 30,
+"variant_counts": {}
+}

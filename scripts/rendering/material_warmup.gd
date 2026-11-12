@@ -134,7 +134,8 @@ func collect_batches() -> void:
 	while not cancelled() and not collect_some():
 		await get_tree().process_frame
 	if not cancelled():
-		begin(2)
+		# 주행 화면과 동시에 렌더하므로 로딩 화면 뒤 준비보다 작게 나눈다.
+		begin(1, Vector2i(128, 64))
 
 
 func cancelled() -> bool:
@@ -161,10 +162,10 @@ func collect_library() -> void:
 		add_mesh(mesh, material, [], true, true, true)
 
 
-func begin(limit: int = 8) -> void:
+func begin(limit: int = 8, size_px: Vector2i = Vector2i(256, 128)) -> void:
 	batch_size = limit
 	viewport = SubViewport.new()
-	viewport.size = Vector2i(256, 128)
+	viewport.size = size_px
 	viewport.own_world_3d = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	add_child(viewport)

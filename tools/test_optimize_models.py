@@ -115,6 +115,34 @@ class ModelPipelineChecks(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "등록되지 않은 배포 GLB"):
             pipeline.run(self.root, check=True)
 
+    def test_source_only_keeps_original_protected_without_shipped_output(self):
+        registry = self.source / "inventory.json"
+        inventory = json.loads(registry.read_text())
+        inventory["source_only"] = ["world/test/geometry.glb"]
+        registry.write_bytes(pipeline.encoded(inventory))
+        before = self.path.read_bytes(), self.path.stat().st_mtime_ns
+        pipeline.run(self.root)
+        pipeline.run(self.root, check=True)
+        self.assertEqual(before, (self.path.read_bytes(), self.path.stat().st_mtime_ns))
+        self.assertFalse((self.root / "models/world/test/geometry.glb").exists())
+        self.path.unlink()
+        for accept in (False, True):
+            with self.assertRaisesRegex(ValueError, "보호된 원본"):
+                pipeline.run(self.root, accept=accept)
+
+    def test_source_only_does_not_delete_existing_output(self):
+        pipeline.run(self.root)
+        registry = self.source / "inventory.json"
+        inventory = json.loads(registry.read_text())
+        inventory["source_only"] = ["world/test/geometry.glb"]
+        registry.write_bytes(pipeline.encoded(inventory))
+        target = self.root / "models/world/test/geometry.glb"
+        before = target.read_bytes()
+        pipeline.run(self.root)
+        self.assertEqual(target.read_bytes(), before)
+        with self.assertRaisesRegex(ValueError, "등록되지 않은 배포 GLB"):
+            pipeline.run(self.root, check=True)
+
     def test_common_tree_edit_keeps_course_binding_and_original_snapshot(self):
         doc, binary = glb.read(self.path.read_bytes())
         doc["meshes"][0]["primitives"].append(copy.deepcopy(doc["meshes"][0]["primitives"][0]))

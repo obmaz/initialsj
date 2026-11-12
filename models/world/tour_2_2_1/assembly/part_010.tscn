@@ -1,0 +1,46 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_2_2_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/road_biome.gd" id="22_80lex"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0208" type="Node3D" parent="." unique_id=680013531]
+script = ExtResource("22_80lex")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0208/Part0212")
+}],
+"building_manifest": [],
+"distant_art": {
+&"$node": NodePath("Part0208/Part0287")
+},
+"ground_nodes": [{
+&"$node": NodePath("Part0208/Part0209")
+}, {
+&"$node": NodePath("Part0208/Part0210")
+}],
+"landmarks": null,
+"local_lights": [],
+"rng": {
+&"$rng": 8730369187767139850,
+&"seed": 2102
+},
+"roadside_art": {
+&"$node": NodePath("Part0208/Part0223")
+},
+"rotating": [{
+&"$node": NodePath("Part0208/Part0213")
+}, {
+&"$node": NodePath("Part0208/Part0218")
+}],
+"theme": "jeju",
+"track": {
+&"$node": NodePath(".")
+},
+"tree_positions": [Vector3(347.02325, 10.737987, -26.160131), Vector3(514.2943, 51.21815, -152.70117), Vector3(710.3798, 51.211765, -203.48972), Vector3(898.6389, 57.582977, -148.30974), Vector3(1079.9152, 57.704727, -42.226368), Vector3(1246.8877, 71.74729, 94.21405), Vector3(1467.6489, 40.464363, 138.80441), Vector3(1657.2501, 57.717056, 8.481651), Vector3(1803.7224, 91.793365, -131.17273), Vector3(1994.5521, 87.51274, -189.94075), Vector3(2194.7935, 87.33107, -152.28539), Vector3(2381.538, 73.67361, -57.505337), Vector3(2560.3767, 66.901215, 68.865395), Vector3(2764.9275, 18.984842, 129.78549), Vector3(2979.3396, 6.028982, 59.096684)],
+"water": {
+&"$node": NodePath("Part0208/Part0211")
+}
+}

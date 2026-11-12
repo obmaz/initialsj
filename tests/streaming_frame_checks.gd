@@ -41,6 +41,42 @@ func compare_shapes(road: Node3D) -> void:
 
 func run(tree: SceneTree) -> int:
 	Pool.acquire_owner()
+	var pacing := preload("res://scripts/track/track.gd").new()
+	var active_stub := Section.new()
+	var preview_stub := Section.new()
+	pacing.active = active_stub
+	pacing.previews.append(preview_stub)
+	preview_stub.staged = true
+	var prepared := [0]
+	for step in range(6):
+		preview_stub.build_queue.append(func(): prepared[0] += 1)
+	for physics_tick in range(3):
+		pacing.maintain(100)
+	check(prepared[0] == 3, "한 화면 프레임의 보충 물리 틱3개도 준비 작업의 프레임 예산을 중복 소비하지 않는다")
+	await tree.process_frame
+	pacing.maintain(100)
+	check(prepared[0] == 6, "다음 화면 프레임에는 남은 구간 준비가 계속 진행된다")
+	pacing.previews.clear()
+	pacing.active = null
+	preview_stub.free()
+	active_stub.free()
+	pacing.free()
+	var pending_road: Node3D = Section.new(Vector3(7300, 80, -2100), .71, 1, 0, -1)
+	pending_road.staged = true
+	tree.root.add_child(pending_road)
+	var reached_read := false
+	for step in range(100):
+		pending_road.build_some(0)
+		if pending_road.asset_context.has("reading"):
+			reached_read = true
+			break
+	check(reached_read, "큰 GLB 속성 조회는 한 단계에서 끝내지 않고 다음 프레임에 이어 간다")
+	var pending_context: Dictionary = pending_road.asset_context
+	var pending_root: Node3D = pending_context.get("root")
+	pending_road.free()
+	check(
+		pending_context.is_empty() and not is_instance_valid(pending_root), "속성 조회 도중 취소해도 조립 루트·SceneState 관측 참조를 비운다"
+	)
 	for spec in [Vector3i(0, 0, 0), Vector3i(1, 0, -1), Vector3i(3, 1, 1)]:
 		var road: Node3D = Section.new(Vector3(7300, 80, -2100), .71, spec.x, spec.y, spec.z)
 		tree.root.add_child(road)

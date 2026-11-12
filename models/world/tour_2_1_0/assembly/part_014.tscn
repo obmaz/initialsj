@@ -1,0 +1,267 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_2_1_0/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/regional_props_3d.gd" id="27_jxum0"]
+[ext_resource type="Script" path="res://scripts/environment/roadside_art.gd" id="41_tsywf"]
+[ext_resource type="Script" path="res://scripts/environment/distant_ridges.gd" id="42_dp12m"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_2_1_0/assembly/resources.tres::ShaderMaterial_yclrh" id="shared_ShaderMaterial_yclrh"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_0/assembly/resources.tres::MultiMesh_tex6l" id="shared_MultiMesh_tex6l"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_0/assembly/resources.tres::MultiMesh_g2san" id="shared_MultiMesh_g2san"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_0/assembly/resources.tres::MultiMesh_c3njk" id="shared_MultiMesh_c3njk"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_0/assembly/resources.tres::MultiMesh_odrwr" id="shared_MultiMesh_odrwr"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_0/assembly/resources.tres::MultiMesh_37ejn" id="shared_MultiMesh_37ejn"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_0/assembly/resources.tres::MultiMesh_0r62j" id="shared_MultiMesh_0r62j"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_0/assembly/resources.tres::MultiMesh_xkk6y" id="shared_MultiMesh_xkk6y"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_0/assembly/resources.tres::MultiMesh_7dsdp" id="shared_MultiMesh_7dsdp"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_0/assembly/resources.tres::MultiMesh_shood" id="shared_MultiMesh_shood"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_0/assembly/resources.tres::MultiMesh_gos44" id="shared_MultiMesh_gos44"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_1_0/assembly/resources.tres::MultiMesh_enxew" id="shared_MultiMesh_enxew"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0265" type="Node3D" parent="." unique_id=1450041553]
+script = ExtResource("41_tsywf")
+metadata/scene_state = {
+"models": {
+&"$node": NodePath("Part0201/Part0265/RegionalForeground3D")
+},
+"positions": [Vector3(213.03526, 7.332268, -88.99145), Vector3(282.59506, 17.393103, -148.79338), Vector3(335.57782, 49.602665, -236.60754), Vector3(695.00635, 67.419495, -499.85696), Vector3(807.286, 73.07162, -435.9131), Vector3(911.2668, 67.53559, -520.07355), Vector3(1009.12915, 66.88618, -431.74994), Vector3(1449.054, 32.74663, -390.95676), Vector3(1502.6595, 52.188652, -507.4699), Vector3(1618.0386, 82.22529, -550.8271), Vector3(1603.6058, 95.747986, -674.10284), Vector3(1921.1818, 82.06862, -988.3602), Vector3(2047.8114, 75.20919, -953.9276), Vector3(2134.8909, 65.91025, -1048.6183), Vector3(2248.9316, 60.773037, -971.33307), Vector3(2676.5928, 7.736498, -918.77386)],
+"scenery": {
+&"$node": NodePath("Part0201")
+},
+"widths": [35.959946649867106, 32.297359160315864, 34.019989505039575, 32.8318803651116, 33.54183720334822, 33.34563857077774, 32.297359160315864, 35.959946649867106, 32.297359160315864, 32.297359160315864, 33.637035018512506, 32.297359160315864, 32.297359160315864, 32.297359160315864, 35.959946649867106, 35.959946649867106]
+}
+
+[node name="RegionalForeground3D" type="Node3D" parent="Part0265" unique_id=784668913]
+script = ExtResource("27_jxum0")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0201/Part0265/RegionalForeground3D/Regional3D_ticket_booth_0")
+}, {
+&"$node": NodePath("Part0201/Part0265/RegionalForeground3D/Part0268")
+}, {
+&"$node": NodePath("Part0201/Part0265/RegionalForeground3D/Part0269")
+}, {
+&"$node": NodePath("Part0201/Part0265/RegionalForeground3D/Part0270")
+}, {
+&"$node": NodePath("Part0201/Part0265/RegionalForeground3D/Part0271")
+}, {
+&"$node": NodePath("Part0201/Part0265/RegionalForeground3D/Part0272")
+}, {
+&"$node": NodePath("Part0201/Part0265/RegionalForeground3D/Part0273")
+}, {
+&"$node": NodePath("Part0201/Part0265/RegionalForeground3D/Part0274")
+}, {
+&"$node": NodePath("Part0201/Part0265/RegionalForeground3D/Part0275")
+}, {
+&"$node": NodePath("Part0201/Part0265/RegionalForeground3D/Part0276")
+}, {
+&"$node": NodePath("Part0201/Part0265/RegionalForeground3D/Part0277")
+}],
+"kinds": ["ticket_booth"],
+"placements": [{
+"distance": 238.351007938385,
+"kind": "ticket_booth",
+"position": Vector3(213.03526, 7.332268, -88.99145),
+"scale": 1.08,
+"variant": 0,
+"yaw": 0.46083348362749144
+}, {
+"distance": 349.88541316986084,
+"kind": "ticket_booth",
+"position": Vector3(282.59506, 17.393103, -148.79338),
+"scale": 0.97,
+"variant": 0,
+"yaw": 0.9896930015634272
+}, {
+"distance": 457.1429319381714,
+"kind": "ticket_booth",
+"position": Vector3(335.57782, 49.602665, -236.60754),
+"scale": 1.0217365,
+"variant": 0,
+"yaw": 0.9808963630579334
+}, {
+"distance": 891.4293880462646,
+"kind": "ticket_booth",
+"position": Vector3(695.00635, 67.419495, -499.85696),
+"scale": 0.9860535,
+"variant": 0,
+"yaw": 0.23248815168640524
+}, {
+"distance": 994.2745780944824,
+"kind": "ticket_booth",
+"position": Vector3(807.286, 73.07162, -435.9131),
+"scale": 1.007376,
+"variant": 0,
+"yaw": -3.070479429829935
+}, {
+"distance": 1099.6551747322085,
+"kind": "ticket_booth",
+"position": Vector3(911.2668, 67.53559, -520.07355),
+"scale": 1.0014834,
+"variant": 0,
+"yaw": -0.07736524910262865
+}, {
+"distance": 1209.0808176994324,
+"kind": "ticket_booth",
+"position": Vector3(1009.12915, 66.88618, -431.74994),
+"scale": 0.97,
+"variant": 0,
+"yaw": -3.352153105413115
+}, {
+"distance": 1642.1697452068329,
+"kind": "ticket_booth",
+"position": Vector3(1449.054, 32.74663, -390.95676),
+"scale": 1.08,
+"variant": 0,
+"yaw": -2.7420525772514095
+}, {
+"distance": 1752.685203075409,
+"kind": "ticket_booth",
+"position": Vector3(1502.6595, 52.188652, -507.4699),
+"scale": 0.97,
+"variant": 0,
+"yaw": 0.7801069106018043
+}, {
+"distance": 1862.0063,
+"kind": "ticket_booth",
+"position": Vector3(1618.0386, 82.22529, -550.8271),
+"scale": 0.97,
+"variant": 0,
+"yaw": -2.112919650544524
+}, {
+"distance": 1963.778109550476,
+"kind": "ticket_booth",
+"position": Vector3(1603.6058, 95.747986, -674.10284),
+"scale": 1.0102351,
+"variant": 0,
+"yaw": 1.096461747513804
+}, {
+"distance": 2400.317419052124,
+"kind": "ticket_booth",
+"position": Vector3(1921.1818, 82.06862, -988.3602),
+"scale": 0.97,
+"variant": 0,
+"yaw": 0.4075550799549674
+}, {
+"distance": 2510.691754817962,
+"kind": "ticket_booth",
+"position": Vector3(2047.8114, 75.20919, -953.9276),
+"scale": 0.97,
+"variant": 0,
+"yaw": -2.9059869287897655
+}, {
+"distance": 2611.973247051239,
+"kind": "ticket_booth",
+"position": Vector3(2134.8909, 65.91025, -1048.6183),
+"scale": 0.97,
+"variant": 0,
+"yaw": 0.07469654303605777
+}, {
+"distance": 2727.154719352722,
+"kind": "ticket_booth",
+"position": Vector3(2248.9316, 60.773037, -971.33307),
+"scale": 1.08,
+"variant": 0,
+"yaw": -3.244732359744714
+}, {
+"distance": 3158.148151397705,
+"kind": "ticket_booth",
+"position": Vector3(2676.5928, 7.736498, -918.77386),
+"scale": 1.08,
+"variant": 0,
+"yaw": -3.0121613682147252
+}],
+"theme": "amusement",
+"tree_count": 0,
+"world_bounds": [AABB(198.60449, 7.332268, -102.789024, 30.734589, 12.474001, 31.367767), AABB(269.67917, 17.393103, -162.07106, 28.993835, 11.203501, 28.632019), AABB(321.94034, 49.602665, -250.60992, 30.586304, 11.801056, 30.221405), AABB(682.9599, 67.419495, -510.9514, 24.978943, 11.388916, 25.93097), AABB(795.9053, 73.07162, -449.72028, 22.48236, 11.635193, 23.695557), AABB(899.8763, 67.53559, -529.9648, 22.479126, 11.567131, 23.676575), AABB(997.41907, 66.88618, -446.18988, 24.210876, 11.203499, 25.18045), AABB(1433.2451, 32.74663, -408.26016, 29.979248, 12.473999, 30.726563), AABB(1489.2802, 52.188652, -520.83997, 29.419556, 11.203499, 29.4292), AABB(1602.0317, 82.22529, -565.97485, 28.773193, 11.203499, 28.343628), AABB(1590.6288, 95.747986, -687.64825, 29.458984, 11.668213, 28.89038), AABB(1908.4213, 82.06862, -1000.46277, 27.020386, 11.203499, 27.678223), AABB(2035.0585, 75.20919, -968.54407, 24.62268, 11.203499, 25.554443), AABB(2124.1724, 65.91025, -1058.1735, 21.719482, 11.203499, 22.882813), AABB(2236.7473, 60.773037, -986.4549, 24.802246, 12.474003, 26.054016), AABB(2663.6426, 7.736498, -934.1461, 25.35669, 12.474001, 26.567749)]
+}
+
+[node name="Regional3D_ticket_booth_0" type="MultiMeshInstance3D" parent="Part0265/RegionalForeground3D" unique_id=820702556]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_tex6l")
+metadata/mesh_ref = "res://models/props/ticket_booth/model.glb#Visual"
+
+[node name="Part0268" type="MultiMeshInstance3D" parent="Part0265/RegionalForeground3D" unique_id=1152638366]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_g2san")
+metadata/mesh_ref = "res://models/props/ticket_booth/model.glb#Visual"
+
+[node name="Part0269" type="MultiMeshInstance3D" parent="Part0265/RegionalForeground3D" unique_id=1348027020]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_c3njk")
+metadata/mesh_ref = "res://models/props/ticket_booth/model.glb#Visual"
+
+[node name="Part0270" type="MultiMeshInstance3D" parent="Part0265/RegionalForeground3D" unique_id=876190626]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_odrwr")
+metadata/mesh_ref = "res://models/props/ticket_booth/model.glb#Visual"
+
+[node name="Part0271" type="MultiMeshInstance3D" parent="Part0265/RegionalForeground3D" unique_id=24292489]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_37ejn")
+metadata/mesh_ref = "res://models/props/ticket_booth/model.glb#Visual"
+
+[node name="Part0272" type="MultiMeshInstance3D" parent="Part0265/RegionalForeground3D" unique_id=929113625]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_0r62j")
+metadata/mesh_ref = "res://models/props/ticket_booth/model.glb#Visual"
+
+[node name="Part0273" type="MultiMeshInstance3D" parent="Part0265/RegionalForeground3D" unique_id=903317027]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_xkk6y")
+metadata/mesh_ref = "res://models/props/ticket_booth/model.glb#Visual"
+
+[node name="Part0274" type="MultiMeshInstance3D" parent="Part0265/RegionalForeground3D" unique_id=805522175]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_7dsdp")
+metadata/mesh_ref = "res://models/props/ticket_booth/model.glb#Visual"
+
+[node name="Part0275" type="MultiMeshInstance3D" parent="Part0265/RegionalForeground3D" unique_id=831552076]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_shood")
+metadata/mesh_ref = "res://models/props/ticket_booth/model.glb#Visual"
+
+[node name="Part0276" type="MultiMeshInstance3D" parent="Part0265/RegionalForeground3D" unique_id=579503415]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_gos44")
+metadata/mesh_ref = "res://models/props/ticket_booth/model.glb#Visual"
+
+[node name="Part0277" type="MultiMeshInstance3D" parent="Part0265/RegionalForeground3D" unique_id=223109361]
+material_override = ExtResource("shared_ShaderMaterial_yclrh")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_enxew")
+metadata/mesh_ref = "res://models/props/ticket_booth/model.glb#Visual"
+
+[node name="Part0278" type="Node3D" parent="." unique_id=293790625]
+script = ExtResource("42_dp12m")
+metadata/scene_state = {
+"positions": [],
+"scenery": {
+&"$node": NodePath("Part0201")
+},
+"sprite_batch": null,
+"widths": []
+}

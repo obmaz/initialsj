@@ -1,0 +1,46 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_1_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/road_biome.gd" id="14_dv3qd"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0193" type="Node3D" parent="." unique_id=1888016166]
+script = ExtResource("14_dv3qd")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0193/Part0272")
+}, {
+&"$node": NodePath("Part0193/Part0273")
+}, {
+&"$node": NodePath("Part0193/Part0274")
+}],
+"building_manifest": [],
+"distant_art": {
+&"$node": NodePath("Part0193/Part0270")
+},
+"ground_nodes": [{
+&"$node": NodePath("Part0193/Part0194")
+}, {
+&"$node": NodePath("Part0193/Part0195")
+}],
+"landmarks": null,
+"local_lights": [],
+"rng": {
+&"$rng": 4879272211750580217,
+&"seed": 2147
+},
+"roadside_art": {
+&"$node": NodePath("Part0193/Part0197")
+},
+"rotating": [],
+"theme": "harbor",
+"track": {
+&"$node": NodePath(".")
+},
+"tree_positions": [Vector3(439.77237, 46.869736, -158.38312), Vector3(771.2256, 80.37517, -301.5905), Vector3(1113.082, 76.34751, -214.11017), Vector3(1393.7109, 30.381327, 1.5017815), Vector3(1697.1641, 62.25815, 55.7498), Vector3(1956.5262, 80.56523, -156.93913), Vector3(2288.7278, 72.74322, -291.6179), Vector3(2642.8428, 68.471596, -215.64696), Vector3(2924.9941, 20.616905, -17.972647)],
+"water": {
+&"$node": NodePath("Part0193/Part0196")
+}
+}

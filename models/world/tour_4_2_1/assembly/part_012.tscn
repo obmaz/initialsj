@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_2_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_4_2_1/assembly/resources.tres::ShaderMaterial_y523o" id="shared_ShaderMaterial_y523o"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0241" type="MeshInstance3D" parent="." unique_id=2094338665]
+material_override = ExtResource("shared_ShaderMaterial_y523o")
+metadata/mesh_ref = "res://models/world/tour_4_2_1/geometry.glb#Geometry0114"
+
+[node name="Part0242" type="MeshInstance3D" parent="." unique_id=708051386]
+material_override = ExtResource("shared_ShaderMaterial_y523o")
+metadata/mesh_ref = "res://models/world/tour_4_2_1/geometry.glb#Geometry0115"

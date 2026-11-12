@@ -1,0 +1,55 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_2_0_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/tour_vegetation.gd" id="30_g5c5r"]
+[ext_resource type="Resource" path="res://models/vegetation/town_oak_0/definition.tres" id="31_6qhc0"]
+[ext_resource type="Resource" path="res://models/vegetation/town_oak_1/definition.tres" id="32_fxeb8"]
+[ext_resource type="Resource" path="res://models/vegetation/dark_fir/definition.tres" id="33_mpi06"]
+[ext_resource type="Resource" path="res://models/vegetation/black_pine/definition.tres" id="34_nthbi"]
+[ext_resource type="Resource" path="res://models/vegetation/spire_cypress/definition.tres" id="35_jji8v"]
+[ext_resource type="Resource" path="res://models/vegetation/juniper/definition.tres" id="36_umbee"]
+[ext_resource type="Resource" path="res://models/vegetation/thorn_bramble/definition.tres" id="37_u1o2j"]
+[ext_resource type="Script" path="res://scripts/environment/distant_ridges.gd" id="40_0pos3"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_2_0_1/assembly/resources.tres::ShaderMaterial_neq1g" id="shared_ShaderMaterial_neq1g"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_2_0_1/assembly/resources.tres::MultiMesh_pr517" id="shared_MultiMesh_pr517"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0296" type="Node3D" parent="." unique_id=1432600055]
+script = ExtResource("40_0pos3")
+metadata/scene_state = {
+"positions": [Vector3(730.952, 63.104958, 527.2849), Vector3(1520.4229, 81.206856, -679.5031), Vector3(2289.4404, 120.56911, 508.96878), Vector3(3070.882, 36.08648, -665.9368)],
+"scenery": {
+&"$node": NodePath("Part0225")
+},
+"sprite_batch": {
+&"$node": NodePath("Part0225/Part0296/Part0297")
+},
+"widths": [540.0, 610.0, 680.0, 540.0]
+}
+
+[node name="Part0297" type="MultiMeshInstance3D" parent="Part0296" unique_id=1796243069]
+material_override = ExtResource("shared_ShaderMaterial_neq1g")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_pr517")
+metadata/mesh_ref = "res://models/world/tour_2_0_1/geometry.glb#Geometry0127"
+
+[node name="TourNativeVegetation" type="Node3D" parent="." unique_id=867609984]
+script = ExtResource("30_g5c5r")
+metadata/scene_state = {
+"bank_counts": {
+-1: 0,
+1: 0
+},
+"batch_slices": 0,
+"definitions": [ExtResource("31_6qhc0"), ExtResource("32_fxeb8"), ExtResource("33_mpi06"), ExtResource("34_nthbi"), ExtResource("35_jji8v"), ExtResource("36_umbee"), ExtResource("37_u1o2j")],
+"groups": {},
+"planning_slices": 0,
+"plantings": [],
+"scenery": {
+&"$node": NodePath("Part0225")
+},
+"tree_count": 0,
+"variant_counts": {}
+}

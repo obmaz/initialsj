@@ -1,0 +1,373 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_0_0/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/regional_props_3d.gd" id="25_oqia4"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="RegionalForeground3D" type="Node3D" parent="." unique_id=1859518438]
+script = ExtResource("25_oqia4")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Regional3D_sandstone_0")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Regional3D_cactus_0")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0246")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0247")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0248")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0249")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0250")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0251")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0252")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0253")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0254")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0255")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0256")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0257")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0258")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0259")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0260")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0261")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0262")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0263")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0264")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0265")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0266")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0267")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0268")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0269")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0270")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0271")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0272")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0273")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0274")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0275")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0276")
+}, {
+&"$node": NodePath("Part0238/Part0242/RegionalForeground3D/Part0277")
+}],
+"kinds": ["sandstone", "cactus"],
+"placements": [{
+"distance": 237.99191427230835,
+"kind": "sandstone",
+"position": Vector3(214.54977, 6.7940893, -86.14937),
+"scale": 0.99588364,
+"variant": 0,
+"yaw": -0.9303158993466756
+}, {
+"distance": 311.36970138549805,
+"kind": "cactus",
+"position": Vector3(264.5232, 9.760108, -122.17226),
+"scale": 1.1234729,
+"variant": 1,
+"yaw": -0.900457422901
+}, {
+"distance": 384.395001411438,
+"kind": "sandstone",
+"position": Vector3(300.55096, 16.762348, -179.08035),
+"scale": 0.8056339,
+"variant": 2,
+"yaw": -0.4273895015595197
+}, {
+"distance": 460.04916,
+"kind": "sandstone",
+"position": Vector3(344.2871, 38.903496, -235.92986),
+"scale": 1.054811,
+"variant": 0,
+"yaw": -0.9083371412728743
+}, {
+"distance": 530.6312804222107,
+"kind": "cactus",
+"position": Vector3(386.27615, 59.700844, -289.8295),
+"scale": 0.94454926,
+"variant": 1,
+"yaw": -0.6931153544368976
+}, {
+"distance": 603.3016185760498,
+"kind": "sandstone",
+"position": Vector3(431.3623, 61.27864, -349.422),
+"scale": 1.0069765,
+"variant": 2,
+"yaw": -0.7212487787007764
+}, {
+"distance": 671.1105909347534,
+"kind": "sandstone",
+"position": Vector3(479.87598, 61.588284, -400.78244),
+"scale": 0.8932548,
+"variant": 0,
+"yaw": -0.4455459177737988
+}, {
+"distance": 745.7920417785645,
+"kind": "cactus",
+"position": Vector3(583.2123, 60.934788, -397.5783),
+"scale": 1.0578518,
+"variant": 1,
+"yaw": -1.1423516272344525
+}, {
+"distance": 815.3787984848022,
+"kind": "sandstone",
+"position": Vector3(592.97504, 61.978184, -503.0948),
+"scale": 0.92195976,
+"variant": 2,
+"yaw": -1.1640176939355211
+}, {
+"distance": 884.3544509410858,
+"kind": "sandstone",
+"position": Vector3(692.00653, 63.934265, -467.8634),
+"scale": 0.8911977,
+"variant": 0,
+"yaw": -1.3879943055676336
+}, {
+"distance": 964.5352640151978,
+"kind": "cactus",
+"position": Vector3(737.4986, 67.451256, -565.91797),
+"scale": 0.9846395,
+"variant": 1,
+"yaw": -1.1895609749195926
+}, {
+"distance": 1034.7515263557434,
+"kind": "sandstone",
+"position": Vector3(825.5544, 75.43282, -512.6066),
+"scale": 0.8628794,
+"variant": 2,
+"yaw": -1.54883443324445
+}, {
+"distance": 1099.54066324234,
+"kind": "sandstone",
+"position": Vector3(873.54877, 72.55144, -597.33514),
+"scale": 0.94699436,
+"variant": 0,
+"yaw": -1.287694415947909
+}, {
+"distance": 1174.873479127884,
+"kind": "cactus",
+"position": Vector3(954.72815, 68.29681, -541.30853),
+"scale": 1.0536841,
+"variant": 1,
+"yaw": -1.7655670186012424
+}, {
+"distance": 1250.7082948684692,
+"kind": "sandstone",
+"position": Vector3(1029.9503, 72.29149, -609.11395),
+"scale": 0.8653677,
+"variant": 2,
+"yaw": -1.6490034173706845
+}, {
+"distance": 1318.198763847351,
+"kind": "sandstone",
+"position": Vector3(1091.1528, 83.93201, -539.24506),
+"scale": 1.0406556,
+"variant": 0,
+"yaw": -1.972384500128059
+}, {
+"distance": 1394.5284233093262,
+"kind": "cactus",
+"position": Vector3(1175.0396, 95.25376, -588.3397),
+"scale": 1.1157839,
+"variant": 1,
+"yaw": -1.600490532617914
+}, {
+"distance": 1467.2335577011108,
+"kind": "sandstone",
+"position": Vector3(1232.0277, 84.91808, -512.9924),
+"scale": 1.2341604,
+"variant": 2,
+"yaw": -1.9361670105240312
+}, {
+"distance": 1540.581075668335,
+"kind": "sandstone",
+"position": Vector3(1316.0975, 66.832886, -556.3727),
+"scale": 0.90162665,
+"variant": 0,
+"yaw": -2.053722206126655
+}, {
+"distance": 1603.625964164734,
+"kind": "cactus",
+"position": Vector3(1362.7188, 59.154705, -481.2408),
+"scale": 0.8535036,
+"variant": 1,
+"yaw": -1.5433887799379091
+}, {
+"distance": 1682.9633626937866,
+"kind": "sandstone",
+"position": Vector3(1451.2452, 56.345325, -539.76416),
+"scale": 1.2492622,
+"variant": 2,
+"yaw": -1.921148023246252
+}, {
+"distance": 1754.004328250885,
+"kind": "sandstone",
+"position": Vector3(1519.5021, 56.11948, -464.60312),
+"scale": 0.82181954,
+"variant": 0,
+"yaw": -1.2927267620522618
+}, {
+"distance": 2113.267407417298,
+"kind": "sandstone",
+"position": Vector3(1783.1671, 85.938995, -693.3839),
+"scale": 0.8935858,
+"variant": 2,
+"yaw": -0.8895578792684252
+}, {
+"distance": 2183.210169315338,
+"kind": "sandstone",
+"position": Vector3(1883.54, 95.73037, -707.9929),
+"scale": 1.1718841,
+"variant": 0,
+"yaw": -0.38250654240856086
+}, {
+"distance": 2260.7557554244995,
+"kind": "cactus",
+"position": Vector3(1858.7771, 100.90204, -815.5047),
+"scale": 1.1322358,
+"variant": 1,
+"yaw": -0.8988275285639078
+}, {
+"distance": 2326.7241702079773,
+"kind": "sandstone",
+"position": Vector3(1963.2476, 103.01978, -825.19415),
+"scale": 1.1430824,
+"variant": 2,
+"yaw": -0.8262629881161043
+}, {
+"distance": 2395.5079460144043,
+"kind": "sandstone",
+"position": Vector3(1940.7233, 96.1018, -925.40283),
+"scale": 0.88492227,
+"variant": 0,
+"yaw": -0.7202874606951336
+}, {
+"distance": 2470.5458602905273,
+"kind": "cactus",
+"position": Vector3(2042.5668, 94.5132, -937.9083),
+"scale": 1.172317,
+"variant": 1,
+"yaw": -0.8783923680128776
+}, {
+"distance": 2541.0708858966827,
+"kind": "sandstone",
+"position": Vector3(2043.9978, 88.222565, -1036.4412),
+"scale": 0.9767127,
+"variant": 2,
+"yaw": -0.76307265551039
+}, {
+"distance": 2614.792486190796,
+"kind": "sandstone",
+"position": Vector3(2145.0718, 80.43863, -1029.462),
+"scale": 0.9204618,
+"variant": 0,
+"yaw": -0.790049775813993
+}, {
+"distance": 2689.3584718704224,
+"kind": "cactus",
+"position": Vector3(2170.1538, 74.84921, -1124.8772),
+"scale": 0.8377637,
+"variant": 1,
+"yaw": -0.8274458707679277
+}, {
+"distance": 2762.252133369446,
+"kind": "sandstone",
+"position": Vector3(2266.0298, 73.53929, -1100.6147),
+"scale": 1.2152848,
+"variant": 2,
+"yaw": -1.2575608222400525
+}, {
+"distance": 2833.2219762802124,
+"kind": "sandstone",
+"position": Vector3(2305.237, 73.818855, -1190.8252),
+"scale": 0.84527,
+"variant": 0,
+"yaw": -1.1046694085702191
+}, {
+"distance": 2908.3921041488647,
+"kind": "cactus",
+"position": Vector3(2394.73, 73.27937, -1153.2375),
+"scale": 1.1084048,
+"variant": 1,
+"yaw": -1.3264992383593068
+}, {
+"distance": 2977.78986120224,
+"kind": "sandstone",
+"position": Vector3(2453.424, 70.90121, -1223.1826),
+"scale": 1.1304231,
+"variant": 2,
+"yaw": -1.475973738801499
+}, {
+"distance": 3046.4017853736877,
+"kind": "sandstone",
+"position": Vector3(2524.0122, 56.98222, -1161.4252),
+"scale": 1.0054952,
+"variant": 0,
+"yaw": -1.4095646165447353
+}, {
+"distance": 3122.31476688385,
+"kind": "cactus",
+"position": Vector3(2599.0251, 33.84254, -1223.6338),
+"scale": 1.0471,
+"variant": 1,
+"yaw": -1.3378326716865578
+}, {
+"distance": 3189.284071445465,
+"kind": "sandstone",
+"position": Vector3(2655.4583, 20.540762, -1150.2867),
+"scale": 1.1679716,
+"variant": 2,
+"yaw": -1.7440473029795365
+}, {
+"distance": 3263.2943630218506,
+"kind": "sandstone",
+"position": Vector3(2739.874, 13.610243, -1203.0078),
+"scale": 1.0712333,
+"variant": 0,
+"yaw": -1.7426485747207832
+}, {
+"distance": 3331.4865913391113,
+"kind": "cactus",
+"position": Vector3(2794.3418, 9.029418, -1128.938),
+"scale": 1.1383443,
+"variant": 1,
+"yaw": -2.113506285203837
+}, {
+"distance": 3412.5223598480225,
+"kind": "sandstone",
+"position": Vector3(2882.3164, 6.734276, -1183.4673),
+"scale": 0.9635279,
+"variant": 2,
+"yaw": -1.3653237726784713
+}],
+"theme": "canyon",
+"tree_count": 0,
+"world_bounds": [AABB(210.60318, 6.6447067, -89.86123, 8.355469, 2.9876509, 8.186188), AABB(262.8047, 9.760108, -124.07502, 3.3890686, 6.740838, 3.843544), AABB(297.78003, 16.641502, -182.14983, 6.166809, 2.4169025, 6.499115), AABB(340.1096, 38.745274, -239.88658, 8.862335, 3.1644325, 8.710083), AABB(384.65924, 59.700844, -291.25684, 3.2009583, 5.6672974, 2.8942566), AABB(427.47284, 61.127594, -353.3295, 8.396179, 3.0209274, 8.472168), AABB(476.77228, 61.454296, -404.19827, 6.892975, 2.67976, 7.2435303), AABB(581.9058, 60.934788, -399.49777, 2.5604858, 6.3471107, 3.8628845), AABB(589.40625, 61.83989, -506.19656, 7.390503, 2.7658768, 6.9893494), AABB(688.8115, 63.800587, -470.3985, 6.459656, 2.6735954, 5.865082), AABB(736.348, 67.451256, -567.71576, 2.2513428, 5.907837, 3.6155396), AABB(822.7344, 75.30339, -514.6619, 5.583313, 2.5886383, 4.8810425), AABB(870.01056, 72.409386, -600.26764, 7.234619, 2.8409882, 6.697998), AABB(953.79895, 68.29681, -543.2489, 1.802124, 6.3221054, 3.869629), AABB(1026.9573, 72.16168, -611.3276, 5.852173, 2.5961075, 5.1903687), AABB(1086.7666, 83.77591, -542.7702, 8.328247, 3.1219635, 7.869385), AABB(1174.3676, 95.25376, -590.3303, 1.2832031, 6.694702, 3.97937), AABB(1226.905, 84.732956, -517.07837, 9.75415, 3.7024841, 9.161713), AABB(1312.1859, 66.69764, -559.56757, 7.381958, 2.7048798, 7.065796), AABB(1362.2081, 59.154705, -482.76123, 0.97473145, 5.1210213, 3.0421143), AABB(1446.095, 56.157936, -543.8588, 9.818237, 3.7477875, 9.198547), AABB(1516.437, 55.99621, -467.13818, 6.263794, 2.465458, 5.7937317), AABB(1779.6313, 85.804955, -696.7528, 7.513916, 2.6807632, 7.40448), AABB(1879.6171, 95.55459, -712.4109, 8.777588, 3.515648, 9.3185425), AABB(1857.0433, 100.90204, -817.421, 3.4193115, 6.7934113, 3.8710327), AABB(1958.7502, 102.84832, -829.5657, 9.613281, 3.429245, 9.558411), AABB(1937.306, 95.96906, -928.837, 7.3775635, 2.6547623, 7.4452515), AABB(2040.747, 94.5132, -939.87494, 3.590454, 7.033905, 3.973999), AABB(2040.1923, 88.07606, -1040.2144, 8.182739, 2.9301376, 8.208252), AABB(2141.4688, 80.30056, -1033.0044, 7.727783, 2.761383, 7.7229004), AABB(2168.812, 74.84921, -1126.2489, 2.6501465, 5.026581, 2.774292), AABB(2261.4426, 73.357, -1104.4629, 9.409424, 3.6458511, 8.758545), AABB(2301.9282, 73.69206, -1193.7623, 6.8918457, 2.5358124, 6.579712), AABB(2393.6643, 73.27937, -1155.2723, 2.072754, 6.650429, 4.0842285), AABB(2449.555, 70.73164, -1226.1216, 7.737549, 3.3912659, 6.8901367), AABB(2520.4448, 56.831394, -1164.227, 7.1938477, 3.0164871, 6.502075), AABB(2598.0374, 33.84254, -1225.5553, 1.920166, 6.2826004, 3.8562012), AABB(2651.1106, 20.365566, -1153.5966, 8.417725, 3.5039139, 7.6278076), AABB(2735.8904, 13.449558, -1206.0392, 7.7141113, 3.2136993, 6.987915), AABB(2792.7659, 9.029418, -1130.9852, 3.098877, 6.8300657, 4.0625), AABB(2878.826, 6.5897465, -1186.2655, 7.0756836, 2.890584, 6.4539795)]
+}

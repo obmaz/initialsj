@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_4_4_2/assembly/resources.tres" id="assembly"]
+[ext_resource type="Material" path="res://models/props/basalt/material.tres" id="27_jiyh7"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_4_2/assembly/resources.tres::MultiMesh_7q5m5" id="shared_MultiMesh_7q5m5"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_4_2/assembly/resources.tres::MultiMesh_2em2g" id="shared_MultiMesh_2em2g"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_4_2/assembly/resources.tres::MultiMesh_lvbpq" id="shared_MultiMesh_lvbpq"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_4_4_2/assembly/resources.tres::MultiMesh_2nuwf" id="shared_MultiMesh_2nuwf"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0299" type="MultiMeshInstance3D" parent="." unique_id=65695761]
+material_override = ExtResource("27_jiyh7")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_7q5m5")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0300" type="MultiMeshInstance3D" parent="." unique_id=7207654]
+material_override = ExtResource("27_jiyh7")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_2em2g")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0301" type="MultiMeshInstance3D" parent="." unique_id=211716593]
+material_override = ExtResource("27_jiyh7")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_lvbpq")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"
+
+[node name="Part0302" type="MultiMeshInstance3D" parent="." unique_id=709080220]
+material_override = ExtResource("27_jiyh7")
+visibility_range_end = 310.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_2nuwf")
+metadata/mesh_ref = "res://models/props/basalt/model.glb#Visual"

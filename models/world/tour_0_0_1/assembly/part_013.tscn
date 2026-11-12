@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_0_0_1/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/distant_ridges.gd" id="40_vj3k7"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_0_0_1/assembly/resources.tres::ShaderMaterial_6k82c" id="shared_ShaderMaterial_6k82c"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_0_0_1/assembly/resources.tres::MultiMesh_0v7au" id="shared_MultiMesh_0v7au"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0168" type="Node3D" parent="." unique_id=1753514382]
+script = ExtResource("40_vj3k7")
+metadata/scene_state = {
+"positions": [Vector3(660.6345, 78.76504, 569.8585), Vector3(1494.281, 54.07169, -910.90265), Vector3(2074.6868, 142.60149, 553.2317), Vector3(2901.9636, 47.52248, -897.6085)],
+"scenery": {
+&"$node": NodePath("Part0131")
+},
+"sprite_batch": {
+&"$node": NodePath("Part0131/Part0168/Part0169")
+},
+"widths": [540.0, 610.0, 680.0, 540.0]
+}
+
+[node name="Part0169" type="MultiMeshInstance3D" parent="Part0168" unique_id=1768510009]
+material_override = ExtResource("shared_ShaderMaterial_6k82c")
+cast_shadow = 0
+multimesh = ExtResource("shared_MultiMesh_0v7au")
+metadata/mesh_ref = "res://models/world/tour_0_0_1/geometry.glb#Geometry0080"

@@ -1,9 +1,9 @@
 extends RefCounted
 const STAGES := 5
-const ENTRY_RUNUP := 120.0
-const FORK_COMMIT := 200.0
-const FORK_RECONSIDER := 270.0
-# 분기 연결부120m를 포함해 최고 부스터 속도에서도 선택할 주행 거리를 확보한다.
+const ENTRY_RUNUP := 0.0
+const FORK_COMMIT := 80.0
+const FORK_RECONSIDER := 150.0
+# 체크포인트 앞 선택 거리는 유지하고 지역 앞에 별도 직진 연결부를 더하지 않는다.
 const CHECKPOINT_RUNUP := 210.0
 const CHECKPOINT_BONUS := 52.0
 const START_TIME := 62.0

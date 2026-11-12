@@ -1,0 +1,47 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_2_0_0/assembly/resources.tres" id="assembly"]
+[ext_resource type="ShaderMaterial" path="res://models/world/tour_2_0_0/assembly/resources.tres::ShaderMaterial_wuucm" id="shared_ShaderMaterial_wuucm"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0217" type="MeshInstance3D" parent="." unique_id=2075954267]
+material_override = ExtResource("shared_ShaderMaterial_wuucm")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_2_0_0/geometry.glb#Geometry0115"
+
+[node name="Part0218" type="MeshInstance3D" parent="." unique_id=907070789]
+material_override = ExtResource("shared_ShaderMaterial_wuucm")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_2_0_0/geometry.glb#Geometry0116"
+
+[node name="Part0219" type="MeshInstance3D" parent="." unique_id=1405747265]
+material_override = ExtResource("shared_ShaderMaterial_wuucm")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_2_0_0/geometry.glb#Geometry0117"
+
+[node name="Part0220" type="MeshInstance3D" parent="." unique_id=1757621010]
+material_override = ExtResource("shared_ShaderMaterial_wuucm")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_2_0_0/geometry.glb#Geometry0118"
+
+[node name="Part0221" type="MeshInstance3D" parent="." unique_id=1229520506]
+material_override = ExtResource("shared_ShaderMaterial_wuucm")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_2_0_0/geometry.glb#Geometry0119"
+
+[node name="Part0222" type="MeshInstance3D" parent="." unique_id=897726507]
+material_override = ExtResource("shared_ShaderMaterial_wuucm")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_2_0_0/geometry.glb#Geometry0120"
+
+[node name="Part0223" type="MeshInstance3D" parent="." unique_id=1082999507]
+material_override = ExtResource("shared_ShaderMaterial_wuucm")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_2_0_0/geometry.glb#Geometry0121"
+
+[node name="Part0224" type="MeshInstance3D" parent="." unique_id=1835409252]
+material_override = ExtResource("shared_ShaderMaterial_wuucm")
+cast_shadow = 0
+metadata/mesh_ref = "res://models/world/tour_2_0_0/geometry.glb#Geometry0122"

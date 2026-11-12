@@ -1,0 +1,817 @@
+[gd_scene format=3]
+
+[ext_resource type="Resource" path="res://models/world/tour_1_0_2/assembly/resources.tres" id="assembly"]
+[ext_resource type="Script" path="res://scripts/environment/regional_props_3d.gd" id="26_0y7jw"]
+[ext_resource type="Material" path="res://models/props/jungle_vine/material.tres" id="45_xlhj6"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_ht4r7" id="shared_MultiMesh_ht4r7"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_lbekr" id="shared_MultiMesh_lbekr"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_7c0sk" id="shared_MultiMesh_7c0sk"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_j7dhr" id="shared_MultiMesh_j7dhr"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_tk2c7" id="shared_MultiMesh_tk2c7"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_eajby" id="shared_MultiMesh_eajby"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_xk8gn" id="shared_MultiMesh_xk8gn"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_g17jt" id="shared_MultiMesh_g17jt"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_a07u0" id="shared_MultiMesh_a07u0"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_goyrm" id="shared_MultiMesh_goyrm"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_hg3sp" id="shared_MultiMesh_hg3sp"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_ytiqv" id="shared_MultiMesh_ytiqv"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_ids2s" id="shared_MultiMesh_ids2s"]
+[ext_resource type="MultiMesh" path="res://models/world/tour_1_0_2/assembly/resources.tres::MultiMesh_7y0rf" id="shared_MultiMesh_7y0rf"]
+
+[node name="AssemblyPart" type="Node3D"]
+metadata/assembly_resources = ExtResource("assembly")
+
+[node name="Part0450" type="Node3D" parent="." unique_id=852933462]
+script = ExtResource("26_0y7jw")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0450/Regional3D_jungle_vine_0")
+}],
+"kinds": ["jungle_vine"],
+"placements": [{
+"kind": "jungle_vine",
+"position": Vector3(85.52113, 5.713278, 27.071257),
+"scale": 0.7459712372834314,
+"yaw": 9.131294509633909
+}, {
+"kind": "jungle_vine",
+"position": Vector3(98.317856, 5.7126665, 29.93854),
+"scale": 0.9687589082455436,
+"yaw": 10.628336249134229
+}, {
+"kind": "jungle_vine",
+"position": Vector3(111.02798, 5.7116947, 33.358635),
+"scale": 0.9281424672980992,
+"yaw": 12.127722343706797
+}, {
+"kind": "jungle_vine",
+"position": Vector3(123.62519, 5.7103887, 37.277626),
+"scale": 0.714208104308796,
+"yaw": 13.628579659635976
+}, {
+"kind": "jungle_vine",
+"position": Vector3(136.28557, 5.708785, 41.681084),
+"scale": 0.8014565680856601,
+"yaw": 15.139693615507271
+}, {
+"kind": "jungle_vine",
+"position": Vector3(148.99683, 5.706928, 46.46846),
+"scale": 0.9963730776650463,
+"yaw": 16.65945878203427
+}],
+"theme": "jungle",
+"tree_count": 0,
+"world_bounds": [AABB(82.49297, 7.334626, 25.156607, 6.0665054, 7.5809526, 3.8477364), AABB(95.61248, 7.818238, 25.976349, 5.4356003, 9.845039, 7.9129486), AABB(107.236336, 7.7289877, 30.55251, 7.5740585, 9.432271, 5.587723), AABB(121.33306, 7.262701, 34.383465, 4.564934, 7.2581596, 5.7940865), AABB(133.06615, 7.4507294, 39.013725, 6.4440155, 8.144823, 5.3567505), AABB(145.56583, 7.8725176, 42.502415, 6.889679, 10.125669, 7.9270744)]
+}
+
+[node name="Regional3D_jungle_vine_0" type="MultiMeshInstance3D" parent="Part0450" unique_id=1209150790]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ht4r7")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0452" type="Node3D" parent="." unique_id=1862094070]
+script = ExtResource("26_0y7jw")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0452/Regional3D_jungle_vine_0")
+}, {
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0452/Part0454")
+}],
+"kinds": ["jungle_vine"],
+"placements": [{
+"kind": "jungle_vine",
+"position": Vector3(161.83522, 5.7054205, 51.535217),
+"scale": 0.8666379792142043,
+"yaw": 18.189851316306243
+}, {
+"kind": "jungle_vine",
+"position": Vector3(174.81818, 5.7279983, 56.737946),
+"scale": 0.7000002836981725,
+"yaw": 19.7292007764938
+}, {
+"kind": "jungle_vine",
+"position": Vector3(187.8024, 5.829867, 62.031372),
+"scale": 0.8660579846190721,
+"yaw": 21.27025456971442
+}, {
+"kind": "jungle_vine",
+"position": Vector3(201.03769, 6.027064, 67.4099),
+"scale": 0.9964995011195266,
+"yaw": 22.82402989451801
+}, {
+"kind": "jungle_vine",
+"position": Vector3(214.65628, 6.3188653, 72.66606),
+"scale": 0.8020090057173708,
+"yaw": 24.392550644154728
+}, {
+"kind": "jungle_vine",
+"position": Vector3(241.14879, 6.731816, 36.626915),
+"scale": 0.849150086893966,
+"yaw": 23.97419190177625
+}, {
+"kind": "jungle_vine",
+"position": Vector3(228.71748, 6.706459, 77.53567),
+"scale": 0.7139612640877253,
+"yaw": 25.97419190177625
+}],
+"theme": "jungle",
+"tree_count": 0,
+"world_bounds": [AABB(158.42142, 7.589035, 48.45308, 6.8242188, 8.807232, 6.1400375), AABB(172.28508, 7.24943, 54.00832, 5.0465393, 7.113771, 5.4613686), AABB(184.4576, 7.7122207, 58.873592, 6.691498, 8.801336, 6.339939), AABB(197.37408, 8.192928, 63.582462, 7.355301, 10.126953, 7.653164), AABB(211.57845, 8.06201, 69.691696, 6.154373, 8.150438, 5.9261246), AABB(238.65973, 8.57742, 33.147705, 4.9865723, 8.62951, 6.935974), AABB(226.08331, 8.258235, 74.78631, 5.24823, 7.2556496, 5.5001144)]
+}
+
+[node name="Regional3D_jungle_vine_0" type="MultiMeshInstance3D" parent="Part0452" unique_id=1077491156]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_lbekr")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0454" type="MultiMeshInstance3D" parent="Part0452" unique_id=1523922015]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_7c0sk")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0455" type="Node3D" parent="." unique_id=1185292266]
+script = ExtResource("26_0y7jw")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0455/Regional3D_jungle_vine_0")
+}],
+"kinds": ["jungle_vine"],
+"placements": [{
+"kind": "jungle_vine",
+"position": Vector3(253.6199, 7.215399, 39.777245),
+"scale": 0.7009885424565498,
+"yaw": 25.56671742096363
+}, {
+"kind": "jungle_vine",
+"position": Vector3(243.22797, 7.186125, 81.78979),
+"scale": 0.9276438342944218,
+"yaw": 27.56671742096363
+}, {
+"kind": "jungle_vine",
+"position": Vector3(265.94363, 7.788892, 42.157784),
+"scale": 0.8833304627144145,
+"yaw": 27.172717406696503
+}, {
+"kind": "jungle_vine",
+"position": Vector3(258.25992, 7.756625, 85.24217),
+"scale": 0.9691144372498748,
+"yaw": 29.172717406696503
+}, {
+"kind": "jungle_vine",
+"position": Vector3(278.39777, 8.450423, 43.794304),
+"scale": 0.9917462997796578,
+"yaw": 28.77737523033846
+}, {
+"kind": "jungle_vine",
+"position": Vector3(273.46906, 8.416807, 87.68406),
+"scale": 0.7463923743840902,
+"yaw": 30.77737523033846
+}, {
+"kind": "jungle_vine",
+"position": Vector3(290.92133, 9.198422, 44.669098),
+"scale": 0.7857725995755773,
+"yaw": 30.38165801138947
+}, {
+"kind": "jungle_vine",
+"position": Vector3(288.8092, 9.165585, 89.05881),
+"scale": 0.7534692799964501,
+"yaw": 32.38165801138947
+}, {
+"kind": "jungle_vine",
+"position": Vector3(303.56726, 10.0331135, 44.811134),
+"scale": 0.7222535717744772,
+"yaw": 31.981269403652597
+}, {
+"kind": "jungle_vine",
+"position": Vector3(304.1048, 10.003327, 89.35915),
+"scale": 0.9746487649450364,
+"yaw": 33.9812694036526
+}, {
+"kind": "jungle_vine",
+"position": Vector3(316.39178, 10.950607, 44.33397),
+"scale": 0.9420727370695096,
+"yaw": 33.57223738042999
+}, {
+"kind": "jungle_vine",
+"position": Vector3(319.19342, 10.925832, 88.72142),
+"scale": 0.9193605918794088,
+"yaw": 35.57223738042999
+}],
+"theme": "jungle",
+"tree_count": 0,
+"world_bounds": [AABB(250.74976, 8.738978, 37.672935, 5.7216187, 7.1238146, 4.2020493), AABB(239.62946, 9.202333, 78.430084, 7.199402, 9.427206, 6.745491), AABB(263.2077, 9.708787, 38.572567, 5.4644165, 8.976869, 7.1942406), AABB(254.81567, 9.862969, 81.43861, 6.9156494, 9.848651, 7.603691), AABB(274.38586, 10.605957, 40.642647, 8.050812, 10.078648, 6.3107643), AABB(270.51218, 10.039071, 85.06231, 5.910431, 7.585231, 5.222687), AABB(288.35785, 10.906279, 41.482857, 5.132141, 7.9854336, 6.35091), AABB(286.21732, 10.80323, 86.05392, 5.1628723, 7.6571503, 6.0138702), AABB(300.65216, 11.602912, 42.40033, 5.8102417, 7.339921, 4.817421), AABB(300.1953, 12.1217, 86.097244, 7.8250427, 9.904894, 6.550667), AABB(313.2033, 12.998177, 40.57207, 6.3720093, 9.573841, 7.549938), AABB(316.1602, 12.924037, 85.01444, 6.091675, 9.343026, 7.4077225)]
+}
+
+[node name="Regional3D_jungle_vine_0" type="MultiMeshInstance3D" parent="Part0455" unique_id=539952582]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_j7dhr")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0457" type="Node3D" parent="." unique_id=541473712]
+script = ExtResource("26_0y7jw")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0457/Regional3D_jungle_vine_0")
+}, {
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0457/Part0459")
+}],
+"kinds": ["jungle_vine"],
+"placements": [{
+"kind": "jungle_vine",
+"position": Vector3(329.46964, 11.948833, 43.3718),
+"scale": 0.95767701105944,
+"yaw": 35.15059774787476
+}, {
+"kind": "jungle_vine",
+"position": Vector3(333.94424, 11.930297, 87.35164),
+"scale": 0.7102324637702199,
+"yaw": 37.15059774787476
+}, {
+"kind": "jungle_vine",
+"position": Vector3(343.02258, 13.025117, 42.092045),
+"scale": 0.7344565274779603,
+"yaw": 36.70635405782903
+}, {
+"kind": "jungle_vine",
+"position": Vector3(348.1374, 13.013098, 85.55214),
+"scale": 0.8111050278050956,
+"yaw": 38.70635405782903
+}, {
+"kind": "jungle_vine",
+"position": Vector3(356.86017, 14.176343, 40.726685),
+"scale": 0.7675084045659478,
+"yaw": 38.248677985709875
+}, {
+"kind": "jungle_vine",
+"position": Vector3(362.00854, 14.170186, 83.61362),
+"scale": 0.9982456096257456,
+"yaw": 40.248677985709875
+}, {
+"kind": "jungle_vine",
+"position": Vector3(370.7389, 15.399057, 39.35659),
+"scale": 0.983524454668925,
+"yaw": 39.78883939450282
+}, {
+"kind": "jungle_vine",
+"position": Vector3(375.82324, 15.397618, 81.6523),
+"scale": 0.8565813571410448,
+"yaw": 41.78883939450282
+}, {
+"kind": "jungle_vine",
+"position": Vector3(384.65195, 16.68751, 37.998375),
+"scale": 0.90338680211612,
+"yaw": 41.32717205534721
+}, {
+"kind": "jungle_vine",
+"position": Vector3(389.5947, 16.689585, 79.70278),
+"scale": 0.7003198288939881,
+"yaw": 43.32717205534721
+}, {
+"kind": "jungle_vine",
+"position": Vector3(398.60315, 18.037292, 36.667984),
+"scale": 0.7048386369808577,
+"yaw": 42.86350328007405
+}, {
+"kind": "jungle_vine",
+"position": Vector3(403.32495, 18.041761, 77.79845),
+"scale": 0.87604495430606,
+"yaw": 44.86350328007405
+}],
+"theme": "jungle",
+"tree_count": 0,
+"world_bounds": [AABB(325.6513, 14.030319, 40.118935, 7.663269, 9.732418, 6.5105515), AABB(331.07687, 13.4739685, 85.00183, 5.729767, 7.2177544, 4.6801834), AABB(340.55338, 14.621439, 39.134556, 4.9424133, 7.463934, 5.8946304), AABB(345.42462, 14.776012, 82.29127, 5.4032288, 8.242876, 6.5270767), AABB(353.75418, 15.8445015, 38.193542, 6.1908264, 7.7998238, 5.0615005), AABB(358.01663, 16.339846, 80.23662, 7.989624, 10.144697, 6.7815933), AABB(367.56653, 17.53672, 35.385704, 6.337738, 9.995094, 7.9686623), AABB(372.86737, 17.259375, 78.24542, 5.935547, 8.70503, 6.809517), AABB(380.991, 18.650997, 35.166477, 7.3463745, 9.180691, 5.670986), AABB(386.83252, 18.211712, 77.2187, 5.521515, 7.1170177, 4.948593), AABB(396.4588, 19.56924, 33.784775, 4.2949524, 7.162941, 5.747528), AABB(400.15744, 19.945822, 74.38071, 6.3104553, 8.90283, 6.8381653)]
+}
+
+[node name="Regional3D_jungle_vine_0" type="MultiMeshInstance3D" parent="Part0457" unique_id=1985190554]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_tk2c7")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0459" type="MultiMeshInstance3D" parent="Part0457" unique_id=893438493]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_eajby")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0460" type="Node3D" parent="." unique_id=1884574734]
+script = ExtResource("26_0y7jw")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0460/Regional3D_jungle_vine_0")
+}],
+"kinds": ["jungle_vine"],
+"placements": [{
+"kind": "jungle_vine",
+"position": Vector3(412.5839, 19.443949, 35.383156),
+"scale": 0.8282545288962183,
+"yaw": 44.39827357278259
+}, {
+"kind": "jungle_vine",
+"position": Vector3(417.02835, 19.44987, 75.97022),
+"scale": 0.9940030611419052,
+"yaw": 46.39827357278259
+}, {
+"kind": "jungle_vine",
+"position": Vector3(426.59683, 20.903696, 34.163013),
+"scale": 0.9999012995621964,
+"yaw": 45.931389793339
+}, {
+"kind": "jungle_vine",
+"position": Vector3(430.7075, 20.91034, 74.25008),
+"scale": 0.7925661938010284,
+"yaw": 47.931389793339
+}, {
+"kind": "jungle_vine",
+"position": Vector3(440.64194, 22.411732, 33.027786),
+"scale": 0.8390709595121422,
+"yaw": 47.46289513704404
+}, {
+"kind": "jungle_vine",
+"position": Vector3(444.3666, 22.418575, 72.66628),
+"scale": 0.7185159868708949,
+"yaw": 49.46289513704404
+}, {
+"kind": "jungle_vine",
+"position": Vector3(454.73413, 23.962921, 31.99587),
+"scale": 0.7024809416935428,
+"yaw": 48.99206754464763
+}, {
+"kind": "jungle_vine",
+"position": Vector3(457.99377, 23.969553, 71.243324),
+"scale": 0.9360938373237828,
+"yaw": 50.99206754464763
+}, {
+"kind": "jungle_vine",
+"position": Vector3(468.85123, 25.552511, 31.090822),
+"scale": 0.8930842866044677,
+"yaw": 50.520055740352255
+}, {
+"kind": "jungle_vine",
+"position": Vector3(471.61273, 25.558678, 70.001434),
+"scale": 0.9627178376935313,
+"yaw": 52.520055740352255
+}, {
+"kind": "jungle_vine",
+"position": Vector3(482.9887, 27.175343, 30.265514),
+"scale": 0.9881278253672716,
+"yaw": 52.04691675848382
+}, {
+"kind": "jungle_vine",
+"position": Vector3(485.2315, 27.181484, 69.083664),
+"scale": 0.7393366605767793,
+"yaw": 54.04691675848382
+}],
+"theme": "jungle",
+"tree_count": 0,
+"world_bounds": [AABB(409.1906, 21.244137, 32.93839, 6.7646484, 8.41716, 4.8813744), AABB(413.19562, 21.610308, 72.33746, 7.667511, 10.1015835, 7.2935104), AABB(423.75357, 23.076954, 30.091621, 5.675659, 10.161526, 8.168858), AABB(427.75934, 22.632961, 71.235214, 5.9186707, 8.054474, 6.0289307), AABB(437.2294, 24.23543, 30.750065, 6.8465576, 8.527082, 4.5653915), AABB(441.678, 23.980251, 69.92861, 5.377289, 7.301937, 5.455055), AABB(452.9183, 25.489744, 29.129583, 3.6407166, 7.138979, 5.7149334), AABB(454.3714, 26.004128, 67.806786, 7.2183533, 9.513077, 6.8718643), AABB(465.22522, 27.493607, 28.89312, 7.2301025, 9.075993, 4.382923), AABB(468.155, 27.65112, 66.25092, 6.913086, 9.783646, 7.528099), AABB(480.70068, 29.323011, 26.305313, 4.5611877, 10.041876, 7.9440155), AABB(482.31552, 28.788412, 66.49637, 5.852661, 7.513529, 5.1773376)]
+}
+
+[node name="Regional3D_jungle_vine_0" type="MultiMeshInstance3D" parent="Part0460" unique_id=1747369564]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_xk8gn")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0462" type="Node3D" parent="." unique_id=1000832179]
+script = ExtResource("26_0y7jw")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0462/Regional3D_jungle_vine_0")
+}, {
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0462/Part0464")
+}],
+"kinds": ["jungle_vine"],
+"placements": [{
+"kind": "jungle_vine",
+"position": Vector3(497.15176, 28.827135, 29.513859),
+"scale": 0.7768075072340623,
+"yaw": 53.57246390478431
+}, {
+"kind": "jungle_vine",
+"position": Vector3(498.84253, 28.834267, 68.57323),
+"scale": 0.7614038382179793,
+"yaw": 55.57246390478431
+}, {
+"kind": "jungle_vine",
+"position": Vector3(511.34747, 30.50236, 28.875614),
+"scale": 0.7278261987825279,
+"yaw": 55.09657995353118
+}, {
+"kind": "jungle_vine",
+"position": Vector3(512.4309, 30.511656, 68.44089),
+"scale": 0.979974955290302,
+"yaw": 57.09657995353118
+}, {
+"kind": "jungle_vine",
+"position": Vector3(525.5982, 32.196194, 28.393421),
+"scale": 0.9498231443729224,
+"yaw": 56.61830069038259
+}, {
+"kind": "jungle_vine",
+"position": Vector3(525.96454, 32.209084, 68.659096),
+"scale": 0.9102650652827948,
+"yaw": 58.61830069038259
+}, {
+"kind": "jungle_vine",
+"position": Vector3(539.8515, 33.903812, 28.109844),
+"scale": 0.9504150006103192,
+"yaw": 58.14034891316983
+}, {
+"kind": "jungle_vine",
+"position": Vector3(539.4877, 33.922226, 69.19794),
+"scale": 0.7068888572323067,
+"yaw": 60.14034891316983
+}, {
+"kind": "jungle_vine",
+"position": Vector3(554.12585, 35.653362, 28.067047),
+"scale": 0.7282890460417112,
+"yaw": 59.66151618575824
+}, {
+"kind": "jungle_vine",
+"position": Vector3(552.9637, 35.67918, 70.030624),
+"scale": 0.82092937203638,
+"yaw": 61.66151618575824
+}, {
+"kind": "jungle_vine",
+"position": Vector3(568.35455, 37.83374, 28.301971),
+"scale": 0.7761147625575413,
+"yaw": 61.182037315754826
+}, {
+"kind": "jungle_vine",
+"position": Vector3(566.3333, 37.867977, 71.12454),
+"scale": 0.9994477694223508,
+"yaw": 63.182037315754826
+}],
+"theme": "jungle",
+"tree_count": 0,
+"world_bounds": [AABB(494.067, 30.515505, 27.847511, 6.187561, 7.894327, 3.3452053), AABB(496.2537, 30.489157, 65.51725, 5.1814575, 7.7377872, 6.0907974), AABB(509.90622, 32.08427, 26.002775, 2.894989, 7.396553, 5.7293606), AABB(508.46405, 32.641605, 65.21039, 7.9067383, 9.959019, 6.4548416), AABB(521.905, 34.26061, 26.664248, 7.365906, 9.652603, 3.4410152), AABB(523.07477, 34.18752, 64.97504, 5.772644, 9.250595, 7.3928604), AABB(538.29236, 35.969513, 24.49829, 3.0999146, 9.658619, 7.2427216), AABB(536.6147, 35.45863, 67.05105, 5.7649536, 7.183777, 4.3000946), AABB(551.3497, 37.23628, 26.865314, 5.5667114, 7.4012566, 2.418232), AABB(550.58514, 37.463448, 66.666435, 4.765503, 8.342716, 6.7067795), AABB(566.9303, 39.520603, 25.276098, 2.8649292, 7.887287, 6.037304), AABB(562.2408, 40.04025, 68.36588, 8.159302, 10.156918, 5.5057526)]
+}
+
+[node name="Regional3D_jungle_vine_0" type="MultiMeshInstance3D" parent="Part0462" unique_id=884125692]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_g17jt")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0464" type="MultiMeshInstance3D" parent="Part0462" unique_id=228712441]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_a07u0")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0465" type="Node3D" parent="." unique_id=299321366]
+script = ExtResource("26_0y7jw")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0465/Regional3D_jungle_vine_0")
+}],
+"kinds": ["jungle_vine"],
+"placements": [{
+"kind": "jungle_vine",
+"position": Vector3(582.49756, 40.72236, 28.839098),
+"scale": 0.9878159780929392,
+"yaw": 62.70031271594018
+}, {
+"kind": "jungle_vine",
+"position": Vector3(579.48975, 40.76454, 72.43057),
+"scale": 0.8464949739259497,
+"yaw": 64.70031271594019
+}, {
+"kind": "jungle_vine",
+"position": Vector3(596.49506, 44.093277, 29.700317),
+"scale": 0.8938450057242375,
+"yaw": 64.21977998518793
+}, {
+"kind": "jungle_vine",
+"position": Vector3(592.53094, 44.14104, 73.91151),
+"scale": 0.7013162333943027,
+"yaw": 66.21977998518793
+}, {
+"kind": "jungle_vine",
+"position": Vector3(610.4073, 47.7027, 30.92082),
+"scale": 0.7026269723554147,
+"yaw": 65.73926258932644
+}, {
+"kind": "jungle_vine",
+"position": Vector3(605.4824, 47.75198, 75.53525),
+"scale": 0.8859141477403419,
+"yaw": 67.73926258932644
+}, {
+"kind": "jungle_vine",
+"position": Vector3(624.2948, 51.340836, 32.533318),
+"scale": 0.8382784095772425,
+"yaw": 67.25775472841663
+}, {
+"kind": "jungle_vine",
+"position": Vector3(618.38074, 51.386547, 77.26516),
+"scale": 0.990855433962332,
+"yaw": 69.25775472841663
+}, {
+"kind": "jungle_vine",
+"position": Vector3(638.19336, 54.84334, 34.538895),
+"scale": 0.9999280237871097,
+"yaw": 68.77503026986064
+}, {
+"kind": "jungle_vine",
+"position": Vector3(631.26654, 54.881237, 79.11139),
+"scale": 0.7833830996938738,
+"yaw": 70.77503026986064
+}, {
+"kind": "jungle_vine",
+"position": Vector3(652.08057, 58.077065, 36.856018),
+"scale": 0.8290412536581591,
+"yaw": 70.29367557289704
+}, {
+"kind": "jungle_vine",
+"position": Vector3(644.20844, 58.105957, 81.24277),
+"scale": 0.7236652852549718,
+"yaw": 72.29367557289704
+}],
+"theme": "jungle",
+"tree_count": 0,
+"world_bounds": [AABB(578.5874, 42.86935, 26.818474, 7.8030396, 10.038708, 4.019333), AABB(577.29, 42.604374, 68.99785, 4.388611, 8.602528, 6.886711), AABB(594.5062, 46.036026, 26.134037, 3.9570313, 9.083725, 7.1471367), AABB(589.704, 45.665333, 72.21451, 5.6710815, 7.127144, 3.403946), AABB(607.57697, 49.229843, 29.252235, 5.6712646, 7.140465, 3.3539352), AABB(603.49146, 49.67749, 71.97414, 3.9956055, 9.003128, 7.101265), AABB(622.16187, 53.16281, 29.121315, 4.28656, 8.519028, 6.8124084), AABB(614.4446, 53.540146, 75.20197, 7.8496704, 10.069595, 4.109894), AABB(634.10736, 57.01666, 31.802877, 8.159546, 10.161793, 5.4467144), AABB(629.78467, 56.5839, 76.06324, 2.949768, 7.961151, 6.113449), AABB(649.6834, 59.878963, 33.473938, 4.772827, 8.425152, 6.7734146), AABB(641.4418, 59.678825, 80.0258, 5.548462, 7.3542633, 2.4476395)]
+}
+
+[node name="Regional3D_jungle_vine_0" type="MultiMeshInstance3D" parent="Part0465" unique_id=1533530743]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_goyrm")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0467" type="Node3D" parent="." unique_id=1376868156]
+script = ExtResource("26_0y7jw")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0467/Regional3D_jungle_vine_0")
+}, {
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0467/Part0469")
+}],
+"kinds": ["jungle_vine"],
+"placements": [{
+"kind": "jungle_vine",
+"position": Vector3(666.0024, 60.918697, 39.499428),
+"scale": 0.7046404276025235,
+"yaw": 71.81209663723804
+}, {
+"kind": "jungle_vine",
+"position": Vector3(657.17847, 60.937866, 83.68519),
+"scale": 0.9441545208165484,
+"yaw": 73.81209663723804
+}, {
+"kind": "jungle_vine",
+"position": Vector3(679.9778, 63.29779, 42.469803),
+"scale": 0.9026432817469956,
+"yaw": 73.32910767703405
+}, {
+"kind": "jungle_vine",
+"position": Vector3(670.1438, 63.306778, 86.426315),
+"scale": 0.9558115238800344,
+"yaw": 75.32910767703405
+}, {
+"kind": "jungle_vine",
+"position": Vector3(693.95233, 65.16241, 45.761124),
+"scale": 0.983884731787769,
+"yaw": 74.84655667237973
+}, {
+"kind": "jungle_vine",
+"position": Vector3(683.13196, 65.16104, 89.475426),
+"scale": 0.7327813705089787,
+"yaw": 76.84655667237973
+}, {
+"kind": "jungle_vine",
+"position": Vector3(707.8918, 66.490906, 49.36696),
+"scale": 0.7681733940688938,
+"yaw": 76.36494854087933
+}, {
+"kind": "jungle_vine",
+"position": Vector3(696.1306, 66.47933, 92.83302),
+"scale": 0.7697390315804356,
+"yaw": 78.36494854087933
+}, {
+"kind": "jungle_vine",
+"position": Vector3(721.7839, 67.28301, 53.28984),
+"scale": 0.7339513002667171,
+"yaw": 77.88352452330601
+}, {
+"kind": "jungle_vine",
+"position": Vector3(709.09406, 67.2617, 96.49457),
+"scale": 0.9847133940503714,
+"yaw": 79.88352452330601
+}, {
+"kind": "jungle_vine",
+"position": Vector3(735.60065, 67.59806, 57.51384),
+"scale": 0.9571221477022872,
+"yaw": 79.40239266869388
+}, {
+"kind": "jungle_vine",
+"position": Vector3(721.9991, 67.56782, 100.44615),
+"scale": 0.9008970178180448,
+"yaw": 81.40239266869388
+}],
+"theme": "jungle",
+"tree_count": 0,
+"world_bounds": [AABB(663.13165, 62.450214, 37.376255, 5.748413, 7.1609306, 4.265007), AABB(655.6678, 62.98996, 80.08606, 3.0402222, 9.594994, 7.179451), AABB(677.129, 65.25966, 38.800346, 5.721863, 9.1731415, 7.331375), AABB(666.42926, 65.38421, 84.686714, 7.411072, 9.713463, 3.459076), AABB(689.98224, 67.30086, 42.498455, 7.9334106, 9.998749, 6.498398), AABB(681.6567, 66.75372, 86.59473, 2.9343872, 7.446907, 5.7743454), AABB(705.25104, 68.16051, 46.30277, 5.260193, 7.806587, 6.132572), AABB(693.0649, 68.152336, 91.15922, 6.144226, 7.8224945, 3.3652573), AABB(718.89294, 68.878235, 50.705223, 5.78479, 7.4588013, 5.1897545), AABB(706.77875, 69.401955, 92.51751, 4.6539917, 10.007172, 7.9390793), AABB(732.13306, 69.67834, 53.799267, 6.962036, 9.726784, 7.426708), AABB(718.3351, 69.525894, 98.153206, 7.3153687, 9.155388, 4.5638046)]
+}
+
+[node name="Regional3D_jungle_vine_0" type="MultiMeshInstance3D" parent="Part0467" unique_id=900955270]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_hg3sp")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0469" type="MultiMeshInstance3D" parent="Part0467" unique_id=958413444]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ytiqv")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0470" type="Node3D" parent="." unique_id=938375946]
+script = ExtResource("26_0y7jw")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0470/Regional3D_jungle_vine_0")
+}],
+"kinds": ["jungle_vine"],
+"placements": [{
+"kind": "jungle_vine",
+"position": Vector3(749.3527, 67.63664, 62.03643),
+"scale": 0.9426989097912186,
+"yaw": 80.92012285262834
+}, {
+"kind": "jungle_vine",
+"position": Vector3(734.795, 67.59859, 104.66551),
+"scale": 0.7041924046082617,
+"yaw": 82.92012285262834
+}, {
+"kind": "jungle_vine",
+"position": Vector3(762.97626, 67.63352, 66.83036),
+"scale": 0.7226719460690691,
+"yaw": 82.43946260078708
+}, {
+"kind": "jungle_vine",
+"position": Vector3(747.5353, 67.58902, 109.16512),
+"scale": 0.8308851747292567,
+"yaw": 84.43946260078708
+}, {
+"kind": "jungle_vine",
+"position": Vector3(776.4855, 67.60685, 71.89239),
+"scale": 0.7850552323426919,
+"yaw": 83.95955424472032
+}, {
+"kind": "jungle_vine",
+"position": Vector3(760.1966, 67.56522, 113.93265),
+"scale": 0.99997412084352,
+"yaw": 85.95955424472032
+}, {
+"kind": "jungle_vine",
+"position": Vector3(789.8804, 67.45126, 77.221016),
+"scale": 0.991484292534817,
+"yaw": 85.48007798660774
+}, {
+"kind": "jungle_vine",
+"position": Vector3(772.76447, 67.44225, 118.963776),
+"scale": 0.836424440569213,
+"yaw": 87.48007798660774
+}, {
+"kind": "jungle_vine",
+"position": Vector3(803.1576, 67.11992, 82.80209),
+"scale": 0.8841049405846568,
+"yaw": 87.00101096175979
+}, {
+"kind": "jungle_vine",
+"position": Vector3(785.23376, 67.17248, 124.24604),
+"scale": 0.702984991420882,
+"yaw": 89.00101096175979
+}, {
+"kind": "jungle_vine",
+"position": Vector3(816.3413, 66.62792, 88.63749),
+"scale": 0.7010817340458715,
+"yaw": 88.52092297707208
+}, {
+"kind": "jungle_vine",
+"position": Vector3(797.56866, 66.76896, 129.75674),
+"scale": 0.8956209360618987,
+"yaw": 90.52092297707208
+}],
+"theme": "jungle",
+"tree_count": 0,
+"world_bounds": [AABB(745.7639, 69.68557, 58.50639, 7.1765747, 9.580208, 7.033474), AABB(732.88525, 69.12913, 101.79807, 3.8016968, 7.1563797, 5.74382), AABB(760.2118, 69.20423, 64.13819, 5.508545, 7.3441696, 5.3840485), AABB(744.1458, 69.39493, 106.80494, 6.788391, 8.443893, 4.7418365), AABB(773.6308, 69.31315, 68.85679, 5.7078857, 7.978142, 6.093315), AABB(757.21185, 69.73864, 109.846664, 5.9957886, 10.162262, 8.161911), AABB(785.9878, 69.60623, 73.71565, 7.8129272, 10.075981, 7.0139465), AABB(769.35925, 69.2602, 116.331505, 6.8031006, 8.500183, 5.2420807), AABB(800.1264, 69.0415, 79.26317, 6.0664063, 8.984741, 7.0532227), AABB(782.9322, 68.70039, 121.406845, 4.5839844, 7.144104, 5.6835785), AABB(813.5073, 68.1517, 86.31228, 5.6486816, 7.1247635, 4.646187), AABB(793.9823, 68.71557, 126.74071, 7.1780396, 9.1017685, 6.056793)]
+}
+
+[node name="Regional3D_jungle_vine_0" type="MultiMeshInstance3D" parent="Part0470" unique_id=1034613771]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_ids2s")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"
+
+[node name="Part0472" type="Node3D" parent="." unique_id=258517827]
+script = ExtResource("26_0y7jw")
+metadata/scene_state = {
+"batches": [{
+&"$node": NodePath("Part0164/JungleOvergrowth/Part0472/Regional3D_jungle_vine_0")
+}],
+"kinds": ["jungle_vine"],
+"placements": [{
+"kind": "jungle_vine",
+"position": Vector3(829.37775, 65.99139, 94.695465),
+"scale": 0.8483552957264107,
+"yaw": 90.04239021887541
+}, {
+"kind": "jungle_vine",
+"position": Vector3(809.8205, 66.24568, 135.51361),
+"scale": 0.98707085326806,
+"yaw": 92.0423902188754
+}, {
+"kind": "jungle_vine",
+"position": Vector3(842.28345, 65.22671, 100.97525),
+"scale": 0.9992767679084752,
+"yaw": 91.56446116788716
+}, {
+"kind": "jungle_vine",
+"position": Vector3(821.96454, 65.61701, 141.5021),
+"scale": 0.7745012496892338,
+"yaw": 93.56446116788716
+}, {
+"kind": "jungle_vine",
+"position": Vector3(855.06036, 64.34778, 107.476746),
+"scale": 0.8191063240351698,
+"yaw": 93.08682473694816
+}, {
+"kind": "jungle_vine",
+"position": Vector3(833.98785, 64.89472, 147.71922),
+"scale": 0.7293858739210186,
+"yaw": 95.08682473694816
+}, {
+"kind": "jungle_vine",
+"position": Vector3(867.7108, 63.375668, 114.18814),
+"scale": 0.7074572349078404,
+"yaw": 94.60944080850098
+}, {
+"kind": "jungle_vine",
+"position": Vector3(845.8888, 64.09788, 154.1556),
+"scale": 0.951789434061963,
+"yaw": 96.60944080850098
+}, {
+"kind": "jungle_vine",
+"position": Vector3(880.2664, 62.328964, 121.12009),
+"scale": 0.9119642220102008,
+"yaw": 96.13064535554749
+}, {
+"kind": "jungle_vine",
+"position": Vector3(857.63, 63.24303, 160.78792),
+"scale": 0.9484267264174858,
+"yaw": 98.13064535554749
+}, {
+"kind": "jungle_vine",
+"position": Vector3(892.66724, 61.226635, 128.23322),
+"scale": 0.9790362064682352,
+"yaw": 97.65361675049948
+}, {
+"kind": "jungle_vine",
+"position": Vector3(869.2747, 62.347263, 167.6513),
+"scale": 0.726756147446349,
+"yaw": 99.65361675049948
+}],
+"theme": "jungle",
+"tree_count": 0,
+"world_bounds": [AABB(826.6669, 67.835266, 91.2652, 5.4155273, 8.621429, 6.8836594), AABB(806.3891, 68.39105, 131.59929, 6.890259, 10.031136, 7.8240967), AABB(838.22424, 67.398605, 97.91804, 8.145203, 10.155182, 6.1231384), AABB(818.9347, 67.30037, 138.71117, 6.057129, 7.8708878, 5.56015), AABB(852.665, 66.12808, 104.120476, 4.79895, 8.324188, 6.6909103), AABB(831.29364, 66.48003, 144.91283, 5.367859, 7.4123993, 5.614151), AABB(864.81274, 64.91331, 112.21116, 5.777832, 7.1895523, 3.9459915), AABB(842.2931, 66.166565, 150.58946, 7.1918945, 9.672585, 7.159134), AABB(877.85547, 64.3111, 117.4174, 4.810486, 9.26786, 7.4284515), AABB(854.00586, 65.30441, 157.28253, 7.2750244, 9.638412, 7.0115967), AABB(888.7113, 63.354546, 125.80675, 7.935974, 9.949478, 4.866394), AABB(866.6526, 63.92685, 164.80806, 5.2458496, 7.385681, 5.666046)]
+}
+
+[node name="Regional3D_jungle_vine_0" type="MultiMeshInstance3D" parent="Part0472" unique_id=207436055]
+material_override = ExtResource("45_xlhj6")
+cast_shadow = 0
+visibility_range_end = 190.0
+visibility_range_end_margin = 24.0
+multimesh = ExtResource("shared_MultiMesh_7y0rf")
+metadata/mesh_ref = "res://models/props/jungle_vine/model.glb#Visual"

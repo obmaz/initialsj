@@ -262,11 +262,11 @@ func pinch_amount(distance: float) -> float:
 func _init(
 	origin: Vector3 = Vector3(0, 6, 0),
 	heading_angle: float = -PI / 2,
-	stage_index: int = 0,
+	stage_index: int = -1,
 	node_index: int = 0,
 	side: int = 0
 ) -> void:
-	stage = stage_index
+	stage = maxi(0, stage_index)
 	route_node = node_index
 	entry_side = side
 	start_point = origin
@@ -274,7 +274,10 @@ func _init(
 	surface_lift = 0.004 if side > 0 else 0.0
 	curve.up_vector_enabled = false
 	curve.bake_interval = 2
-	preload("res://scripts/rendering/world_assets.gd").profile(self)
+	# PackedScene은 인자 없이 만든 뒤 저장 속성을 복원한다. 이때 기본 지역을 중복 로드하지 않는다.
+	# 트리 밖에서 곡선이 필요한 생성자는 단계를 지정하고, 나머지는 _ready()에서 읽는다.
+	if stage_index >= 0:
+		preload("res://scripts/rendering/world_assets.gd").profile(self)
 
 
 func point(distance: float, lane: float = 0) -> Vector3:
