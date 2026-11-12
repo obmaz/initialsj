@@ -932,7 +932,7 @@ func draw_nitro() -> void:
 		for i in range(2):
 			draw_circle(Vector2(807 + i * 22, 642), 7, color if i < race.nitro_charges else Color("304252"))
 	if race.boosting and not race.nitro_active and not race.pad_active:
-		text_at(Vector2(443, 624), "SLIPSTREAM", 16, CYAN)
+		text_at(Vector2(443, 624), "SKILL BOOST" if race.reward_boost_active() else "SLIPSTREAM", 16, CYAN)
 	var rim := rounded_polygon(
 		PackedVector2Array([Vector2(442, 661), Vector2(847, 661), Vector2(835, 691), Vector2(430, 691)]), 4
 	)
@@ -1270,7 +1270,7 @@ func draw_pace_feedback() -> void:
 			(
 				("OVERDRIVE" if race.vehicle.mode == "hybrid" and race.nitro_burst_left > 0 else "NITRO")
 				if race.nitro_active
-				else "SLIPSTREAM"
+				else ("SKILL BOOST" if race.reward_boost_active() else "SLIPSTREAM")
 			),
 			CYAN
 		)

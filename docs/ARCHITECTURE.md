@@ -23,6 +23,8 @@
 
 투어와 트랙은 같은 `CharacterBody3D`와 실제 노면·장벽 물리를 사용합니다. 도로 곡선은 경기 계측과 CPU 판단에 사용하며 플레이어 차체를 매 프레임 곡선 위로 강제 이동시키지 않습니다. 실제 차체 중력은 [drive_tuning.gd](../scripts/physics/drive_tuning.gd)의 `WORLD_GRAVITY`를 공유하며 명목 점프 설계용 중력과 구분합니다. 단위는 미터·초이고 차량 충돌 기준은 약2.1×1.3×4.3m입니다.
 
+시각 하중은 [body_motion.gd](../scripts/effects/body_motion.gd)의 고정 크기 스프링 상태만 보유합니다. 공통 주행이 실제 속도를 한 번 샘플링하고 [car.gd](../scripts/vehicles/car.gd)가 GLB 시각 피벗에만 적용합니다. [vehicle_sound_state.gd](../scripts/audio/vehicle_sound_state.gd)는 부하·변속·보상 사건을 관측하고 [vehicle_audio.gd](../scripts/audio/vehicle_audio.gd)의 믹스가 네이티브와 웹에 동일하게 전달됩니다. 보상은 주행 규칙이 한 번 지급하고 피드백 관측자는 점수·물리를 수정하지 않습니다.
+
 ## 모델과 런타임의 경계
 
 ```mermaid

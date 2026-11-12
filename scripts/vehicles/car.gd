@@ -35,6 +35,9 @@ var aero_blend := 0.0
 var effects_quality := 0
 var reduced_motion := false
 var custom_plate := "STOCK"
+var body_motion := preload("res://scripts/effects/body_motion.gd").new()
+var shift_amount := 0.0
+var wheel_centres: Array[Vector3] = []
 
 
 func _ready() -> void:
@@ -121,16 +124,23 @@ func make_drift_smoke() -> void:
 func animate(
 	steer: float, drifting: bool, boosting: bool, delta: float, yaw: float = NAN, braking: bool = false, hit: float = 0
 ) -> void:
-	body.rotation.z = lerp(body.rotation.z, -steer * 0.06, delta * 8)
+	body_motion.advance(delta, model, reduced_motion, shift_amount)
+	body.rotation.z = body_motion.pose.z
 	body.rotation.y = (
 		lerp_angle(body.rotation.y, -steer * (0.40 if drifting else 0.07), delta * 6) if is_nan(yaw) else yaw
 	)
-	var thrust: float = boost_fx.envelope if boost_fx != null else (1.0 if boosting else 0.0)
-	body.rotation.x = lerpf(body.rotation.x, -.055 if braking else thrust * .025, 1 - exp(-delta * 8))
-	body.position.y = ride_offset + sin(Time.get_ticks_msec() * 0.05) * hit * 0.08
+	body.rotation.x = body_motion.pose.x
+	body.position.y = ride_offset + body_motion.pose.y + sin(Time.get_ticks_msec() * 0.05) * hit * 0.08
 	for lamp in brake_lights:
 		lamp.emission_energy_multiplier = 4.5 if braking else 1.7
-	for wheel in wheels:
+	if wheel_centres.is_empty():
+		for wheel in wheels:
+			wheel_centres.append(wheel.position + Vector3.UP * ride_offset)
+	var suspension_inverse := body.transform.affine_inverse()
+	for i in range(wheels.size()):
+		var wheel: MeshInstance3D = wheels[i]
+		# 시각 차체가 기울어도 휠 중심은 원래 노면 높이에 둔다.
+		wheel.position = suspension_inverse * wheel_centres[i]
 		wheel.rotate_object_local(Vector3.UP, -road_speed * delta / wheel_radius)
 	for particles in smoke:
 		particles.emitting = drifting
@@ -149,6 +159,13 @@ func animate(
 
 
 func reset_driving_effects() -> void:
+	body_motion.reset()
+	shift_amount = 0
+	if body != null:
+		body.rotation = Vector3.ZERO
+		body.position = Vector3(0, ride_offset, 0)
+	for i in range(wheel_centres.size()):
+		wheels[i].position = wheel_centres[i] - Vector3.UP * ride_offset
 	if boost_fx != null:
 		boost_fx.reset()
 	aero_blend = 0

@@ -7,9 +7,11 @@ its catalog "id". The bake writes, per vehicle, into assets/audio/vehicles/:
     <id>-engine.ogg       looping exhaust note; pitched by RPM and gear at run time
     <id>-boost.ogg        looping booster roar while nitro or a road boost is active
     <id>-boost-start.wav  one-shot ignition hit when a nitro shot begins
-    <id>-drift.ogg        looping tyre noise while drifting (and, quietly, on puddles)
+    <id>-drift.ogg        looping tyre noise approaching the grip limit
+    <id>-coast.ogg        vehicle-specific off-throttle exhaust
+    ../road-gravel.ogg, ../road-wet.ogg  shared ground contact textures
 
-and assets/audio/web-loops.json (the three loops of every vehicle, base64, for Web Audio).
+and assets/audio/web-loops.json (the four loops of every vehicle and two common ground loops, base64, for Web Audio).
 Everything is deterministic: the same table always bakes identical audio. Loops are
 exactly periodic (two seconds, every tone an exact multiple of 0.5 Hz), so they repeat
 without a seam. Levels are A-weighted and matched to the shared recordings this system
@@ -24,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import copy
 import json
 import re
 import subprocess
@@ -37,7 +40,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 AUDIO = ROOT / "assets" / "audio"
 OUT = AUDIO / "vehicles"
-CATALOG = ROOT / "scripts" / "vehicle_catalog.gd"
+CATALOG = ROOT / "scripts" / "vehicles" / "vehicle_catalog.gd"
 RATE = 44100
 LOOP_SECONDS = 2.0
 M = round(RATE * LOOP_SECONDS)
@@ -45,7 +48,7 @@ FREQ = np.fft.rfftfreq(M, 1 / RATE)  # 0.5 Hz bins
 T = np.arange(M) / RATE
 
 # A-weighted RMS targets, matched to the former shared engine/tyre recordings.
-LEVEL = {"engine": 0.1124, "boost": 0.150, "drift": 0.1956, "start": 0.200}
+LEVEL = {"coast": 0.1124, "gravel": 0.16, "wet": 0.16, "engine": 0.1124, "boost": 0.150, "drift": 0.1956, "start": 0.200}
 PEAK = 0.90
 # Two vehicles' same-layer sounds must differ by at least this much (mean dB
 # difference of one-third-octave levels, over the bands where either one has
@@ -299,6 +302,31 @@ def engine_loop(spec: dict, rng: np.random.Generator) -> np.ndarray:
     return normalize(saturate(out, spec["drive"]), LEVEL["engine"])
 
 
+def coast_loop(spec: dict, rng: np.random.Generator) -> np.ndarray:
+    """같은 차량의 점화 구조로 연소·고음 공진을 줄인 타력 배기를 합성한다."""
+    recipe = copy.deepcopy(spec)
+    recipe["drive"] *= .6
+    recipe["noise"] = (spec["noise"][0] * .25, spec["noise"][1], spec["noise"][2] * .6)
+    for bank in recipe["banks"]:
+        bank["resonances"] = [(hz, decay * 1.2, gain / (1 + (hz / 900) ** 2))
+                              for hz, decay, gain in bank["resonances"]]
+    return normalize(engine_loop(recipe, rng), LEVEL["coast"])
+
+
+def surface_loop(layer: str) -> np.ndarray:
+    """주기적인 자갈 충격과 연속적인 물 마찰. 차량 배기와 분리된 공통 노면 층."""
+    rng = seeded("road", layer)
+    if layer == "gravel":
+        magnitude = band(FREQ, 420, .6) + .45 * band(FREQ, 1600, 1.2)
+        out = filtered_noise(rng, magnitude, M)
+        out *= am(19, .75) * am(43.5, .45)
+        out = saturate(out, 2.0)
+    else:
+        magnitude = highpass(FREQ, 1700) * lowpass(FREQ, 9500)
+        out = filtered_noise(rng, magnitude, M) * am(3, .12)
+    return normalize(out, LEVEL[layer])
+
+
 def boost_loop(spec: dict, rng: np.random.Generator) -> np.ndarray:
     magnitude = sum(gain * band(FREQ, centre, q) for centre, q, gain in spec["bands"])
     flow = filtered_noise(rng, magnitude, M)
@@ -371,21 +399,23 @@ def read_audio(path: Path) -> np.ndarray:
 
 
 def catalog_ids() -> list[str]:
-    return re.findall(r'"id":"(\w+)"', CATALOG.read_text(encoding="utf-8"))
+    return re.findall(r'"id"\s*:\s*"(\w+)"', CATALOG.read_text(encoding="utf-8"))
 
 
 def catalog_audio(vehicle: str) -> dict:
     """Numeric audio tuning of one vehicle from the catalog (used by --preview)."""
-    for line in CATALOG.read_text(encoding="utf-8").splitlines():
-        if f'"id":"{vehicle}"' in line:
-            block = re.search(r'"audio":\{(.*?)\}', line).group(1)
-            return {k: float(v) for k, v in re.findall(r'"(\w+)":(-?[\d.]+)', block)}
-    raise SystemExit("vehicle not in catalog: " + vehicle)
+    text = CATALOG.read_text(encoding="utf-8")
+    match = re.search(r'"id"\s*:\s*"' + re.escape(vehicle) + r'"', text)
+    if not match:
+        raise SystemExit("vehicle not in catalog: " + vehicle)
+    block = re.search(r'"audio"\s*:\s*\{(.*?)\}', text[match.end():], re.S).group(1)
+    return {k: float(v) for k, v in re.findall(r'"(\w+)"\s*:\s*(-?[\d.]+)', block)}
 
 
 def files_of(vehicle: str) -> dict[str, Path]:
     return {
         "engine": OUT / f"{vehicle}-engine.ogg",
+        "coast": OUT / f"{vehicle}-coast.ogg",
         "boost": OUT / f"{vehicle}-boost.ogg",
         "start": OUT / f"{vehicle}-boost-start.wav",
         "drift": OUT / f"{vehicle}-drift.ogg",
@@ -402,11 +432,16 @@ def bake() -> None:
     for vehicle, recipe in VEHICLES.items():
         paths = files_of(vehicle)
         write_ogg(paths["engine"], engine_loop(recipe["engine"], seeded(vehicle, "engine")))
+        write_ogg(paths["coast"], coast_loop(recipe["engine"], seeded(vehicle, "coast")))
         write_ogg(paths["boost"], boost_loop(recipe["boost"], seeded(vehicle, "boost")))
         write_wav(paths["start"], boost_start(recipe["start"], seeded(vehicle, "start")))
         write_ogg(paths["drift"], drift_loop(recipe["drift"], seeded(vehicle, "drift")))
-        for layer in ("engine", "boost", "drift"):
+        for layer in ("engine", "coast", "boost", "drift"):
             web[f"{vehicle}-{layer}"] = base64.b64encode(paths[layer].read_bytes()).decode()
+    for layer in ("gravel", "wet"):
+        path = AUDIO / f"road-{layer}.ogg"
+        write_ogg(path, surface_loop(layer))
+        web[f"surface-{layer}"] = base64.b64encode(path.read_bytes()).decode()
     (AUDIO / "web-loops.json").write_text(json.dumps(web, separators=(",", ":")) + "\n")
 
 
@@ -457,7 +492,7 @@ def check() -> int:
             print("LOOP LENGTH", vehicle, layer, len(x))
             failures += 1
     names = list(VEHICLES)
-    for layer in ("engine", "boost", "start", "drift"):
+    for layer in ("engine", "coast", "boost", "start", "drift"):
         for i, a in enumerate(names):
             for b in names[i + 1:]:
                 first, second = third_octave_db(loaded[(a, layer)]), third_octave_db(loaded[(b, layer)])
@@ -469,10 +504,18 @@ def check() -> int:
                     failures += 1
     web = json.loads((AUDIO / "web-loops.json").read_text())
     for vehicle in VEHICLES:
-        for layer in ("engine", "boost", "drift"):
+        for layer in ("engine", "coast", "boost", "drift"):
             if base64.b64decode(web.get(f"{vehicle}-{layer}", "")) != files_of(vehicle)[layer].read_bytes():
                 print("web-loops.json is stale for", vehicle, layer)
                 failures += 1
+    for layer in ("gravel", "wet"):
+        path = AUDIO / f"road-{layer}.ogg"
+        if not path.is_file() or base64.b64decode(web.get(f"surface-{layer}", "")) != path.read_bytes():
+            print("MISSING/STALE SURFACE", layer)
+            failures += 1
+        elif abs(len(read_audio(path)) - M) > 2048 or np.abs(read_audio(path)).max() > .99:
+            print("INVALID SURFACE LOOP", layer)
+            failures += 1
     print("PASS" if not failures else f"FAIL ({failures})")
     return failures
 
@@ -502,7 +545,9 @@ def preview(directory: Path) -> None:
         rpm01 = np.clip((t % gear_len) / gear_len, 0, 1)
         rpm01[t >= 4 * gear_len] = 1.0
         pitch = tuning["engine_pitch"] + rpm01 * tuning["engine_span"] + (gear - 1) * tuning["engine_gear"]
-        mix = play_rate(sound["engine"], pitch) * 0.18 * tuning["engine_gain"]
+        load = np.where((t >= 3) & (t < 5), .12, .85)
+        mix = play_rate(sound["engine"], pitch) * .18 * tuning["engine_gain"] * np.sqrt(load)
+        mix += play_rate(sound["coast"], pitch) * .13 * tuning["engine_gain"] * np.sqrt(1 - load)
         speed01 = np.clip(0.35 + 0.65 * t / seconds, 0, 1)
         # 6-9 s nitro (start hit + loop), 10-13 s drift.
         boost_on = ((t >= 6) & (t < 9)).astype(float)
@@ -514,6 +559,8 @@ def preview(directory: Path) -> None:
         drift_on = ((t >= 10) & (t < 13)).astype(float)
         drift_gain = np.convolve(drift_on, np.ones(1500) / 1500, mode="same") * 0.038 * tuning["drift_gain"]
         mix += play_rate(sound["drift"], tuning["drift_pitch"] * (0.94 + 0.12 * speed01)) * drift_gain
+        mix += play_rate(read_audio(AUDIO / "road-gravel.ogg"), .8 + speed01 * .4) * ((t >= 9) & (t < 10)) * .05
+        mix += play_rate(read_audio(AUDIO / "road-wet.ogg"), .8 + speed01 * .4) * (t >= 13) * .04
         write_wav(directory / f"{vehicle}-demo.wav", np.clip(mix * 3.0, -1, 1))  # +9.5 dB so quiet layers are audible
         print("wrote", (directory / f"{vehicle}-demo.wav"))
 

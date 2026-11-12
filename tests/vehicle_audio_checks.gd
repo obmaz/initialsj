@@ -3,7 +3,7 @@ extends RefCounted
 # Adding a vehicle without them, or reusing another vehicle's file, fails here.
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const VehicleAudio = preload("res://scripts/audio/vehicle_audio.gd")
-const FILE_KEYS := ["engine", "boost", "boost_start", "drift"]
+const FILE_KEYS := ["engine", "coast", "boost", "boost_start", "drift"]
 const TUNING_RANGES := {
 	"engine_pitch": Vector2(0.5, 1.2),
 	"engine_span": Vector2(0.1, 0.8),
@@ -65,6 +65,7 @@ func run(tree: SceneTree) -> int:
 			)
 		var loops := {
 			"engine": VehicleAudio.load_loop(str(profile.engine)),
+			"coast": VehicleAudio.load_loop(str(profile.coast)),
 			"boost": VehicleAudio.load_loop(str(profile.boost)),
 			"drift": VehicleAudio.load_loop(str(profile.drift))
 		}
@@ -90,7 +91,7 @@ func run(tree: SceneTree) -> int:
 	check(ids.size() == count, "Vehicle ids must be unique")
 	for key in web_loops:
 		check(
-			ids.has(str(key).rsplit("-", true, 1)[0]),
+			ids.has(str(key).rsplit("-", true, 1)[0]) or str(key) in ["surface-gravel", "surface-wet"],
 			"web-loops.json carries a loop for an unknown vehicle: " + str(key)
 		)
 	if failures > 0:
@@ -102,6 +103,8 @@ func run(tree: SceneTree) -> int:
 	race.save_records = false
 	race.state = "racing"
 	race.speed = 60
+	# 믹스 단위 검사는 주행을 적분하지 않고 실제 접지 상태를 명시한다.
+	race.world_race.player_body.grounded = true
 	for index in range(count):
 		race.selected_vehicle = index
 		race.nitro_active = false
@@ -120,14 +123,16 @@ func run(tree: SceneTree) -> int:
 			"Nitro must roar louder than a road boost pad"
 		)
 		race.drifting = true
+		race.slip_angle = .3
 		var drifting := VehicleAudio.mix(race)
 		race.drifting = false
+		race.slip_angle = 0
 		race.surface.wet_time = 1.0
 		var puddle := VehicleAudio.mix(race)
 		race.surface.reset()
 		check(
-			drifting.drift > 0.0 and puddle.drift > 0.0 and puddle.drift < drifting.drift,
-			"A drift must be louder than puddle hiss"
+			drifting.drift > 0.0 and puddle.wet > 0.0 and puddle.drift == 0.0,
+			"Puddle hiss must use its own layer rather than rubber squeal"
 		)
 		race.speed = 25
 		var slow := VehicleAudio.mix(race)
@@ -145,7 +150,7 @@ func run(tree: SceneTree) -> int:
 		race.state = "countdown"
 		check(VehicleAudio.mix(race).engine < idle.engine, "The grid idle must be quieter than racing")
 		race.state = "racing"
-	# The real player: each selected vehicle swaps in all four of its own sounds, and a nitro
+	# The real player: each selected vehicle swaps in all five of its own sounds, and a nitro
 	# shot starts with that vehicle's ignition hit. (Native path; the Web path is web_audio_checks.cjs.)
 	var player = preload("res://scripts/audio/racing_audio.gd").new()
 	player.race = race
@@ -162,11 +167,12 @@ func run(tree: SceneTree) -> int:
 		check(
 			(
 				player.stream.resource_path == profile.engine
+				and player.extra_loops.coast.stream.resource_path == profile.coast
 				and player.boost_sound.stream.resource_path == profile.boost
 				and player.drift_sound.stream.resource_path == profile.drift
 				and player.start_sound.stream.resource_path == profile.boost_start
 			),
-			id + ": the player must carry all four of the selected vehicle's sounds"
+			id + ": the player must carry all five of the selected vehicle's sounds"
 		)
 		check(not player.start_sound.playing, id + ": no ignition hit before nitro starts")
 		race.nitro_active = true
@@ -183,10 +189,12 @@ func run(tree: SceneTree) -> int:
 			player._process(1.0 / 60)
 		check(player.boost_sound.volume_db < -50.0, id + ": the booster must fade out when the shot ends")
 		race.drifting = true
+		race.slip_angle = .3
 		for frame in range(30):
 			player._process(1.0 / 60)
 		check(player.drift_sound.volume_db > -45.0, id + ": the drift sound must play while drifting")
 		race.drifting = false
+		race.slip_angle = 0
 		for key in ["engine", "boost", "drift", "start"]:
 			var path: String = {
 				"engine": player.stream.resource_path,
@@ -201,7 +209,14 @@ func run(tree: SceneTree) -> int:
 		player._process(0.1)
 	check(not player.start_sound.playing, "Muting must stop the ignition hit")
 	check(
-		not player.playing and not player.boost_sound.playing and not player.drift_sound.playing,
+		(
+			not player.playing
+			and not player.boost_sound.playing
+			and not player.drift_sound.playing
+			and not player.extra_loops.coast.playing
+			and not player.extra_loops.gravel.playing
+			and not player.extra_loops.wet.playing
+		),
 		"Muting must fade out and stop every loop"
 	)
 	player.queue_free()

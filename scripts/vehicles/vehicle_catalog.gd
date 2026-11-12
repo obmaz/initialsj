@@ -39,6 +39,7 @@ const SPECS := [
 		"audio":
 		{
 			"engine": "res://assets/audio/vehicles/nimori-engine.ogg",
+			"coast": "res://assets/audio/vehicles/nimori-coast.ogg",
 			"boost": "res://assets/audio/vehicles/nimori-boost.ogg",
 			"boost_start": "res://assets/audio/vehicles/nimori-boost-start.wav",
 			"drift": "res://assets/audio/vehicles/nimori-drift.ogg",
@@ -89,6 +90,7 @@ const SPECS := [
 		"audio":
 		{
 			"engine": "res://assets/audio/vehicles/veltrix-engine.ogg",
+			"coast": "res://assets/audio/vehicles/veltrix-coast.ogg",
 			"boost": "res://assets/audio/vehicles/veltrix-boost.ogg",
 			"boost_start": "res://assets/audio/vehicles/veltrix-boost-start.wav",
 			"drift": "res://assets/audio/vehicles/veltrix-drift.ogg",
@@ -139,6 +141,7 @@ const SPECS := [
 		"audio":
 		{
 			"engine": "res://assets/audio/vehicles/ironvale-engine.ogg",
+			"coast": "res://assets/audio/vehicles/ironvale-coast.ogg",
 			"boost": "res://assets/audio/vehicles/ironvale-boost.ogg",
 			"boost_start": "res://assets/audio/vehicles/ironvale-boost-start.wav",
 			"drift": "res://assets/audio/vehicles/ironvale-drift.ogg",
@@ -190,6 +193,7 @@ const SPECS := [
 		"audio":
 		{
 			"engine": "res://assets/audio/vehicles/straud-engine.ogg",
+			"coast": "res://assets/audio/vehicles/straud-coast.ogg",
 			"boost": "res://assets/audio/vehicles/straud-boost.ogg",
 			"boost_start": "res://assets/audio/vehicles/straud-boost-start.wav",
 			"drift": "res://assets/audio/vehicles/straud-drift.ogg",

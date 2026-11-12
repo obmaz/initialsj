@@ -17,6 +17,9 @@ var pass_window := 0.0
 var close_passes := 0
 var traffic_gaps: Dictionary = {}
 var passed_traffic: Dictionary = {}
+var event_id := 0
+var event_boost := false
+var event_chain := 1
 
 
 func reset() -> void:
@@ -33,6 +36,21 @@ func reset() -> void:
 	close_passes = 0
 	traffic_gaps.clear()
 	passed_traffic.clear()
+	event_id = 0
+	event_boost = false
+	event_chain = 1
+
+
+# 점수는 주행 규칙에서 지급하고, 이 사건 하나로 기존 팝업·음향·진동을 묶는다.
+func announce(text: String, duration: float, boost: float = 0, gain: float = 4, chain: int = 1) -> void:
+	message = text
+	flash = duration
+	event_id += 1
+	event_boost = boost > 0
+	event_chain = clampi(chain, 1, 5)
+	if boost > 0:
+		exit_boost = maxf(exit_boost, boost)
+		boost_gain = gain
 
 
 func cancel_drift() -> void:
@@ -72,8 +90,7 @@ func observe_traffic(id: int, ahead: float, lateral: float, height: float, clean
 	pass_chain = mini(5, pass_chain + 1)
 	max_pass_chain = maxi(max_pass_chain, pass_chain)
 	pass_window = 5.0
-	message = "CLOSE PASS x%d  +%d" % [pass_chain, 150 * pass_chain]
-	flash = 1.4
+	announce("CLOSE PASS x%d  +%d" % [pass_chain, 150 * pass_chain], 1.4, 0, 4, pass_chain)
 	return true
 
 
@@ -105,10 +122,7 @@ func drift_step(
 	if drift_seconds >= 0.7 and drift_metres >= 18 and drift_turn >= 0.12 and not rewarded_corners.has(corner_key):
 		rewarded_corners[corner_key] = true
 		clean_exits += 1
-		boost_gain = 4
-		exit_boost = clampf(0.4 + drift_seconds * 0.08, 0.45, 0.75)
 		earned = 200 + mini(200, int(drift_turn * 150))
-		message = "CLEAN EXIT  +%d" % earned
-		flash = 1.4
+		announce("CLEAN EXIT  +%d" % earned, 1.4, clampf(0.4 + drift_seconds * 0.08, 0.45, 0.75))
 	cancel_drift()
 	return earned

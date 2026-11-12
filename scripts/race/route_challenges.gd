@@ -70,10 +70,12 @@ func land(race: Node3D, clean: bool) -> void:
 		skill_jumps += 1
 		var points := 750 if bool(jump.bridge) else 300
 		race.score += points
-		race.rewards.exit_boost = 1.2 if bool(jump.bridge) else .8
-		race.rewards.boost_gain = 7 if bool(jump.bridge) else 4
-		race.rewards.message = ("BRIDGE JUMP" if bool(jump.bridge) else "SKILL JUMP") + "  +%d / BOOST" % points
-		race.rewards.flash = 1.6
+		race.rewards.announce(
+			("BRIDGE JUMP" if bool(jump.bridge) else "SKILL JUMP") + "  +%d / BOOST" % points,
+			1.6,
+			1.2 if bool(jump.bridge) else .8,
+			7 if bool(jump.bridge) else 4
+		)
 	jump.clear()
 
 
@@ -119,5 +121,4 @@ func reward_safe(race: Node3D) -> void:
 	race.score += 200
 	if race.vehicle.mode != "charges":
 		race.nitro = minf(100, race.nitro + 4)
-	race.rewards.message = "CLEAN SAFE LINE  +200"
-	race.rewards.flash = 1.4
+	race.rewards.announce("CLEAN SAFE LINE  +200", 1.4)

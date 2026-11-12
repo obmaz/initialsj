@@ -1,6 +1,6 @@
 // AudioBufferSourceNode.loop keeps OGG playback independent of render/physics
 // cadence. Encoded loops are loaded from assets/audio/web-loops.json, keyed
-// "<vehicle id>-engine|boost|drift". Only the selected vehicle's three loops
+// "<vehicle id>-engine|coast|boost|drift" and surface-gravel|wet. Only six loops
 // are decoded and playing (setVehicle); see docs/VEHICLE_AUDIO.md.
 window.InitialSJFileAudio = class {
   constructor(files) {
@@ -12,7 +12,7 @@ window.InitialSJFileAudio = class {
     this.closed = false;
     this.revision = 0;
     this.ready = Promise.resolve();
-    this.target = {active: false, pitch: 1, engine: 0, boost: 0, boostPitch: 1, drift: 0, driftPitch: 1};
+    this.target = {active: false, pitch: 1, engine: 0, boost: 0, boostPitch: 1, drift: 0, driftPitch: 1, coast: 0, gravel: 0, wet: 0, roadPitch: 1};
     this.unlock = () => { if (!this.closed && this.context.state === 'suspended') this.context.resume(); };
     document.addEventListener('pointerdown', this.unlock, {passive: true});
     document.addEventListener('keydown', this.unlock);
@@ -43,8 +43,8 @@ window.InitialSJFileAudio = class {
     const revision = ++this.revision;
     this.vehicle = id;
     this.stopVoices();
-    this.ready = Promise.all(['engine', 'boost', 'drift'].map(async name => {
-      const buffer = await this.decode(id + '-' + name);
+    this.ready = Promise.all(['engine', 'coast', 'boost', 'drift', 'gravel', 'wet'].map(async name => {
+      const buffer = await this.decode((name === 'gravel' || name === 'wet' ? 'surface' : id) + '-' + name);
       // A -> B -> A can finish an older A decode after the new A request.
       // Only the latest request may create looping sources.
       if (this.closed || this.revision !== revision) return;
@@ -61,9 +61,9 @@ window.InitialSJFileAudio = class {
     });
     return this.ready;
   }
-  update(active, pitch, engine, boost, boostPitch, drift, driftPitch) {
+  update(active, pitch, engine, boost, boostPitch, drift, driftPitch, coast = 0, gravel = 0, wet = 0, roadPitch = 1) {
     if (this.closed) return;
-    this.target = {active, pitch, engine, boost, boostPitch, drift, driftPitch};
+    this.target = {active, pitch, engine, boost, boostPitch, drift, driftPitch, coast, gravel, wet, roadPitch};
     this.apply();
   }
   apply() {
@@ -71,6 +71,9 @@ window.InitialSJFileAudio = class {
     const now = this.context.currentTime;
     const goals = {
       engine: [this.target.engine, this.target.pitch],
+      coast: [this.target.coast, this.target.pitch],
+      gravel: [this.target.gravel, this.target.roadPitch],
+      wet: [this.target.wet, this.target.roadPitch],
       boost: [this.target.boost, this.target.boostPitch],
       drift: [this.target.drift, this.target.driftPitch],
     };

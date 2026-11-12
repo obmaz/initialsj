@@ -64,6 +64,7 @@ func _physics_process(delta: float) -> void:
 		float(visual.get("ride_offset")) if visual.get("ride_offset") != null else 0.0
 	)
 	if visual.has_method("animate"):
+		visual.body_motion.sample(delta, velocity, global_basis, grounded)
 		visual.animate(steering, false, false, delta)
 		visual.road_speed = velocity.length()
 		visual.set_detail(camera.global_position.distance_to(global_position) if camera != null else 0)

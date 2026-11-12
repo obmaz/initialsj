@@ -30,6 +30,7 @@ var ghost: Node3D
 var show_ghost := true
 var max_drift_multiplier := 1
 var rewards := preload("res://scripts/race/driving_rewards.gd").new()
+var sound_state := preload("res://scripts/audio/vehicle_sound_state.gd").new()
 var protection_left := 0.0
 var auto_accelerate := true
 var recovery_distance := 80.0
@@ -676,6 +677,7 @@ func restart(start_countdown: bool = true) -> void:
 	if record_key() != loaded_record_key:
 		load_record()
 	rewards.reset()
+	sound_state.reset()
 	passport.new_unlocks.clear()
 	apply_cosmetics()
 	route_challenges.reset()
@@ -960,11 +962,12 @@ func _physics_process(delta: float) -> void:
 	player.effects_quality = render_budget.level
 	player.reduced_motion = motion_reduced
 	player.boost_shot = nitro_burst_left > 0
+	player.shift_amount = sound_state.shift
 	player.set_protection(protection_left > 0)
 	player.animate(
 		steer,
 		drifting and not air.active and state == RaceState.RACING,
-		(nitro_active or pad_active or rewards.exit_boost > 0) and state == RaceState.RACING,
+		(nitro_active or pad_active or reward_boost_active()) and state == RaceState.RACING,
 		0.0 if state == RaceState.PAUSED else delta,
 		0.0 if world_race != null else slip_angle,
 		braking and state == RaceState.RACING,
@@ -977,14 +980,19 @@ func _physics_process(delta: float) -> void:
 			particles.emitting = false
 	var night: bool = track.scenery.theme in ["neon", "night"]
 	player.set_headlights(track.active.in_tunnel(distance) or night)
-	for r in rivals:
+	for rival_index in range(rivals.size()):
+		var r: RivalState = rivals[rival_index]
 		r.car.set_headlights(r.active and (night or track.active.in_tunnel(r.distance)), false)
 		if not r.active or not r.car.visible or absf(relative_gap(r.distance, distance)) > 145:
 			if r.visual_running:
 				r.car.animate(0, false, false, 0)
+				r.car.body_motion.reset()
 			r.visual_running = false
 			continue
 		r.visual_running = true
+		if rival_index + 1 < world_race.bodies.size() and state == RaceState.RACING:
+			var physical: CharacterBody3D = world_race.bodies[rival_index + 1]
+			r.car.body_motion.sample(delta, physical.velocity, physical.global_basis, physical.grounded)
 		r.car.road_speed = r.speed if state == RaceState.RACING else 0.0
 		r.car.animate(
 			clampf((r.target_lane - r.lane) / 2, -1, 1),
@@ -996,7 +1004,7 @@ func _physics_process(delta: float) -> void:
 				and state == RaceState.RACING
 			),
 			r.boosting and state == RaceState.RACING,
-			delta,
+			0.0 if state == RaceState.PAUSED else delta,
 			0
 		)
 	# HUD._process owns its redraw; physics ticks need not enqueue it again.
@@ -1066,6 +1074,9 @@ func step(
 		cell_input = false
 	hazard_text = ""
 	world_race.step(delta, axis, drift_input, gas, brake, nitro_input, cell_input)
+	var physical: CharacterBody3D = world_race.player_body
+	player.body_motion.sample(delta, physical.velocity, physical.global_basis, physical.grounded and not crash.active)
+	sound_state.advance(self, delta)
 	if track.active.collapse != null:
 		track.active.collapse.advance(delta, distance, motion_reduced)
 		hazard_text = track.active.collapse.warning(distance)
@@ -1085,6 +1096,10 @@ func step(
 
 func pad_speed_cap() -> float:
 	return maxf(vehicle.overdrive_speed + 2, vehicle.max_speed + 21)
+
+
+func reward_boost_active() -> bool:
+	return state == RaceState.RACING and rewards.exit_boost > 0 and throttling and not drifting and not crash.active
 
 
 func update_recovery(delta: float) -> void:

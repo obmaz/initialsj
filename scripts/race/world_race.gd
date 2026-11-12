@@ -95,6 +95,9 @@ func teleport(index: int, d: float, lane: float = 0.0, reset_progress: bool = tr
 		wrong_way_time = 0
 		crash_flight = false
 		race.player.reset_physics_interpolation()
+		race.player.body_motion.reset()
+		race.sound_state.reset()
+		race.sound_state.last_reward = race.rewards.event_id
 		race.camera.reset_physics_interpolation()
 	else:
 		var rival: RivalState = race.rivals[index - 1]
@@ -183,7 +186,7 @@ func step(
 	if race.nitro_active:
 		cap = race.vehicle.overdrive_speed if race.nitro_burst_left > 0 else race.vehicle.boost_speed
 		accel = race.vehicle.boost_accel
-	if race.rewards.exit_boost > 0 and race.throttling and not race.drifting:
+	if race.reward_boost_active():
 		cap = maxf(cap, race.vehicle.max_speed + race.rewards.boost_gain)
 		accel = maxf(accel, race.vehicle.accel * 1.25)
 	if race.pad_active:
@@ -296,7 +299,6 @@ func step(
 	wrong_way_time = (
 		wrong_way_time + delta if player_body.velocity.dot(road_forward) < -5 and player_body.grounded else 0.0
 	)
-	race.boosting = race.nitro_active or race.pad_active or (race.draft_charge > 0.65 and race.throttling)
 	if race.coast_handling:
 		race.score += race.coast_drift.step(
 			delta,
@@ -333,6 +335,12 @@ func step(
 	if was_airborne and player_body.grounded:
 		race.route_challenges.land(race, clean_exit and not crash_flight)
 	race.route_challenges.observe(race)
+	race.boosting = (
+		race.nitro_active
+		or race.pad_active
+		or race.reward_boost_active()
+		or (race.draft_charge > 0.65 and race.throttling)
+	)
 	race.max_drift_multiplier = maxi(race.max_drift_multiplier, race.coast_drift.multiplier)
 	race.personal_run.observe(
 		race, bool(data.valid) and race.protection_left <= 0 and player_body.velocity.dot(road_forward) >= -1, delta
@@ -428,6 +436,7 @@ func update_air(delta: float, was_airborne: bool) -> void:
 		if airborne_time > 0.12 and landing_velocity < -1.5:
 			race.air.landing_flash = 0.65
 			race.air.landing_strength = clampf(-landing_velocity / 14, 0.25, 1)
+			race.player.body_motion.land(race.air.landing_strength * (.3 if race.motion_reduced else 1.0))
 			race.haptics.pulse(0.4 + 0.5 * race.air.landing_strength, 0.6, 0.12 + 0.2 * race.air.landing_strength, 3)
 			if not crash_flight:
 				race.score += 100

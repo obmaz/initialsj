@@ -10,10 +10,9 @@ countdown.wav, launch.wav, reward.wav, lap.wav
   Original short synthesized UI cues baked by tools/bake_cues.py.
   These files belong to this project; no third-party recordings are included.
 
-vehicles/<id>-engine.ogg, -boost.ogg, -boost-start.wav, -drift.ogg, web-loops.json
-  Original sounds synthesized by tools/bake_vehicle_audio.py: one engine, booster,
-  ignition hit and drift sound per vehicle. No third-party recordings are included, and
-  web-loops.json only repackages the baked loops. The shared engine and tyre recordings
-  (OpenGameArt, CC BY 3.0, by qubodup and audible-edge) that earlier builds used were
-  replaced by these and removed; they remain credited in the Git history.
-  Adding a vehicle adds its four files here: see docs/VEHICLE_AUDIO.md.
+vehicles/<id>-engine.ogg, -coast.ogg, -boost.ogg, -boost-start.wav, -drift.ogg
+road-gravel.ogg, road-wet.ogg, web-loops.json
+  프로젝트 전용 합성 원본. tools/bake_vehicle_audio.py가 차량별 가속·타력 배기,
+  부스터·점화·타이어 음원과 공통 자갈·물 접촉 소리를 생성합니다.
+  외부 녹음은 포함하지 않으며 web-loops.json은 같은 파일의 웹 재생 포장입니다.
+  차량 추가·조정 규칙은 docs/VEHICLE_AUDIO.md를 따릅니다.

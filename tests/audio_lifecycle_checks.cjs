@@ -20,18 +20,19 @@ class AudioContext {
 }
 const window={...events};
 vm.runInNewContext(fs.readFileSync('web/file_audio.js','utf8'),{window,document:events,AudioContext,console:{error(...args){errors.push(args)}},atob:encoded=>Buffer.from(encoded,'base64').toString('binary')});
-const files={};for(const id of ['a','b'])for(const voice of ['engine','boost','drift'])files[id+'-'+voice]='QQ==';
+const files={};for(const id of ['a','b'])for(const voice of ['engine','coast','boost','drift'])files[id+'-'+voice]='QQ==';
+for(const voice of ['gravel','wet'])files['surface-'+voice]='QQ==';
 (async()=>{
  const audio=new window.InitialSJFileAudio({...files});const context=contexts[0];
  const a=audio.setVehicle('a'),b=audio.setVehicle('b'),again=audio.setVehicle('a');
- assert.equal(context.pending.length,6,'Repeated visits must reuse the decoded-file promise');
+ assert.equal(context.pending.length,10,'Repeated visits must reuse the decoded-file promise');
  for(const pending of context.pending)pending.resolve({length:100});
  await Promise.all([a,b,again]);
- assert.equal(context.live.size,3,'A -> B -> A must leave exactly three current loops');
- assert.equal(context.connections.size,6);
+ assert.equal(context.live.size,6,'A -> B -> A must leave exactly six current loops');
+ assert.equal(context.connections.size,12);
  for(let i=0;i<20;i++)await audio.setVehicle(i%2?'a':'b');
- assert.equal(context.live.size,3,'Repeated selection must not accumulate looping sources');
- assert.equal(context.connections.size,6,'Stopped sources and gains must disconnect');
+ assert.equal(context.live.size,6,'Repeated selection must not accumulate looping sources');
+ assert.equal(context.connections.size,12,'Stopped sources and gains must disconnect');
  audio.close();audio.close();
  audio.update(true,1,1,1,1,1,1);
  assert.equal(audio.target.active,false,'A disposed mixer must ignore late updates');
