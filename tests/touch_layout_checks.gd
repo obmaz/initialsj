@@ -64,6 +64,17 @@ func run(tree: SceneTree) -> int:
 					if action != "pause":
 						check(rect.size.x >= 96 and rect.size.y >= 96, "작은 배치도 기본 액션 터치 크기를 확보한다")
 					check(Rect2(0, 0, 1280, 720).encloses(rect), "커진 버튼이 안전 설계 영역을 벗어나지 않는다")
+				if size == 1 and auto:
+					var rest := HudLayout.steering_rest(mirrored)
+					var stick_margin := (
+						HudLayout.DESIGN.x - rest.x - HudLayout.STICK_RADIUS
+						if mirrored
+						else rest.x - HudLayout.STICK_RADIUS
+					)
+					var pedal_margin: float = (
+						buttons.brake.position.x if mirrored else HudLayout.DESIGN.x - buttons.brake.end.x
+					)
+					check(is_equal_approx(stick_margin, pedal_margin), "기본 브레이크와 조이스틱의 바깥 여백이 같다")
 				var at: Vector2 = buttons.gas.get_center()
 				check(race.hud.button_at(at) == ("brake" if auto else "gas"), "그려진 페달 위치의 의미가 자동 가속과 일치한다")
 

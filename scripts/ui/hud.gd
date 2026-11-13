@@ -83,7 +83,7 @@ var buttons: Dictionary = preload("res://scripts/input/touch_layout.gd").BASE.du
 
 
 func _ready() -> void:
-	hud_card_style.bg_color = Color("0b1829d9")
+	hud_card_style.bg_color = Color("102b3d99")
 	hud_card_style.border_color = Color("82a4b56e")
 	hud_card_style.set_border_width_all(1)
 	hud_card_style.set_corner_radius_all(10)
