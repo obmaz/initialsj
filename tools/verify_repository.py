@@ -144,13 +144,13 @@ def check_docs():
             target, _, anchor = unquote(target.strip("<>")).partition("#")
             linked = path.parent / target if target else path
             if not linked.exists():
-                errors.append(f"Broken link in {path.relative_to(ROOT)}: {target}")
+                errors.append(f"Broken link in {path.relative_to(ROOT).as_posix()}: {target}")
             elif anchor and linked.suffix == ".md" and anchor not in markdown_anchors(text(linked)):
-                errors.append(f"Broken anchor in {path.relative_to(ROOT)}: {target}#{anchor}")
+                errors.append(f"Broken anchor in {path.relative_to(ROOT).as_posix()}: {target}#{anchor}")
     for path in (ROOT / "docs").rglob("*"):
         # APK 기록 스키마는 임시 보고서가 아니라 문서가 참조하는 검증 기준입니다.
         if path.is_file() and path.suffix != ".md" and path != ROOT / "docs/apk-build-record.schema.json":
-            errors.append(f"Generated review artifact belongs in build/reports/: {path.relative_to(ROOT)}")
+            errors.append(f"Generated review artifact belongs in build/reports/: {path.relative_to(ROOT).as_posix()}")
 
 
 def expanded_shader(path, visited=None):
@@ -172,7 +172,7 @@ def check_shader_samplers():
         source = re.sub(r"/\*.*?\*/|//[^\n]*", "", expanded_shader(path), flags=re.S)
         for sampler in re.findall(r"\buniform\s+sampler\w+\s+(\w+)", source):
             if len(re.findall(rf"\b{re.escape(sampler)}\b", source)) == 1:
-                errors.append(f"Unused shader sampler in {path.relative_to(ROOT)}: {sampler}")
+                errors.append(f"Unused shader sampler in {path.relative_to(ROOT).as_posix()}: {sampler}")
 
 
 def check_audio_licences():

@@ -1,8 +1,8 @@
 """리소스 검사기가 정상 include·문서 링크를 허용하고 실제 누락을 잡는지 검사합니다."""
 import tempfile
 import unittest
-from pathlib import Path
-from unittest.mock import patch
+from pathlib import Path, PureWindowsPath
+from unittest.mock import MagicMock, patch
 
 import verify_repository as verify
 
@@ -84,6 +84,17 @@ uniform sampler2D retired;
 void fragment() { ALBEDO = vec3(1.0); }
 ''')
         verify.check_shader_samplers()
+        self.assertEqual(verify.errors, ["Unused shader sampler in shaders/ground.gdshader: retired"])
+
+    def test_windows_shader_error_uses_portable_relative_path(self):
+        root = MagicMock()
+        path = MagicMock()
+        path.relative_to.return_value = PureWindowsPath("shaders/ground.gdshader")
+        (root / "shaders").rglob.return_value = [path]
+        with patch.object(verify, "ROOT", root), patch.object(
+            verify, "expanded_shader", return_value="uniform sampler2D retired;"
+        ):
+            verify.check_shader_samplers()
         self.assertEqual(verify.errors, ["Unused shader sampler in shaders/ground.gdshader: retired"])
 
     def test_korean_anchors_spaces_and_duplicate_headings(self):

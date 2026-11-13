@@ -5,7 +5,9 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
+import check
 from check import CheckFailure, run
 
 
@@ -32,3 +34,18 @@ class CheckProcessTests(unittest.TestCase):
     def test_timeout_is_failure(self):
         with self.assertRaisesRegex(CheckFailure, "제한 시간 초과"):
             self.execute("import time; time.sleep(60)", timeout=.1)
+
+    def test_windows_venv_formatter_is_found_without_activation(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            formatter = root / "build/dev-venv/Scripts/gdformat.exe"
+            formatter.parent.mkdir(parents=True)
+            formatter.touch()
+            with patch.object(check, "ROOT", root), patch.object(check.sys, "platform", "win32"), patch.dict(
+                check.os.environ, {"INITIALSJ_GDFORMAT_BIN": ""}
+            ):
+                self.assertEqual(check.formatter_path(), str(formatter))
+
+    def test_formatter_override_has_priority(self):
+        with patch.dict(check.os.environ, {"INITIALSJ_GDFORMAT_BIN": "chosen-formatter"}):
+            self.assertEqual(check.formatter_path(), "chosen-formatter")

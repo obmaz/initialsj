@@ -39,11 +39,17 @@ def run(label, command, *, godot=False, report_dir=REPORTS, timeout=900):
         raise CheckFailure(f"{label}: Godot 오류가 있습니다. 로그: {path}")
 
 
-def static_checks():
+def formatter_path():
     formatter = os.environ.get("INITIALSJ_GDFORMAT_BIN")
     if not formatter:
-        local = ROOT / "build/dev-venv/bin/gdformat"
+        executable = "Scripts/gdformat.exe" if sys.platform == "win32" else "bin/gdformat"
+        local = ROOT / "build/dev-venv" / executable
         formatter = str(local) if local.is_file() else shutil.which("gdformat")
+    return formatter
+
+
+def static_checks():
+    formatter = formatter_path()
     if not formatter:
         raise CheckFailure("tools/requirements-dev.txt의 개발 도구를 설치하세요. docs/CODING_STYLE.md를 참고하세요.")
     run("style", [formatter, "--check", "scripts", "models", "addons", "tests", "tools"])
