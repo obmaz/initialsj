@@ -8,10 +8,12 @@ const WHEELS := ["stock", "five_spoke", "split_spoke"]
 const WINGS := ["stock", "ducktail", "gt_wing", "none"]
 
 
-static func paint_material(color: Color) -> ShaderMaterial:
+static func paint_material(color: Color, source_texture: Texture2D = null) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = LIVERY
 	material.set_shader_parameter("base_paint", Vector4(color.r, color.g, color.b, 1))
+	material.set_shader_parameter("use_source_texture", source_texture != null)
+	material.set_shader_parameter("source_texture", source_texture)
 	return material
 
 
@@ -101,6 +103,9 @@ static func apply(car: Node3D, data: Dictionary, vehicle: int) -> void:
 		car.set_meta("tuning_rim_material", overlay_material)
 	for material in [wheel_material, overlay_material]:
 		material.set_shader_parameter("rim_color", Vector4(rim.r, rim.g, rim.b, 1))
+	if car.body.has_meta("source_texture"):
+		wheel_material.set_shader_parameter("use_source_texture", true)
+		wheel_material.set_shader_parameter("source_texture", car.body.get_meta("source_texture"))
 	wheel_material.set_shader_parameter("replace_rim", data.wheel > 0)
 	if previous.get("wheel", -1) != data.wheel:
 		var mesh: Mesh = cached_part(car, WHEELS[data.wheel]) if data.wheel > 0 else null

@@ -200,3 +200,4 @@ static func make_traffic(section: Node3D, visual: Node3D) -> void:
 	section.add_child(motor)
 	motor.configure(preload("res://scripts/vehicles/vehicle_catalog.gd").spec(0))
 	motor.reset_pose(visual.global_position, -visual.global_basis.z, visual.global_basis.y)
+	preload("res://scripts/vehicles/tour_traffic_appearance.gd").attach(motor)

@@ -41,7 +41,10 @@ func run(tree: SceneTree) -> int:
 	for rival in race.rivals:
 		models[rival.car.model] = true
 		styles[rival.style.name] = true
-	check(models.size() == 4 and styles.size() == 4, "서로 다른4종 차체·4가지 주행 성격을 섞는다")
+	check(
+		models.size() == mini(race.Catalog.SPECS.size(), race.rivals.size()) and styles.size() == 4,
+		"등록된 차체와4가지 주행 성격을 섞는다"
+	)
 	race.free()
 	await tree.process_frame
 	print("상대별 차종·성격 / 독립 성능 / 직선·코너 탈출 니트로: ", "PASS" if failures == 0 else "FAIL")

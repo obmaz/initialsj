@@ -13,7 +13,7 @@ Godot **4.7.2 / GL Compatibility** 기반의 가로 화면 3D 아케이드 레�
 | TRACK04 / AZURE RIVIERA | 해안·시골 마을·협곡·아치 붕괴·하트 드리프트, 8대·3랩 |
 | TRACK05 / SCARLET GORGE | 노을·현수교·점프·상판 붕괴·주회별 낙석, 8대·3랩 |
 
-주행은 모든 모드에서 같은 실제 3D 차체·노면·가드레일 물리를 사용합니다. 선택 차량은 NIMORI H, VELTRIX S, IRONVALE V8, STRAUD 6R이며 차량별 능력과 니트로·음원이 다릅니다. 모델의 치수는 도로와 같은 미터 단위를 사용합니다. 도로·지형·구조물·차량·식생을 포함한 3D 형상은 GLB 원본과 `.tscn` 조립 씬으로 관리합니다.
+주행은 모든 모드에서 같은 실제 3D 차체·노면·가드레일 물리를 사용합니다. 선택 차량은 NIMORI H, VELTRIX S, IRONVALE V8, STRAUD 6R, SCARLET R이며 차량별 능력과 니트로·음원이 다릅니다. 모델의 치수는 도로와 같은 미터 단위를 사용합니다. 도로·지형·구조물·차량·식생을 포함한 3D 형상은 GLB 원본과 `.tscn` 조립 씬으로 관리합니다.
 
 ## 실행
 
@@ -35,7 +35,7 @@ Godot **4.7.2 / GL Compatibility** 기반의 가로 화면 3D 아케이드 레�
 | 환경 구성·검사·웹 배포 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) |
 | 코드 책임·주행과 시각 모델 경계·메모리 수명 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | 특정 오브젝트·차량·빌딩만 제작·검사·커밋 | [MODEL_PIPELINE.md](docs/MODEL_PIPELINE.md), [모델 제작 스킬](.agents/skills/model-authoring/SKILL.md) |
-| 차량별 음원 제작·재생 | [VEHICLE_AUDIO.md](docs/VEHICLE_AUDIO.md) |
+| 차량별 음원 제작·재생 | [VEHICLE_AUDIO.md](docs/VEHICLE_AUDIO.md), [배경음악](docs/BACKGROUND_MUSIC.md) |
 | 프레임 저하 원인 분석·개선 제안 | [PERFORMANCE.md](docs/PERFORMANCE.md) |
 | 출처·라이선스 | [ASSET_LICENSES.md](docs/ASSET_LICENSES.md) |
 | 요청받은 APK 빌드·Dropbox 전달 | [ANDROID.md](docs/ANDROID.md), [APK 전달 스킬](.agents/skills/dropbox-apk/SKILL.md) |

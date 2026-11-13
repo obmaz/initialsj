@@ -39,7 +39,10 @@ var menu_text := preload("res://scripts/ui/menu_text.gd").new(self)
 var menus := preload("res://scripts/ui/hud_menus.gd").new(self)
 const GARAGE_GHOST := Rect2(940, 24, 280, 84)
 const GARAGE_BACK := MenuLayout.BACK
-const SETTINGS_SOUND := Rect2(350, 104, 580, 80)
+const GARAGE_PREVIOUS := Rect2(32, 480, 92, 106)
+const GARAGE_NEXT := Rect2(1156, 480, 92, 106)
+const SETTINGS_SOUND := Rect2(350, 104, 280, 80)
+const SETTINGS_MUSIC := Rect2(650, 104, 280, 80)
 const SETTINGS_MOTION := Rect2(350, 196, 580, 80)
 const SETTINGS_GRAPHICS := Rect2(350, 288, 580, 80)
 const SETTINGS_FPS := Rect2(350, 380, 280, 80)
@@ -241,6 +244,8 @@ func handle_pointer(event: InputEvent) -> void:
 	if race.state == RaceState.SETTINGS:
 		if SETTINGS_SOUND.has_point(p):
 			race.toggle_sound()
+		elif SETTINGS_MUSIC.has_point(p):
+			race.toggle_music()
 		elif SETTINGS_MOTION.has_point(p):
 			race.toggle_motion()
 		elif SETTINGS_GRAPHICS.has_point(p):
@@ -272,12 +277,17 @@ func handle_pointer(event: InputEvent) -> void:
 			race.cycle_cosmetic(true)
 		elif GARAGE_GHOST.has_point(p):
 			race.toggle_ghost()
+		elif GARAGE_PREVIOUS.has_point(p):
+			race.select_vehicle(posmod(race.selected_vehicle - 1, Catalog.SPECS.size()))
+		elif GARAGE_NEXT.has_point(p):
+			race.select_vehicle((race.selected_vehicle + 1) % Catalog.SPECS.size())
 		elif GARAGE_START.has_point(p):
 			race.start_race()
 		else:
 			for i in range(Catalog.SPECS.size()):
 				if garage_card(i).has_point(p):
 					race.select_vehicle(i)
+					break
 		return
 	if race.state in [RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED]:
 		if race.state == RaceState.PAUSED and SOUND_BUTTON.has_point(p):
@@ -1035,11 +1045,14 @@ func draw_nitro() -> void:
 
 
 func garage_card(index: int) -> Rect2:
-	# Cards share the row evenly, so a new catalog entry gets its own card.
-	var count: int = Catalog.SPECS.size()
-	var gap := 20.0
-	var width := (1120.0 - gap * (count - 1)) / count
-	return Rect2(80 + index * (width + gap), 480, width, 106)
+	# 최대4칸의 폭을 유지하고 선택을 따라 창을 옮긴다. 차량이 늘어도 버튼을 축소하지 않는다.
+	var count: int = mini(4, Catalog.SPECS.size())
+	var start: int = clampi(race.selected_vehicle - 1, 0, Catalog.SPECS.size() - count)
+	if index < start or index >= start + count:
+		return Rect2()
+	var gap := 16.0
+	var width := (992.0 - gap * (count - 1)) / count
+	return Rect2(144 + (index - start) * (width + gap), 480, width, 106)
 
 
 func draw_menu() -> void:

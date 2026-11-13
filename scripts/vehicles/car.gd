@@ -278,7 +278,10 @@ func restore_paint() -> void:
 	var material := paint_material()
 	for node in body.get_children():
 		if node is MeshInstance3D and node.name == "PaintShell":
-			node.material_override = preload("res://scripts/vehicles/vehicle_customization.gd").paint_material(paint)
+			var texture: Texture2D = body.get_meta("source_texture") if body.has_meta("source_texture") else null
+			node.material_override = preload("res://scripts/vehicles/vehicle_customization.gd").paint_material(
+				paint, texture
+			)
 			continue
 		if (
 			node is MeshInstance3D

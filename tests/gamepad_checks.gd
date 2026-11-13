@@ -116,6 +116,10 @@ func run(tree: SceneTree) -> int:
 	check(race.sound_enabled != sound and race.settings_focus == 0, "Settings A must change the focused row")
 	race.sound_enabled = sound
 	tap(JOY_BUTTON_DPAD_DOWN)
+	var music: bool = race.music_enabled
+	tap(JOY_BUTTON_A)
+	check(race.music_enabled != music, "패드로 음악 항목을 선택해 효과음과 별도로 전환한다")
+	race.music_enabled = music
 	tap(JOY_BUTTON_DPAD_DOWN)
 	check(race.settings_focus == 2, "Settings D-pad must move the focus")
 	tap(JOY_BUTTON_DPAD_UP)

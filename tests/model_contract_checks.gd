@@ -79,8 +79,8 @@ func run(tree: SceneTree, category: String = "", id: String = "") -> int:
 					var scene := SceneSource.instantiate_static(item.scene_path)
 					check(visual_triangles(scene) <= 5000, "조립형 소품은5000삼각형 이하: " + item.id)
 					for part in SceneSource.collect_meshes(scene):
-						check(part.material_override != null, "조립형 소품의 전용 재질: " + item.id)
 						for surface in range(part.mesh.get_surface_count()):
+							check(part.get_active_material(surface) != null, "조립형 소품의 전용 재질: " + item.id)
 							check(
 								part.mesh.surface_get_arrays(surface)[Mesh.ARRAY_TEX_UV] != null,
 								"조립형 소품 UV: " + item.id

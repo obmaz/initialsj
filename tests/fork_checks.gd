@@ -263,14 +263,18 @@ func run(tree: SceneTree) -> int:
 					break
 			check(
 				race.stage_index == 1 and race.route_node == side,
-				"Touch choice must steer each vehicle into the chosen physical branch"
+				(
+					"Touch choice branch: car=%d side=%d stage=%d route=%d"
+					% [index, side, race.stage_index, race.route_node]
+				)
 			)
 			check(
-				race.wall_hits == 0 and max_step < 2.5, "Route assistance must stay inside bounds without teleporting"
+				race.wall_hits == 0 and max_step < 2.5,
+				"Route bounds: car=%d side=%d hits=%d max_step=%.2f" % [index, side, race.wall_hits, max_step]
 			)
 			check(
 				race.checkpoints == 1 and not race.route_choices_visible(),
-				"Branch commitment must hide the cards without a second checkpoint"
+				"Branch commitment: car=%d side=%d checkpoints=%d" % [index, side, race.checkpoints]
 			)
 	race.open_garage()
 	race.state = "racing"

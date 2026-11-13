@@ -61,7 +61,7 @@ def engine_checks():
         ("gameplay", ["--fixed-fps", "60", "--script", "res://tests/race_test.gd"]),
     ]:
         run(label, [engine, "--headless", "--path", ".", *arguments], godot=True)
-    for name in ["install_bridge", "back_bridge", "fullscreen_bridge", "audio_lifecycle", "web_offline"]:
+    for name in ["install_bridge", "back_bridge", "fullscreen_bridge", "audio_lifecycle", "music_lifecycle", "web_offline"]:
         run(name, ["node", f"tests/{name}_checks.cjs"])
 
 

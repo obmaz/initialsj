@@ -64,6 +64,8 @@ static func profile(road: Node3D) -> void:
 	road.tour_underpass = resource.get_meta("tour_underpass", Vector2.ZERO)
 	road.asset_paths.assign(resource.get_meta(&"dependencies", []))
 	road.asset_paths = GeometryMap.dependencies(road.asset_paths)
+	if not road.closed_loop:
+		road.asset_paths.append_array(preload("res://scripts/vehicles/tour_traffic_appearance.gd").PATHS)
 	var collision_path := folder(road) + "collision.res"
 	if ResourceLoader.exists(collision_path):
 		road.asset_paths.append(collision_path)

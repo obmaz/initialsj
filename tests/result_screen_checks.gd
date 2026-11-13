@@ -50,8 +50,8 @@ func run(tree: SceneTree) -> int:
 	r.state = "settings"
 	r.hud.handle_pointer(_tap(r.hud.SETTINGS_FPS.get_center()))
 	check(r.show_fps, "The SHOW FPS row must switch the counter on")
-	r.controls.settings_activate(3)
-	check(not r.show_fps, "Pad row 3 must toggle the FPS counter")
+	r.controls.settings_activate(4)
+	check(not r.show_fps, "음악 항목 추가 후에도 패드의 FPS 항목이 실제 카운터를 전환한다")
 	for mode in ["tour", "track"]:
 		r.choose_mode(mode, 2)
 		var destination := "courses" if mode == "track" else "menu"

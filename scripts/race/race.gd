@@ -228,6 +228,8 @@ var preferences_path := "user://settings.cfg"
 # Small frames-per-second counter in the corner during a race (Settings > SHOW FPS).
 var show_fps := false
 var sound_enabled := true
+var music_enabled := true
+var background_music: Node
 var camera_time := 0.0
 var camera_offset := Vector3.ZERO
 var best_time := 0.0
@@ -331,6 +333,9 @@ func _ready() -> void:
 		var audio := preload("res://scripts/audio/racing_audio.gd").new()
 		audio.race = self
 		add_child(audio)
+		background_music = preload("res://scripts/audio/background_music.gd").new()
+		background_music.race = self
+		add_child(background_music)
 		if OS.has_feature("web"):
 			motion_reduced = bool(
 				JavaScriptBridge.eval("window.matchMedia('(prefers-reduced-motion: reduce)').matches")
@@ -564,6 +569,8 @@ func load_preferences() -> void:
 	var config := ConfigFile.new()
 	if config.load(preferences_path) == OK:
 		sound_enabled = bool(config.get_value("preferences", "sound", true))
+		var saved_music: Variant = config.get_value("preferences", "music", true)
+		music_enabled = saved_music if saved_music is bool else true
 		# Only a stored choice overrides the system reduced-motion preference.
 		if config.has_section_key("preferences", "reduced_motion"):
 			motion_reduced = bool(config.get_value("preferences", "reduced_motion"))
@@ -582,6 +589,7 @@ func save_preferences() -> void:
 	config.set_value("preferences", "show_ghost", show_ghost)
 	config.set_value("preferences", "auto_accelerate", auto_accelerate)
 	config.set_value("preferences", "sound", sound_enabled)
+	config.set_value("preferences", "music", music_enabled)
 	config.set_value("preferences", "show_fps", show_fps)
 	if motion_user_set:
 		config.set_value("preferences", "reduced_motion", motion_reduced)
@@ -594,6 +602,11 @@ func save_preferences() -> void:
 # the pause or result dialog survives a reload like one made in Settings.
 func toggle_sound() -> void:
 	sound_enabled = not sound_enabled
+	save_preferences()
+
+
+func toggle_music() -> void:
+	music_enabled = not music_enabled
 	save_preferences()
 
 
@@ -822,6 +835,8 @@ func restart(start_countdown: bool = true) -> void:
 		r.car.reset_physics_interpolation()
 	personal_run.prepare(self)
 	ghost.prepare(self)
+	if background_music != null and start_countdown:
+		background_music.begin_session(mode)
 	# A screen transition can finish after the device rotated to portrait. The
 	# rotate guide hides the road, so wait paused rather than run unseen.
 	if shell.portrait:

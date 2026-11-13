@@ -207,6 +207,57 @@ const SPECS := [
 			"drift_gain": 1.0,
 			"drift_pitch": 1.0
 		}
+	},
+	{
+		"id": "scarlet",
+		"tagline": "CLASSIC SEDAN. KEEP YOUR FLOW THROUGH THE CORNERS.",
+		"role": "STABLE / GAUGE",
+		"name": "SCARLET R",
+		"class": "SPORT SEDAN",
+		"model": "redcar",
+		"paint": "e95b50",
+		"accent": "ffca67",
+		"mode": "gauge",
+		"nitro_title": "GAUGE / HOLD",
+		"nitro_help": "Drift to recharge. Release to save fuel.",
+		"description": "A stable classic sedan with smooth steering and a balanced nitro gauge.",
+		"max_speed": 80.0,
+		"boost_speed": 96.0,
+		"overdrive_speed": 96.0,
+		"accel": 17.5,
+		"boost_accel": 27.0,
+		"brake": 24.0,
+		"grip": 13.2,
+		"drift_grip": 26.0,
+		"steer_speed": 8.4,
+		"drift_steer_speed": 11.0,
+		"steer_rate": 7.2,
+		"lateral_grip": 35.0,
+		"lateral_drift": 19.0,
+		"energy_start": 85.0,
+		"drain": 15.0,
+		"regen": 2.4,
+		"drift_regen": 6.0,
+		"charges": 0,
+		"burst_duration": 0.0,
+		"handling": 7,
+		"audio":
+		{
+			"engine": "res://assets/audio/vehicles/scarlet-engine.ogg",
+			"coast": "res://assets/audio/vehicles/scarlet-coast.ogg",
+			"boost": "res://assets/audio/vehicles/scarlet-boost.ogg",
+			"boost_start": "res://assets/audio/vehicles/scarlet-boost-start.wav",
+			"drift": "res://assets/audio/vehicles/scarlet-drift.ogg",
+			"engine_pitch": 1.01,
+			"engine_span": 0.36,
+			"engine_gear": 0.07,
+			"engine_gain": 1.0,
+			"boost_gain": 0.9,
+			"boost_rise": 0.18,
+			"start_gain": 0.8,
+			"drift_gain": 1.0,
+			"drift_pitch": 1.0
+		}
 	}
 ]
 

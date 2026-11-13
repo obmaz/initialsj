@@ -2,6 +2,8 @@
 extends EditorExportPlugin
 # ProjectSettings는 내보내기 중에만 바꾸며 project.godot에는 저장하지 않는다.
 const KEYS := ["application/config/version", "application/config/build_number"]
+const MusicCatalog = preload("res://scripts/audio/background_music_catalog.gd")
+var music_paths: Array[String] = []
 var original: Dictionary = {}
 var web_path := ""
 var displayed_version := ""
@@ -16,6 +18,7 @@ func _supports_platform(_platform: EditorExportPlatform) -> bool:
 
 
 func _export_begin(features: PackedStringArray, _debug: bool, path: String, _flags: int) -> void:
+	music_paths = MusicCatalog.tracks("track") + MusicCatalog.tracks("tour")
 	for key in KEYS:
 		original[key] = ProjectSettings.get_setting(key)
 	var name: String = str(ProjectSettings.get_setting(KEYS[0], "0.1"))
@@ -45,8 +48,12 @@ func _export_begin(features: PackedStringArray, _debug: bool, path: String, _fla
 	displayed_version = preload("res://scripts/platform/app_version.gd").label()
 
 
-func _export_file(path: String, _type: String, _features: PackedStringArray) -> void:
+func _export_file(path: String, _type: String, features: PackedStringArray) -> void:
 	if path.begins_with("res://addons/app_version/"):
+		skip()
+	elif (features.has("web") or features.has("Web")) and music_paths.has(path):
+		# 긴 음악은 브라우저 미디어 요소가 압축 원본을 읽는다. 임포트 PCM 복제본을 내보내지 않는다.
+		add_file(path, FileAccess.get_file_as_bytes(path), false)
 		skip()
 
 

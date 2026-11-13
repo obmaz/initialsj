@@ -104,6 +104,8 @@ func run(tree: SceneTree) -> int:
 		root.size = viewport
 		race.open_garage()
 		for i in range(preload("res://scripts/vehicles/vehicle_catalog.gd").SPECS.size()):
+			while not race.hud.garage_card(i).has_area():
+				click(race.hud.GARAGE_NEXT.get_center())
 			click(race.hud.garage_card(i).get_center())
 			check(
 				race.selected_vehicle == i and race.player.model == Catalog.spec(i).model,

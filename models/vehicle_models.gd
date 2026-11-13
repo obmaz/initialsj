@@ -15,6 +15,12 @@ static func build(car: Node3D, item: Resource) -> void:
 	car.body.add_child(model)
 	var meshes := SceneSource.collect_meshes(model)
 	var split := meshes.any(func(node): return node.name == "PaintShell")
+	var source_texture: Texture2D
+	if item.parameters.get("imported_texture", false):
+		var shell: MeshInstance3D = meshes.filter(func(node): return node.name == "PaintShell")[0]
+		var source: StandardMaterial3D = shell.mesh.surface_get_material(0)
+		source_texture = source.albedo_texture
+		car.body.set_meta("source_texture", source_texture)
 	for node in meshes:
 		if str(node.name).begins_with("Open"):
 			var variants: Dictionary = car.get_meta("open_top_variants", {})
@@ -33,12 +39,13 @@ static func build(car: Node3D, item: Resource) -> void:
 		node.reparent(car.body, true)
 		if car.traffic and node.name == "BodyShell":
 			node.visible = true
-		if node.name == "PaintShell":
+		if node.name == "PaintShell" or (source_texture != null and node.name == "TrimShell"):
 			node.material_override = preload("res://scripts/vehicles/vehicle_customization.gd").paint_material(
-				car.paint
+				car.paint, source_texture
 			)
 		elif str(node.name).begins_with("wheel_"):
-			node.material_override = car.shared_body_material()
+			if source_texture == null:
+				node.material_override = car.shared_body_material()
 		elif str(node.name).begins_with("BrakeLights"):
 			var brake := node.mesh.surface_get_material(0).duplicate() as StandardMaterial3D
 			node.material_override = brake
@@ -57,6 +64,8 @@ static func build(car: Node3D, item: Resource) -> void:
 		assert(wheel != null, "GLB 휠 피벗 누락: " + wheel_name)
 		car.wheels.append(wheel)
 	model.free()
+	if item.parameters.has("aero_mount"):
+		car.aero_rest.origin = item.parameters.aero_mount
 	for entry in item.parameters.get("labels", []):
 		var label := Label3D.new()
 		for key in entry:

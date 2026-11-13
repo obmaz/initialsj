@@ -166,6 +166,7 @@ func draw_settings() -> void:
 	MenuTheme.label(hud, Rect2(730, 46, 185, 40), hud.AppVersion.label(), 22, MenuTheme.MUTED, true)
 	var rows: Array = [
 		[hud.SETTINGS_SOUND, "SOUND", "ON" if race.sound_enabled else "OFF"],
+		[hud.SETTINGS_MUSIC, "MUSIC", "ON" if race.music_enabled else "OFF"],
 		[hud.SETTINGS_MOTION, "REDUCED MOTION", "ON" if race.motion_reduced else "OFF"],
 		[hud.SETTINGS_GRAPHICS, "GRAPHICS", ["AUTO", "HIGH", "FAST"][race.graphics_mode]],
 		[hud.SETTINGS_FPS, "SHOW FPS", "ON" if race.show_fps else "OFF"],
@@ -196,7 +197,12 @@ func draw_settings() -> void:
 	MenuTheme.button(hud, hud.settings_close_rect(), "DONE", MenuTheme.YELLOW, 30)
 	if hud.pad_on():
 		var targets: Array[Rect2] = [
-			hud.SETTINGS_SOUND, hud.SETTINGS_MOTION, hud.SETTINGS_GRAPHICS, hud.SETTINGS_FPS, hud.SETTINGS_AUTO
+			hud.SETTINGS_SOUND,
+			hud.SETTINGS_MUSIC,
+			hud.SETTINGS_MOTION,
+			hud.SETTINGS_GRAPHICS,
+			hud.SETTINGS_FPS,
+			hud.SETTINGS_AUTO
 		]
 		if OS.has_feature("web"):
 			targets.append_array([hud.SETTINGS_FULLSCREEN, hud.SETTINGS_INSTALL])
@@ -258,6 +264,8 @@ func draw_garage() -> void:
 	)
 	for i in range(Catalog.SPECS.size()):
 		var rect: Rect2 = hud.garage_card(i)
+		if not rect.has_area():
+			continue
 		MenuTheme.panel(hud, rect, MenuTheme.PAPER, i == race.selected_vehicle)
 		if race.previews != null:
 			MenuTheme.cover(
@@ -278,6 +286,8 @@ func draw_garage() -> void:
 			4,
 			true
 		)
+	MenuTheme.button(hud, hud.GARAGE_PREVIOUS, "‹", MenuTheme.SOFT, 48)
+	MenuTheme.button(hud, hud.GARAGE_NEXT, "›", MenuTheme.SOFT, 48)
 	var note: String = (
 		hud.garage_notice
 		if hud.garage_notice_left > 0
