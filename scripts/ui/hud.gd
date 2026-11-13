@@ -917,23 +917,33 @@ func draw_controls() -> void:
 		draw_colored_polygon(chevron, Color("ffffffe0"))
 	round_button("drift", true)
 	var c: Vector2 = buttons.drift.get_center()
+	draw_arc(c, 50.0, 0, TAU, 48, Color("00e5ff44"), 2.0, true)
 	if race.drifting:
-		glow_line(arc_points(c, 52, 0, TAU), GOLD, 3.5)
+		draw_circle(c, 49.0, Color("ff910022"))
+		glow_line(arc_points(c, 52.0, 0, TAU), Color("ff9100"), 4.0)
 	car_icon(c + Vector2(0, -12))
-	centered(
-		c + Vector2(0, 36),
-		"DRIFTING" if race.drifting else "DRIFT",
-		16 if race.drifting else 18,
-		GOLD if race.drifting else WHITE
-	)
+	var drift_text: String = "DRIFT x%d" % race.max_drift_multiplier if race.drifting else "DRIFT"
+	centered(c + Vector2(0, 36), drift_text, 16 if race.drifting else 18, Color("ff9100") if race.drifting else WHITE)
 	var drift_hint := (
 		"TAP TO END"
 		if race.drifting
 		else ("STEER NOW" if race.drift_pending > 0 else ("STEER + TAP" if race.speed > 25 else "90 km/h+"))
 	)
 	centered(c + Vector2(0, -62), drift_hint, 14, CYAN if race.speed > 25 else Color("b6c6d0"))
+
 	round_button("nitro", true)
 	var nitro_center: Vector2 = buttons.nitro.get_center()
+	draw_arc(nitro_center, 50.0, 0, TAU, 48, Color("00e5ff33"), 2.0, true)
+	var n_ratio: float = race.nitro_ratio()
+	if n_ratio > 0.01:
+		glow_line(
+			arc_points(nitro_center, 51.0, -PI / 2.0, -PI / 2.0 + TAU * n_ratio),
+			Color("ffd700") if race.nitro_active else Color("00e5ff"),
+			4.0
+		)
+	if race.nitro_active:
+		draw_circle(nitro_center, 48.0, Color("00e5ff26"))
+		glow_line(arc_points(nitro_center, 53.0, 0, TAU), Color.WHITE, 3.5)
 	bottle(nitro_center + Vector2(0, -10), 0.46)
 	centered(
 		nitro_center + Vector2(0, 36),
@@ -941,18 +951,6 @@ func draw_controls() -> void:
 		18,
 		GOLD if race.nitro_active else WHITE
 	)
-	draw_arc(
-		nitro_center,
-		52,
-		-PI / 2,
-		-PI / 2 + TAU * race.nitro_ratio(),
-		64,
-		GOLD if race.nitro_active else CYAN,
-		3.5,
-		true
-	)
-	if race.nitro_active:
-		glow_line(arc_points(nitro_center, 54, 0, TAU), GOLD, 3.0)
 	if race.vehicle.mode == "hybrid":
 		round_button("cell", true)
 		var cell: Vector2 = buttons.cell.get_center()
@@ -1031,25 +1029,53 @@ func bottle(center: Vector2, scale_factor: float = 1) -> void:
 
 
 func draw_speedometer() -> void:
-	# 우하단 조작 버튼 바로 위에 컴팩트하고 미래지향적인 디지털 계기판 클러스터 배치
-	var bar_rect := Rect2(1014, 368, 246, 50)
-	glass_box(bar_rect, 12.0, Color("081220ee"), Color("19dcff55"), 1.4)
-	var speed_kmh := int(race.speed * 3.6)
-	var speed_text := str(speed_kmh)
-	text_at(Vector2(1028, 403), speed_text, 34, WHITE, true, NUMBER_FONT)
-	var speed_w: float = NUMBER_FONT.get_string_size(speed_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 34).x
-	text_at(Vector2(1028 + speed_w + 6, 396), "KM/H", 11, CYAN)
-	draw_line(Vector2(1152, 375), Vector2(1152, 411), Color("19dcff33"), 1.2, true)
-	var gear := "N" if race.gear_number() == 0 else ("R" if race.gear_number() < 0 else str(race.gear_number()))
-	text_at(Vector2(1166, 390), "GEAR", 10, Color("8caec0"))
-	text_at(Vector2(1170, 411), gear, 22, GOLD, true, NUMBER_FONT)
-	# 멀티 세그먼트 RPM 라인 인디케이터
-	var rpm_ratio := clampf(race.engine_rpm() / 7500.0, 0.0, 1.0)
-	var rpm_w := 112.0
-	draw_line(Vector2(1024, 412), Vector2(1024 + rpm_w, 412), Color("19dcff22"), 2.5, true)
-	if rpm_ratio > 0.01:
-		var fill_color := CYAN if rpm_ratio < 0.75 else (GOLD if rpm_ratio < 0.90 else Color("ff3b4e"))
-		draw_line(Vector2(1024, 412), Vector2(1024 + rpm_w * rpm_ratio, 412), fill_color, 2.5, true)
+	# 우하단 조작 버튼 바로 위에 위치하는 사이버펑크 아케이드 디지털 계기판 클러스터
+	var bar_rect := Rect2(1012, 356, 250, 64)
+	glass_box(bar_rect, 14.0, Color("081220f0"), Color("00e5ff66"), 1.5)
+
+	# 상단 포인트 네온 라인
+	draw_line(
+		Vector2(bar_rect.position.x + 16, bar_rect.position.y + 2),
+		Vector2(bar_rect.end.x - 16, bar_rect.position.y + 2),
+		Color("00e5ffaa"),
+		1.8
+	)
+
+	# 속도 숫자 및 단위
+	var speed_kmh: int = int(race.speed * 3.6)
+	var speed_text: String = str(speed_kmh)
+	text_at(Vector2(1028, 396), speed_text, 36, WHITE, true, NUMBER_FONT)
+	var speed_w: float = NUMBER_FONT.get_string_size(speed_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 36).x
+	text_at(Vector2(1028 + speed_w + 6, 388), "KM/H", 11, CYAN)
+
+	# 수직 구분선
+	draw_line(Vector2(1152, 366), Vector2(1152, 410), Color("19dcff33"), 1.2, true)
+
+	# 기어 표시
+	var gear: String = "N" if race.gear_number() == 0 else ("R" if race.gear_number() < 0 else str(race.gear_number()))
+	text_at(Vector2(1168, 378), "GEAR", 10, Color("8caec0"))
+	text_at(Vector2(1172, 402), gear, 24, GOLD, true, NUMBER_FONT)
+
+	# 18개 세그먼트 LED RPM 바
+	var rpm_ratio: float = clampf(race.engine_rpm() / 7500.0, 0.0, 1.0)
+	var total_segs: int = 17
+	var seg_w: float = 12.0
+	var seg_gap: float = 1.5
+	var start_x: float = 1024.0
+	var seg_y: float = 407.0
+	var active_segs: int = int(roundf(rpm_ratio * float(total_segs)))
+	for i in range(total_segs):
+		var sx: float = start_x + float(i) * (seg_w + seg_gap)
+		var is_lit: bool = i < active_segs
+		var seg_col: Color = Color("142233")
+		if is_lit:
+			if i < 11:
+				seg_col = Color("00e575")
+			elif i < 14:
+				seg_col = Color("ffea00")
+			else:
+				seg_col = Color("ff1744")
+		draw_rect(Rect2(sx, seg_y, seg_w, 5.0), seg_col)
 
 
 func draw_nitro() -> void:
