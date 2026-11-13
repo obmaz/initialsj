@@ -1115,6 +1115,116 @@ func garage_card(index: int) -> Rect2:
 	return Rect2(144 + (index - start) * (width + gap), 480, width, 106)
 
 
+func draw_gantry(count_step: int) -> void:
+	# 오버헤드 메탈 트러스 갠트리 프레임
+	var y1 := 72.0
+	var y2 := 142.0
+	draw_line(Vector2(200, y1), Vector2(1080, y1), Color("37474f"), 3.0)
+	draw_line(Vector2(200, y2), Vector2(1080, y2), Color("37474f"), 3.0)
+	var x := 200.0
+	while x < 1080.0:
+		draw_line(Vector2(x, y1), Vector2(x + 40, y2), Color("162433"), 1.5)
+		draw_line(Vector2(x, y2), Vector2(x + 40, y1), Color("162433"), 1.5)
+		x += 40.0
+
+	# 중앙 메인 신호등 하우징 유닛
+	var center_box := Rect2(420, 64, 440, 86)
+	glass_box(center_box, 14.0, Color("081220f4"), Color("00e5ff66"), 1.8)
+	draw_line(
+		Vector2(center_box.position.x + 20, center_box.position.y + 2),
+		Vector2(center_box.end.x - 20, center_box.position.y + 2),
+		Color("00e5ffaa"),
+		2.0
+	)
+	centered(Vector2(640, 80), "START LINE  •  INITIAL SJ", 12, Color("80deea"))
+
+	# 3구 대형 갠트리 램프 (RED - YELLOW - GREEN)
+	var lamp_xs := [540.0, 640.0, 740.0]
+	var lamp_y := 115.0
+	var is_go: bool = race.countdown < 0.4
+	for i in range(3):
+		var lx: float = lamp_xs[i]
+		var l_center := Vector2(lx, lamp_y)
+		draw_circle(l_center, 21.0, Color("09101d"))
+		draw_arc(l_center, 21.0, 0, TAU, 32, Color("1e2f47"), 1.5, true)
+
+		var lamp_color := Color("1a2636")
+		var is_lit := false
+		if is_go:
+			lamp_color = Color("00e676")
+			is_lit = true
+		else:
+			if count_step == 3 and i == 0:
+				lamp_color = Color("ff1744")
+				is_lit = true
+			elif count_step == 2 and i <= 1:
+				lamp_color = Color("ffea00") if i == 1 else Color("ff1744")
+				is_lit = true
+			elif count_step <= 1:
+				lamp_color = Color("00e676") if i == 2 else (Color("ffea00") if i == 1 else Color("ff1744"))
+				is_lit = true
+
+		draw_circle(l_center, 16.0, lamp_color)
+		if is_lit:
+			draw_circle(l_center, 19.0, Color(lamp_color.r, lamp_color.g, lamp_color.b, 0.4))
+			glow_line(arc_points(l_center, 22.0, 0, TAU), lamp_color, 3.0)
+
+
+func draw_countdown() -> void:
+	var count_step := ceili(race.countdown)
+	var is_go: bool = race.countdown < 0.4
+
+	# 1. 오버헤드 갠트리 신호등 연출
+	draw_gantry(count_step)
+
+	# 2. 하단 출발 안내 배너
+	glass_box(Rect2(440, 450, 400, 38), 10.0, Color("081220ee"), Color("00e5ff33"), 1.2)
+	var prompt_text := (
+		"ROLLING START / 16 CARS"
+		if (race.mode == "track" and race.selected_course == 1)
+		else "REV ENGINE  •  PREPARE BOOST"
+	)
+	centered(Vector2(640, 474), prompt_text, 15, CYAN)
+
+	# 3. 중앙 HUD 타코미터 눈금 및 펄스 아크 링
+	var ring_center := Vector2(640, 295)
+	var ring_r := 100.0
+
+	# 48개 방사형 타코미터 눈금
+	for i in range(48):
+		var angle: float = float(i) * (TAU / 48.0)
+		var is_major: bool = i % 12 == 0
+		var inner_r: float = ring_r + (4.0 if is_major else 7.0)
+		var outer_r: float = ring_r + (16.0 if is_major else 11.0)
+		var tick_color: Color = Color("00e5ff") if is_major else Color("19dcff44")
+		var dir := Vector2(cos(angle), sin(angle))
+		draw_line(ring_center + dir * inner_r, ring_center + dir * outer_r, tick_color, 2.0 if is_major else 1.0)
+
+	# 베이스 원형 글래스
+	draw_circle(ring_center, ring_r, Color("081220e8"))
+	draw_arc(ring_center, ring_r, 0, TAU, 64, Color("19dcff33"), 2.0, true)
+
+	# 부드럽게 차오르는 네온 아크 링
+	var step_progress: float = 1.0 - (race.countdown - floorf(race.countdown))
+	var ring_col: Color = (
+		Color("00e676")
+		if is_go
+		else (Color("ff1744") if count_step == 3 else (Color("ffea00") if count_step == 2 else CYAN))
+	)
+	glow_line(arc_points(ring_center, ring_r + 2.0, -PI / 2.0, -PI / 2.0 + TAU * step_progress), ring_col, 4.0)
+
+	# 4. 중앙 대형 넘버링 / GO!
+	var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
+	var number := "GO!" if is_go else str(maxi(1, count_step))
+	var font_size := int((115.0 if is_go else 96.0) + 18.0 * pulse)
+	var at := Vector2(
+		640.0 - FONT.get_string_size(number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x * 0.5,
+		332.0 + (5.0 if is_go else 0.0)
+	)
+	draw_string_outline(FONT, at, number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 10, Color("040912"))
+	draw_string(FONT, at, number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, ring_col)
+
+
 func draw_menu() -> void:
 	if race.state == RaceState.READY:
 		menus.draw_garage()
@@ -1123,58 +1233,9 @@ func draw_menu() -> void:
 		preload("res://scripts/ui/result_panel.gd").draw(self)
 		return
 	if race.state == RaceState.COUNTDOWN:
-		# 오버헤드 신호등 갠트리 연출 (Get Ready & Start Lights)
-		glass_box(Rect2(400, 80, 480, 54), 12.0, Color("081220ee"), Color("19dcff55"), 1.4)
-		var count_step := ceili(race.countdown)
-		for side: int in [-1, 1]:
-			for lamp: int in range(3):
-				var lx: float = 640.0 + float(side) * (145.0 + float(lamp) * 22.0)
-				var ly: float = 107.0
-				draw_circle(Vector2(lx, ly), 8.0, Color("141e2e"))
-				var lamp_color := Color("202636")
-				var is_lit := false
-				if count_step == 3 and lamp == 0:
-					lamp_color = Color("ff3b4e")
-					is_lit = true
-				elif count_step == 2 and lamp < 2:
-					lamp_color = Color("ffaa22")
-					is_lit = true
-				elif count_step <= 1:
-					lamp_color = Color("00e575")
-					is_lit = true
-				draw_circle(Vector2(lx, ly), 6.5, lamp_color)
-				if is_lit:
-					glow_line(arc_points(Vector2(lx, ly), 8.0, 0, TAU), lamp_color, 2.5)
-		var gantry_title := "GO!" if race.countdown < 0.4 else "GET READY!"
-		var gantry_color: Color = Color("00e575") if race.countdown < 0.4 else (GOLD if count_step <= 1 else CYAN)
-		centered(Vector2(640, 115), gantry_title, 24, gantry_color)
-
-		glass_box(Rect2(460, 436, 360, 36), 8.0, Color("081220ee"), Color("19dcff33"), 1.0)
-		var prompt_text := (
-			"ROLLING START / 16 CARS"
-			if (race.mode == "track" and race.selected_course == 1)
-			else "REV ENGINE  •  PREPARE BOOST"
-		)
-		centered(Vector2(640, 460), prompt_text, 14, CYAN)
-
-		draw_texture_rect(menus.countdown_texture(), Rect2(485, 155, 310, 310), false)
-		var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
-		draw_circle(Vector2(640, 310), 84, Color("081220f0"))
-		draw_arc(Vector2(640, 310), 88, 0, TAU, 64, Color("19dcff44"), 2.0, true)
-		glow_line(
-			arc_points(
-				Vector2(640, 310), 88, -PI / 2, -PI / 2 + TAU * (1.0 - (race.countdown - floorf(race.countdown)))
-			),
-			GOLD if count_step <= 1 else CYAN,
-			3.5
-		)
-		var number := "GO!" if race.countdown < 0.4 else str(maxi(1, ceili(race.countdown)))
-		var font_size := int(94 + 20 * pulse)
-		var at := Vector2(640 - FONT.get_string_size(number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x / 2, 345)
-		draw_string_outline(FONT, at, number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 8, Color("050c17"))
-		var num_color: Color = Color("00e575") if race.countdown < 0.4 else (GOLD if count_step == 1 else WHITE)
-		draw_string(FONT, at, number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, num_color)
-	elif race.state == RaceState.PAUSED:
+		draw_countdown()
+		return
+	if race.state == RaceState.PAUSED:
 		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("030812b8"))
 		glass_box(Rect2(235, 100, 810, 575), 18.0, Color("081220f4"), Color("00e5ff66"), 1.5)
 		text_at(
