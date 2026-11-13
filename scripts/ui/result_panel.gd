@@ -19,18 +19,25 @@ static func label(
 
 
 static func draw_tile(hud: Control, rect: Rect2, title: String, val: String, val_color: Color = Color.WHITE) -> void:
-	hud.glass_box(rect, 10.0, Color("0f1e36cc"), Color("00e5ff44"), 1.0)
+	hud.glass_box(rect, 10.0, Color("0b182bcd"), Color("00e5ff33"), 1.2)
+	# 타일 상단 네온 하이라이트 미니 라인
+	hud.draw_line(
+		Vector2(rect.position.x + 8.0, rect.position.y + 2.0),
+		Vector2(rect.end.x - 8.0, rect.position.y + 2.0),
+		Color("00e5ff66"),
+		1.5
+	)
 	MenuTheme.label(
 		hud,
-		Rect2(rect.position.x + 10, rect.position.y + 6, rect.size.x - 20, 18),
+		Rect2(rect.position.x + 12, rect.position.y + 6, rect.size.x - 24, 18),
 		title,
-		14,
+		13,
 		Color("78909c"),
 		false,
 		10
 	)
 	MenuTheme.label(
-		hud, Rect2(rect.position.x + 10, rect.position.y + 26, rect.size.x - 20, 32), val, 22, val_color, false, 14
+		hud, Rect2(rect.position.x + 12, rect.position.y + 26, rect.size.x - 24, 32), val, 22, val_color, false, 14
 	)
 
 
