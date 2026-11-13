@@ -106,7 +106,7 @@ func run(tree: SceneTree) -> int:
 			"Fullscreen and existing settings controls must retain large touch targets"
 		)
 		check(
-			Rect2(300, 40, 680, 640).encloses(setting_rects[i]),
+			race.hud.SETTINGS_PANEL.grow(-16).encloses(setting_rects[i]),
 			"All settings controls must fit inside the enlarged panel"
 		)
 		for j in range(i):

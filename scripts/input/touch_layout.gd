@@ -2,13 +2,13 @@ extends RefCounted
 # 자유 배치 대신 겹치지 않는 검증된 프리셋을 제공한다. 설계 좌표는 1280×720이다.
 const SIZES := [.9, 1.0, 1.08]
 const BASE := {
-	"left": Rect2(28, 558, 112, 112),
-	"right": Rect2(156, 558, 112, 112),
-	"drift": Rect2(1016, 428, 114, 114),
-	"cell": Rect2(905, 444, 90, 90),
-	"nitro": Rect2(1146, 428, 114, 114),
-	"gas": Rect2(1146, 558, 114, 114),
-	"brake": Rect2(1016, 558, 114, 114),
+	"left": Rect2(28, 566, 136, 136),
+	"right": Rect2(184, 566, 136, 136),
+	"drift": Rect2(964, 408, 136, 136),
+	"cell": Rect2(840, 430, 108, 108),
+	"nitro": Rect2(1124, 408, 136, 136),
+	"gas": Rect2(1124, 566, 136, 136),
+	"brake": Rect2(964, 566, 136, 136),
 	"pause": Rect2(24, 16, 72, 64)
 }
 var mirrored := false

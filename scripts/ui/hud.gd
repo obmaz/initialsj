@@ -41,6 +41,7 @@ const GARAGE_GHOST := Rect2(940, 24, 280, 84)
 const GARAGE_BACK := MenuLayout.BACK
 const GARAGE_PREVIOUS := Rect2(32, 480, 92, 106)
 const GARAGE_NEXT := Rect2(1156, 480, 92, 106)
+const SETTINGS_PANEL := Rect2(180, 24, 920, 672)
 const SETTINGS_SOUND := Rect2(228, 104, 402, 80)
 const SETTINGS_MUSIC := Rect2(650, 104, 402, 80)
 const SETTINGS_MOTION := Rect2(228, 196, 824, 80)
@@ -73,17 +74,7 @@ var drift_combo := 0.0
 var drift_fade := 0.0
 var last_score := 0.0
 var was_drifting := false
-# The time panel doubles as the touch pause control.
-var buttons := {
-	"left": Rect2(28, 558, 112, 112),
-	"right": Rect2(156, 558, 112, 112),
-	"drift": Rect2(1016, 428, 114, 114),
-	"cell": Rect2(905, 444, 90, 90),
-	"nitro": Rect2(1146, 428, 114, 114),
-	"gas": Rect2(1146, 558, 114, 114),
-	"brake": Rect2(1081, 558, 114, 114),
-	"pause": Rect2(24, 16, 72, 64),
-}
+var buttons: Dictionary = preload("res://scripts/input/touch_layout.gd").BASE.duplicate()
 
 
 func _ready() -> void:
@@ -146,7 +137,7 @@ func ui_offset() -> Vector2:
 
 func to_design(pos: Vector2) -> Vector2:
 	var point := (pos - ui_offset()) / ui_scale()
-	var bounds := Rect2(180, 24, 920, 672)
+	var bounds := SETTINGS_PANEL
 	if race.state == RaceState.PAUSED:
 		bounds = Rect2(235, 100, 810, 575)
 	elif race.state in RaceState.ENDED:
@@ -736,6 +727,8 @@ func draw_content() -> void:
 		draw_menu()
 		draw_pad_hints()
 		return
+	if race.state == RaceState.COUNTDOWN:
+		draw_gantry(ceili(race.countdown))
 	draw_boost_feedback()
 	draw_fps()
 	draw_competitor_markers()
@@ -962,33 +955,36 @@ func draw_controls() -> void:
 		draw_colored_polygon(chevron, Color("ffffffe0"))
 	round_button("drift", true)
 	var c: Vector2 = buttons.drift.get_center()
-	draw_arc(c, 50.0, 0, TAU, 48, Color("00e5ff44"), 2.0, true)
+	var drift_radius: float = buttons.drift.size.x * .5 - 7
+	draw_arc(c, drift_radius, 0, TAU, 48, Color("00e5ff44"), 2.0, true)
 	if race.drifting:
-		draw_circle(c, 49.0, Color("ff910022"))
-		glow_line(arc_points(c, 52.0, 0, TAU), Color("ff9100"), 4.0)
-	car_icon(c + Vector2(0, -12))
-	var drift_text: String = "DRIFT x%d" % race.max_drift_multiplier if race.drifting else "DRIFT"
-	centered(c + Vector2(0, 36), drift_text, 16 if race.drifting else 18, Color("ff9100") if race.drifting else WHITE)
+		draw_circle(c, drift_radius - 1, Color("ff910022"))
+		glow_line(arc_points(c, drift_radius + 2, 0, TAU), Color("ff9100"), 4.0)
+	if not draw_icon(drift_texture, c + Vector2(2, -8), Vector2(60, 60), .12):
+		car_icon(c + Vector2(0, -12))
+	var drift_text: String = tr("DRIFT x%d") % race.max_drift_multiplier if race.drifting else "DRIFT"
+	centered(c + Vector2(0, 36), drift_text, 21 if race.drifting else 24, Color("ff9100") if race.drifting else WHITE)
 	var drift_hint := (
 		"TAP TO END"
 		if race.drifting
 		else ("STEER NOW" if race.drift_pending > 0 else ("STEER + TAP" if race.speed > 25 else "90 km/h+"))
 	)
-	centered(c + Vector2(0, -62), drift_hint, 14, CYAN if race.speed > 25 else Color("b6c6d0"))
+	centered(c + Vector2(0, -62), drift_hint, 18, CYAN if race.speed > 25 else Color("b6c6d0"))
 
 	round_button("nitro", true)
 	var nitro_center: Vector2 = buttons.nitro.get_center()
-	draw_arc(nitro_center, 50.0, 0, TAU, 48, Color("00e5ff33"), 2.0, true)
+	var nitro_radius: float = buttons.nitro.size.x * .5 - 7
+	draw_arc(nitro_center, nitro_radius, 0, TAU, 48, Color("00e5ff33"), 2.0, true)
 	var n_ratio: float = race.nitro_ratio()
 	if n_ratio > 0.01:
 		glow_line(
-			arc_points(nitro_center, 51.0, -PI / 2.0, -PI / 2.0 + TAU * n_ratio),
+			arc_points(nitro_center, nitro_radius + 1, -PI / 2.0, -PI / 2.0 + TAU * n_ratio),
 			Color("ffd700") if race.nitro_active else Color("00e5ff"),
 			4.0
 		)
 	if race.nitro_active:
-		draw_circle(nitro_center, 48.0, Color("00e5ff26"))
-		glow_line(arc_points(nitro_center, 53.0, 0, TAU), Color.WHITE, 3.5)
+		draw_circle(nitro_center, nitro_radius - 2, Color("00e5ff26"))
+		glow_line(arc_points(nitro_center, nitro_radius + 3, 0, TAU), Color.WHITE, 3.5)
 	preload("res://scripts/ui/neon_chrome.gd").lightning(self, nitro_center + Vector2(0, -9), 48, CYAN)
 	centered(
 		nitro_center + Vector2(0, 36),
@@ -1074,19 +1070,47 @@ func bottle(center: Vector2, scale_factor: float = 1) -> void:
 
 
 func draw_speedometer() -> void:
-	preload("res://scripts/ui/neon_chrome.gd").panel(self, Rect2(1004, 338, 252, 82), CYAN, 16, Color("071a29f5"), 1.8)
+	# 왼쪽 전체가 기울어진 계기판으로 속도 숫자와 하단 RPM을 분리한다.
+	var outline := PackedVector2Array(
+		[
+			Vector2(914, 294),
+			Vector2(1242, 294),
+			Vector2(1256, 308),
+			Vector2(1256, 370),
+			Vector2(1244, 382),
+			Vector2(880, 382),
+			Vector2(914, 294)
+		]
+	)
+	draw_polyline(outline, Color(CYAN, .12), 12, true)
+	draw_polygon(
+		PackedVector2Array(outline.slice(0, 6)),
+		PackedColorArray(
+			[
+				Color("183d53f5"),
+				Color("183d53f5"),
+				Color("102b3df5"),
+				Color("06131ff8"),
+				Color("06131ff8"),
+				Color("071b2bf8")
+			]
+		)
+	)
+	draw_polyline(outline, CYAN, 2.2, true)
+	draw_line(Vector2(919, 300), Vector2(1238, 300), Color("c2f7ff77"), 1, true)
+	draw_line(Vector2(892, 376), Vector2(1241, 376), Color("237392"), 1, true)
 	var speed_text := str(int(race.speed * 3.6))
-	text_at(Vector2(1020, 389), speed_text, 46, WHITE, true, NUMBER_FONT)
-	var speed_width: float = NUMBER_FONT.get_string_size(speed_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 46).x
-	text_at(Vector2(1026 + speed_width, 389), "KM/H", 17, CYAN)
-	draw_line(Vector2(1190, 350), Vector2(1190, 392), Color("24dfff55"), 1.2, true)
+	text_at(Vector2(920, 352), speed_text, 56, WHITE, true, NUMBER_FONT)
+	var speed_width: float = NUMBER_FONT.get_string_size(speed_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 56).x
+	text_at(Vector2(928 + speed_width, 350), "KM/H", 20, CYAN)
+	draw_line(Vector2(1193, 307), Vector2(1193, 354), Color("24dfff55"), 1.2, true)
 	var gear: String = "N" if race.gear_number() == 0 else ("R" if race.gear_number() < 0 else str(race.gear_number()))
-	text_at(Vector2(1203, 361), "GEAR", 16, Color("b4d1df"))
-	text_at(Vector2(1210, 388), gear, 30, GOLD, true, NUMBER_FONT)
+	text_at(Vector2(1204, 320), "GEAR", 16, Color("b4d1df"))
+	text_at(Vector2(1216, 351), gear, 30, GOLD, true, NUMBER_FONT)
 	var active: int = int(roundf(clampf(race.engine_rpm() / 7500.0, 0, 1) * 17))
 	for i in range(17):
 		var color := Color("7fe583") if i < 11 else (GOLD if i < 14 else Color("ff7866"))
-		draw_rect(Rect2(1020 + i * 13, 402, 10, 10), color if i < active else Color("233c4c"))
+		draw_rect(Rect2(932 + i * 18, 362, 14, 10), color if i < active else Color("233c4c"))
 
 
 func draw_nitro() -> void:
@@ -1179,38 +1203,54 @@ func draw_gantry(count_step: int) -> void:
 		var center := Vector2(535 + i * 105, 154)
 		var on: bool = count_step <= 3 - i
 		var color: Color = [Color("ff3d64"), Color("ffc24b"), CYAN][i]
-		draw_circle(center, 40, Color("020b14"))
-		draw_arc(center, 37, 0, TAU, 48, Color("718594"), 3, true)
-		draw_circle(center, 30, color if on else color.darkened(.85))
-		draw_arc(center, 28, PI, TAU, 32, Color.WHITE if on else Color("334654"), 2, true)
+		# 입체 베젤과 오목한 렌즈는 겹친 원과 반사광으로만 그린다.
+		draw_circle(center + Vector2(0, 3), 43, Color("02070d"))
+		draw_circle(center, 42, Color("263a49"))
+		draw_arc(center, 41, PI, TAU, 48, Color("c7dbe3"), 3, true)
+		draw_arc(center, 40, 0, PI, 48, Color("0a121d"), 4, true)
+		draw_circle(center, 37, Color("0a1723"))
+		draw_arc(center, 36, PI, TAU, 48, Color("536c7c"), 2, true)
+		draw_circle(center, 33, Color("020b14"))
+		var lens: Color = color if on else color.darkened(.85)
+		draw_circle(center, 31, lens.darkened(.54))
+		draw_circle(center + Vector2(0, -1), 28, lens.darkened(.28))
+		draw_circle(center + Vector2(0, -3), 24, lens)
+		draw_circle(center + Vector2(-3, -7), 17, lens.lightened(.14 if on else .02))
+		draw_arc(center, 29, .15, PI - .15, 32, Color(lens.darkened(.65), .9), 3, true)
+		draw_arc(
+			center + Vector2(0, -2), 23, PI + .32, TAU - .5, 32, Color("eafaff99") if on else Color("66808c66"), 3, true
+		)
+		draw_arc(
+			center + Vector2(-2, -4), 17, PI + .5, PI + 1.3, 16, Color("ffffffaa") if on else Color("66808c44"), 2, true
+		)
 		if on:
-			draw_arc(center, 34, 0, TAU, 48, Color(color, .28), 6, true)
+			draw_arc(center, 34, 0, TAU, 48, Color(color, .3), 6, true)
+			draw_arc(center, 44, 0, TAU, 48, Color(color, .12), 7, true)
 
 
 func draw_countdown() -> void:
 	var step := ceili(race.countdown)
 	var go: bool = race.countdown < .4
-	draw_gantry(step)
 	var center := Vector2(640, 365)
-	draw_circle(center, 136, Color("061521f5"))
-	draw_arc(center, 137, 0, TAU, 96, CYAN, 2.5, true)
-	draw_arc(center, 109, 0, TAU, 80, Color("183b50"), 2, true)
+	draw_circle(center, 155, Color("061521f5"))
+	draw_arc(center, 155, 0, TAU, 96, CYAN, 2.5, true)
+	draw_arc(center, 125, 0, TAU, 80, Color("183b50"), 2, true)
 	for i in range(48):
 		var angle: float = -PI / 2 + i * TAU / 48.0
 		var next: float = angle + TAU / 48.0 * .69
 		var tick := PackedVector2Array(
 			[
-				center + Vector2.from_angle(angle) * 115,
-				center + Vector2.from_angle(angle) * 129,
-				center + Vector2.from_angle(next) * 129,
-				center + Vector2.from_angle(next) * 115
+				center + Vector2.from_angle(angle) * 132,
+				center + Vector2.from_angle(angle) * 147,
+				center + Vector2.from_angle(next) * 147,
+				center + Vector2.from_angle(next) * 132
 			]
 		)
 		draw_colored_polygon(tick, GOLD if i in range(1, 12) else CYAN)
 	var color: Color = CYAN if go else (Color("ff456a") if step >= 3 else (GOLD if step == 2 else CYAN))
 	var number := "GO!" if go else str(maxi(1, step))
 	var pulse: float = 0.0 if race.motion_reduced else exp(-(ceili(race.countdown) - race.countdown) * 7)
-	centered(Vector2(640, 405), number, int((96 if go else 132) + pulse * 4), color)
+	centered(Vector2(640, 413), number, int((104 if go else 144) + pulse * 4), color)
 	preload("res://scripts/ui/neon_chrome.gd").panel(self, Rect2(430, 538, 420, 50), CYAN, 15, Color("071a29f5"), 1.7)
 	var prompt := (
 		"ROLLING START / 16 CARS"

@@ -110,10 +110,10 @@ static func draw(hud: Control) -> void:
 		best,
 		GOLD if is_new else CYAN
 	)
-	draw_tile(hud, Rect2(left, top + height + 10, column, height), "SCORE", "%d PTS" % int(race.score), GOLD)
-	var technique: String = "DRIFT x%d" % race.max_drift_multiplier
+	draw_tile(hud, Rect2(left, top + height + 10, column, height), "SCORE", race.tr("%d PTS") % int(race.score), GOLD)
+	var technique: String = race.tr("DRIFT x%d") % race.max_drift_multiplier
 	if race.rewards.clean_exits > 0:
-		technique += " (EX %d)" % race.rewards.clean_exits
+		technique += race.tr(" (EX %d)") % race.rewards.clean_exits
 	draw_tile(hud, Rect2(left + column + 12, top + height + 10, column, height), "TECHNIQUE", technique, CYAN)
 
 	var detail_rect := Rect2(left, PANEL.position.y + 386, inner_width, 52)

@@ -14,8 +14,6 @@ const COURSE_PREVIEWS := [
 const TOUR_PREVIEW := "res://assets/ui/courses/tour.tres"
 const HOME_BG := "res://assets/ui/backgrounds/home_coast.png"
 const GARAGE_BG := "res://assets/ui/backgrounds/tuning_bay.png"
-const COUNTDOWN_ART := "res://assets/ui/controls/countdown_ring.png"
-var countdown_art: Texture2D
 var menu_art: Dictionary = {}
 var menu_art_requested := false
 var hud: Control
@@ -34,17 +32,7 @@ func art(path: String) -> Texture2D:
 	return menu_art[path]
 
 
-func countdown_texture() -> Texture2D:
-	if countdown_art == null:
-		countdown_art = RenderResources.fetch(COUNTDOWN_ART)
-	return countdown_art
-
-
 func sync_menu_art() -> void:
-	# 카운트다운은 주행 상태이므로 메뉴 이미지 해제 큐와 수명을 분리한다.
-	if race.state != RaceState.COUNTDOWN and countdown_art != null:
-		countdown_art = null
-		RenderResources.release(COUNTDOWN_ART)
 	if race.state in RaceState.DRIVING:
 		if menu_art_requested or not menu_art.is_empty():
 			menu_art_requested = false
@@ -208,7 +196,7 @@ func draw_settings() -> void:
 		PackedColorArray([Color("063747"), Color("061b2d"), Color("020b17"), Color("032b39")])
 	)
 	hud.modal_begin()
-	var modal_rect := Rect2(180, 24, 920, 672)
+	var modal_rect: Rect2 = hud.SETTINGS_PANEL
 	Chrome.panel(hud, modal_rect, Color("3feaff"), 22, Color("061826fc"), 2.8)
 	MenuTheme.label(hud, Rect2(250, 38, 460, 44), "SETTINGS", 36, Color.WHITE)
 	var version := Rect2(850, 42, 200, 32)

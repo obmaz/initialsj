@@ -63,6 +63,10 @@ func run(tree: SceneTree) -> int:
 			race.hud.menus.graphics_index(race.hud.menus.graphics_segment(index).get_center()) == index,
 			"표시된 그래픽 세그먼트가 실제 선택값과 맞는다"
 		)
+	check(
+		race.hud.menus.graphics_index(race.hud.SETTINGS_GRAPHICS.position + Vector2(12, 40)) == -1,
+		"그래픽 라벨을 누르면 품질 선택을 바꾸지 않는다"
+	)
 	race.free()
 	print("터치 12배치 / 여유 영역 단일 소유 / 반전·크기·안전 영역 / 저장·초기화·뒤로: ", "PASS" if failures == 0 else "FAIL")
 	return failures

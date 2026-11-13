@@ -43,6 +43,17 @@ func run(tree: SceneTree) -> int:
 	race.shell.portrait = true
 	race.finish_resume_tour()
 	check(race.state == "paused", "닫힘 중 세로 회전되면 주행을 재개하지 않는다")
+	race.state = "settings"
+	race.hud.controls_open = true
+	race.hud.modal_motion.close("controls", race.finish_close_settings)
+	var back := InputEventKey.new()
+	back.pressed = true
+	back.keycode = KEY_ESCAPE
+	race.controls.handle(back)
+	race.controls.handle(back)
+	check(race.hud.controls_open and race.state == "settings", "닫는 중 중복 Back은 부모 설정까지 닫지 않는다")
+	race.hud.modal_motion.advance("controls", .12, false)
+	check(not race.hud.controls_open and race.state == "settings", "닫기 완료 후 부모 설정 한 단계로 돌아간다")
 	race.state = "finished"
 	race.result_age = 2
 	race.hud.modal_motion.advance("finished", .05, false)
