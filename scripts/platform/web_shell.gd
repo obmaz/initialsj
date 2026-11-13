@@ -108,10 +108,11 @@ func sync_control(design_rect: Rect2) -> void:
 	if race.state != RaceState.SETTINGS or busy():
 		hide_control()
 		return
-	var viewport_size := race.get_viewport().get_visible_rect().size
-	var rect := Rect2(
-		(design_rect.position * race.hud.ui_scale() + race.hud.ui_offset()) / viewport_size,
-		design_rect.size * race.hud.ui_scale() / viewport_size
+	var screen: Transform2D = (
+		race.hud.get_viewport().get_final_transform() * race.hud.get_global_transform_with_canvas()
+	)
+	var rect := normalized_control(
+		design_rect, race.hud.ui_scale(), race.hud.ui_offset(), screen, Vector2(DisplayServer.window_get_size())
 	)
 	if control_visible and control_rect.is_equal_approx(rect):
 		return
@@ -120,6 +121,15 @@ func sync_control(design_rect: Rect2) -> void:
 	JavaScriptBridge.get_interface("window").initialsjFullscreenControl(
 		true, rect.position.x, rect.position.y, rect.size.x, rect.size.y
 	)
+
+
+static func normalized_control(
+	design_rect: Rect2, ui_scale: float, ui_offset: Vector2, screen: Transform2D, window_size: Vector2
+) -> Rect2:
+	# 엔진의 설계 좌표가 아니라 캔버스 실제 픽셀에 맞춰 HTML 버튼을 정규화한다.
+	var pixels: Rect2 = screen * Rect2(design_rect.position * ui_scale + ui_offset, design_rect.size * ui_scale)
+	var size := window_size.max(Vector2.ONE)
+	return Rect2(pixels.position / size, pixels.size / size)
 
 
 func busy() -> bool:

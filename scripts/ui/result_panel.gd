@@ -46,6 +46,7 @@ static func draw(hud: Control) -> void:
 	if race.result_age < 1.2:
 		return
 	var finished: bool = race.state == State.FINISHED
+	hud.modal_begin()
 
 	# 1. 다크 글래스모피즘 메인 빅토리 카드 (딥 네이비 글래스 + 네온 시안 테두리)
 	hud.glass_box(PANEL, 20.0, Color("081220f4"), Color("00e5ff66"), 1.5)
@@ -164,3 +165,4 @@ static func draw(hud: Control) -> void:
 	var btn_rect: Rect2 = hud.result_continue_rect()
 	hud.glass_box(btn_rect, 14.0, Color("00e5ff33"), Color("00e5ff"), 2.0)
 	MenuTheme.label(hud, btn_rect, race.result_button_label(), 28, Color("00e5ff"), true, 20)
+	hud.modal_end()

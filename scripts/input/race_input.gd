@@ -4,7 +4,9 @@ const RaceState = preload("res://scripts/race/race_state.gd")
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const Pad = preload("res://scripts/input/gamepad_input.gd")
 # 설정 화면에서 패드로 고를 수 있는 줄 수.
-var settings_rows := 9 if OS.has_feature("web") else 7
+var settings_rows: int:
+	get:
+		return 4 if race.hud.controls_open else (10 if OS.has_feature("web") else 8)
 var race: Node3D
 
 
@@ -13,6 +15,8 @@ func _init(owner: Node3D) -> void:
 
 
 func handle(event: InputEvent) -> void:
+	if race.hud.modal_motion.closing and event is InputEventKey and event.pressed:
+		return
 	if is_instance_valid(race.tuning_shop):
 		if Pad.is_pad_event(event):
 			race.pad.handle(event)
@@ -32,7 +36,11 @@ func handle(event: InputEvent) -> void:
 		# State is always tracked, so a button released during a transition cannot stick.
 		if race.pad.handle(event):
 			race.gamepad_active = true
-		var blocked: bool = (race.screen_transition != null and race.screen_transition.busy) or race.shell.portrait
+		var blocked: bool = (
+			(race.screen_transition != null and race.screen_transition.busy)
+			or race.shell.portrait
+			or race.hud.modal_motion.closing
+		)
 		if event is InputEventJoypadButton and event.pressed and not blocked:
 			pad_pressed(event.button_index)
 		return
@@ -75,7 +83,7 @@ func handle(event: InputEvent) -> void:
 			return
 		if race.state == RaceState.SETTINGS:
 			if event.keycode in [KEY_ESCAPE, KEY_TAB]:
-				race.navigate(race.close_settings)
+				race.close_settings()
 			return
 		if race.state == RaceState.READY and event.keycode == KEY_ESCAPE:
 			if race.mode == "track":
@@ -177,7 +185,7 @@ func pad_pressed(button: int) -> void:
 				JOY_BUTTON_A:
 					settings_activate(race.settings_focus)
 				JOY_BUTTON_B, JOY_BUTTON_START:
-					race.navigate(race.close_settings)
+					race.close_settings()
 		RaceState.READY:
 			match button:
 				JOY_BUTTON_DPAD_UP:
@@ -292,6 +300,18 @@ func pad_stick_navigation(delta: float) -> void:
 
 
 func settings_activate(index: int) -> void:
+	if race.hud.controls_open:
+		match index:
+			0:
+				race.touch_layout.mirrored = not race.touch_layout.mirrored
+			1:
+				race.touch_layout.size_index = (race.touch_layout.size_index + 1) % 3
+			2:
+				race.touch_layout.reset()
+			3:
+				race.close_settings()
+		race.save_preferences()
+		return
 	match index:
 		0:
 			race.toggle_sound()
@@ -306,12 +326,14 @@ func settings_activate(index: int) -> void:
 		5:
 			race.toggle_auto_accelerate()
 		6:
+			race.hud.open_controls()
+		7:
 			if OS.has_feature("web"):
 				race.shell.toggle_fullscreen()
 			else:
-				race.navigate(race.close_settings)
-		7:
+				race.close_settings()
+		8:
 			if OS.has_feature("web"):
 				race.hud.install_game()
 		_:
-			race.navigate(race.close_settings)
+			race.close_settings()

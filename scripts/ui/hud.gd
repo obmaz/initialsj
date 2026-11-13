@@ -47,9 +47,9 @@ const SETTINGS_MOTION := Rect2(350, 196, 580, 80)
 const SETTINGS_GRAPHICS := Rect2(350, 288, 580, 80)
 const SETTINGS_FPS := Rect2(350, 380, 280, 80)
 const SETTINGS_AUTO := Rect2(650, 380, 280, 80)
-const SETTINGS_FULLSCREEN := Rect2(350, 472, 580, 80)
+const SETTINGS_FULLSCREEN := Rect2(350, 472, 280, 80)
 const SETTINGS_INSTALL := Rect2(350, 576, 280, 80)
-const SETTINGS_CLOSE := Rect2(350, 492, 580, 80)
+const SETTINGS_CLOSE := Rect2(350, 576, 580, 80)
 const RECOVERY_BUTTON := Rect2(500, 176, 280, 64)
 const GARAGE_START := Rect2(855, 630, 345, 80)
 const MAIN_MENU_BUTTON := Rect2(390, 578, 500, 78)
@@ -57,6 +57,8 @@ const START_BUTTON := Rect2(390, 483, 500, 82)
 const MOTION_BUTTON := Rect2(307, 386, 300, 78)
 const SOUND_BUTTON := Rect2(630, 386, 330, 78)
 var race: Node3D
+var controls_open := false
+var modal_motion := preload("res://scripts/ui/modal_motion.gd").new()
 var fingers: Dictionary = {}
 var recovery_touches: Dictionary = {}
 var bottle_texture: Texture2D
@@ -171,19 +173,60 @@ func ui_offset() -> Vector2:
 
 
 func to_design(pos: Vector2) -> Vector2:
-	return (pos - ui_offset()) / ui_scale()
+	var point := (pos - ui_offset()) / ui_scale()
+	var bounds := Rect2(290, 24, 700, 672)
+	if race.state == RaceState.PAUSED:
+		bounds = Rect2(235, 100, 810, 575)
+	elif race.state in RaceState.ENDED:
+		bounds = preload("res://scripts/ui/result_panel.gd").PANEL
+	if not (modal_pose() * bounds).has_point(point):
+		return point
+	return modal_pose().affine_inverse() * point
+
+
+func modal_key() -> String:
+	if race.state in [RaceState.FINISHED, RaceState.FAILED] and race.result_age < 1.2:
+		return ""
+	if race.state == RaceState.SETTINGS and controls_open:
+		return "controls"
+	return (
+		race.state if race.state in [RaceState.SETTINGS, RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED] else ""
+	)
+
+
+func modal_pose() -> Transform2D:
+	return modal_motion.transform() if modal_motion.key == modal_key() else Transform2D.IDENTITY
+
+
+func modal_begin() -> void:
+	modal_motion.advance(modal_key(), 0, race.motion_reduced)
+	var base := Transform2D(0, Vector2.ONE * ui_scale(), 0, ui_offset())
+	draw_set_transform_matrix(base * modal_pose())
+	menu_text.content_transform = modal_pose()
+
+
+func modal_end() -> void:
+	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
+	menu_text.content_transform = Transform2D.IDENTITY
+
+
+func animate_modal_close(action: Callable) -> bool:
+	if DisplayServer.get_name() == "headless" or race.motion_reduced or modal_key() == "":
+		return false
+	if race.screen_transition != null and race.screen_transition.busy:
+		return false
+	modal_motion.close(modal_key(), action)
+	fingers.clear()
+	race.shell.hide_control()
+	return true
 
 
 func pause_touch_rect() -> Rect2:
-	return PAUSE_BUTTON.grow(12)
+	return PAUSE_BUTTON.grow(18)
 
 
 func configure_pedals() -> void:
-	if race.auto_accelerate:
-		buttons.brake = buttons.gas
-	else:
-		buttons.brake = Rect2(1016, 558, 114, 114)
-		buttons.gas = Rect2(1146, 558, 114, 114)
+	buttons = race.touch_layout.rectangles(race.auto_accelerate)
 
 
 func hit_button(action: String, pos: Vector2) -> bool:
@@ -224,6 +267,8 @@ func handle_pointer(event: InputEvent) -> void:
 		fingers.erase(index)
 		recovery_touches.erase(index)
 		return
+	if modal_motion.closing:
+		return
 	if recovery_touches.has(index):
 		return
 	var p := to_design(event.position)
@@ -260,6 +305,9 @@ func handle_pointer(event: InputEvent) -> void:
 			race.navigate(race.open_menu)
 		return
 	if race.state == RaceState.SETTINGS:
+		if controls_open:
+			preload("res://scripts/ui/touch_layout_panel.gd").press(self, p)
+			return
 		if SETTINGS_SOUND.has_point(p):
 			race.toggle_sound()
 		elif SETTINGS_MUSIC.has_point(p):
@@ -267,18 +315,26 @@ func handle_pointer(event: InputEvent) -> void:
 		elif SETTINGS_MOTION.has_point(p):
 			race.toggle_motion()
 		elif SETTINGS_GRAPHICS.has_point(p):
-			race.cycle_graphics()
+			var quality_index: int = menus.graphics_index(p)
+			if quality_index < 0:
+				race.cycle_graphics()
+			else:
+				race.graphics_mode = quality_index
+				race.render_budget.set_mode(quality_index, race)
+				race.save_preferences()
 		elif SETTINGS_AUTO.has_point(p):
 			race.toggle_auto_accelerate()
 		elif SETTINGS_FPS.has_point(p):
 			race.toggle_fps()
+		elif settings_controls_rect().has_point(p):
+			open_controls()
 		elif OS.has_feature("web") and SETTINGS_FULLSCREEN.has_point(p):
 			if race.has_method("toggle_fullscreen"):
 				race.shell.toggle_fullscreen()
 		elif OS.has_feature("web") and SETTINGS_INSTALL.has_point(p):
 			install_game()
 		elif settings_close_rect().has_point(p):
-			race.navigate(race.close_settings)
+			race.close_settings()
 		return
 	if race.state == RaceState.READY:
 		if GARAGE_TUNING.has_point(p):
@@ -468,6 +524,9 @@ func show_garage_notice(value: String) -> void:
 func _process(delta: float) -> void:
 	if race == null:
 		return
+	modal_motion.advance(
+		modal_key(), delta, race.motion_reduced, race.screen_transition != null and race.screen_transition.busy
+	)
 	garage_notice_left = maxf(0, garage_notice_left - delta) if race.state == RaceState.READY else 0
 	menus.sync_menu_art()
 	if race.state != RaceState.RACING:
@@ -921,6 +980,7 @@ func pedal_icon(center: Vector2, gas: bool) -> void:
 
 
 func draw_controls() -> void:
+	configure_pedals()
 	for action in ["left", "right"]:
 		round_button(action)
 		var c: Vector2 = buttons[action].get_center()
@@ -1277,6 +1337,7 @@ func draw_menu() -> void:
 		return
 	if race.state == RaceState.PAUSED:
 		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("030812b8"))
+		modal_begin()
 		var pause_modal := Rect2(235, 100, 810, 575)
 		glass_box(pause_modal, 20.0, Color("081220f4"), Color("00e5ff66"), 1.8)
 		# 상단 포인트 네온 라인
@@ -1313,6 +1374,7 @@ func draw_menu() -> void:
 		centered(Vector2(640, 536), "RESUME", 32, Color("00e5ff"))
 		glass_box(MAIN_MENU_BUTTON, 10.0, Color("0b182bcd"), Color("00e5ff33"), 1.2)
 		centered(Vector2(640, 627), "MAIN MENU", 24, CYAN)
+		modal_end()
 
 
 # FPS 표시는 초당 두 번만 갱신한다.
@@ -1710,6 +1772,17 @@ func draw_heart(center: Vector2, size: float, color: Color) -> void:
 
 func settings_close_rect() -> Rect2:
 	return Rect2(650, 576, 280, 80) if OS.has_feature("web") else SETTINGS_CLOSE
+
+
+func settings_controls_rect() -> Rect2:
+	return Rect2(650, 472, 280, 80) if OS.has_feature("web") else Rect2(350, 472, 580, 80)
+
+
+func open_controls() -> void:
+	controls_open = true
+	race.settings_focus = 0
+	fingers.clear()
+	race.shell.hide_control()
 
 
 func result_continue_rect() -> Rect2:

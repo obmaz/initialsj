@@ -10,6 +10,8 @@ func check(ok: bool, message: String) -> void:
 
 
 func run(tree: SceneTree) -> int:
+	const Pool = preload("res://scripts/rendering/render_resources.gd")
+	Pool.acquire_owner()
 	for index in range(5):
 		var car := Factory.create(index)
 		tree.root.add_child(car)
@@ -32,5 +34,7 @@ func run(tree: SceneTree) -> int:
 		car.refresh_outline()
 		check(shell.material_overlay == null, "투어 교통 차량은 추가 패스를 쓰지 않는다")
 		car.free()
+	Pool.release_owner()
+	check(Pool.vehicle_outline == null, "마지막 소유자 해제가 외곽선 캐시를 비운다")
 	print("5차량 외곽선 / 45m 패스 제한 / 보호색·공유 메시 / 교통 제외: ", "PASS" if failures == 0 else "FAIL")
 	return failures

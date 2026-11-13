@@ -37,6 +37,7 @@ var slipstream := preload("res://scripts/race/slipstream_state.gd").new()
 var acoustics := preload("res://scripts/audio/environment_audio_state.gd").new()
 var protection_left := 0.0
 var auto_accelerate := true
+var touch_layout := preload("res://scripts/input/touch_layout.gd").new()
 var recovery_distance := 80.0
 var recovery_lane := -3.2
 var recovery_available: bool:
@@ -475,6 +476,12 @@ func result_button_label() -> String:
 
 
 func leave_results() -> void:
+	if state in RaceState.ENDED and hud.animate_modal_close(finish_leave_results):
+		return
+	finish_leave_results()
+
+
+func finish_leave_results() -> void:
 	if state in RaceState.ENDED:
 		navigate(open_courses if mode == "track" else open_menu)
 
@@ -561,6 +568,16 @@ func open_settings() -> void:
 
 
 func close_settings() -> void:
+	if hud.animate_modal_close(finish_close_settings):
+		return
+	finish_close_settings()
+
+
+func finish_close_settings() -> void:
+	if hud.controls_open:
+		hud.controls_open = false
+		settings_focus = 6
+		return
 	state = settings_return
 	save_preferences()
 
@@ -580,6 +597,7 @@ func load_preferences() -> void:
 		auto_accelerate = bool(config.get_value("preferences", "auto_accelerate", true))
 		show_ghost = bool(config.get_value("preferences", "show_ghost", true))
 		track_environment.read(config)
+		touch_layout.read(config)
 
 
 func save_preferences() -> void:
@@ -595,6 +613,7 @@ func save_preferences() -> void:
 		config.set_value("preferences", "reduced_motion", motion_reduced)
 	config.set_value("preferences", "graphics", graphics_mode)
 	track_environment.write(config)
+	touch_layout.write(config)
 	config.save(preferences_path)
 
 
@@ -880,7 +899,13 @@ func pause_tour() -> void:
 func resume_tour() -> void:
 	if shell.portrait:
 		return
-	if state == RaceState.PAUSED:
+	if state == RaceState.PAUSED and hud.animate_modal_close(finish_resume_tour):
+		return
+	finish_resume_tour()
+
+
+func finish_resume_tour() -> void:
+	if state == RaceState.PAUSED and not shell.portrait:
 		hud.fingers.clear()
 		state = resume_state
 

@@ -31,6 +31,7 @@ Godot **4.7.2 / GL Compatibility** 기반의 가로 화면 3D 아케이드 레�
 | 작업 | 기준 문서 |
 | --- | --- |
 | 메뉴 시안·모바일 UI·번역·입력 | [UI_DESIGN.md](docs/UI_DESIGN.md) |
+| 네온 UI 통합·조작 배치·외곽선·모달 후속 개발 | [UI_OVERHAUL_HANDOVER.md](docs/UI_OVERHAUL_HANDOVER.md), [검증 계약](docs/UI_OVERHAUL_PLAN.md) |
 | 코딩 컨벤션·폴더·헬퍼·주석 | [CODING_STYLE.md](docs/CODING_STYLE.md) |
 | 환경 구성·검사·웹 배포 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) |
 | 코드 책임·주행과 시각 모델 경계·메모리 수명 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |

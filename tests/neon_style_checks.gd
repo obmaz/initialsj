@@ -21,10 +21,16 @@ func run(tree: SceneTree) -> int:
 		for period in ["day", "dusk", "night"]:
 			race.track_environment.time_of_day = period
 			race.track_environment.activate(race)
-			var energy: float = race.rim_light.light_energy
-			var sun: float = race.sun_light.light_energy
+			var energy: float = (.025 if course == 0 else .055) if period == "night" else .1
+			var sun: float = race.track_environment.lighting_profile().sun
 			check(race.rim_light.light_color == Style.accent("track", course, ""), "실제 트랙 보조광이 스타일을 쓴다")
-			check(race.rim_light.light_energy == energy and race.sun_light.light_energy == sun, "주야간 광량을 바꾸지 않는다")
+			check(
+				(
+					is_equal_approx(race.rim_light.light_energy, energy)
+					and is_equal_approx(race.sun_light.light_energy, sun)
+				),
+				"주야간 광량을 바꾸지 않는다"
+			)
 			var material: ShaderMaterial = race.track.active.road_surface.material_override
 			var color := Style.accent("track", course, "")
 			var expected := Vector3(color.r, color.g, color.b) * .045

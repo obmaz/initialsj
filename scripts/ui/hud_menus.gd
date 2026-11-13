@@ -197,8 +197,8 @@ func draw_toggle_switch(row_rect: Rect2, is_on: bool) -> void:
 
 
 func draw_segmented_selector(row_rect: Rect2, options: Array, current_idx: int) -> void:
-	var total_w := 186.0
-	var total_h := 36.0
+	var total_w := 288.0
+	var total_h := 64.0
 	var seg_rect := Rect2(
 		row_rect.end.x - total_w - 14.0, row_rect.position.y + (row_rect.size.y - total_h) * 0.5, total_w, total_h
 	)
@@ -222,10 +222,14 @@ func draw_segmented_selector(row_rect: Rect2, options: Array, current_idx: int) 
 
 
 func draw_settings() -> void:
+	if hud.controls_open:
+		preload("res://scripts/ui/touch_layout_panel.gd").draw(hud)
+		return
 	# 배경 홈 화면의 글자를 모달 위에 겹쳐 그리지 않는다.
 	hud.menu_text.begin()
 	hud.draw_rect(Rect2(0, 0, 1280, 720), Color("030812b8"))
-	var modal_rect := Rect2(290, 24, 700, 672 if OS.has_feature("web") else 590)
+	hud.modal_begin()
+	var modal_rect := Rect2(290, 24, 700, 672)
 	hud.glass_box(modal_rect, 20.0, Color("081220f4"), Color("00e5ff66"), 1.8)
 
 	# 상단 포인트 네온 하이라이트 라인
@@ -254,7 +258,10 @@ func draw_settings() -> void:
 		hud.glass_box(rect, 10.0, Color("0b182bcd"), Color("00e5ff26"), 1.0)
 		MenuTheme.label(
 			hud,
-			Rect2(rect.position + Vector2(18, 0), Vector2(rect.size.x - 190, rect.size.y)),
+			Rect2(
+				rect.position + Vector2(18, 0),
+				Vector2(rect.size.x - (320 if item[1] == "GRAPHICS" else 118), rect.size.y)
+			),
 			item[1],
 			21,
 			Color("eceff1")
@@ -272,6 +279,8 @@ func draw_settings() -> void:
 		MenuTheme.label(hud, Rect2(350, 552, 580, 24), hud.install_note, 18, Color("8caec0"), true, 12)
 
 	var done_rect: Rect2 = hud.settings_close_rect()
+	hud.glass_box(hud.settings_controls_rect(), 12, Color("12374b"), Color("00e5ff"), 1.5)
+	MenuTheme.label(hud, hud.settings_controls_rect(), "CONTROLS", 24, Color("00e5ff"), true)
 	hud.glass_box(done_rect, 14.0, Color("00e5ff33"), Color("00e5ff"), 2.0)
 	MenuTheme.label(hud, done_rect, "DONE", 30, Color("00e5ff"), true)
 
@@ -284,13 +293,23 @@ func draw_settings() -> void:
 			hud.SETTINGS_FPS,
 			hud.SETTINGS_AUTO
 		]
+		targets.append(hud.settings_controls_rect())
 		if OS.has_feature("web"):
 			targets.append_array([hud.SETTINGS_FULLSCREEN, hud.SETTINGS_INSTALL])
 		targets.append(hud.settings_close_rect())
 		hud.draw_rect(targets[clampi(race.settings_focus, 0, targets.size() - 1)].grow(3), Color("00e5ff"), false, 3)
 
 	if OS.has_feature("web"):
-		race.shell.sync_control(hud.SETTINGS_FULLSCREEN)
+		if hud.modal_motion.closing:
+			race.shell.hide_control()
+		else:
+			race.shell.sync_control(hud.modal_pose() * hud.SETTINGS_FULLSCREEN)
+	hud.modal_end()
+
+
+func graphics_index(pos: Vector2) -> int:
+	var left: float = hud.SETTINGS_GRAPHICS.end.x - 302
+	return clampi(int((pos.x - left) / 96), 0, 2) if pos.x >= left else -1
 
 
 func draw_garage() -> void:

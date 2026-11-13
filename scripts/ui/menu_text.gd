@@ -4,6 +4,7 @@ const CAPACITY := 64
 var hud: Control
 var labels: Array[Label] = []
 var used := 0
+var content_transform := Transform2D.IDENTITY
 
 
 func _init(owner: Control) -> void:
@@ -41,9 +42,9 @@ func draw(rect: Rect2, value: String, font_size: int, color: Color, centered: bo
 		label.add_theme_font_size_override("font_size", font_size)
 	if label.get_theme_color("font_color") != color:
 		label.add_theme_color_override("font_color", color)
-	label.position = hud.ui_offset() + rect.position * hud.ui_scale()
+	label.position = hud.ui_offset() + (content_transform * rect.position) * hud.ui_scale()
 	label.size = rect.size
-	label.scale = Vector2.ONE * hud.ui_scale()
+	label.scale = content_transform.get_scale() * hud.ui_scale()
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if centered else HORIZONTAL_ALIGNMENT_LEFT
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	label.max_lines_visible = 1
