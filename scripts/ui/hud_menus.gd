@@ -160,10 +160,11 @@ func draw_courses() -> void:
 func draw_settings() -> void:
 	# 배경 홈 화면의 글자를 모달 위에 겹쳐 그리지 않는다.
 	hud.menu_text.begin()
-	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(.85, .95, .97, .94))
-	MenuTheme.panel(hud, Rect2(300, 28, 680, 664 if OS.has_feature("web") else 584), MenuTheme.PAPER)
-	MenuTheme.label(hud, Rect2(365, 40, 300, 48), "SETTINGS", 36)
-	MenuTheme.label(hud, Rect2(730, 46, 185, 40), hud.AppVersion.label(), 22, MenuTheme.MUTED, true)
+	hud.draw_rect(Rect2(0, 0, 1280, 720), Color("030812b8"))
+	var modal_rect := Rect2(300, 28, 680, 664 if OS.has_feature("web") else 584)
+	hud.glass_box(modal_rect, 16.0, Color("081220f4"), Color("00e5ff66"), 1.5)
+	MenuTheme.label(hud, Rect2(345, 40, 300, 48), "SETTINGS", 36, Color("ffffff"))
+	MenuTheme.label(hud, Rect2(730, 46, 185, 40), hud.AppVersion.label(), 20, Color("00e5ff"), true)
 	var rows: Array = [
 		[hud.SETTINGS_SOUND, "SOUND", "ON" if race.sound_enabled else "OFF"],
 		[hud.SETTINGS_MUSIC, "MUSIC", "ON" if race.music_enabled else "OFF"],
@@ -174,27 +175,35 @@ func draw_settings() -> void:
 	]
 	for item in rows:
 		var rect: Rect2 = item[0]
-		MenuTheme.panel(hud, rect, MenuTheme.SOFT)
+		hud.glass_box(rect, 8.0, Color("0d1d33c8"), Color("19dcff33"), 1.0)
 		var value_width := 76.0 if rect.size.x < 300 else 116.0
 		MenuTheme.label(
 			hud,
 			Rect2(rect.position + Vector2(16, 0), Vector2(rect.size.x - value_width - 28, rect.size.y)),
 			item[1],
-			26
+			24,
+			Color("ffffff")
 		)
-		MenuTheme.label(
-			hud,
-			Rect2(rect.end.x - value_width - 10, rect.position.y, value_width, rect.size.y),
-			item[2],
-			28,
-			MenuTheme.TEAL,
-			true
+		var val_str: String = item[2]
+		var is_on: bool = val_str in ["ON", "HIGH"]
+		var pill_rect := Rect2(rect.end.x - value_width - 10, rect.position.y + 6, value_width, rect.size.y - 12)
+		hud.glass_box(
+			pill_rect,
+			6.0,
+			Color("00e5ff26") if is_on else Color("141e2e"),
+			Color("00e5ff88") if is_on else Color("334155"),
+			1.0
 		)
+		MenuTheme.label(hud, pill_rect, val_str, 24, Color("00e5ff") if is_on else Color("8caec0"), true)
 	if OS.has_feature("web"):
-		MenuTheme.button(hud, hud.SETTINGS_FULLSCREEN, race.shell.fullscreen_label(), MenuTheme.SOFT, 28)
-		MenuTheme.button(hud, hud.SETTINGS_INSTALL, "INSTALL", MenuTheme.SOFT, 28)
-		MenuTheme.label(hud, Rect2(350, 552, 580, 24), hud.install_note, 22, MenuTheme.MUTED, true)
-	MenuTheme.button(hud, hud.settings_close_rect(), "DONE", MenuTheme.YELLOW, 30)
+		hud.glass_box(hud.SETTINGS_FULLSCREEN, 8.0, Color("0d1d33c8"), Color("19dcff44"), 1.2)
+		MenuTheme.label(hud, hud.SETTINGS_FULLSCREEN, race.shell.fullscreen_label(), 24, Color("00e5ff"), true)
+		hud.glass_box(hud.SETTINGS_INSTALL, 8.0, Color("0d1d33c8"), Color("19dcff44"), 1.2)
+		MenuTheme.label(hud, hud.SETTINGS_INSTALL, "INSTALL", 24, Color("00e5ff"), true)
+		MenuTheme.label(hud, Rect2(350, 552, 580, 24), hud.install_note, 20, Color("8caec0"), true)
+	var done_rect: Rect2 = hud.settings_close_rect()
+	hud.glass_box(done_rect, 10.0, Color("00e5ff26"), Color("00e5ffcc"), 1.5)
+	MenuTheme.label(hud, done_rect, "DONE", 30, Color("00e5ff"), true)
 	if hud.pad_on():
 		var targets: Array[Rect2] = [
 			hud.SETTINGS_SOUND,
@@ -207,7 +216,7 @@ func draw_settings() -> void:
 		if OS.has_feature("web"):
 			targets.append_array([hud.SETTINGS_FULLSCREEN, hud.SETTINGS_INSTALL])
 		targets.append(hud.settings_close_rect())
-		hud.draw_rect(targets[clampi(race.settings_focus, 0, targets.size() - 1)].grow(3), MenuTheme.TEAL, false, 3)
+		hud.draw_rect(targets[clampi(race.settings_focus, 0, targets.size() - 1)].grow(3), Color("00e5ff"), false, 3)
 	if OS.has_feature("web"):
 		race.shell.sync_control(hud.SETTINGS_FULLSCREEN)
 

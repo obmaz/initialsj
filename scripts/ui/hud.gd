@@ -1165,7 +1165,9 @@ func draw_menu() -> void:
 		draw_circle(Vector2(640, 310), 84, Color("081220f0"))
 		draw_arc(Vector2(640, 310), 88, 0, TAU, 64, Color("19dcff44"), 2.0, true)
 		glow_line(
-			arc_points(Vector2(640, 310), 88, -PI / 2, -PI / 2 + TAU * (1.0 - (race.countdown - floorf(race.countdown)))),
+			arc_points(
+				Vector2(640, 310), 88, -PI / 2, -PI / 2 + TAU * (1.0 - (race.countdown - floorf(race.countdown)))
+			),
 			GOLD if count_step <= 1 else CYAN,
 			3.5
 		)
@@ -1176,35 +1178,35 @@ func draw_menu() -> void:
 		var num_color: Color = Color("00e575") if race.countdown < 0.4 else (GOLD if count_step == 1 else WHITE)
 		draw_string(FONT, at, number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, num_color)
 	elif race.state == RaceState.PAUSED:
-		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color(.87, .95, .97, .94))
-		MenuTheme.panel(self, Rect2(235, 100, 810, 575), Color(1, 1, .98, .88), false, 20)
+		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("030812b8"))
+		glass_box(Rect2(235, 100, 810, 575), 18.0, Color("081220f4"), Color("00e5ff66"), 1.5)
 		text_at(
 			Vector2(307, 150),
 			"INITIAL SJ / " + race.course_title if race.mode == "track" else "INITIAL SJ / GRAND TOUR",
-			22,
+			20,
 			CYAN
 		)
 		text_at(
 			Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD
 		)
-		text_at(Vector2(307, 224), "RACE PAUSED" if race.mode == "track" else "TOUR PAUSED", 62)
-		text_at(Vector2(307, 294), race.vehicle.name, 28, MenuTheme.TEAL)
-		text_at(Vector2(307, 338), time_label(race.elapsed), 35, MenuTheme.MUTED)
+		text_at(Vector2(307, 224), "RACE PAUSED" if race.mode == "track" else "TOUR PAUSED", 58, WHITE)
+		text_at(Vector2(307, 290), race.vehicle.name, 26, CYAN)
+		text_at(Vector2(307, 334), time_label(race.elapsed), 34, Color("8caec0"))
 		for rect in [MOTION_BUTTON, SOUND_BUTTON]:
-			slant(rect, MenuTheme.SOFT, 8)
+			glass_box(rect, 8.0, Color("0d1d33c8"), Color("19dcff33"), 1.0)
 		centered(
 			Vector2(MOTION_BUTTON.get_center().x, 434),
 			"MOTION: LOW" if race.motion_reduced else "MOTION: FULL",
-			26,
+			24,
 			CYAN
 		)
 		centered(
-			Vector2(SOUND_BUTTON.get_center().x, 434), "SOUND: ON" if race.sound_enabled else "SOUND: OFF", 26, CYAN
+			Vector2(SOUND_BUTTON.get_center().x, 434), "SOUND: ON" if race.sound_enabled else "SOUND: OFF", 24, CYAN
 		)
-		slant(START_BUTTON, MenuTheme.YELLOW, 13)
-		centered(Vector2(640, 536), "RESUME", 32, Color("0a1b2b"))
-		slant(MAIN_MENU_BUTTON, MenuTheme.SOFT, 8)
-		centered(Vector2(640, 627), "MAIN MENU", 26, CYAN)
+		glass_box(START_BUTTON, 12.0, Color("00e5ff26"), Color("00e5ffcc"), 1.5)
+		centered(Vector2(640, 536), "RESUME", 32, Color("00e5ff"))
+		glass_box(MAIN_MENU_BUTTON, 8.0, Color("0d1d33c8"), Color("19dcff33"), 1.0)
+		centered(Vector2(640, 627), "MAIN MENU", 24, CYAN)
 
 
 # FPS 표시는 초당 두 번만 갱신한다.
