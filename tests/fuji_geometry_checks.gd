@@ -14,7 +14,15 @@ func run(tree: SceneTree) -> int:
 	tree.root.add_child(track)
 	var section: Node3D = track.active
 	check(track.world_collision != null, "Fuji must create actual world collision geometry")
-	check(track.world_collision.get_child_count() == 2, "One ground and one wall body must cover the whole course")
+	check(
+		(
+			track.world_collision.has_node("RoadSurfaceBody")
+			and track.world_collision.has_node("BarrierBody")
+			and track.world_collision.has_node("SceneryBody")
+			and track.world_collision.get_node("SceneryBody").collision_layer == 32
+		),
+		"도로·장벽·고정 풍경은 각각 독립된 충돌체로 코스를 덮는다"
+	)
 	var lower: Vector3 = section.point(section.bridge_lower_distance)
 	var upper: Vector3 = section.point(section.bridge_upper_distance)
 	check(

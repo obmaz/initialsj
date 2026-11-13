@@ -958,6 +958,8 @@ func round_button(action: String, neon: bool = false) -> void:
 	draw_circle(c, radius, Color("173648ef") if active else Color("0b1829d9"))
 	var border: Color = accent if neon else Color("b5cbd8")
 	draw_arc(c, radius - 1, 0, TAU, 70, Color(border, .95 if active else .65), 2 if active else 1.3, true)
+	if action == "nitro" and nitro_ready():
+		draw_nitro_ready(rect)
 
 
 func pedal_icon(center: Vector2, gas: bool) -> void:
