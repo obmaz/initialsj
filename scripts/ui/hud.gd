@@ -197,7 +197,9 @@ func hit_button(action: String, pos: Vector2) -> bool:
 	var rect: Rect2 = buttons[action]
 	if action == "pause":
 		return rect.has_point(pos) or pause_touch_rect().has_point(pos)
-	return pos.distance_to(rect.get_center()) <= rect.size.x / 2.0
+	# 원형 액션 버튼 터치 여유 마진 (모바일/웹 반응성 향상)
+	var radius: float = (rect.size.x / 2.0) * (1.18 if OS.has_feature("web") or OS.has_feature("mobile") else 1.0)
+	return pos.distance_to(rect.get_center()) <= radius
 
 
 func handle_pointer(event: InputEvent) -> void:
