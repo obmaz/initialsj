@@ -189,6 +189,7 @@ var overtake_flash := 0.0
 var checkpoint_flash := 0.0
 var circuit_checkpoint := 1
 var result_age := 0.0
+var result_drive := preload("res://scripts/race/result_drive.gd").new()
 var return_flash := 0.0
 var hitstop_until := 0
 var checkpoints := 0
@@ -700,6 +701,7 @@ func competitor_position(id: int) -> int:
 
 
 func restart(start_countdown: bool = true) -> void:
+	result_drive.reset()
 	hazard_text = ""
 	if track.active.closed_loop and track.active.course_id == 3:
 		track.scenery.rock_arches.reset_effect()
@@ -1021,6 +1023,8 @@ func _physics_process(delta: float) -> void:
 			nitro_input,
 			cell_input
 		)
+	if state in RaceState.ENDED:
+		result_drive.advance(self, delta)
 	place_cars(delta)
 	acoustics.advance(self, delta)
 	ghost.update(self)
@@ -1048,7 +1052,8 @@ func _physics_process(delta: float) -> void:
 		var forward: Vector3 = body.forward_direction()
 		road_material.set_shader_parameter("contact_forward", Vector2(forward.x, forward.z).normalized())
 		road_material.set_shader_parameter(
-			"contact_strength", 1.0 if body.grounded and state in RaceState.DRIVING else 0.0
+			"contact_strength",
+			1.0 if body.grounded and (state in RaceState.DRIVING or state in RaceState.ENDED) else 0.0
 		)
 	if state != RaceState.RACING:
 		thunderstorm.advance(0)
@@ -1072,7 +1077,9 @@ func _physics_process(delta: float) -> void:
 		"high_quality", render_budget.level == 0 and not render_budget.is_mobile_platform
 	)
 	update_camera(delta)
-	player.road_speed = speed if state == RaceState.RACING else 0.0
+	player.road_speed = (
+		speed if state == RaceState.RACING or (state in RaceState.ENDED and not result_drive.stopped) else 0.0
+	)
 	player.effects_quality = render_budget.level
 	player.reduced_motion = motion_reduced
 	player.boost_shot = nitro_burst_left > 0
@@ -1471,12 +1478,7 @@ func collision_camera_offset(forward: Vector3, right: Vector3) -> Vector3:
 
 func update_camera(delta: float) -> void:
 	if state in RaceState.ENDED:
-		result_age += delta
-		var angle := .4 if motion_reduced else .4 + result_age * .12
-		var target := player.global_position + Vector3.UP * .8
-		camera.position = target + Vector3(sin(angle) * 9, 3.8, cos(angle) * 9)
-		camera.look_at(target)
-		camera.reset_physics_interpolation()
+		result_drive.update_camera(self, delta)
 		return
 	world_race.update_camera(delta)
 

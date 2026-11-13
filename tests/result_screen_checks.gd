@@ -61,7 +61,7 @@ func run(tree: SceneTree) -> int:
 				r.state = result
 				match control:
 					"touch":
-						r.hud.handle_pointer(_tap(r.hud.START_BUTTON.get_center()))
+						r.hud.handle_pointer(_tap(r.hud.result_continue_rect().get_center()))
 					"enter", "escape":
 						var event := InputEventKey.new()
 						event.pressed = true

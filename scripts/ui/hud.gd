@@ -285,7 +285,10 @@ func handle_pointer(event: InputEvent) -> void:
 			race.toggle_motion()
 		elif race.state == RaceState.PAUSED and MAIN_MENU_BUTTON.has_point(p):
 			race.navigate(race.open_menu)
-		elif START_BUTTON.has_point(p) or (race.state == RaceState.PAUSED and hit_button("pause", p)):
+		elif (
+			(START_BUTTON if race.state == RaceState.PAUSED else result_continue_rect()).has_point(p)
+			or (race.state == RaceState.PAUSED and hit_button("pause", p))
+		):
 			if race.state == RaceState.PAUSED:
 				race.resume_tour()
 			else:
@@ -477,11 +480,7 @@ func text_at(
 ) -> void:
 	if (
 		race != null
-		and (
-			race.passport_open
-			or race.state in RaceState.MENUS
-			or race.state in [RaceState.READY, RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED]
-		)
+		and (race.passport_open or race.state in RaceState.MENUS or race.state in [RaceState.READY, RaceState.PAUSED])
 	):
 		shadow = false
 		if color == WHITE:
@@ -629,6 +628,10 @@ func draw_content() -> void:
 		return
 	if race.state == RaceState.READY:
 		menus.draw_garage()
+		draw_pad_hints()
+		return
+	if race.state in RaceState.ENDED:
+		draw_menu()
 		draw_pad_hints()
 		return
 	draw_boost_feedback()
@@ -1042,114 +1045,53 @@ func draw_menu() -> void:
 	if race.state == RaceState.READY:
 		menus.draw_garage()
 		return
+	if race.state in RaceState.ENDED:
+		preload("res://scripts/ui/result_panel.gd").draw(self)
+		return
 	if race.state == RaceState.COUNTDOWN:
 		if race.mode == "track" and race.selected_course == 1:
 			centered(Vector2(640, 515), "ROLLING START / 16 CARS", 27, CYAN)
 		draw_texture_rect(menus.countdown_texture(), Rect2(485, 175, 310, 310), false)
 		var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
-		centered(Vector2(640, 353), str(maxi(1, ceili(race.countdown))), int(90 + 18 * pulse), MenuTheme.INK)
-	elif race.state in [RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED]:
-		if race.state in RaceState.ENDED and race.result_age < 2:
-			return
-		draw_rect(
-			Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()),
-			Color(.87, .95, .97, .94 if race.state == RaceState.PAUSED else .28)
-		)
+		draw_circle(Vector2(640, 330), 79, Color("10243eeb"))
+		var number := str(maxi(1, ceili(race.countdown)))
+		var font_size := int(90 + 18 * pulse)
+		var at := Vector2(640 - FONT.get_string_size(number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x / 2, 365)
+		draw_string_outline(FONT, at, number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 7, Color("071426"))
+		draw_string(FONT, at, number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color.WHITE)
+	elif race.state == RaceState.PAUSED:
+		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color(.87, .95, .97, .94))
 		MenuTheme.panel(self, Rect2(235, 100, 810, 575), Color(1, 1, .98, .88), false, 20)
-		glow_line(PackedVector2Array([Vector2(265, 100), Vector2(1045, 100)]), CYAN, 2)
 		text_at(
 			Vector2(307, 150),
 			"INITIAL SJ / " + race.course_title if race.mode == "track" else "INITIAL SJ / GRAND TOUR",
 			22,
 			CYAN
 		)
-		if race.state == RaceState.PAUSED:
-			text_at(
-				Vector2(804, 150),
-				"BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"),
-				18,
-				GOLD
-			)
-		var title := (
-			("RACE PAUSED" if race.mode == "track" else "TOUR PAUSED")
-			if race.state == RaceState.PAUSED
-			else (
-				("RACE FINISHED" if race.mode == "track" else "GOAL CLEAR!")
-				if race.state == RaceState.FINISHED
-				else "TIME OVER"
-			)
+		text_at(
+			Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD
 		)
-		text_at(Vector2(307, 224), title, 62)
-		if race.state == RaceState.FINISHED:
-			var detail := (
-				("POS %d / %d" % [race.race_position(), race.competitor_count()])
-				if race.mode == "track"
-				else ("SCORE %d" % int(race.score))
-			)
-			text_at(Vector2(307, 288), detail, 32, GOLD)
-			if race.mode == "tour":
-				text_at(
-					Vector2(307, 322),
-					(
-						"ROUTE %s / %s / SCORE x%.2f"
-						% [
-							race.TourChallenge.route_id(race.track.history),
-							race.TourChallenge.medal_label(race.run_medal),
-							race.tour_score_multiplier
-						]
-					),
-					19,
-					CYAN
-				)
-		elif race.state == RaceState.FAILED:
-			text_at(Vector2(307, 292), "SCORE %d" % int(race.score), 32, GOLD)
-		elif race.state == RaceState.PAUSED:
-			text_at(Vector2(307, 294), race.vehicle.name, 28, MenuTheme.TEAL)
-			text_at(Vector2(307, 338), time_label(race.elapsed), 35, MenuTheme.MUTED)
-		if race.state == RaceState.PAUSED:
-			for rect in [MOTION_BUTTON, SOUND_BUTTON]:
-				slant(rect, MenuTheme.SOFT, 8)
-			var motion_label := "MOTION: LOW" if race.motion_reduced else "MOTION: FULL"
-			var sound_label := "SOUND: ON" if race.sound_enabled else "SOUND: OFF"
-			centered(Vector2(MOTION_BUTTON.get_center().x, 434), motion_label, 26, CYAN)
-			centered(Vector2(SOUND_BUTTON.get_center().x, 434), sound_label, 26, CYAN)
-		else:
-			draw_record_panel()
-			preload("res://scripts/ui/driving_challenges_ui.gd").draw_result(self)
+		text_at(Vector2(307, 224), "RACE PAUSED" if race.mode == "track" else "TOUR PAUSED", 62)
+		text_at(Vector2(307, 294), race.vehicle.name, 28, MenuTheme.TEAL)
+		text_at(Vector2(307, 338), time_label(race.elapsed), 35, MenuTheme.MUTED)
+		for rect in [MOTION_BUTTON, SOUND_BUTTON]:
+			slant(rect, MenuTheme.SOFT, 8)
+		centered(
+			Vector2(MOTION_BUTTON.get_center().x, 434),
+			"MOTION: LOW" if race.motion_reduced else "MOTION: FULL",
+			26,
+			CYAN
+		)
+		centered(
+			Vector2(SOUND_BUTTON.get_center().x, 434), "SOUND: ON" if race.sound_enabled else "SOUND: OFF", 26, CYAN
+		)
 		slant(START_BUTTON, MenuTheme.YELLOW, 13)
-		var cta: String = "RESUME" if race.state == RaceState.PAUSED else race.result_button_label()
-		centered(Vector2(640, 536), cta, 32, Color("0a1b2b"))
-		if race.state == RaceState.PAUSED:
-			slant(MAIN_MENU_BUTTON, MenuTheme.SOFT, 8)
-			centered(Vector2(640, 627), "MAIN MENU", 26, CYAN)
+		centered(Vector2(640, 536), "RESUME", 32, Color("0a1b2b"))
+		slant(MAIN_MENU_BUTTON, MenuTheme.SOFT, 8)
+		centered(Vector2(640, 627), "MAIN MENU", 26, CYAN)
 
 
-# This run next to the best time, with a gold NEW RECORD tag when it was beaten.
-func draw_record_panel() -> void:
-	var finished: bool = race.state == RaceState.FINISHED
-	var best: float = race.best_time
-	var this_run := time_label(race.elapsed) if finished else "--:--.---"
-	var cells := [
-		[Rect2(307, 396, 300, 70), "THIS RUN", this_run, GOLD if (finished and race.new_record) else WHITE],
-		[Rect2(630, 396, 330, 70), "BEST", time_label(best) if best > 0 else "--:--.---", CYAN],
-	]
-	for cell in cells:
-		var rect: Rect2 = cell[0]
-		slant(rect, MenuTheme.SOFT, 8)
-		text_at(rect.position + Vector2(22, 26), cell[1], 16, MenuTheme.MUTED)
-		text_at(rect.position + Vector2(22, 60), cell[2], 34, cell[3])
-	if not finished:
-		return
-	if race.new_record:
-		var tag := Rect2(307, 352, 176, 32)
-		slant(tag, GOLD, 8)
-		centered(Vector2(tag.get_center().x, tag.position.y + 24), "NEW RECORD!", 20, Color("1a1300"))
-	elif race.previous_best > 0:
-		text_at(Vector2(307, 382), "+%.3f vs best" % (race.elapsed - race.previous_best), 20, Color("a63340"))
-
-
-# Optional frames-per-second counter (Settings > SHOW FPS). It refreshes twice a second so the
-# number stays readable; green at 55+, amber from 40, red below.
+# FPS 표시는 초당 두 번만 갱신한다.
 var fps_text := ""
 var fps_value := 0.0
 var fps_updated := 0
@@ -1544,3 +1486,7 @@ func draw_heart(center: Vector2, size: float, color: Color) -> void:
 
 func settings_close_rect() -> Rect2:
 	return Rect2(650, 576, 280, 80) if OS.has_feature("web") else SETTINGS_CLOSE
+
+
+func result_continue_rect() -> Rect2:
+	return Rect2(846, 608, 368, 80)
