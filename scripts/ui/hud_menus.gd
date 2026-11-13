@@ -158,19 +158,22 @@ func draw_courses() -> void:
 
 
 func draw_toggle_switch(row_rect: Rect2, is_on: bool) -> void:
-	var switch_w := 68.0
-	var switch_h := 34.0
+	var switch_w := 72.0
+	var switch_h := 36.0
 	var switch_rect := Rect2(
-		row_rect.end.x - switch_w - 12.0, row_rect.position.y + (row_rect.size.y - switch_h) * 0.5, switch_w, switch_h
+		row_rect.end.x - switch_w - 14.0, row_rect.position.y + (row_rect.size.y - switch_h) * 0.5, switch_w, switch_h
 	)
 	if is_on:
-		hud.glass_box(switch_rect, 17.0, Color("00e5ff33"), Color("00e5ff"), 1.8)
-		var knob_pos := Vector2(switch_rect.end.x - 17.0, switch_rect.position.y + 17.0)
-		hud.draw_circle(knob_pos, 15.0, Color("00e5ff55"))
-		hud.draw_circle(knob_pos, 11.5, Color.WHITE)
+		hud.glass_box(switch_rect, 18.0, Color("00e5ff33"), Color("00e5ff"), 2.0)
+		# 네온 트랙 내부 글로우
+		hud.draw_rect(switch_rect.grow(-3), Color("00e5ff22"))
+		var knob_pos := Vector2(switch_rect.end.x - 18.0, switch_rect.position.y + 18.0)
+		hud.draw_circle(knob_pos, 16.0, Color("00e5ff44"))
+		hud.draw_circle(knob_pos, 12.0, Color.WHITE)
+		hud.draw_circle(knob_pos, 5.0, Color("00e5ff"))
 		MenuTheme.label(
 			hud,
-			Rect2(switch_rect.position.x + 8.0, switch_rect.position.y + 7.0, 24.0, 20.0),
+			Rect2(switch_rect.position.x + 8.0, switch_rect.position.y + 8.0, 26.0, 20.0),
 			"ON",
 			13,
 			Color("00e5ff"),
@@ -178,12 +181,13 @@ func draw_toggle_switch(row_rect: Rect2, is_on: bool) -> void:
 			10
 		)
 	else:
-		hud.glass_box(switch_rect, 17.0, Color("0e1826"), Color("2c3e55"), 1.2)
-		var knob_pos := Vector2(switch_rect.position.x + 17.0, switch_rect.position.y + 17.0)
-		hud.draw_circle(knob_pos, 11.5, Color("546e7a"))
+		hud.glass_box(switch_rect, 18.0, Color("0a1420"), Color("22364f"), 1.2)
+		var knob_pos := Vector2(switch_rect.position.x + 18.0, switch_rect.position.y + 18.0)
+		hud.draw_circle(knob_pos, 12.0, Color("455a64"))
+		hud.draw_circle(knob_pos, 5.0, Color("263238"))
 		MenuTheme.label(
 			hud,
-			Rect2(switch_rect.end.x - 32.0, switch_rect.position.y + 7.0, 24.0, 20.0),
+			Rect2(switch_rect.end.x - 34.0, switch_rect.position.y + 8.0, 26.0, 20.0),
 			"OFF",
 			13,
 			Color("546e7a"),
@@ -193,18 +197,25 @@ func draw_toggle_switch(row_rect: Rect2, is_on: bool) -> void:
 
 
 func draw_segmented_selector(row_rect: Rect2, options: Array, current_idx: int) -> void:
-	var total_w := 180.0
-	var total_h := 34.0
+	var total_w := 186.0
+	var total_h := 36.0
 	var seg_rect := Rect2(
-		row_rect.end.x - total_w - 12.0, row_rect.position.y + (row_rect.size.y - total_h) * 0.5, total_w, total_h
+		row_rect.end.x - total_w - 14.0, row_rect.position.y + (row_rect.size.y - total_h) * 0.5, total_w, total_h
 	)
-	hud.glass_box(seg_rect, 8.0, Color("0a1422"), Color("1e2f47"), 1.0)
+	hud.glass_box(seg_rect, 10.0, Color("081322"), Color("1a2a40"), 1.2)
 	var seg_w: float = total_w / float(options.size())
 	for i in range(options.size()):
 		var sub_rect := Rect2(seg_rect.position.x + i * seg_w, seg_rect.position.y, seg_w, total_h)
 		var is_active: bool = i == current_idx
 		if is_active:
-			hud.glass_box(sub_rect, 6.0, Color("00e5ff33"), Color("00e5ff"), 1.5)
+			hud.glass_box(sub_rect, 8.0, Color("00e5ff38"), Color("00e5ff"), 1.8)
+			# 액티브 인디케이터 하단 바
+			hud.draw_line(
+				Vector2(sub_rect.position.x + 6, sub_rect.end.y - 2),
+				Vector2(sub_rect.end.x - 6, sub_rect.end.y - 2),
+				Color("00e5ff"),
+				2.5
+			)
 			MenuTheme.label(hud, sub_rect, options[i], 16, Color("00e5ff"), true, 12)
 		else:
 			MenuTheme.label(hud, sub_rect, options[i], 14, Color("607d8b"), true, 10)
