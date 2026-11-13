@@ -1108,7 +1108,7 @@ func update_camera(delta: float) -> void:
 
 	var chase_offset: Vector3 = -forward * (7.1 + pace * 0.9) + Vector3.UP * 3.0
 	chase_offset -= forward * camera_state.pullback
-	var overhead_offset: Vector3 = -forward * 13.0 + Vector3.UP * 7.5
+	var overhead_offset: Vector3 = -forward * 14.5 + Vector3.UP * 8.2
 	var desired: Vector3 = chase_offset.lerp(overhead_offset, intro_ratio)
 
 	if not race.motion_reduced and race.state == RaceState.RACING:
@@ -1137,7 +1137,7 @@ func update_camera(delta: float) -> void:
 	var base_fov: float = 68 if race.motion_reduced else 66 + pace * 17 + 6 * race.driving_feedback.boost_envelope
 	if not race.motion_reduced and race.boosting and race.player.boost_fx != null:
 		base_fov += race.player.boost_fx.heat * 2.5
-	var target_fov: float = lerpf(base_fov, 74.0, intro_ratio)
+	var target_fov: float = lerpf(base_fov, 78.0, intro_ratio)
 	race.camera.fov = lerpf(race.camera.fov, target_fov, 1 - exp(-delta * 5))
 
 
