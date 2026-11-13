@@ -11,3 +11,7 @@
 기존 BodyShell 전체 메시도 투어 교통 차량의 이전 연결 경로를 위해 읽기 전용으로 보존합니다. 플레이어 표시에는 PaintShell+TrimShell만 사용하고 전체 메시를 중복해서 그리지 않습니다.
 
 오픈카는 원본에 OpenPaintShell·OpenTrimShell·OpenCabin 변형을 추가해 제공합니다. 원래 BodyShell·PaintShell·TrimShell의 면·속성은 보존하며 지원 정의가 있는 차량만 메시 참조를 교체합니다. 실내는 두 좌석·헤드레스트·롤오버 바·센터 콘솔·대시보드·운전대를 포함합니다. 도구는 기존 원본 바이트를 해시별로 build/reports/model-backups에 먼저 백업하며 다시 실행해도 변형을 중복 생성하지 않습니다.
+
+도장면은 원본 BodyShell의 기존 면만 PaintShell로 분리했습니다. 형상·법선·비도장 UV를 보존하며 전용 UV0는 livery-uv.json의 종방향·단면 원통 전개을 사용합니다. 리버리 이미지는 models/shared/vehicle_liveries/SOURCE.md를 따릅니다.
+
+차체 판면의 모서리 반경·후드 곡면과 휠 법선은 [전용 편집 도구](../../../tools/refine_player_models.py)로 다듬습니다. 최초 편집 전 GLB는 해시별 `build/reports/model-backups/`에 보존하며, 이미 처리된 편집본은 중복 가공하지 않습니다. 도장 마스크·실척·부품 피벗·자식 순서를 유지합니다.
