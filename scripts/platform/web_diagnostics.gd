@@ -37,6 +37,7 @@ func snapshot() -> Dictionary:
 		"home_settings": rectangle(hud.HOME_SETTINGS),
 		"settings_auto": rectangle(hud.SETTINGS_AUTO),
 		"settings_music": rectangle(hud.SETTINGS_MUSIC),
+		"settings_graphics": [],
 		"settings_close": rectangle(hud.settings_close_rect()),
 		"settings_controls": rectangle(hud.settings_controls_rect()),
 		"controls_done": rectangle(preload("res://scripts/ui/touch_layout_panel.gd").DONE),
@@ -47,6 +48,8 @@ func snapshot() -> Dictionary:
 		"pause": rectangle(hud.pause_touch_rect()),
 		"resume": rectangle(hud.START_BUTTON),
 	}
+	for i in range(3):
+		targets.settings_graphics.append(rectangle(hud.menus.graphics_segment(i)))
 	for i in range(race.Catalog.SPECS.size()):
 		targets.garage_cards.append(rectangle(hud.garage_card(i)))
 	for action in ["gas", "brake", "nitro"]:

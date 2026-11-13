@@ -43,6 +43,23 @@ func run(tree: SceneTree) -> int:
 	race.shell.portrait = true
 	race.finish_resume_tour()
 	check(race.state == "paused", "닫힘 중 세로 회전되면 주행을 재개하지 않는다")
+	race.state = "finished"
+	race.result_age = 2
+	race.hud.modal_motion.advance("finished", .05, false)
+	var panel: Rect2 = preload("res://scripts/ui/result_panel.gd").PANEL
+	var anchor: Vector2 = panel.get_center()
+	check((race.hud.modal_pose() * anchor).is_equal_approx(anchor), "결과 모달은 실제 카드 중심에 고정된다")
+	var button: Rect2 = race.hud.result_continue_rect()
+	check(panel.encloses(button), "결과 버튼은 카드 내부에 있다")
+	check(
+		(
+			race
+			. hud
+			. to_design(race.hud.ui_offset() + (race.hud.modal_pose() * button.get_center()) * race.hud.ui_scale())
+			. is_equal_approx(button.get_center())
+		),
+		"이동한 결과 버튼의 그리기와 실제 입력 좌표가 일치한다"
+	)
 	race.free()
 	print("모달 좌표·닫기 단일 실행·화면 전환 취소·모션 감소: ", "PASS" if failures == 0 else "FAIL")
 	return failures

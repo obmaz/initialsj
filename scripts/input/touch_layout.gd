@@ -9,7 +9,7 @@ const BASE := {
 	"nitro": Rect2(1146, 428, 114, 114),
 	"gas": Rect2(1146, 558, 114, 114),
 	"brake": Rect2(1016, 558, 114, 114),
-	"pause": Rect2(24, 16, 56, 52)
+	"pause": Rect2(24, 16, 72, 64)
 }
 var mirrored := false
 var size_index := 1

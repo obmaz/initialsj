@@ -59,7 +59,10 @@ func run(tree: SceneTree) -> int:
 	race.close_settings()
 	check(race.state == "settings" and not race.hud.controls_open, "뒤로 가기는 조작 설정만 닫는다")
 	for index in range(3):
-		check(race.hud.menus.graphics_index(Vector2(628 + 96 * index + 48, 320)) == index, "표시된 그래픽 세그먼트가 실제 선택값과 맞는다")
+		check(
+			race.hud.menus.graphics_index(race.hud.menus.graphics_segment(index).get_center()) == index,
+			"표시된 그래픽 세그먼트가 실제 선택값과 맞는다"
+		)
 	race.free()
 	print("터치 12배치 / 여유 영역 단일 소유 / 반전·크기·안전 영역 / 저장·초기화·뒤로: ", "PASS" if failures == 0 else "FAIL")
 	return failures

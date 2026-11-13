@@ -14,8 +14,8 @@
 
 ## 검증과 자료
 
-[후속 기능 검증 계획](UI_OVERHAUL_PLAN.md)에 기능별 계약을 정리합니다. 실제 실행 로그·스크린샷·검증자 회차 기록은 Git에서 제외한 `build/reports/`에 둡니다. 검증자는 기능마다 최대 3회까지 검토합니다. 측정 없이 60fps나 실기기 성능 개선을 단정하지 않습니다.
+[후속 기능 검증 계획](UI_OVERHAUL_PLAN.md)에 기능별 계약을 정리합니다. 실제 실행 로그·스크린샷·검증자 회차 기록은 Git에서 제외한 `build/reports/`에 둡니다. 기존 기능 통합 검토는 기능마다 최대 3회로 진행했습니다. 새 UI 원화 대응 작업은 별도로 검증자 최대 8회까지 실제 폰·폴드 화면을 비교합니다. 측정 없이 60fps나 실기기 성능 개선을 단정하지 않습니다.
 
-이전 문서가 가리킨 `generated_images/concept_*.jpg` 네 원화는 저장소에서 추적되지 않습니다. 해당 파일을 확보하기 전에는 원화와 완전히 일치한다고 보고하지 않습니다. 새 UI 글자는 번역 가능한 텍스트로 유지하며 [메뉴 번역 원문](../localization/menus.pot)에 등록합니다.
+이전 문서가 가리킨 `generated_images/concept_*.jpg` 네 원화는 저장소·이력에서 찾지 못했습니다. 사용자 승인에 따라 새로 생성한 [4종 기준 원화](../art_sources/ui/neon/README.md)를 디자인 정본으로 보존합니다. HUD·카운트다운·설정·결과의 위치·비율·색·장식을 기준으로 비교하며, 이 대응 작업에서 3D 차량·오브젝트·공간 셰이더·주행은 변경하지 않습니다. 원화는 `.gdignore`와 내보내기 제외 규칙으로 제품에 포함하지 않습니다. 새 UI 글자는 번역 가능한 텍스트로 유지하며 [메뉴 번역 원문](../localization/menus.pot)에 등록합니다.
 
 엔진은 Godot **4.7.2**, 실행 진입점은 `./tools/godot`입니다. 웹 화면 검사에는 로컬 Web export와 `python3 -m http.server --directory build/site`를 사용할 수 있습니다. `build/serve.py`나 특정 PC의 Godot 경로는 저장소 계약이 아닙니다. 웹 게시와 APK 배포는 사용자 요청에 따라 [APK 전달 스킬](../.agents/skills/dropbox-apk/SKILL.md)을 적용합니다.

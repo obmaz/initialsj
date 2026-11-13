@@ -37,10 +37,10 @@ func progress() -> float:
 	return close_from * (1 - clampf(close_age / CLOSE_SECONDS, 0, 1)) if closing else clampf(age / OPEN_SECONDS, 0, 1)
 
 
-func transform() -> Transform2D:
+func transform(result_centre := Vector2(1032, 372)) -> Transform2D:
 	if key == "":
 		return Transform2D.IDENTITY
-	var centre := Vector2(1032, 372) if key in ["finished", "failed"] else Vector2(640, 360)
+	var centre := result_centre if key in ["finished", "failed"] else Vector2(640, 360)
 	var amount := lerpf(.965, 1.0, smoothstep(0, 1, progress()))
 	return Transform2D(0, Vector2.ONE * amount, 0, centre * (1 - amount))
 
