@@ -73,9 +73,13 @@ void fragment() {
 			reflected=textureLod(wet_panorama,vec2(azimuth/6.283185+.5,clamp(acos(clamp(ray.y,-1.0,1.0))/3.141593+wet_horizon_offset,.001,.999)),2.0).rgb;
 		}
 		float fresnel=pow(1.0-clamp(dot(NORMAL,VIEW),0.0,1.0),3.0);
-		EMISSION+=reflected*wet_sky_tint*rain_wetness*mix(.05,.36,puddles)*(.25+.75*fresnel);
+		float rim = fresnel;
+		EMISSION+=reflected*wet_sky_tint*rain_wetness*mix(.05,.36,puddles)*(.25+.75*rim);
 		EMISSION+=vec3(.9,.72,.4)*pool*puddles*.65;
 	}
+	// 스타일라이즈드 2D 애니메 림 반사 (차량 셰이더와 조명 톤 일체화)
+	float track_rim = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 3.5);
+	EMISSION += vec3(0.015, 0.035, 0.055) * track_rim;
 	METALLIC = 0.0;
 	if(harbor_corridor){
 		float d=UV.y*6.0;
