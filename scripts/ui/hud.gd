@@ -1263,7 +1263,15 @@ func draw_menu() -> void:
 		return
 	if race.state == RaceState.PAUSED:
 		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("030812b8"))
-		glass_box(Rect2(235, 100, 810, 575), 18.0, Color("081220f4"), Color("00e5ff66"), 1.5)
+		var pause_modal := Rect2(235, 100, 810, 575)
+		glass_box(pause_modal, 20.0, Color("081220f4"), Color("00e5ff66"), 1.8)
+		# 상단 포인트 네온 라인
+		draw_line(
+			Vector2(pause_modal.position.x + 36, pause_modal.position.y + 3),
+			Vector2(pause_modal.end.x - 36, pause_modal.position.y + 3),
+			Color("00e5ffcc"),
+			2.0
+		)
 		text_at(
 			Vector2(307, 150),
 			"INITIAL SJ / " + race.course_title if race.mode == "track" else "INITIAL SJ / GRAND TOUR",
@@ -1277,7 +1285,7 @@ func draw_menu() -> void:
 		text_at(Vector2(307, 290), race.vehicle.name, 26, CYAN)
 		text_at(Vector2(307, 334), time_label(race.elapsed), 34, Color("8caec0"))
 		for rect in [MOTION_BUTTON, SOUND_BUTTON]:
-			glass_box(rect, 8.0, Color("0d1d33c8"), Color("19dcff33"), 1.0)
+			glass_box(rect, 10.0, Color("0b182bcd"), Color("00e5ff33"), 1.2)
 		centered(
 			Vector2(MOTION_BUTTON.get_center().x, 434),
 			"MOTION: LOW" if race.motion_reduced else "MOTION: FULL",
@@ -1287,9 +1295,9 @@ func draw_menu() -> void:
 		centered(
 			Vector2(SOUND_BUTTON.get_center().x, 434), "SOUND: ON" if race.sound_enabled else "SOUND: OFF", 24, CYAN
 		)
-		glass_box(START_BUTTON, 12.0, Color("00e5ff26"), Color("00e5ffcc"), 1.5)
+		glass_box(START_BUTTON, 14.0, Color("00e5ff33"), Color("00e5ff"), 2.0)
 		centered(Vector2(640, 536), "RESUME", 32, Color("00e5ff"))
-		glass_box(MAIN_MENU_BUTTON, 8.0, Color("0d1d33c8"), Color("19dcff33"), 1.0)
+		glass_box(MAIN_MENU_BUTTON, 10.0, Color("0b182bcd"), Color("00e5ff33"), 1.2)
 		centered(Vector2(640, 627), "MAIN MENU", 24, CYAN)
 
 
