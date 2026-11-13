@@ -41,6 +41,9 @@ var body_motion := preload("res://scripts/effects/body_motion.gd").new()
 var shift_amount := 0.0
 var wheel_centres: Array[Vector3] = []
 var outline_near := true
+var toon_enabled := true
+var toon_strength := .8
+var tuning_outline: ShaderMaterial
 
 
 func _ready() -> void:
@@ -205,13 +208,39 @@ func set_detail(distance_to_player: float) -> void:
 
 func refresh_outline() -> void:
 	# 유리·휠·배기구를 제외한 외피와 윙만 같은 GLB 메시로 한 번 더 그린다.
-	var enabled := outline_near and not traffic
+	var enabled := outline_near and not traffic and toon_enabled
 	var material: ShaderMaterial = (
-		preload("res://scripts/rendering/render_resources.gd").vehicle_outline_material() if enabled else null
+		(
+			tuning_outline
+			if tuning_outline != null
+			else preload("res://scripts/rendering/render_resources.gd").vehicle_outline_material()
+		)
+		if enabled
+		else null
 	)
 	for child in body.get_children():
 		if child is MeshInstance3D and child.name in ["PaintShell", "ActiveRearAero", "TuningWing"]:
 			child.material_overlay = material
+
+
+func apply_shading() -> void:
+	for child in body.get_children():
+		if not child is MeshInstance3D:
+			continue
+		var material: Material = child.material_override
+		if (
+			material is ShaderMaterial
+			and material.shader in [shared_body_material().shader, preload("res://shaders/vehicle_livery.gdshader")]
+		):
+			material.set_shader_parameter("toon_enabled", toon_enabled)
+			material.set_shader_parameter("toon_strength", toon_strength)
+	if toon_enabled and not traffic:
+		if tuning_outline == null:
+			tuning_outline = (
+				preload("res://scripts/rendering/render_resources.gd").vehicle_outline_material().duplicate()
+			)
+		tuning_outline.set_shader_parameter("outline_width", lerpf(.014, .038, toon_strength))
+	refresh_outline()
 
 
 func add_boost_jet(pos: Vector3, radius: float) -> void:
@@ -286,6 +315,8 @@ func set_headlights(enabled: bool, illuminate_road: bool = true) -> void:
 func paint_material() -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = shared_body_material().shader
+	material.set_shader_parameter("toon_enabled", toon_enabled)
+	material.set_shader_parameter("toon_strength", toon_strength)
 	material.set_shader_parameter("repaint_traffic", true)
 	material.set_shader_parameter("traffic_paint", Vector4(paint.r, paint.g, paint.b, paint.a))
 	return material

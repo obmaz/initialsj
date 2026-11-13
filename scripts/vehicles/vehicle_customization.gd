@@ -34,6 +34,8 @@ static func cached_part(car: Node3D, id: String) -> Mesh:
 
 
 static func apply(car: Node3D, data: Dictionary, vehicle: int) -> void:
+	car.toon_enabled = data.shading == 1
+	car.toon_strength = data.toon_strength / 100.0
 	car.equipped_effects = preload("res://scripts/vehicles/effect_items.gd").sanitize(data.get("effects", []), vehicle)
 	if car.boost_fx != null:
 		car.boost_fx.mega = "mega_exhaust" in car.equipped_effects
@@ -156,4 +158,4 @@ static func apply(car: Node3D, data: Dictionary, vehicle: int) -> void:
 			car.active_aero.transform = car.aero_rest
 		car.aero_blend = 0
 	car.set_meta("tuning_state", data.duplicate(true))
-	car.refresh_outline()
+	car.apply_shading()

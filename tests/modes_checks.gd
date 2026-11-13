@@ -27,7 +27,7 @@ func run(tree: SceneTree) -> int:
 	check(race.state == "menu", "Startup must offer modes before vehicle selection")
 	var initial_sound: bool = race.sound_enabled
 	click(race, race.hud.HOME_SETTINGS)
-	click(race, race.hud.SETTINGS_SOUND)
+	click(race, race.hud.SettingsAudio.toggle_rect(race.hud, false))
 	click(race, race.hud.SETTINGS_CLOSE)
 	check(
 		race.state == "menu" and race.sound_enabled != initial_sound,

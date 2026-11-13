@@ -40,14 +40,17 @@ const LAP_TONE = preload("res://assets/audio/lap.wav")
 
 
 func _ready() -> void:
+	bus = race.audio_preferences.effects_bus
 	var mode := AudioServer.PLAYBACK_TYPE_SAMPLE if OS.has_feature("web") else AudioServer.PLAYBACK_TYPE_STREAM
 	playback_type = mode
 	volume_db = -80
 	for voice in [drift_sound, boost_sound, start_sound, cue, impact_sound]:
+		voice.bus = race.audio_preferences.effects_bus
 		voice.playback_type = mode
 		add_child(voice)
 	for key in extra_levels:
 		var voice := AudioStreamPlayer.new()
+		voice.bus = race.audio_preferences.effects_bus
 		voice.playback_type = mode
 		voice.volume_db = -80
 		add_child(voice)
@@ -77,6 +80,9 @@ func _ready() -> void:
 	else:
 		environment_audio = preload("res://scripts/audio/environment_audio.gd").new()
 		add_child(environment_audio)
+		AudioServer.set_bus_send(
+			AudioServer.get_bus_index(environment_audio.bus_name), race.audio_preferences.effects_bus
+		)
 		bus = environment_audio.bus_name
 		for voice in [boost_sound, drift_sound, extra_loops.coast, extra_loops.gravel, extra_loops.wet]:
 			voice.bus = environment_audio.bus_name
@@ -109,7 +115,9 @@ func apply_vehicle() -> void:
 func _process(delta: float) -> void:
 	if vehicle != race.selected_vehicle:
 		apply_vehicle()
-	var active: bool = race.state in RaceState.DRIVING and race.sound_enabled
+	var active: bool = (
+		race.state in RaceState.DRIVING and race.sound_enabled and race.audio_preferences.sound_volume > 0
+	)
 	var number: int = (
 		ceili(race.countdown)
 		if race.state == RaceState.COUNTDOWN
@@ -188,29 +196,30 @@ func _process(delta: float) -> void:
 	var mixed := VehicleAudio.mix(race)
 	var nearby: RefCounted = race.proximity_audio
 	var spatial_active: bool = active and race.state == RaceState.RACING and nearby.active
+	var effects_gain: float = race.audio_preferences.sound_gain()
 	if OS.has_feature("web"):
 		if web_audio != null:
 			web_audio.updateEnvironment(active, race.acoustics.wet, race.acoustics.enclosure)
 			web_audio.update(
 				active,
 				mixed.engine_pitch,
-				mixed.engine,
-				mixed.boost,
+				mixed.engine * effects_gain,
+				mixed.boost * effects_gain,
 				mixed.boost_pitch,
-				mixed.drift,
+				mixed.drift * effects_gain,
 				mixed.drift_pitch,
-				mixed.coast,
-				mixed.gravel,
-				mixed.wet,
+				mixed.coast * effects_gain,
+				mixed.gravel * effects_gain,
+				mixed.wet * effects_gain,
 				mixed.road_pitch
 			)
 			web_audio.updateSpatial(
 				spatial_active,
-				nearby.draft_level,
+				nearby.draft_level * effects_gain,
 				nearby.draft_pan,
 				nearby.draft_pitch,
 				nearby.serial,
-				nearby.pass_level,
+				nearby.pass_level * effects_gain,
 				nearby.pass_pan,
 				nearby.pass_pitch
 			)

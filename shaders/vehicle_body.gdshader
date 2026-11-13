@@ -1,5 +1,6 @@
 shader_type spatial;
-render_mode diffuse_toon, specular_toon;
+render_mode diffuse_burley, specular_schlick_ggx;
+#include "res://shaders/vehicle_shading.gdshaderinc"
 uniform bool repaint_traffic = false;
 uniform bool protection = false;
 uniform float protection_amount = 1.0;
@@ -14,16 +15,12 @@ void fragment() {
 		base = mix(pow((base + vec3(0.055)) / 1.055, vec3(2.4)), base / 12.92, lessThan(base, vec3(0.04045)));
 	}
 	ALBEDO = base;
-	METALLIC = UV.x * 0.4;
-	ROUGHNESS = clamp(UV.y, 0.15, 0.85);
-	CLEARCOAT = UV2.x;
+	METALLIC = UV.x * (1. - vehicle_flatness());
+	ROUGHNESS = mix(clamp(UV.y, .15, .85), .95, vehicle_flatness());
+	CLEARCOAT = UV2.x * (1. - vehicle_flatness());
 	CLEARCOAT_ROUGHNESS = 0.4;
 
-	// 2D 애니메/카툰 스타일 림 라이팅 (외곽 실루엣 하이라이트)
-	float NdotV = 1.0 - max(dot(NORMAL, VIEW), 0.0);
-	float rim = pow(NdotV, 3.2);
-	vec3 rim_glow = vec3(0.18, 0.65, 0.95) * (rim * 0.4);
-	EMISSION = base * UV2.y + rim_glow;
+	EMISSION = base * UV2.y;
 
 	if (protection) {
 		ALBEDO = mix(base, vec3(.12, .55, .72), .65 * protection_amount);
@@ -32,17 +29,8 @@ void fragment() {
 }
 
 void light() {
-	// 2단계 카툰 셀 셰이딩 음영 계산
-	float NdotL = dot(NORMAL, LIGHT);
-	float step1 = smoothstep(-0.05, 0.05, NdotL) * 0.4;
-	float step2 = smoothstep(0.35, 0.45, NdotL) * 0.6;
-	float toon_diffuse = step1 + step2;
-
-	// 2D 카툰 스페큘러 (날카로운 셀 하이라이트)
-	vec3 H = normalize(VIEW + LIGHT);
-	float NdotH = dot(NORMAL, H);
-	float toon_specular = step(0.92, NdotH) * (1.0 - ROUGHNESS);
-
-	DIFFUSE_LIGHT += LIGHT_COLOR * ALBEDO * (toon_diffuse * ATTENUATION);
-	SPECULAR_LIGHT += LIGHT_COLOR * (toon_specular * ATTENUATION * 1.2);
+	float ndotl = dot(NORMAL, LIGHT);
+	float ndoth = max(dot(NORMAL, normalize(VIEW + LIGHT)), 0.);
+	DIFFUSE_LIGHT += LIGHT_COLOR * ALBEDO * vehicle_diffuse(ndotl) * ATTENUATION;
+	SPECULAR_LIGHT += LIGHT_COLOR * vehicle_specular(ndoth, ROUGHNESS) * ATTENUATION;
 }

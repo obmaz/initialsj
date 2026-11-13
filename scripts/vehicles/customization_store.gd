@@ -2,7 +2,7 @@ extends RefCounted
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const Effects = preload("res://scripts/vehicles/effect_items.gd")
 const Custom = preload("res://scripts/vehicles/vehicle_customization.gd")
-const VERSION := 2
+const VERSION := 3
 var path := "user://vehicle_customization.cfg"
 var selections: Dictionary = {}
 var read_only := false
@@ -14,6 +14,8 @@ static func defaults(vehicle: int) -> Dictionary:
 		"secondary": "24cbd6",
 		"rim": "b7bec4",
 		"finish": 0,
+		"shading": 1,
+		"toon_strength": 80,
 		"livery": 0,
 		"wheel": 0,
 		"wing": 0,
@@ -28,10 +30,12 @@ static func sanitize(value: Variant, vehicle: int) -> Dictionary:
 	for key in ["paint", "secondary", "rim"]:
 		if value.get(key) is String and Color.html_is_valid(value[key]):
 			result[key] = Color(value[key]).to_html(false)
-	for key in ["finish", "livery", "wheel", "wing"]:
-		var limit: int = {"finish": 3, "livery": 4, "wheel": 3, "wing": 4}[key]
+	for key in ["finish", "livery", "wheel", "wing", "shading"]:
+		var limit: int = {"finish": 3, "livery": 4, "wheel": 3, "wing": 4, "shading": 2}[key]
 		if value.get(key) is int and value[key] >= 0 and value[key] < limit:
 			result[key] = value[key]
+	if value.get("toon_strength") is int:
+		result.toon_strength = clampi(value.toon_strength, 0, 100)
 	result.effects = Effects.sanitize(value.get("effects", []), vehicle)
 	return result
 

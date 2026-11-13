@@ -56,7 +56,7 @@ func run(tree: SceneTree) -> int:
 	TranslationServer.remove_translation(translation)
 	TranslationServer.set_locale(original_locale)
 	await tree.process_frame
-	for i in range(5):
+	for i in range(6):
 		shop.tab_buttons[i].pressed.emit()
 		check(shop.selected_tab == i, "각 카테고리 버튼은 해당 옵션으로 이동한다")
 		await tree.process_frame

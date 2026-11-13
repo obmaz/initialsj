@@ -1,8 +1,10 @@
 shader_type spatial;
 render_mode cull_front, unshaded, shadows_disabled;
 
+uniform float outline_width : hint_range(0., .06) = .018;
+
 void vertex() {
-	VERTEX += NORMAL * 0.018;
+	VERTEX += NORMAL * outline_width;
 }
 
 void fragment() {

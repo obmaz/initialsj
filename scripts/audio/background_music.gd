@@ -69,6 +69,7 @@ func can_play() -> bool:
 		session_active
 		and application_active
 		and race.music_enabled
+		and race.audio_preferences.music_volume > 0
 		and not race.warming_world
 		and (race.screen_transition == null or not race.screen_transition.busy)
 		and race.state in RaceState.DRIVING + RaceState.ENDED
@@ -112,10 +113,10 @@ func _process(delta: float) -> void:
 	if web_music != null:
 		if bool(web_music.ended):
 			next_track()
-		web_music.update(active, gain)
+		web_music.update(active, gain * race.audio_preferences.music_gain())
 	else:
 		voice.stream_paused = not active
-		voice.volume_db = linear_to_db(maxf(gain, .0001))
+		voice.volume_db = linear_to_db(maxf(gain * race.audio_preferences.music_gain(), .0001))
 		if active and voice.stream != null and not voice.playing:
 			voice.play()
 

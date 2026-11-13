@@ -182,6 +182,13 @@ func pad_pressed(button: int) -> void:
 					race.settings_focus = posmod(race.settings_focus - 1, settings_rows)
 				JOY_BUTTON_DPAD_DOWN:
 					race.settings_focus = posmod(race.settings_focus + 1, settings_rows)
+				JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT:
+					if not race.hud.controls_open and race.settings_focus in [0, 1]:
+						var music: bool = race.settings_focus == 1
+						var value: int = (
+							race.audio_preferences.music_volume if music else race.audio_preferences.sound_volume
+						)
+						race.set_audio_volume(music, value + (5 if button == JOY_BUTTON_DPAD_RIGHT else -5))
 				JOY_BUTTON_A:
 					settings_activate(race.settings_focus)
 				JOY_BUTTON_B, JOY_BUTTON_START:

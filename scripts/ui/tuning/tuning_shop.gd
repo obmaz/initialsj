@@ -145,10 +145,10 @@ func build_layout() -> void:
 	title.add_theme_font_override("font", preload("res://assets/fonts/Roboto-BlackItalic.ttf"))
 	var name_label := add_label(str(VehicleCatalog.spec(vehicle_index).name), Rect2(958, 20, 276, 68), 28)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	for i in range(5):
+	for i in range(6):
 		var tab_button := add_button(
-			["PAINT", "LIVERY", "WHEELS", "REAR WING", "EFFECTS"][i],
-			Rect2(34 + i * 244, 106, 232, 80),
+			["PAINT", "LIVERY", "WHEELS", "REAR WING", "EFFECTS", "SHADING"][i],
+			Rect2(34 + i * 204, 106, 192, 80),
 			func():
 				selected_tab = i
 				rebuild_options(),
@@ -273,7 +273,7 @@ func rebuild_options() -> void:
 	elif selected_tab == 3:
 		for i in range(4):
 			add_choice_button(WING_LABELS[i], Rect2(0, i * 109, 344, 94), "wing", i, 23)
-	else:
+	elif selected_tab == 4:
 		var slots := add_label("", Rect2(4, 0, 336, 50), 24, TuningTheme.INK, options_panel)
 		slots.name = "EffectSlots"
 		for i in range(Effects.IDS.size()):
@@ -291,6 +291,30 @@ func rebuild_options() -> void:
 				options_panel
 			)
 			help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	else:
+		add_label("SHADING STYLE", Rect2(4, 0, 336, 40), 25, TuningTheme.INK, options_panel)
+		for i in range(2):
+			add_choice_button(["NORMAL", "TOON"][i], Rect2(i * 176, 56, 168, 80), "shading", i, 24)
+		var label := add_label("", Rect2(4, 160, 336, 42), 23, TuningTheme.INK, options_panel)
+		label.name = "ToonValue"
+		var slider := HSlider.new()
+		slider.name = "ToonStrength"
+		slider.position = Vector2(8, 208)
+		slider.size = Vector2(328, 80)
+		slider.min_value = 0
+		slider.max_value = 100
+		slider.step = 5
+		slider.value_changed.connect(func(value: float): set_customization_value("toon_strength", int(value)))
+		options_panel.add_child(slider)
+		var help := add_label(
+			"Higher strength gives flatter shadows and stronger outlines.",
+			Rect2(4, 312, 336, 114),
+			21,
+			TuningTheme.MUTED,
+			options_panel
+		)
+		help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
 	refresh_customization()
 
 
@@ -328,6 +352,12 @@ func refresh_customization() -> void:
 			TuningTheme.apply_swatch_style(child, color)
 			child.add_theme_color_override("font_color", TuningTheme.INK if color.get_luminance() > .4 else Color.WHITE)
 	refresh_effect_slot_label()
+	var toon_slider := options_panel.get_node_or_null("ToonStrength") as HSlider
+	if toon_slider != null:
+		toon_slider.editable = draft_customization.shading == 1
+		toon_slider.set_value_no_signal(draft_customization.toon_strength)
+		options_panel.get_node("ToonValue").text = tr("TOON STRENGTH %d%%") % draft_customization.toon_strength
+
 	var preview_customization: Dictionary = saved_customization if is_comparing else draft_customization
 	Customization.apply(preview_car, preview_customization, vehicle_index)
 	effect_preview_time = 0

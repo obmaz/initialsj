@@ -19,6 +19,7 @@ func _ready() -> void:
 	loading_overlay = preload("res://scripts/ui/loading/loading_overlay.gd").new()
 	add_child(loading_overlay)
 	transition_sound = AudioStreamPlayer.new()
+	transition_sound.bus = race.audio_preferences.effects_bus
 	transition_sound.stream = preload("res://assets/audio/countdown.wav")
 	transition_sound.volume_db = -25
 	transition_sound.pitch_scale = 1.25

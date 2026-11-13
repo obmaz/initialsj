@@ -228,6 +228,7 @@ var settings_focus := 0
 var preferences_path := "user://settings.cfg"
 # Small frames-per-second counter in the corner during a race (Settings > SHOW FPS).
 var show_fps := false
+var audio_preferences := preload("res://scripts/audio/audio_preferences.gd").new()
 var sound_enabled := true
 var music_enabled := true
 var background_music: Node
@@ -261,6 +262,7 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
+	audio_preferences.create_bus()
 	add_to_group("tour_traffic_clock")
 	rendering_viewport = get_viewport()
 	previous_disable_3d = rendering_viewport.disable_3d
@@ -406,6 +408,7 @@ func navigate_back() -> bool:
 
 
 func _exit_tree() -> void:
+	audio_preferences.release_bus()
 	if owns_render_resources:
 		owns_render_resources = false
 		if RenderResources.release_owner():
@@ -598,6 +601,8 @@ func load_preferences() -> void:
 		show_ghost = bool(config.get_value("preferences", "show_ghost", true))
 		track_environment.read(config)
 		touch_layout.read(config)
+	audio_preferences.read(config)
+	audio_preferences.apply(sound_enabled)
 
 
 func save_preferences() -> void:
@@ -614,6 +619,7 @@ func save_preferences() -> void:
 	config.set_value("preferences", "graphics", graphics_mode)
 	track_environment.write(config)
 	touch_layout.write(config)
+	audio_preferences.write(config)
 	config.save(preferences_path)
 
 
@@ -621,7 +627,18 @@ func save_preferences() -> void:
 # the pause or result dialog survives a reload like one made in Settings.
 func toggle_sound() -> void:
 	sound_enabled = not sound_enabled
+	audio_preferences.apply(sound_enabled)
 	save_preferences()
+
+
+func set_audio_volume(music: bool, value: int, persist: bool = true) -> void:
+	if music:
+		audio_preferences.music_volume = clampi(value, 0, 100)
+	else:
+		audio_preferences.sound_volume = clampi(value, 0, 100)
+	audio_preferences.apply(sound_enabled)
+	if persist:
+		save_preferences()
 
 
 func toggle_music() -> void:

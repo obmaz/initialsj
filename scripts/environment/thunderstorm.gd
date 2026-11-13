@@ -52,6 +52,7 @@ func configure() -> void:
 	light.visible = false
 	add_child(light)
 	audio = AudioStreamPlayer.new()
+	audio.bus = race.audio_preferences.effects_bus
 	audio.stream = load("res://assets/audio/distant-thunder.ogg")
 	audio.volume_db = -9
 	add_child(audio)

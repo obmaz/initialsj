@@ -215,7 +215,10 @@ func draw_settings() -> void:
 	for item in rows:
 		var rect: Rect2 = item[0]
 		hud.glass_box(rect, 12, Color("061a28f2"), Color("73b9d3"), 1.5)
-		var icon := rect.position + Vector2(24, 40)
+		var audio_row: bool = item[1] in ["SOUND", "MUSIC"]
+		if audio_row:
+			rect = hud.SettingsAudio.toggle_rect(hud, item[1] == "MUSIC")
+		var icon := rect.position + Vector2(24, rect.size.y * .5)
 		var white := Color("e1f5fb")
 		match item[1]:
 			"SOUND":
@@ -272,6 +275,8 @@ func draw_settings() -> void:
 			draw_segmented_selector(rect, ["AUTO", "HIGH", "FAST"], item[2])
 		else:
 			draw_toggle_switch(rect, item[2])
+			if audio_row:
+				hud.SettingsAudio.draw_slider(hud, item[1] == "MUSIC")
 
 	if OS.has_feature("web"):
 		Chrome.panel(hud, hud.SETTINGS_FULLSCREEN, Color("35e4f3"), 12, Color("073342"), 2)

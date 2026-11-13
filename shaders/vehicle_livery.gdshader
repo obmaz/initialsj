@@ -1,5 +1,6 @@
 shader_type spatial;
-render_mode diffuse_toon, specular_toon;
+render_mode diffuse_burley, specular_schlick_ggx;
+#include "res://shaders/vehicle_shading.gdshaderinc"
 uniform vec4 base_paint : source_color = vec4(1.);
 uniform vec4 secondary_paint : source_color = vec4(.1, .7, .8, 1.);
 uniform sampler2D livery_atlas : source_color, filter_linear_mipmap, repeat_disable;
@@ -25,16 +26,12 @@ void fragment() {
 		base = mix(base, mix(graphic, secondary_paint.rgb, .15), mask * paint_mask);
 	}
 	ALBEDO = base;
-	METALLIC = mix(.1, finish_metallic * 0.5, paint_mask);
-	ROUGHNESS = mix(.55, finish_roughness, paint_mask);
-	CLEARCOAT = finish_roughness < .5 ? .85 : .05;
+	METALLIC = mix(.1, finish_metallic, paint_mask) * (1. - vehicle_flatness());
+	ROUGHNESS = mix(mix(.55, finish_roughness, paint_mask), .95, vehicle_flatness());
+	CLEARCOAT = (finish_roughness < .5 ? .85 : .05) * (1. - vehicle_flatness());
 	CLEARCOAT_ROUGHNESS = .2;
 
-	// 2D 애니메/카툰 스타일 림 라이팅
-	float NdotV = 1.0 - max(dot(NORMAL, VIEW), 0.0);
-	float rim = pow(NdotV, 3.2);
-	vec3 rim_glow = vec3(0.18, 0.65, 0.95) * (rim * 0.4);
-	EMISSION = rim_glow;
+	EMISSION = vec3(0.);
 
 	if (protection) {
 		ALBEDO = mix(base, vec3(.12, .55, .72), .65 * protection_amount);
@@ -43,15 +40,8 @@ void fragment() {
 }
 
 void light() {
-	float NdotL = dot(NORMAL, LIGHT);
-	float step1 = smoothstep(-0.05, 0.05, NdotL) * 0.4;
-	float step2 = smoothstep(0.35, 0.45, NdotL) * 0.6;
-	float toon_diffuse = step1 + step2;
-
-	vec3 H = normalize(VIEW + LIGHT);
-	float NdotH = dot(NORMAL, H);
-	float toon_specular = step(0.92, NdotH) * (1.0 - ROUGHNESS);
-
-	DIFFUSE_LIGHT += LIGHT_COLOR * ALBEDO * (toon_diffuse * ATTENUATION);
-	SPECULAR_LIGHT += LIGHT_COLOR * (toon_specular * ATTENUATION * 1.2);
+	float ndotl = dot(NORMAL, LIGHT);
+	float ndoth = max(dot(NORMAL, normalize(VIEW + LIGHT)), 0.);
+	DIFFUSE_LIGHT += LIGHT_COLOR * ALBEDO * vehicle_diffuse(ndotl) * ATTENUATION;
+	SPECULAR_LIGHT += LIGHT_COLOR * vehicle_specular(ndoth, ROUGHNESS) * ATTENUATION;
 }

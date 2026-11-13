@@ -1,4 +1,5 @@
 extends Control
+const SettingsAudio = preload("res://scripts/ui/settings_audio.gd")
 const HudLayout = preload("res://scripts/ui/race_hud_layout.gd")
 const MenuLayout = preload("res://scripts/ui/menu_layout.gd")
 const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
@@ -43,14 +44,14 @@ const GARAGE_BACK := MenuLayout.BACK
 const GARAGE_PREVIOUS := Rect2(32, 480, 92, 106)
 const GARAGE_NEXT := Rect2(1156, 480, 92, 106)
 const SETTINGS_PANEL := Rect2(180, 24, 920, 672)
-const SETTINGS_SOUND := Rect2(228, 104, 402, 80)
-const SETTINGS_MUSIC := Rect2(650, 104, 402, 80)
-const SETTINGS_MOTION := Rect2(228, 196, 824, 80)
-const SETTINGS_GRAPHICS := Rect2(228, 288, 824, 80)
-const SETTINGS_FPS := Rect2(228, 380, 402, 80)
-const SETTINGS_AUTO := Rect2(650, 380, 402, 80)
-const SETTINGS_FULLSCREEN := Rect2(228, 472, 402, 80)
-const SETTINGS_INSTALL := Rect2(228, 576, 402, 80)
+const SETTINGS_SOUND := Rect2(228, 104, 402, 160)
+const SETTINGS_MUSIC := Rect2(650, 104, 402, 160)
+const SETTINGS_MOTION := Rect2(228, 276, 402, 80)
+const SETTINGS_GRAPHICS := Rect2(228, 368, 824, 80)
+const SETTINGS_FPS := Rect2(650, 276, 402, 80)
+const SETTINGS_AUTO := Rect2(228, 460, 402, 80)
+const SETTINGS_FULLSCREEN := Rect2(228, 576, 264, 80)
+const SETTINGS_INSTALL := Rect2(508, 576, 264, 80)
 const SETTINGS_CLOSE := Rect2(228, 576, 824, 80)
 const RECOVERY_BUTTON := Rect2(500, 176, 280, 64)
 const GARAGE_START := Rect2(855, 630, 345, 80)
@@ -61,6 +62,7 @@ const SOUND_BUTTON := Rect2(630, 386, 330, 78)
 var race: Node3D
 var hud_card_style := StyleBoxFlat.new()
 var controls_open := false
+var audio_drags: Dictionary = {}
 var modal_motion := preload("res://scripts/ui/modal_motion.gd").new()
 var fingers: Dictionary = {}
 var recovery_touches: Dictionary = {}
@@ -234,6 +236,9 @@ func handle_pointer(event: InputEvent) -> void:
 		return
 	var index: int = event.index if event is InputEventScreenTouch else -1
 	if not event.pressed:
+		if audio_drags.has(index):
+			audio_drags.erase(index)
+			race.save_preferences()
 		fingers.erase(index)
 		recovery_touches.erase(index)
 		return
@@ -277,6 +282,8 @@ func handle_pointer(event: InputEvent) -> void:
 	if race.state == RaceState.SETTINGS:
 		if controls_open:
 			preload("res://scripts/ui/touch_layout_panel.gd").press(self, p)
+			return
+		if SettingsAudio.begin_drag(self, index, p):
 			return
 		if SETTINGS_SOUND.has_point(p):
 			race.toggle_sound()
@@ -469,6 +476,10 @@ func draw_pad_badges() -> void:
 
 
 func move_pointer(index: int, pos: Vector2) -> void:
+	if audio_drags.has(index):
+		if race.state == RaceState.SETTINGS and not controls_open and not modal_motion.closing:
+			SettingsAudio.slide(self, audio_drags[index], to_design(pos))
+		return
 	if recovery_touches.has(index) or race.state not in RaceState.DRIVING:
 		return
 	fingers[index] = to_design(pos)
@@ -499,6 +510,9 @@ func _process(delta: float) -> void:
 	)
 	garage_notice_left = maxf(0, garage_notice_left - delta) if race.state == RaceState.READY else 0
 	menus.sync_menu_art()
+	if (race.state != RaceState.SETTINGS or controls_open or modal_motion.closing) and not audio_drags.is_empty():
+		audio_drags.clear()
+		race.save_preferences()
 	if race.state != RaceState.RACING:
 		recovery_touches.clear()
 	selection_blend = minf(1, selection_blend + delta * 5)
@@ -1664,11 +1678,11 @@ func draw_heart(center: Vector2, size: float, color: Color) -> void:
 
 
 func settings_close_rect() -> Rect2:
-	return Rect2(650, 576, 402, 80) if OS.has_feature("web") else SETTINGS_CLOSE
+	return Rect2(788, 576, 264, 80) if OS.has_feature("web") else SETTINGS_CLOSE
 
 
 func settings_controls_rect() -> Rect2:
-	return Rect2(650, 472, 402, 80) if OS.has_feature("web") else Rect2(228, 472, 824, 80)
+	return Rect2(650, 460, 402, 80)
 
 
 func open_controls() -> void:
