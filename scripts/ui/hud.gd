@@ -706,33 +706,8 @@ func draw_content() -> void:
 
 
 func draw_position(_rows: Array[Dictionary]) -> void:
-	var wide: bool = race.mode == "track" and race.competitor_count() > 9
-	var pos_rect := Rect2(16, 14, 276 if wide else 236, 66)
-	glass_box(pos_rect, 12.0, Color("0b1526d8"), Color("19dcff44"), 1.2)
-	text_at(Vector2(28, 42), "POS" if race.mode == "track" else "STG", 22, Color("a0bed0"))
-	var transform := Transform2D(Vector2(ui_scale(), 0), Vector2(0, ui_scale()), ui_offset())
-	draw_set_transform_matrix(transform * Transform2D(Vector2(1, 0), Vector2(-0.18, 1), Vector2(94, 70)))
-	text_at(
-		Vector2.ZERO,
-		str(race.race_position() if race.mode == "track" else race.stage_index + 1),
-		72,
-		GOLD,
-		true,
-		POSITION_FONT
-	)
-	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
-	text_at(
-		Vector2(198 if wide else 151, 67),
-		"/%d" % race.competitor_count() if race.mode == "track" else "/5",
-		36 if wide else 40,
-		WHITE,
-		true,
-		NUMBER_FONT
-	)
-	var title: String = race.course_title if race.mode == "track" else Library.title(race.stage_index, race.route_node)
-	glass_box(Rect2(16, 86, 210, 36), 8.0, Color("0b1526b8"), Color("19dcff22"), 1.0)
-	text_at(Vector2(26, 108), title, 13, CYAN)
-	text_at(Vector2(160, 108), "P %d" % race.overtakes, 11, Color("adc1cb"))
+	# 순위(POS)와 코스 정보는 중앙 상단 플로팅 캡슐 및 좌상단 코스 배지로 일원화하여 표시한다.
+	return
 
 
 func comma_number(value: int) -> String:
@@ -1152,38 +1127,54 @@ func draw_menu() -> void:
 		return
 	if race.state == RaceState.COUNTDOWN:
 		# 오버헤드 신호등 갠트리 연출 (Get Ready & Start Lights)
-		glass_box(Rect2(480, 78, 320, 48), 12.0, Color("0b1526ee"), Color("19dcff55"), 1.4)
+		glass_box(Rect2(400, 80, 480, 54), 12.0, Color("081220ee"), Color("19dcff55"), 1.4)
 		var count_step := ceili(race.countdown)
 		for side: int in [-1, 1]:
 			for lamp: int in range(3):
-				var lx: float = 640.0 + float(side) * (108.0 + float(lamp) * 16.0)
+				var lx: float = 640.0 + float(side) * (145.0 + float(lamp) * 22.0)
+				var ly: float = 107.0
+				draw_circle(Vector2(lx, ly), 8.0, Color("141e2e"))
 				var lamp_color := Color("202636")
+				var is_lit := false
 				if count_step == 3 and lamp == 0:
 					lamp_color = Color("ff3b4e")
+					is_lit = true
 				elif count_step == 2 and lamp < 2:
-					lamp_color = Color("ff7836")
+					lamp_color = Color("ffaa22")
+					is_lit = true
 				elif count_step <= 1:
-					lamp_color = Color("ffcc00")
-				draw_circle(Vector2(lx, 102), 5.5, lamp_color)
-		centered(Vector2(640, 110), "GET READY!", 22, CYAN if count_step > 1 else GOLD)
+					lamp_color = Color("00e575")
+					is_lit = true
+				draw_circle(Vector2(lx, ly), 6.5, lamp_color)
+				if is_lit:
+					glow_line(arc_points(Vector2(lx, ly), 8.0, 0, TAU), lamp_color, 2.5)
+		var gantry_title := "GO!" if race.countdown < 0.4 else "GET READY!"
+		var gantry_color: Color = Color("00e575") if race.countdown < 0.4 else (GOLD if count_step <= 1 else CYAN)
+		centered(Vector2(640, 115), gantry_title, 24, gantry_color)
 
-		if race.mode == "track" and race.selected_course == 1:
-			centered(Vector2(640, 515), "ROLLING START / 16 CARS", 27, CYAN)
-		else:
-			centered(Vector2(640, 510), "REV ENGINE / PREPARE BOOST", 20, Color("adc5d4"))
-
-		draw_texture_rect(menus.countdown_texture(), Rect2(485, 175, 310, 310), false)
-		var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
-		draw_circle(Vector2(640, 330), 82, Color("091424eb"))
-		draw_arc(Vector2(640, 330), 85, 0, TAU, 64, CYAN, 2.5, true)
-		glow_line(
-			arc_points(Vector2(640, 330), 86, 0, TAU * (1.0 - (race.countdown - floorf(race.countdown)))), GOLD, 3.0
+		glass_box(Rect2(460, 436, 360, 36), 8.0, Color("081220ee"), Color("19dcff33"), 1.0)
+		var prompt_text := (
+			"ROLLING START / 16 CARS"
+			if (race.mode == "track" and race.selected_course == 1)
+			else "REV ENGINE  •  PREPARE BOOST"
 		)
-		var number := str(maxi(1, ceili(race.countdown)))
+		centered(Vector2(640, 460), prompt_text, 14, CYAN)
+
+		draw_texture_rect(menus.countdown_texture(), Rect2(485, 155, 310, 310), false)
+		var pulse := exp(-(ceili(race.countdown) - race.countdown) * 7.0)
+		draw_circle(Vector2(640, 310), 84, Color("081220f0"))
+		draw_arc(Vector2(640, 310), 88, 0, TAU, 64, Color("19dcff44"), 2.0, true)
+		glow_line(
+			arc_points(Vector2(640, 310), 88, -PI / 2, -PI / 2 + TAU * (1.0 - (race.countdown - floorf(race.countdown)))),
+			GOLD if count_step <= 1 else CYAN,
+			3.5
+		)
+		var number := "GO!" if race.countdown < 0.4 else str(maxi(1, ceili(race.countdown)))
 		var font_size := int(94 + 20 * pulse)
-		var at := Vector2(640 - FONT.get_string_size(number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x / 2, 365)
+		var at := Vector2(640 - FONT.get_string_size(number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x / 2, 345)
 		draw_string_outline(FONT, at, number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 8, Color("050c17"))
-		draw_string(FONT, at, number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, GOLD if count_step == 1 else WHITE)
+		var num_color: Color = Color("00e575") if race.countdown < 0.4 else (GOLD if count_step == 1 else WHITE)
+		draw_string(FONT, at, number, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, num_color)
 	elif race.state == RaceState.PAUSED:
 		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color(.87, .95, .97, .94))
 		MenuTheme.panel(self, Rect2(235, 100, 810, 575), Color(1, 1, .98, .88), false, 20)
