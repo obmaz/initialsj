@@ -523,6 +523,9 @@ func show_garage_notice(value: String) -> void:
 func _process(delta: float) -> void:
 	if race == null:
 		return
+	MenuLayout.expand_menu(
+		get_window(), race.state in [RaceState.MENU, RaceState.COURSES, RaceState.READY, RaceState.SETTINGS]
+	)
 	modal_motion.advance(
 		modal_key(), delta, race.motion_reduced, race.screen_transition != null and race.screen_transition.busy
 	)
@@ -535,7 +538,7 @@ func _process(delta: float) -> void:
 		race.save_preferences()
 	if race.state != RaceState.RACING:
 		recovery_touches.clear()
-	menu_feedback.advance(delta, race.state)
+	menu_feedback.advance(delta, menu_press_context())
 	selection_blend = minf(1, selection_blend + delta * 5)
 	var target: Dictionary = Catalog.abilities(race.selected_vehicle)
 	if shown_abilities.size() != 4:
@@ -1789,15 +1792,25 @@ func menu_press_rects() -> Array[Rect2]:
 	return result
 
 
+func menu_press_context() -> String:
+	if race.passport_open:
+		return race.state + ":passport"
+	if controls_open:
+		return race.state + ":controls"
+	if is_instance_valid(race.tuning_shop):
+		return race.state + ":tuning"
+	return race.state
+
+
 func register_menu_press(at: Vector2) -> void:
-	if menu_feedback.press(at, menu_press_rects(), race.state):
+	if menu_feedback.press(at, menu_press_rects(), menu_press_context()):
 		if race.sound_enabled and is_instance_valid(race.screen_transition):
 			race.screen_transition.transition_sound.play()
 
 
 func draw_menu_press() -> void:
 	var amount := menu_feedback.amount()
-	if amount <= 0 or menu_feedback.state != race.state:
+	if amount <= 0 or menu_feedback.state != menu_press_context():
 		return
 	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
 	if race.state == RaceState.SETTINGS:

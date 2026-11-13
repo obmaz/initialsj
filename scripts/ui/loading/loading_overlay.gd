@@ -4,6 +4,8 @@ const AppVersion = preload("res://scripts/platform/app_version.gd")
 const BACKGROUND_PATH := "res://assets/ui/pre_race/start.png"
 const Pool = preload("res://scripts/rendering/render_resources.gd")
 var background_art: Texture2D
+var surround_art: Texture2D
+const SURROUND_PATH := "res://assets/ui/pre_race/backdrop.png"
 const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
 const MenuLayout = preload("res://scripts/ui/menu_layout.gd")
 const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
@@ -35,6 +37,7 @@ func _ready() -> void:
 func begin(value: String, long_load: bool = false) -> void:
 	started_at_msec = Time.get_ticks_msec()
 	background_art = Pool.fetch(BACKGROUND_PATH) if long_load else null
+	surround_art = Pool.fetch(SURROUND_PATH) if long_load else null
 	show_illustration = long_load
 	loading_title = value
 	load_progress = 0.08
@@ -53,7 +56,9 @@ func advance(to_step: int, to_progress: float) -> void:
 func finish() -> void:
 	visible = false
 	background_art = null
+	surround_art = null
 	Pool.release(BACKGROUND_PATH)
+	Pool.release(SURROUND_PATH)
 
 
 func _process(delta: float) -> void:
@@ -62,6 +67,7 @@ func _process(delta: float) -> void:
 	spinner_angle_rad += delta * 4
 	if not show_illustration and Time.get_ticks_msec() - started_at_msec >= 650:
 		background_art = Pool.fetch(BACKGROUND_PATH)
+		surround_art = Pool.fetch(SURROUND_PATH)
 		show_illustration = true
 	queue_redraw()
 
@@ -73,6 +79,13 @@ func _draw() -> void:
 	var origin := MenuLayout.origin_for(safe)
 	draw_set_transform(origin, 0, Vector2.ONE * scale_factor)
 	if show_illustration and background_art != null:
+		var fill := Rect2(-origin / scale_factor, size / scale_factor)
+		var image_size: Vector2 = surround_art.get_size()
+		var source := Rect2(Vector2.ZERO, image_size)
+		var cover := maxf(fill.size.x / image_size.x, fill.size.y / image_size.y)
+		source.size = fill.size / cover
+		source.position = (image_size - source.size) * .5
+		draw_texture_rect_region(surround_art, fill, source)
 		draw_texture_rect(background_art, Rect2(0, 0, 1280, 720), false)
 		_centered(Vector2(950, 136), "INITIAL SJ", 54, INK, FONT)
 		_centered(Vector2(950, 188), "COAST RUSH", 28, MenuTheme.TEAL, FONT)

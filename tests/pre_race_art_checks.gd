@@ -56,6 +56,8 @@ func run(tree: SceneTree) -> int:
 		tree.root.size = viewport
 		await tree.process_frame
 		race.open_menu()
+		hud._process(0)
+		check(tree.root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_EXPAND, "시작 전 배경은 기기 전체에 확장한다")
 		touch(hud, hud.HOME_TRACK.get_center())
 		check(race.state == "courses", "실제 그림과 같은 좌표로 TRACK 모드를 선택한다")
 		touch(hud, hud.COURSE_FUJI.get_center())
@@ -75,6 +77,8 @@ func run(tree: SceneTree) -> int:
 		check(race.sound_enabled != previous, "설정의 실제 토글이 원화 위에서 한 번만 반응한다")
 	tree.root.size = old_size
 	race.state = "racing"
+	hud._process(0)
+	check(tree.root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_KEEP, "주행은 기존 KEEP 비율을 복원한다")
 	hud.menus.sync_menu_art()
 	check(hud.menus.menu_art.is_empty() and hud.menus.retired_art.is_empty(), "주행 진입에서는 전체 메뉴 원화 참조를 해제한다")
 	check(base_count(Pool.warming.keys()) == 0, "주행에 쓰지 않는 통이미지 미리 읽기도 남기지 않는다")

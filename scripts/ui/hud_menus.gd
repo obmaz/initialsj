@@ -358,7 +358,7 @@ func draw_garage() -> void:
 	MenuTheme.label(hud, Rect2(950, 29, 260, 30), "PERSONAL GHOST", 22, MenuTheme.INK, true)
 	MenuTheme.label(hud, Rect2(950, 62, 260, 32), "ON" if race.show_ghost else "OFF", 23, MenuTheme.TEAL, true)
 	MenuTheme.label(hud, Rect2(76, 129, 650, 47), race.vehicle.name, 39)
-	MenuTheme.label(hud, Rect2(78, 176, 600, 34), race.vehicle["class"], 24, MenuTheme.TEAL)
+	MenuTheme.label(hud, Rect2(78, 168, 600, 32), race.vehicle["class"], 24, MenuTheme.TEAL)
 	if race.previews != null:
 		var blend := smoothstep(0, 1, hud.selection_blend)
 		if blend < 1:
@@ -404,11 +404,11 @@ func draw_garage() -> void:
 		PreRaceArt.panel(hud, rect, "panel", i == race.selected_vehicle)
 		if race.previews != null:
 			MenuTheme.cover(
-				hud, race.previews.textures[i], Rect2(rect.position + Vector2(52, 0), Vector2(rect.size.x - 104, 74))
+				hud, race.previews.textures[i], Rect2(rect.position + Vector2(52, 0), Vector2(rect.size.x - 104, 66))
 			)
 		MenuTheme.label(
 			hud,
-			Rect2(rect.position + Vector2(12, 72), Vector2(rect.size.x - 24, 30)),
+			Rect2(rect.position + Vector2(12, 64), Vector2(rect.size.x - 24, 28)),
 			Catalog.spec(i).name,
 			25,
 			MenuTheme.INK,

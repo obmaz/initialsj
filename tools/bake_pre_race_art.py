@@ -25,7 +25,9 @@ def nine_slice(image, size, margin=20):
     out = Image.new("RGBA", size)
     width, height = image.size
     dx, dy = [0, margin, size[0] - margin, size[0]], [0, margin, size[1] - margin, size[1]]
-    sx, sy = [0, margin, width - margin, width], [0, margin, height - margin, height]
+    source_margin = min(20, width // 4, height // 4)
+    sx = [0, source_margin, width - source_margin, width]
+    sy = [0, source_margin, height - source_margin, height]
     for row in range(3):
         for column in range(3):
             part = image.crop((sx[column], sy[row], sx[column + 1], sy[row + 1]))
@@ -97,6 +99,7 @@ def bake():
         part.save(OUTPUT / (name + ".png"), optimize=True)
         parts[name] = part
     backdrop = Image.open(SOURCE / "backdrop.png").convert("RGBA").resize(SIZE, Image.Resampling.LANCZOS)
+    backdrop.convert("RGB").save(OUTPUT / "backdrop.png", optimize=True)
     screens = plans(source_rects())
     for name, frames in screens.items():
         image = ImageOps.mirror(backdrop) if name == "garage" else backdrop.copy()
@@ -106,7 +109,7 @@ def bake():
             image.alpha_composite(strip)
         for entry in frames:
             x, y, width, height = entry["rect"]
-            # 버전 배지는32px 높이. 작은 원화 조각은 종횡 보존 가장자리를 사용한다.
+            # 작은 원화 조각도 모서리 두께를 보존한다.
             frame = nine_slice(parts[entry["role"]], (width, height), min(20, width // 3, height // 3))
             image.alpha_composite(frame, (x, y))
         image.convert("RGB").save(OUTPUT / (name + ".png"), optimize=True)

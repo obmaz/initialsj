@@ -44,7 +44,7 @@ func draw(rect: Rect2, value: String, font_size: int, color: Color, centered: bo
 		label.add_theme_color_override("font_color", color)
 	var press_offset: Vector2 = (
 		hud.menu_feedback.offset_for(rect, hud.race.motion_reduced)
-		if hud.menu_feedback.state == hud.race.state
+		if hud.menu_feedback.state == hud.menu_press_context()
 		else Vector2.ZERO
 	)
 	label.position = hud.ui_offset() + (content_transform * (rect.position + press_offset)) * hud.ui_scale()

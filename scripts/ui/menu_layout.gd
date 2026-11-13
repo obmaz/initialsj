@@ -5,6 +5,13 @@ const BACK := Rect2(60, 16, 220, 80)
 const TOUCH_HEIGHT := 80.0
 
 
+static func expand_menu(window: Window, active: bool) -> void:
+	# 메뉴 배경만 기기 끝까지 채우고 주행은 기존 KEEP 비율로 복원한다.
+	var aspect := Window.CONTENT_SCALE_ASPECT_EXPAND if active else Window.CONTENT_SCALE_ASPECT_KEEP
+	if window.content_scale_aspect != aspect:
+		window.content_scale_aspect = aspect
+
+
 static func safe_rect(viewport_size: Vector2) -> Rect2:
 	var full := Rect2(Vector2.ZERO, viewport_size)
 	if not OS.has_feature("android"):

@@ -8,13 +8,14 @@ const DONE := Rect2(650, 558, 280, 80)
 
 static func draw(hud: Control) -> void:
 	hud.menu_text.begin()
-	hud.draw_rect(Rect2(0, 0, 1280, 720), Color("081220"))
+	preload("res://scripts/ui/pre_race_art.gd").backdrop(hud)
 	hud.modal_begin()
-	MenuTheme.label(hud, Rect2(350, 38, 580, 64), "CONTROLS", 36, Color.WHITE)
-	MenuTheme.label(hud, Rect2(350, 108, 580, 36), "STEERING SIDE", 23, Color("8caec0"))
+	MenuTheme.panel(hud, Rect2(310, 24, 660, 640))
+	MenuTheme.label(hud, Rect2(350, 38, 580, 64), "CONTROLS", 36, MenuTheme.INK)
+	MenuTheme.label(hud, Rect2(350, 108, 580, 36), "STEERING SIDE", 23, MenuTheme.MUTED)
 	for i in range(2):
 		choice(hud, SIDE[i], "LEFT" if i == 0 else "RIGHT", hud.race.touch_layout.mirrored == (i == 1))
-	MenuTheme.label(hud, Rect2(350, 236, 580, 36), "BUTTON SIZE", 23, Color("8caec0"))
+	MenuTheme.label(hud, Rect2(350, 236, 580, 36), "BUTTON SIZE", 23, MenuTheme.MUTED)
 	for i in range(3):
 		choice(hud, SIZE[i], ["SMALL", "MEDIUM", "LARGE"][i], hud.race.touch_layout.size_index == i)
 	hud.configure_pedals()
@@ -44,8 +45,7 @@ static func draw(hud: Control) -> void:
 
 
 static func choice(hud: Control, rect: Rect2, label: String, active: bool) -> void:
-	hud.glass_box(rect, 12, Color("12374b") if active else Color("0d1d33"), Color("00e5ff"), 1.5)
-	MenuTheme.label(hud, rect, label, 24, Color("00e5ff") if active else Color.WHITE, true, 14)
+	MenuTheme.button(hud, rect, label, MenuTheme.YELLOW if active else MenuTheme.SOFT, 24)
 
 
 static func press(hud: Control, at: Vector2) -> void:

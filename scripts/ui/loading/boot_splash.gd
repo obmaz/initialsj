@@ -4,6 +4,7 @@ var loading_overlay: Control
 
 
 func _ready() -> void:
+	preload("res://scripts/ui/menu_layout.gd").expand_menu(get_window(), true)
 	var layer := CanvasLayer.new()
 	layer.layer = 100
 	add_child(layer)
@@ -24,6 +25,7 @@ func start() -> void:
 	loading_overlay.advance(2, .55)
 	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
+	preload("res://scripts/ui/menu_layout.gd").expand_menu(get_window(), false)
 	var game := packed.instantiate()
 	get_tree().root.add_child(game)
 	get_tree().current_scene = game

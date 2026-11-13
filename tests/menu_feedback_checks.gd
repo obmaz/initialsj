@@ -28,6 +28,10 @@ func run(tree: SceneTree) -> int:
 	race.state = "menu"
 	race.hud.register_menu_press(race.hud.HOME_TRACK.get_center())
 	check(race.hud.menu_feedback.rect == race.hud.HOME_TRACK, "모드 카드 반응은 입력과 같은 사각형을 사용한다")
+	race.passport_open = true
+	race.hud._process(0)
+	check(race.hud.menu_feedback.amount() == 0, "같은 상태의 여권 하위 화면에도 이전 눌림이 남지 않는다")
+	race.passport_open = false
 	race.state = "ready"
 	race.hud.menu_feedback.advance(.01, race.state)
 	check(race.hud.menu_feedback.amount() == 0, "실제 메뉴 전환도 반응 상태를 초기화한다")

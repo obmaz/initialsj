@@ -14,19 +14,19 @@ const FILES := {
 const SCREENS := ["start", "home", "courses", "garage", "settings"]
 const PARTS := ["panel", "button", "primary", "header"]
 const DESIGN := Rect2(0, 0, 1280, 720)
+const BACKDROP := "res://assets/ui/pre_race/backdrop.png"
 
 
 static func paths() -> Array[String]:
-	var result: Array[String] = []
+	var result: Array[String] = [BACKDROP]
 	for id in SCREENS + PARTS:
 		result.append(FILES[id])
 	return result
 
 
 static func backdrop(hud: Control) -> void:
-	hud.draw_rect(
-		Rect2(-hud.ui_offset() / hud.ui_scale(), hud.get_viewport_rect().size / hud.ui_scale()), hud.MenuTheme.CANVAS
-	)
+	var fill := Rect2(-hud.ui_offset() / hud.ui_scale(), hud.get_viewport_rect().size / hud.ui_scale())
+	hud.MenuTheme.cover(hud, hud.menus.art(BACKDROP), fill)
 
 
 static func background(hud: Control, screen: String, surround: bool = true) -> void:
@@ -51,8 +51,8 @@ static func draw_frame(hud: Control, rect: Rect2, role: String = "panel") -> voi
 	var texture: Texture2D = hud.menus.art(FILES[role])
 	var source := Rect2(Vector2.ZERO, texture.get_size())
 	var edge := minf(20, minf(floorf(rect.size.x / 3), floorf(rect.size.y / 3)))
-	var margin := Vector2.ONE * minf(edge, minf(source.size.x, source.size.y) * .25)
-	var destination_margin := margin
+	var margin := Vector2.ONE * minf(20, minf(source.size.x, source.size.y) * .25)
+	var destination_margin := Vector2.ONE * edge
 	var destination_x := PackedFloat32Array(
 		[rect.position.x, rect.position.x + destination_margin.x, rect.end.x - destination_margin.x, rect.end.x]
 	)
