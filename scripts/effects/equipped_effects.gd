@@ -1,7 +1,6 @@
 extends RefCounted
 # 이 상태는 시각 피벗·후처리만 조절하고 실제 차체·속도·카메라 기준을 변경하지 않는다.
 const RaceState = preload("res://scripts/race/race_state.gd")
-var blur := 0.0
 var spin := 0.0
 var spin_time := -1.0
 var spin_duration := .65
@@ -10,7 +9,6 @@ var axis := Vector3.FORWARD
 
 
 func reset() -> void:
-	blur = 0
 	spin = 0
 	spin_time = -1
 	used_jump = false
@@ -19,8 +17,6 @@ func reset() -> void:
 func advance(race: Node3D, delta: float) -> void:
 	var equipped: Array = race.player.equipped_effects
 	var active: bool = race.state == RaceState.RACING and not race.motion_reduced and not race.crash.active
-	var target := 1.0 if active and "nitro_blur" in equipped and race.nitro_active else 0.0
-	blur = move_toward(blur, target, maxf(0, delta) * (7 if target > blur else 4))
 	var body: CharacterBody3D = race.world_race.player_body
 	if not active or race.protection_left > 0 or body.grounded:
 		spin = 0

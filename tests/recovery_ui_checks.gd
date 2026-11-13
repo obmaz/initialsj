@@ -45,7 +45,9 @@ func run(tree: SceneTree) -> int:
 		touch(race, 1, true, race.hud.buttons.gas.get_center())
 		var steering_at: Vector2 = race.hud.steering_zone().get_center()
 		touch(race, 2, true, steering_at)
-		race.hud.move_pointer(2, (steering_at + Vector2(58, 0)) * race.hud.ui_scale() + race.hud.ui_offset())
+		race.hud.move_pointer(
+			2, (steering_at + Vector2(race.hud.joystick.travel, 0)) * race.hud.ui_scale() + race.hud.ui_offset()
+		)
 		race.recovery.available = true
 		var edge: Vector2 = race.hud.recovery_touch_rect().position + Vector2(4, 38)
 		touch(race, 3, true, edge)

@@ -23,7 +23,9 @@ func touch(race: Node3D, action: String, index: int, pressed: bool) -> void:
 	event.position = at * race.hud.ui_scale() + race.hud.ui_offset()
 	race.hud.handle_pointer(event)
 	if action == "right" and pressed:
-		race.hud.move_pointer(index, (at + Vector2(58, 0)) * race.hud.ui_scale() + race.hud.ui_offset())
+		race.hud.move_pointer(
+			index, (at + Vector2(race.hud.joystick.travel, 0)) * race.hud.ui_scale() + race.hud.ui_offset()
+		)
 
 
 func run(tree: SceneTree) -> int:

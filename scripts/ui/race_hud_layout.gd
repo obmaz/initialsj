@@ -7,6 +7,9 @@ const COURSE := Rect2(104, 24, 256, 64)
 const STATS := Rect2(376, 24, 680, 64)
 const MINIMAP := Rect2(1072, 24, 184, 184)
 const MAP_RADIUS := 76.0
+const STICK_RADIUS := 90.0
+const STICK_TRAVEL := 72.0
+const CONTROL_Y := 620.0
 
 
 static func route_point(row: int, node: int) -> Vector2:
@@ -21,8 +24,8 @@ static func project_map(point: Vector2, bounds: Rect2) -> Vector2:
 
 
 static func steering_zone(mirrored: bool) -> Rect2:
-	return Rect2(936 if mirrored else 84, 464, 260, 178)
+	return Rect2(920 if mirrored else 100, 484, 260, 136)
 
 
 static func steering_rest(mirrored: bool) -> Vector2:
-	return Vector2(1116 if mirrored else 164, 624)
+	return Vector2(1100 if mirrored else 180, CONTROL_Y)

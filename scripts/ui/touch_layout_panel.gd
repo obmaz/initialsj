@@ -32,9 +32,9 @@ static func draw(hud: Control) -> void:
 		)
 	var rest: Vector2 = hud.HudLayout.steering_rest(hud.race.touch_layout.mirrored)
 	var stick: Vector2 = Vector2(350, 390) + (rest - Vector2(0, 410)) * .45
-	hud.draw_circle(stick, 32, Color("153648"))
-	hud.draw_arc(stick, 32, 0, TAU, 32, Color("00e5ff"), 1.5, true)
-	hud.draw_circle(stick, 11, Color("adc1ce"))
+	hud.draw_circle(stick, hud.HudLayout.STICK_RADIUS * .45, Color("153648"))
+	hud.draw_arc(stick, hud.HudLayout.STICK_RADIUS * .45, 0, TAU, 32, Color("00e5ff"), 1.5, true)
+	hud.draw_circle(stick, 13.5, Color("adc1ce"))
 	choice(hud, RESET, "RESET", false)
 	choice(hud, DONE, "DONE", true)
 	if hud.pad_on():

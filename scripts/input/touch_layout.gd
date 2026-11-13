@@ -5,8 +5,8 @@ const BASE := {
 	"drift": Rect2(964, 408, 136, 136),
 	"cell": Rect2(840, 430, 108, 108),
 	"nitro": Rect2(1124, 408, 136, 136),
-	"gas": Rect2(1124, 566, 136, 136),
-	"brake": Rect2(964, 566, 136, 136),
+	"gas": Rect2(1124, 552, 136, 136),
+	"brake": Rect2(964, 552, 136, 136),
 	"pause": preload("res://scripts/ui/race_hud_layout.gd").PAUSE
 }
 var mirrored := false

@@ -54,6 +54,10 @@ func run(tree: SceneTree) -> int:
 				race.hud.configure_pedals()
 				var buttons: Dictionary = race.hud.buttons
 				var zone: Rect2 = race.hud.steering_zone()
+				check(
+					is_equal_approx(buttons.brake.get_center().y, HudLayout.steering_rest(mirrored).y),
+					"페달과 조이스틱의 기본 중심 높이가 같다"
+				)
 				check(zone.get_center().x > 640 if mirrored else zone.get_center().x < 640, "가상 조이스틱 영역이 선택한 쪽에 있다")
 				for action in buttons:
 					var rect: Rect2 = buttons[action]

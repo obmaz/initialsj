@@ -308,7 +308,7 @@ func _ready() -> void:
 	speed_effect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	speed_effect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var effect := ShaderMaterial.new()
-	effect.shader = preload("res://shaders/speed_blur.gdshader")
+	effect.shader = preload("res://shaders/weather_lens.gdshader")
 	speed_effect.material = effect
 	canvas.add_child(speed_effect)
 	hud = HUD.new()
@@ -1115,19 +1115,10 @@ func _physics_process(delta: float) -> void:
 	if state != RaceState.RACING:
 		thunderstorm.advance(0)
 	rain_lens.update(self, delta)
-	var item_blur: float = equipped_effects.blur if not motion_reduced and render_budget.level < 2 else 0.0
-	speed_effect.material.set_shader_parameter("rush", item_blur)
 	speed_effect.material.set_shader_parameter("storm_flash", thunderstorm.flash if not motion_reduced else 0.0)
 	if player.presentation != null:
 		player.set_presentation_rotation(equipped_effects.axis * equipped_effects.spin)
-	var speed_blur_enabled: bool = not motion_reduced and speed > 35 and render_budget.level < 2
-	speed_effect.visible = (
-		state == RaceState.RACING
-		and (speed_blur_enabled or rain_lens.amount > .01 or item_blur > .01 or thunderstorm.flash > .01)
-	)
-	speed_effect.material.set_shader_parameter(
-		"strength", clampf((speed - 35) / 53 * 1.2, 0, 1) if speed_blur_enabled else 0.0
-	)
+	speed_effect.visible = state == RaceState.RACING and (rain_lens.amount > .01 or thunderstorm.flash > .01)
 	speed_effect.material.set_shader_parameter("lens_amount", rain_lens.amount)
 	speed_effect.material.set_shader_parameter("lens_clock", rain_lens.clock)
 	speed_effect.material.set_shader_parameter(

@@ -373,7 +373,7 @@ func handle_pointer(event: InputEvent) -> void:
 	if hit_button("pause", p) and race.state in RaceState.DRIVING:
 		race.pause_tour()
 	elif steering_zone().has_point(p):
-		joystick.begin(index, p, 58 * race.touch_layout.SIZES[race.touch_layout.size_index])
+		joystick.begin(index, p, HudLayout.STICK_TRAVEL * race.touch_layout.SIZES[race.touch_layout.size_index])
 	else:
 		move_pointer(index, event.position)
 
@@ -833,9 +833,6 @@ func route_map_point(row: int, node: int) -> Vector2:
 
 
 func draw_minimap() -> void:
-	var center := HudLayout.MINIMAP.get_center()
-	draw_circle(center, HudLayout.MINIMAP.size.x * .5, Color("0b1829d9"))
-	draw_arc(center, HudLayout.MINIMAP.size.x * .5 - .75, 0, TAU, 96, Color("82a4b5b0"), 1.5, true)
 	if race.mode == "track":
 		draw_circuit_map()
 		return
@@ -847,14 +844,17 @@ func draw_minimap() -> void:
 			var p := route_map_point(row, node)
 			if row < 4:
 				for side in [0, 1]:
-					draw_line(p, route_map_point(row + 1, node + side), Color("91adbd66"), 1.5, true)
+					draw_line(p, route_map_point(row + 1, node + side), Color("071323d9"), 5, true)
+					draw_line(p, route_map_point(row + 1, node + side), Color("d0e4ed"), 2, true)
 			var visited: bool = row <= race.stage_index and node == selected
+			draw_circle(p, 7 if visited else 6, Color("071323"))
 			draw_circle(p, 4.5 if visited else 3.5, CYAN if visited else Color("91adbd"))
 			if visited and row > 0:
 				var previous: int = selected - race.track.history[row - 1]
 				draw_line(route_map_point(row - 1, previous), p, CYAN, 2, true)
 	var current := route_map_point(race.stage_index, race.route_node)
-	draw_arc(current, 7, 0, TAU, 24, GOLD, 1.5, true)
+	draw_arc(current, 7, 0, TAU, 24, Color("071323"), 5, true)
+	draw_arc(current, 7, 0, TAU, 24, GOLD, 2, true)
 
 
 var map_outline := PackedVector2Array()
@@ -874,9 +874,11 @@ func draw_circuit_map() -> void:
 		map_outline = PackedVector2Array()
 		for i in range(101):
 			map_outline.append(circuit_map_point(race.track.length * i / 100.0))
-	draw_polyline(map_outline, Color("e6f4fb"), 2, true)
+	draw_polyline(map_outline, Color("071323e6"), 6, true)
+	draw_polyline(map_outline, Color("f3fbff"), 2.5, true)
 	for r in race.rivals:
 		if r.active:
+			draw_circle(circuit_map_point(r.distance), 5, Color("071323"))
 			draw_circle(circuit_map_point(r.distance), 3, Color("f38e7c"))
 	if race.world_race != null:
 		var body: CharacterBody3D = race.world_race.player_body
@@ -884,6 +886,10 @@ func draw_circuit_map() -> void:
 		var forward: Vector3 = body.forward_direction()
 		var direction := Vector2(forward.x, forward.z).normalized()
 		var side := Vector2(-direction.y, direction.x)
+		draw_colored_polygon(
+			PackedVector2Array([p + direction * 10, p - direction * 6 + side * 7, p - direction * 6 - side * 7]),
+			Color("071323")
+		)
 		draw_colored_polygon(
 			PackedVector2Array([p + direction * 7, p - direction * 4 + side * 4, p - direction * 4 - side * 4]), GOLD
 		)
@@ -908,11 +914,11 @@ func draw_drift_score() -> void:
 func draw_joystick() -> void:
 	var size_factor: float = race.touch_layout.SIZES[race.touch_layout.size_index]
 	var centre: Vector2 = joystick.origin if joystick.active() else HudLayout.steering_rest(race.touch_layout.mirrored)
-	var radius := 72 * size_factor
+	var radius := HudLayout.STICK_RADIUS * size_factor
 	draw_circle(centre, radius, Color("0b1829ba") if joystick.active() else Color("0b182978"))
 	draw_arc(centre, radius, 0, TAU, 64, Color("74cadcbb") if joystick.active() else Color("adc1ce77"), 1.5, true)
 	var knob: Vector2 = centre + joystick.offset
-	draw_circle(knob, 24 * size_factor, Color("ecfaff") if joystick.active() else Color("adc1ceaa"))
+	draw_circle(knob, 30 * size_factor, Color("ecfaff") if joystick.active() else Color("adc1ceaa"))
 
 
 func nitro_ready() -> bool:
@@ -1098,44 +1104,20 @@ func bottle(center: Vector2, scale_factor: float = 1) -> void:
 
 
 func draw_speedometer() -> void:
-	# 왼쪽 전체가 기울어진 계기판으로 속도 숫자와 하단 RPM을 분리한다.
-	var outline := PackedVector2Array(
-		[
-			Vector2(914, 294),
-			Vector2(1242, 294),
-			Vector2(1256, 308),
-			Vector2(1256, 370),
-			Vector2(1244, 382),
-			Vector2(880, 382),
-			Vector2(914, 294)
-		]
-	)
-	draw_polygon(
-		PackedVector2Array(outline.slice(0, 6)),
-		PackedColorArray(
-			[
-				Color("183d53f5"),
-				Color("183d53f5"),
-				Color("102b3df5"),
-				Color("06131ff8"),
-				Color("06131ff8"),
-				Color("071b2bf8")
-			]
-		)
-	)
-	draw_polyline(outline, Color("82a4b5b0"), 1.5, true)
+	# 패널 없이 숫자의 어두운 외곽선으로 노면·하늘 양쪽에서 읽히게 한다.
 	var speed_text := str(int(race.speed * 3.6))
-	text_at(Vector2(920, 352), speed_text, 56, WHITE, true, NUMBER_FONT)
-	var speed_width: float = NUMBER_FONT.get_string_size(speed_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 56).x
-	text_at(Vector2(928 + speed_width, 350), "KM/H", 20, CYAN)
-	draw_line(Vector2(1193, 307), Vector2(1193, 354), Color("24dfff55"), 1.2, true)
-	var gear: String = "N" if race.gear_number() == 0 else ("R" if race.gear_number() < 0 else str(race.gear_number()))
-	text_at(Vector2(1204, 320), "GEAR", 16, Color("b4d1df"))
-	text_at(Vector2(1216, 351), gear, 30, GOLD, true, NUMBER_FONT)
-	var active: int = int(roundf(clampf(race.engine_rpm() / 7500.0, 0, 1) * 17))
-	for i in range(17):
-		var color := Color("7fe583") if i < 11 else (GOLD if i < 14 else Color("ff7866"))
-		draw_rect(Rect2(932 + i * 18, 362, 14, 10), color if i < active else Color("233c4c"))
+	text_at(Vector2(28, 351), speed_text, 44, WHITE, true, NUMBER_FONT)
+	var width: float = NUMBER_FONT.get_string_size(speed_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 44).x
+	text_at(Vector2(36 + width, 349), "KM/H", 18, CYAN, true)
+	var gear := "N" if race.gear_number() == 0 else ("R" if race.gear_number() < 0 else str(race.gear_number()))
+	text_at(Vector2(28, 378), "GEAR", 15, WHITE, true)
+	text_at(Vector2(85, 378), gear, 21, GOLD, true, NUMBER_FONT)
+	var active := int(roundf(clampf(race.engine_rpm() / 7500.0, 0, 1) * 12))
+	for i in range(12):
+		var at := Vector2(28 + i * 14, 389)
+		draw_rect(Rect2(at - Vector2.ONE, Vector2(12, 7)), Color("071323"))
+		var color := Color("7fe583") if i < 8 else (GOLD if i < 10 else Color("ff7866"))
+		draw_rect(Rect2(at, Vector2(10, 5)), color if i < active else Color("68808c"))
 
 
 func draw_nitro() -> void:

@@ -79,10 +79,13 @@ func run(tree: SceneTree) -> int:
 	race.player.equipped_effects.assign(["nitro_blur"])
 	race.nitro_active = true
 	race.equipped_effects.advance(race, .2)
-	check(race.equipped_effects.blur > 0, "장착한 니트로 블러는 실활성 중 커진다")
+	check(
+		not Items.supported("nitro_blur", 0) and Store.sanitize({"effects": ["nitro_blur"]}, 0).effects.is_empty(),
+		"제거한 블러는 기존 장착 기록에서도 제외한다"
+	)
 	race.motion_reduced = true
 	race.equipped_effects.advance(race, 1)
-	check(race.equipped_effects.blur == 0 and race.equipped_effects.spin == 0, "동작 감소는 회전·강한 블러를 끈다")
+	check(race.equipped_effects.spin == 0, "동작 감소는 회전을 끈다")
 	race.motion_reduced = true
 	race.track_environment.weather = "rain"
 	race.track_environment.time_of_day = "night"
