@@ -24,15 +24,24 @@ static func paths() -> Array[String]:
 	return result
 
 
-static func backdrop(hud: Control) -> void:
+static func backdrop(hud: Control, mirrored: bool = false) -> void:
 	var fill := Rect2(-hud.ui_offset() / hud.ui_scale(), hud.get_viewport_rect().size / hud.ui_scale())
-	hud.MenuTheme.cover(hud, hud.menus.art(BACKDROP), fill)
+	var image: Texture2D = hud.menus.art(BACKDROP)
+	var source := Rect2(Vector2.ZERO, image.get_size())
+	var scale_factor := minf(source.size.x / fill.size.x, source.size.y / fill.size.y)
+	var cropped := fill.size * scale_factor
+	source.position = (source.size - cropped) * .5
+	source.size = cropped
+	if mirrored:
+		fill.position.x = fill.end.x
+		fill.size.x *= -1
+	hud.draw_texture_rect_region(image, fill, source)
 
 
 static func background(hud: Control, screen: String, surround: bool = true) -> void:
 	assert(screen in SCREENS, "알 수 없는 시작 전 원화 화면: " + screen)
 	if surround:
-		backdrop(hud)
+		backdrop(hud, screen == "garage")
 	hud.draw_texture_rect(hud.menus.art(FILES[screen]), DESIGN, false)
 
 

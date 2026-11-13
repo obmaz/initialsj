@@ -83,7 +83,7 @@ def plans(rects):
 
 
 def bake():
-    from PIL import Image, ImageDraw, ImageOps
+    from PIL import Image, ImageDraw
     OUTPUT.mkdir(parents=True, exist_ok=True)
     master = Image.open(SOURCE / "master.png").convert("RGBA")
     parts = {}
@@ -102,7 +102,8 @@ def bake():
     backdrop.convert("RGB").save(OUTPUT / "backdrop.png", optimize=True)
     screens = plans(source_rects())
     for name, frames in screens.items():
-        image = ImageOps.mirror(backdrop) if name == "garage" else backdrop.copy()
+        # 환경은 기기 전체에서 한 번만 cover하고 프레임 통이미지는 같은 안전 영역에 얹는다.
+        image = Image.new("RGBA", SIZE)
         # 헤더·설정은 밝은 원화의 프레임을 실제 문구 아래에 둔다.
         if name in ["home", "courses", "garage"]:
             strip = Image.new("RGBA", (1280, 110), (255, 250, 237, 238))
@@ -112,7 +113,7 @@ def bake():
             # 작은 원화 조각도 모서리 두께를 보존한다.
             frame = nine_slice(parts[entry["role"]], (width, height), min(20, width // 3, height // 3))
             image.alpha_composite(frame, (x, y))
-        image.convert("RGB").save(OUTPUT / (name + ".png"), optimize=True)
+        image.save(OUTPUT / (name + ".png"), optimize=True)
     manifest = {"schema": 1, "designSize": list(SIZE), "nineSliceMargin": 20,
                 "sources": {name: digest(SOURCE / name) for name in ["master.png", "backdrop.png"]},
                 "crops": {name: {"bounds": list(bounds), "size": list(target), "cornerMask": corner}
