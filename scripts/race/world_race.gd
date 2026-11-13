@@ -1098,8 +1098,19 @@ func update_camera(delta: float) -> void:
 	var angle := camera_state.preview_angle(race, forward) if preview and not race.motion_reduced else 0.0
 	camera_state.advance(delta, race.speed, angle, race.player.body_motion.acceleration.x, preview, race.motion_reduced)
 	var sight := forward.rotated(Vector3.UP, camera_state.look_yaw).normalized()
-	var desired: Vector3 = -forward * (7.1 + pace * 0.9) + Vector3.UP * (3.0 + race.camera_intro * 1.5)
-	desired -= forward * camera_state.pullback
+
+	# 카운트다운 동안 오버헤드 그리드 뷰에서 시작해 주행 체이스 뷰로 부드럽게 글라이드한다.
+	var intro_ratio := 0.0
+	if race.state == RaceState.COUNTDOWN and not race.motion_reduced:
+		intro_ratio = smoothstep(0.0, 1.0, clampf(race.countdown / 3.0, 0.0, 1.0))
+	elif race.camera_intro > 0:
+		intro_ratio = smoothstep(0.0, 1.0, race.camera_intro)
+
+	var chase_offset: Vector3 = -forward * (7.1 + pace * 0.9) + Vector3.UP * 3.0
+	chase_offset -= forward * camera_state.pullback
+	var overhead_offset: Vector3 = -forward * 14.5 + Vector3.UP * 8.2
+	var desired: Vector3 = chase_offset.lerp(overhead_offset, intro_ratio)
+
 	if not race.motion_reduced and race.state == RaceState.RACING:
 		# Speed hum, kerb/rail rumble, boost pull-back and a dip when the car lands.
 		race.camera_time += delta
@@ -1108,8 +1119,9 @@ func update_camera(delta: float) -> void:
 		var heat: float = race.player.boost_fx.heat if race.player.boost_fx != null else 0.0
 		desired += -forward * (race.boost_kick * .55 + heat * .35)
 		desired.y -= race.air.landing_flash * race.air.landing_strength * 0.4
-	race.camera_intro = maxf(0, race.camera_intro - delta * 0.8)
-	race.camera_offset = race.camera_offset.lerp(desired, 1 - exp(-delta * 7))
+	race.camera_intro = maxf(0, race.camera_intro - delta * 1.2)
+	var follow_speed := 10.0 if race.state == RaceState.COUNTDOWN else 7.0
+	race.camera_offset = race.camera_offset.lerp(desired, 1 - exp(-delta * follow_speed))
 	var recoil: Vector3 = race.collision_camera_offset(forward, right)
 	race.camera.position = race.player.position + race.camera_offset + recoil
 	if race.crash.active:
@@ -1118,11 +1130,15 @@ func update_camera(delta: float) -> void:
 		var obstruction := get_world_3d().direct_space_state.intersect_ray(query)
 		if not obstruction.is_empty() and origin.distance_to(obstruction.position) > 1:
 			race.camera.position = obstruction.position + obstruction.normal * 0.2
-	race.camera.look_at(race.player.position + sight * (5.0 + pace * 3.0) + up * 0.8, up)
-	var fov: float = 68 if race.motion_reduced else 66 + pace * 17 + 6 * race.driving_feedback.boost_envelope
+	var chase_look: Vector3 = race.player.position + sight * (5.0 + pace * 3.0) + up * 0.8
+	var overhead_look: Vector3 = race.player.position + forward * 8.5 + up * 0.4
+	var look_target: Vector3 = chase_look.lerp(overhead_look, intro_ratio)
+	race.camera.look_at(look_target, up)
+	var base_fov: float = 68 if race.motion_reduced else 66 + pace * 17 + 6 * race.driving_feedback.boost_envelope
 	if not race.motion_reduced and race.boosting and race.player.boost_fx != null:
-		fov += race.player.boost_fx.heat * 2.5
-	race.camera.fov = lerpf(race.camera.fov, fov, 1 - exp(-delta * 5))
+		base_fov += race.player.boost_fx.heat * 2.5
+	var target_fov: float = lerpf(base_fov, 78.0, intro_ratio)
+	race.camera.fov = lerpf(race.camera.fov, target_fov, 1 - exp(-delta * 5))
 
 
 func fork_area() -> bool:

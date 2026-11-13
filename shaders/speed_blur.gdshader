@@ -58,6 +58,14 @@ void fragment() {
 		COLOR = mix(sharp, blur, edge * 0.85);
 		}
 	}
+	// speed_effect: 2D 애니메 스타일 방사형 네온 스피드라인 연출
+	float speed_effect = power * edge;
+	if (speed_effect > 0.05) {
+		float angle = atan(ray.y, ray.x);
+		float lines = sin(angle * 36.0 + drop_hash(floor(uv * 80.0)) * 6.28);
+		lines = step(0.72, lines) * speed_effect;
+		COLOR.rgb += vec3(0.08, 0.25, 0.35) * lines * 0.4;
+	}
 	// 반투명 굴절과 얇은 가장자리 반사만 더한다. HUD는 이 패스 뒤에서 그린다.
 	COLOR.rgb=COLOR.rgb*(1.0-drop.w*.07)+vec3(.62,.76,.85)*drop.z*.30;
 	COLOR.rgb=mix(COLOR.rgb,vec3(.65,.77,1.0),storm_flash*.22*(1.0-smoothstep(.25,.72,SCREEN_UV.y)));

@@ -157,44 +157,124 @@ func draw_courses() -> void:
 		)
 
 
+func draw_toggle_switch(row_rect: Rect2, is_on: bool) -> void:
+	var switch_w := 72.0
+	var switch_h := 36.0
+	var switch_rect := Rect2(
+		row_rect.end.x - switch_w - 14.0, row_rect.position.y + (row_rect.size.y - switch_h) * 0.5, switch_w, switch_h
+	)
+	if is_on:
+		hud.glass_box(switch_rect, 18.0, Color("00e5ff33"), Color("00e5ff"), 2.0)
+		# 네온 트랙 내부 글로우
+		hud.draw_rect(switch_rect.grow(-3), Color("00e5ff22"))
+		var knob_pos := Vector2(switch_rect.end.x - 18.0, switch_rect.position.y + 18.0)
+		hud.draw_circle(knob_pos, 16.0, Color("00e5ff44"))
+		hud.draw_circle(knob_pos, 12.0, Color.WHITE)
+		hud.draw_circle(knob_pos, 5.0, Color("00e5ff"))
+		MenuTheme.label(
+			hud,
+			Rect2(switch_rect.position.x + 8.0, switch_rect.position.y + 8.0, 26.0, 20.0),
+			"ON",
+			13,
+			Color("00e5ff"),
+			true,
+			10
+		)
+	else:
+		hud.glass_box(switch_rect, 18.0, Color("0a1420"), Color("22364f"), 1.2)
+		var knob_pos := Vector2(switch_rect.position.x + 18.0, switch_rect.position.y + 18.0)
+		hud.draw_circle(knob_pos, 12.0, Color("455a64"))
+		hud.draw_circle(knob_pos, 5.0, Color("263238"))
+		MenuTheme.label(
+			hud,
+			Rect2(switch_rect.end.x - 34.0, switch_rect.position.y + 8.0, 26.0, 20.0),
+			"OFF",
+			13,
+			Color("546e7a"),
+			true,
+			10
+		)
+
+
+func draw_segmented_selector(row_rect: Rect2, options: Array, current_idx: int) -> void:
+	var total_w := 186.0
+	var total_h := 36.0
+	var seg_rect := Rect2(
+		row_rect.end.x - total_w - 14.0, row_rect.position.y + (row_rect.size.y - total_h) * 0.5, total_w, total_h
+	)
+	hud.glass_box(seg_rect, 10.0, Color("081322"), Color("1a2a40"), 1.2)
+	var seg_w: float = total_w / float(options.size())
+	for i in range(options.size()):
+		var sub_rect := Rect2(seg_rect.position.x + i * seg_w, seg_rect.position.y, seg_w, total_h)
+		var is_active: bool = i == current_idx
+		if is_active:
+			hud.glass_box(sub_rect, 8.0, Color("00e5ff38"), Color("00e5ff"), 1.8)
+			# 액티브 인디케이터 하단 바
+			hud.draw_line(
+				Vector2(sub_rect.position.x + 6, sub_rect.end.y - 2),
+				Vector2(sub_rect.end.x - 6, sub_rect.end.y - 2),
+				Color("00e5ff"),
+				2.5
+			)
+			MenuTheme.label(hud, sub_rect, options[i], 16, Color("00e5ff"), true, 12)
+		else:
+			MenuTheme.label(hud, sub_rect, options[i], 14, Color("607d8b"), true, 10)
+
+
 func draw_settings() -> void:
 	# 배경 홈 화면의 글자를 모달 위에 겹쳐 그리지 않는다.
 	hud.menu_text.begin()
-	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(.85, .95, .97, .94))
-	MenuTheme.panel(hud, Rect2(300, 28, 680, 664 if OS.has_feature("web") else 584), MenuTheme.PAPER)
-	MenuTheme.label(hud, Rect2(365, 40, 300, 48), "SETTINGS", 36)
-	MenuTheme.label(hud, Rect2(730, 46, 185, 40), hud.AppVersion.label(), 22, MenuTheme.MUTED, true)
+	hud.draw_rect(Rect2(0, 0, 1280, 720), Color("030812b8"))
+	var modal_rect := Rect2(290, 24, 700, 672 if OS.has_feature("web") else 590)
+	hud.glass_box(modal_rect, 20.0, Color("081220f4"), Color("00e5ff66"), 1.8)
+
+	# 상단 포인트 네온 하이라이트 라인
+	hud.draw_line(
+		Vector2(modal_rect.position.x + 36, modal_rect.position.y + 3),
+		Vector2(modal_rect.end.x - 36, modal_rect.position.y + 3),
+		Color("00e5ffcc"),
+		2.0
+	)
+
+	MenuTheme.label(hud, Rect2(335, 38, 280, 44), "SETTINGS", 34, Color.WHITE)
+	var ver_capsule := Rect2(740, 42, 200, 32)
+	hud.glass_box(ver_capsule, 12.0, Color("00e5ff18"), Color("00e5ff55"), 1.0)
+	MenuTheme.label(hud, ver_capsule, hud.AppVersion.label(), 16, Color("00e5ff"), true, 12)
+
 	var rows: Array = [
-		[hud.SETTINGS_SOUND, "SOUND", "ON" if race.sound_enabled else "OFF"],
-		[hud.SETTINGS_MUSIC, "MUSIC", "ON" if race.music_enabled else "OFF"],
-		[hud.SETTINGS_MOTION, "REDUCED MOTION", "ON" if race.motion_reduced else "OFF"],
-		[hud.SETTINGS_GRAPHICS, "GRAPHICS", ["AUTO", "HIGH", "FAST"][race.graphics_mode]],
-		[hud.SETTINGS_FPS, "SHOW FPS", "ON" if race.show_fps else "OFF"],
-		[hud.SETTINGS_AUTO, "AUTO GAS", "ON" if race.auto_accelerate else "OFF"]
+		[hud.SETTINGS_SOUND, "SOUND", race.sound_enabled],
+		[hud.SETTINGS_MUSIC, "MUSIC", race.music_enabled],
+		[hud.SETTINGS_MOTION, "REDUCED MOTION", race.motion_reduced],
+		[hud.SETTINGS_GRAPHICS, "GRAPHICS", race.graphics_mode],
+		[hud.SETTINGS_FPS, "SHOW FPS", race.show_fps],
+		[hud.SETTINGS_AUTO, "AUTO GAS", race.auto_accelerate]
 	]
 	for item in rows:
 		var rect: Rect2 = item[0]
-		MenuTheme.panel(hud, rect, MenuTheme.SOFT)
-		var value_width := 76.0 if rect.size.x < 300 else 116.0
+		hud.glass_box(rect, 10.0, Color("0b182bcd"), Color("00e5ff26"), 1.0)
 		MenuTheme.label(
 			hud,
-			Rect2(rect.position + Vector2(16, 0), Vector2(rect.size.x - value_width - 28, rect.size.y)),
+			Rect2(rect.position + Vector2(18, 0), Vector2(rect.size.x - 190, rect.size.y)),
 			item[1],
-			26
+			21,
+			Color("eceff1")
 		)
-		MenuTheme.label(
-			hud,
-			Rect2(rect.end.x - value_width - 10, rect.position.y, value_width, rect.size.y),
-			item[2],
-			28,
-			MenuTheme.TEAL,
-			true
-		)
+		if item[1] == "GRAPHICS":
+			draw_segmented_selector(rect, ["AUTO", "HIGH", "FAST"], item[2])
+		else:
+			draw_toggle_switch(rect, item[2])
+
 	if OS.has_feature("web"):
-		MenuTheme.button(hud, hud.SETTINGS_FULLSCREEN, race.shell.fullscreen_label(), MenuTheme.SOFT, 28)
-		MenuTheme.button(hud, hud.SETTINGS_INSTALL, "INSTALL", MenuTheme.SOFT, 28)
-		MenuTheme.label(hud, Rect2(350, 552, 580, 24), hud.install_note, 22, MenuTheme.MUTED, true)
-	MenuTheme.button(hud, hud.settings_close_rect(), "DONE", MenuTheme.YELLOW, 30)
+		hud.glass_box(hud.SETTINGS_FULLSCREEN, 12.0, Color("00e5ff20"), Color("00e5ff88"), 1.5)
+		MenuTheme.label(hud, hud.SETTINGS_FULLSCREEN, race.shell.fullscreen_label(), 22, Color("00e5ff"), true)
+		hud.glass_box(hud.SETTINGS_INSTALL, 12.0, Color("0d1d33c8"), Color("19dcff44"), 1.2)
+		MenuTheme.label(hud, hud.SETTINGS_INSTALL, "INSTALL", 22, Color("00e5ff"), true)
+		MenuTheme.label(hud, Rect2(350, 552, 580, 24), hud.install_note, 18, Color("8caec0"), true, 12)
+
+	var done_rect: Rect2 = hud.settings_close_rect()
+	hud.glass_box(done_rect, 14.0, Color("00e5ff33"), Color("00e5ff"), 2.0)
+	MenuTheme.label(hud, done_rect, "DONE", 30, Color("00e5ff"), true)
+
 	if hud.pad_on():
 		var targets: Array[Rect2] = [
 			hud.SETTINGS_SOUND,
@@ -207,7 +287,8 @@ func draw_settings() -> void:
 		if OS.has_feature("web"):
 			targets.append_array([hud.SETTINGS_FULLSCREEN, hud.SETTINGS_INSTALL])
 		targets.append(hud.settings_close_rect())
-		hud.draw_rect(targets[clampi(race.settings_focus, 0, targets.size() - 1)].grow(3), MenuTheme.TEAL, false, 3)
+		hud.draw_rect(targets[clampi(race.settings_focus, 0, targets.size() - 1)].grow(3), Color("00e5ff"), false, 3)
+
 	if OS.has_feature("web"):
 		race.shell.sync_control(hud.SETTINGS_FULLSCREEN)
 

@@ -1,5 +1,6 @@
 extends Node3D
 # Celebration bursts only. Driving has no continuous pollen, petals or dust emitter.
+# speed_effect: 2D 애니메 스타일 주행 연출 보조
 const RaceState = preload("res://scripts/race/race_state.gd")
 var petals := CPUParticles3D.new()
 var last_checkpoint := 0
