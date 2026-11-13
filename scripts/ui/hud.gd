@@ -180,7 +180,7 @@ func pause_touch_rect() -> Rect2:
 
 func configure_pedals() -> void:
 	if race.auto_accelerate:
-		buttons.brake = Rect2(1081, 558, 114, 114)
+		buttons.brake = buttons.gas
 	else:
 		buttons.brake = Rect2(1016, 558, 114, 114)
 		buttons.gas = Rect2(1146, 558, 114, 114)
@@ -493,10 +493,7 @@ func _process(delta: float) -> void:
 func text_at(
 	pos: Vector2, value: String, size_px: int, color: Color = WHITE, shadow: bool = true, face: Font = FONT
 ) -> void:
-	if (
-		race != null
-		and (race.passport_open or race.state in RaceState.MENUS or race.state in [RaceState.READY, RaceState.PAUSED])
-	):
+	if race != null and (race.passport_open or race.state in RaceState.MENUS or race.state == RaceState.READY):
 		shadow = false
 		if color == WHITE:
 			color = MenuTheme.INK
@@ -738,7 +735,7 @@ func draw_lap_time() -> void:
 	if race.mode == "track":
 		glass_box(Rect2(360, 14, 560, 56), 14.0, Color("081220ee"), Color("19dcff55"), 1.4)
 		text_at(Vector2(382, 33), "POS", 11, Color("8caec0"))
-		var pos_num := race.race_position()
+		var pos_num: int = race.race_position()
 		var pos_suffix := "TH"
 		if pos_num == 1:
 			pos_suffix = "ST"
