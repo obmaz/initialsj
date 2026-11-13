@@ -72,7 +72,16 @@ func run() -> void:
 			replacements.append(replacement_distance)
 			remove_names.append(str(child.name))
 			additions += (
-				'\n[node name="SeoulPassenger%d" type="Node3D" parent="."]\ntransform = %s\nscript = ExtResource("%s")\nmodel = "%s"\npaint = %s\ntraffic = true\nmetadata/parked_car = true\n'
+				(
+					"\n"
+					+ '[node name="SeoulPassenger%d" type="Node3D" parent="."]\n'
+					+ "transform = %s\n"
+					+ 'script = ExtResource("%s")\n'
+					+ 'model = "%s"\n'
+					+ "paint = %s\n"
+					+ "traffic = true\n"
+					+ "metadata/parked_car = true\n"
+				)
 				% [
 					passenger_index,
 					var_to_str(child.transform),

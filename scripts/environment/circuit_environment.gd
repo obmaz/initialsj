@@ -3,10 +3,7 @@ extends Node3D
 const PANORAMA = preload("res://assets/environment/fuji-lake-panorama.png")
 const BACK_A = preload("res://assets/environment/fuji-lake-back-a.png")
 const BACK_B = preload("res://assets/environment/fuji-lake-back-b.png")
-const Natural = preload("res://models/prop_models.gd")
 const SKY_SHADER = preload("res://shaders/fuji_sky.gdshader")
-const TERRAIN_SHADER = preload("res://shaders/lakeside_terrain.gdshader")
-const WATER_SHADER = preload("res://shaders/lake_water.gdshader")
 const WATER_HEIGHT := 0.0
 const SHORE_LANE := -18.0
 var theme := "fuji"

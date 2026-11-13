@@ -1,8 +1,5 @@
 extends Node3D
 # 실제 노면과 일치하는 경기장 지형·콘크리트 방호벽·관중석·광고 구역.
-const Course = preload("res://scripts/track/speedway_course.gd")
-const Field = preload("res://scripts/environment/speedway_infield.gd")
-const Props = preload("res://scripts/environment/regional_props_3d.gd")
 const BASE_HEIGHT := 6.5
 const BERM_REACH := 45.0
 const WALL_HEIGHT := 1.7
@@ -34,7 +31,7 @@ func berm_reach(d: float) -> float:
 func ground_height(d: float, lane: float) -> float:
 	var edge: float = track.half_width(d) + track.rail_setback(d, signf(lane)) + .65
 	var platform: float = maxf(BASE_HEIGHT, track.point(d, signf(lane) * edge).y - .15)
-	# 지형 메시와 같은9개 구간 사이를 보간해 부지와 실제 지형의 높이를 맞춘다.
+	# 지형 메시와 같은 9개 구간 사이를 보간해 부지와 실제 지형의 높이를 맞춘다.
 	var u := clampf((absf(lane) - edge) / berm_reach(d), 0, 1) * 9
 	var first := floorf(u)
 	var blend := lerpf(smoothstep(0, 9, first), smoothstep(0, 9, minf(9, first + 1)), u - first)
@@ -71,7 +68,7 @@ func _ready() -> void:
 
 
 func wall_point(d: float, height: float, offset: float = 0, side: float = 1) -> Vector3:
-	# 인쇄면을 방호벽과 같은4m 구간에 맞춰 곡선 안쪽으로 묻히는 깊이 충돌을 막는다.
+	# 인쇄면을 방호벽과 같은 4m 구간에 맞춰 곡선 안쪽으로 묻히는 깊이 충돌을 막는다.
 	var step: float = track.length / ceili(track.length / 4)
 	var cell := fposmod(d, track.length) / step
 	var a := floorf(cell) * step

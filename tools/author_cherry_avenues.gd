@@ -1,7 +1,6 @@
 extends SceneTree
 # 수관·줄기는 같은 GLB를 공유하고90m 구간별 MultiMesh로 나눠 과도한 원거리 렌더를 막는다.
 const Section = preload("res://scripts/track/road_section.gd")
-const Assets = preload("res://scripts/rendering/world_assets.gd")
 const Source = preload("res://models/shared/scene_source.gd")
 const TREE_PACK := "res://models/props/cherry_blossom_tree/"
 const Dependency = preload("res://tools/author_circuit_checkpoints.gd")
@@ -78,7 +77,15 @@ func run() -> void:
 			for piece in pieces:
 				var key := "%s_%d" % [piece.name, group]
 				text += (
-					'[node name="%s" type="MultiMeshInstance3D" parent="."]\ncast_shadow = 0\nmaterial_override = ExtResource("%s")\nmultimesh = SubResource("%s")\nvisibility_range_end = 280.0\nvisibility_range_end_margin = 25.0\nmetadata/mesh_ref = "%smodel.glb#%s"\n'
+					(
+						'[node name="%s" type="MultiMeshInstance3D" parent="."]\n'
+						+ "cast_shadow = 0\n"
+						+ 'material_override = ExtResource("%s")\n'
+						+ 'multimesh = SubResource("%s")\n'
+						+ "visibility_range_end = 280.0\n"
+						+ "visibility_range_end_margin = 25.0\n"
+						+ 'metadata/mesh_ref = "%smodel.glb#%s"\n'
+					)
 					% [key, piece.name, key, TREE_PACK, piece.name]
 				)
 		FileAccess.open(folder + "seasonal_avenue.tscn", FileAccess.WRITE).store_string(text)

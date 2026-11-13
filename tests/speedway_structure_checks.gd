@@ -1,6 +1,8 @@
 extends RefCounted
 const Course = preload("res://scripts/track/speedway_course.gd")
-const Field = preload("res://scripts/environment/speedway_infield.gd")
+# 저장된 GLB의 호수 위치·높이를 검증하는 설계 기준값이다.
+const LAKE_CENTER := Vector2(-31.2, -177.45)
+const LAKE_WATER_HEIGHT := 6.32
 const Props = preload("res://scripts/environment/regional_props_3d.gd")
 var failures := 0
 
@@ -83,8 +85,8 @@ func run(tree: SceneTree) -> int:
 				)
 	var grass := faces_of(scenery.get_node("SpeedwayInfield"))
 	var water := faces_of(scenery.get_node("InfieldLake"))
-	check(is_nan(mesh_height(grass, Field.CENTER)), "호수 중앙을 잔디 평면으로 덮으면 안 된다")
-	check(absf(mesh_height(water, Field.CENTER) - Field.WATER_HEIGHT) < .01, "길쭉한 호수에는 실제 연속 수면이 있어야 한다")
+	check(is_nan(mesh_height(grass, LAKE_CENTER)), "호수 중앙을 잔디 평면으로 덮으면 안 된다")
+	check(absf(mesh_height(water, LAKE_CENTER) - LAKE_WATER_HEIGHT) < .01, "길쭉한 호수에는 실제 연속 수면이 있어야 한다")
 	var water_arrays = scenery.get_node("InfieldLake").mesh.surface_get_arrays(0)
 	check(water_arrays[Mesh.ARRAY_NORMAL][0].y > .9, "호수는 위에서 보이는 올바른 면 방향을 사용한다")
 	check(

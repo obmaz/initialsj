@@ -2,7 +2,6 @@ extends RefCounted
 const Store = preload("res://scripts/vehicles/customization_store.gd")
 const Custom = preload("res://scripts/vehicles/vehicle_customization.gd")
 const Factory = preload("res://scripts/vehicles/vehicle_factory.gd")
-const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 var failures := 0
 
 

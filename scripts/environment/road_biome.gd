@@ -15,7 +15,6 @@ var light_update_left := 0.0
 var building_manifest: Array[Dictionary] = []
 var landmarks: Node3D
 var water: MeshInstance3D
-const RenderResources = preload("res://scripts/rendering/render_resources.gd")
 const OCEAN_RIPPLES = "res://assets/environment/ocean-ripples.png"
 
 const TERRAIN_VARIANTS = "res://assets/environment/terrain-variants.png"

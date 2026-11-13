@@ -26,7 +26,7 @@ models/                               배포 파일과 편집 가능한 조립 �
 
 차량6종, 소품90종과 예외용 `fallback`, 빌딩12종, 식생7종을 자동 탐색합니다. 선택 차량은 `hatch`·`wedge`·`muscle`·`gt`·`redcar`, `sport`는 교통 차량입니다. 모델 목록을 읽을 때는 경로 문자열만 읽습니다.
 
-제공 모델의 정규화·단순화는 [외부 차량 제작 도구](../tools/author_imported_vehicles.py)를 사용합니다. `uploaded.glb`는 `source_only`로 보호하고 `model.glb`를 별도 편집본으로 제작합니다. 투어 전용 `icecream_car`·`bike`·`dumptruck`은 소품 팩의 정적 외형이며 공통 교통 차체가 움직입니다. 원래 교통 위치·방향과 기능 기록을 유지하고 비동기 코스 준비 목록에 세 팩을 포함합니다. 기존 투어용 `sport`는2076삼각형·약84KiB로 이미 작으므로 추가 단순화를 하지 않습니다. 유저와 공유하는 기존 차체는 투어 최적화를 이유로 줄이지 않습니다.
+제공 모델의 정규화·단순화는 [외부 차량 제작 도구](../tools/author_imported_vehicles.py)를 사용합니다. `uploaded.glb`는 `source_only`로 보호하고 `model.glb`를 별도 편집본으로 제작합니다. 투어 전용 `icecream_car`·`bike`·`dumptruck`은 소품 팩의 정적 외형이며 공통 교통 차체가 움직입니다. 원래 교통 위치·방향과 기능 기록을 유지하고 비동기 코스 준비 목록에 세 팩을 포함합니다. 기존 투어용 `sport`는 2076삼각형·약84KiB로 이미 작으므로 추가 단순화를 하지 않습니다. 유저와 공유하는 기존 차체는 투어 최적화를 이유로 줄이지 않습니다.
 
 `redcar`의 사진 텍스처는 GLB 임베디드 Basis Universal 임포트로 공유하며 `parameters.imported_texture=true`가 외부 UV 재질 경로를 선택합니다. UV0·사진은 유지하고 UV1을 리버리 좌표로 씁니다. 도장면·비도장 트림과 네 휠 피벗을 분리하며 도장 마스크는 원본의 붉은 차체 부분입니다. 추가 차량의 리버리는 기존4열 아틀라스를 순환 사용합니다. 모델 원본·사진·재생성 절차는 각 팩의 `SOURCE.md`에 기록합니다.
 
@@ -50,7 +50,7 @@ Blender 등에서 메시를 편집하거나 외부 AI로 제작할 수 있습니
 
 1단위=1m, 위쪽은 `+Y`입니다. 차량 정면은 `-Z`, 건물 출입면은 `+Z`, 지면 피벗은 아래쪽입니다. 차량 길이 약4.3~4.5m를 기준으로 제작합니다. GLB 내보내기 전에 단위·루트 회전·스케일과 소품 메시의 로컬 변환을 적용합니다. 런타임에서 정점을 변환하거나 단위를 다시 굽지 않습니다.
 
-[model_definition.gd](../models/model_definition.gd)의 계약 버전은2입니다.
+[model_definition.gd](../models/model_definition.gd)의 계약 버전은 2입니다.
 
 | 필드 | 계약 |
 | --- | --- |
@@ -70,11 +70,11 @@ GLB는 차체·타이어·림·가동 부품을 소유합니다. 네 휠은 `whe
 
 도장면 분리·호환 메시·교체 부품·새 UV 계약은 [튜닝샵](TUNING_SHOP.md#도장면리버리-계약)을 따릅니다. 일반 차체 셰이더의 정점 데이터는 COLOR=표면색, UV=금속성·거칠기, UV2=클리어코트·발광 강도입니다. 전용 `PaintShell`만 UV0를 리버리 좌표로 사용합니다. 일반 차체 도장면의 COLOR.a=.5가 차량별 색 선택 마스크입니다. 이 데이터를 외부 도구가 일반 사진 UV로 덮어쓰지 않게 합니다. 별도 텍스처 셰이더를 도입하면 재질 어댑터와 검사를 함께 수정합니다.
 
-`parameters`의 휠 반경·반트랙·반휠베이스·`ride_offset`, `headlamp_positions`, `headlight_position`, `exhausts`, `aero_drop`, `aero_pitch`를 형상에 맞춥니다. 브레이크 재질과 도장 유니폼은 차량별로 독립적입니다. 셰이더의 `vec4` 도장 유니폼에는 `Vector4`를 전달해 재질 복제 시 자료형과 값을 유지합니다. 부스트·연기·전조등·휠 회전은 [car.gd](../scripts/vehicles/car.gd)가, 능력치는 [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd)가 소유합니다. 차량 전체 예산은2만 삼각형 미만입니다.
+`parameters`의 휠 반경·반트랙·반휠베이스·`ride_offset`, `headlamp_positions`, `headlight_position`, `exhausts`, `aero_drop`, `aero_pitch`를 형상에 맞춥니다. 브레이크 재질과 도장 유니폼은 차량별로 독립적입니다. 셰이더의 `vec4` 도장 유니폼에는 `Vector4`를 전달해 재질 복제 시 자료형과 값을 유지합니다. 부스트·연기·전조등·휠 회전은 [car.gd](../scripts/vehicles/car.gd)가, 능력치는 [vehicle_catalog.gd](../scripts/vehicles/vehicle_catalog.gd)가 소유합니다. 차량 전체 예산은 2만 삼각형 미만입니다.
 
 ### 차량 이펙트 장착 계약
 
-플레이 가능한 차량의 `parameters.effect_slots`는1~3입니다(기본1). `open_top`은 실제 오픈카 변형이 있는 모델만 `true`로 둡니다. 형상 제작자는 같은 GLB 안에 `OpenPaintShell`·`OpenTrimShell`·`OpenCabin`을 제공하며 원래 `BodyShell`·`PaintShell`·`TrimShell`의 면·UV·휠·가동 에어로는 보존합니다. `vehicle_models.gd`가 변형의 공유 메시를 기록하고 장착 어댑터가 기존 도장·트림의 메시 참조를 전환합니다. 차량 물리 규격은 바뀌지 않습니다. 현재 STRAUD만 실내를 갖춘 오픈카를 지원합니다.
+플레이 가능한 차량의 `parameters.effect_slots`는 1~3입니다(기본1). `open_top`은 실제 오픈카 변형이 있는 모델만 `true`로 둡니다. 형상 제작자는 같은 GLB 안에 `OpenPaintShell`·`OpenTrimShell`·`OpenCabin`을 제공하며 원래 `BodyShell`·`PaintShell`·`TrimShell`의 면·UV·휠·가동 에어로는 보존합니다. `vehicle_models.gd`가 변형의 공유 메시를 기록하고 장착 어댑터가 기존 도장·트림의 메시 참조를 전환합니다. 차량 물리 규격은 바뀌지 않습니다. 현재 STRAUD만 실내를 갖춘 오픈카를 지원합니다.
 
 효과 ID와 슬롯 검증은 [effect_items.gd](../scripts/vehicles/effect_items.gd), 영구 선택은 [customization_store.gd](../scripts/vehicles/customization_store.gd)가 소유합니다. 새 차량은 슬롯 수·지원 변형을 정의하고 [이펙트 검사](../tests/effect_item_checks.gd)에 호환성을 추가합니다. 회전은 별도 Presentation 피벗에서 시각적으로만 적용합니다.
 
@@ -84,11 +84,11 @@ GLB는 차체·타이어·림·가동 부품을 소유합니다. 네 휠은 `whe
 
 식생은 줄기·잎 두 표면과 최대4358삼각형을 허용합니다. SJRPG에서 가져온 형상·UV와 출처를 유지하고 GLB 임포터의 LOD를 사용합니다. [tour_vegetation.gd](../scripts/environment/tour_vegetation.gd)는 생성형 잎·수피 재질을 연결해 공유하며 미터 높이를 적용합니다.
 
-도시 외벽은3스킨, 일반 건물의 정면·측면은2스킨을 지원합니다. [facade_variants.gd](../scripts/environment/facade_variants.gd)가 같은 개체의 앞·옆 스킨을 맞추고 메시와 배치를 공유합니다. 사진은 실제 문·창·간판 위치의 UV에 연결합니다. 이미지 기본 크기는1024~2048px, 반복 재질은 VRAM 압축과 밉맵을 사용합니다.
+도시 외벽은 3스킨, 일반 건물의 정면·측면은 2스킨을 지원합니다. [facade_variants.gd](../scripts/environment/facade_variants.gd)가 같은 개체의 앞·옆 스킨을 맞추고 메시와 배치를 공유합니다. 사진은 실제 문·창·간판 위치의 UV에 연결합니다. 이미지 기본 크기는 1024~2048px, 반복 재질은 VRAM 압축과 밉맵을 사용합니다.
 
 ## 코스 팩
 
-`models/world/track_0`부터 `track_4`까지5개 서킷과 `tour_<stage>_<route>_<side>`43개 투어 진입 변형을 사용합니다. `stage`·`route`는0부터, `side`는0=왼쪽 진입, 1=중립, 2=오른쪽 진입입니다. 첫 지역은 중립 하나이며 이후14개 지역은 세 진입 형상을 갖습니다.
+`models/world/track_0`부터 `track_4`까지5개 서킷과 `tour_<stage>_<route>_<side>`43개 투어 진입 변형을 사용합니다. `stage`·`route`는 0부터, `side`는 0=왼쪽 진입, 1=중립, 2=오른쪽 진입입니다. 첫 지역은 중립 하나이며 이후14개 지역은 세 진입 형상을 갖습니다.
 
 | 파일·자료 | 역할 |
 | --- | --- |
@@ -149,24 +149,24 @@ python3 tools/verify_repository.py
 
 `--prop convenience_store`, `--building city_twin_tower`로 모델을 골라 검사·미리보기 할 수 있습니다. 실척 격자에서 정면·측면·후면, 문·창·타이어·램프의 정렬을 확인합니다. 코스 변경은 실제 주행·분기·붕괴·낙석·복구 회귀 검사와 브라우저 렌더도 확인합니다. 해당 원본·해시 목록·생성물 무결성 기록·GLB·씬·정의·재질·이미지·`.import`·`.uid`·출처를 함께 커밋하고 보고서·캡처는 `build/reports/`에 둡니다. 라이선스와 원본의 출처는 유지합니다. 원본은 실행 참조가 없다는 이유로 정리하지 않습니다.
 
-서울 익스프레스의 숭례문·남산 타워·금빛63타워와 네온 카니발의 유리 회랑은 `models/props/`의 독립 팩입니다. [오프라인 배치 도구](../tools/author_tour_landmarks.gd)가 모든 진입 형상에 동일 거리로 연결합니다. 고가 하부 교대는 노면 위 통과 공간을 유지하고 하부 횡진입만 막습니다. [나무 크기 도구](../tools/vary_world_tree_sizes.py)는 코스 MultiMesh의 위치·공유 GLB를 유지하며180m 구역별 저장 스케일을 바꿉니다. 이미 적용한 파일은 중복 확대하지 않습니다. 날씨·시간대의 현재 적용 범위는 [환경 설정 문서](TRACK_WEATHER.md)를 따릅니다. 서울의63타워는3200m, 남산 타워는3440m에 배치하며 [서울 배치 도구](../tools/refine_seoul_scene.gd)가3진입 변형을 함께 갱신합니다. 숭례문의 전용 석재·기와·단청 UV와 재질은 [팩 출처](../models/props/sungnyemun_gate/SOURCE.md)를 따릅니다.
+서울 익스프레스의 숭례문·남산 타워·금빛63타워와 네온 카니발의 유리 회랑은 `models/props/`의 독립 팩입니다. [오프라인 배치 도구](../tools/author_tour_landmarks.gd)가 모든 진입 형상에 동일 거리로 연결합니다. 고가 하부 교대는 노면 위 통과 공간을 유지하고 하부 횡진입만 막습니다. [나무 크기 도구](../tools/vary_world_tree_sizes.py)는 코스 MultiMesh의 위치·공유 GLB를 유지하며180m 구역별 저장 스케일을 바꿉니다. 이미 적용한 파일은 중복 확대하지 않습니다. 날씨·시간대의 현재 적용 범위는 [환경 설정 문서](TRACK_WEATHER.md)를 따릅니다. 서울의63타워는 3200m, 남산 타워는 3440m에 배치하며 [서울 배치 도구](../tools/refine_seoul_scene.gd)가 3진입 변형을 함께 갱신합니다. 숭례문의 전용 석재·기와·단청 UV와 재질은 [팩 출처](../models/props/sungnyemun_gate/SOURCE.md)를 따릅니다.
 
 [서울 형상 제작 도구](../tools/bake_seoul_landmarks.py)는 기존 원본이 있으면 기본적으로 중단합니다. 의도적인 자체 제작 형상 재생성은 `--replace-generated`로 이전 원본을 SHA-256별 `build/reports/model-backups/`에 먼저 보존합니다. 새 팩의 최초 Godot 임포트 뒤 `--configure-imports`를 실행하고 다시 임포트하면 정점색·유리 투명 재질을 GLB 재질에 연결합니다. 기존 `.import`의 UID와 다른 옵션은 보존합니다.
 
 ## 큰 조립 씬의 분할 준비
 
-투어43진입 변형은 `model.tscn`이 노드 연결 상태와 조립 목록을 소유하고, 같은 팩의 `assembly/resources.tres`가 공유 재질·MultiMesh를, `assembly/part_*.tscn`이24개 이하의 저장 노드를 소유합니다. [분할 도구](../tools/split_world_scene.py)는 기존 조립 씬을 백업하고 부모 경로·이름·좌표·자원 참조를 유지해 분리합니다. GLB나 노면을 수정하지 않습니다. `python3 tools/split_world_scene.py --tour`로 전체 투어를 처리하며 이미 분할한 씬은 다시 분할하지 않습니다.
+투어43진입 변형은 `model.tscn`이 노드 연결 상태와 조립 목록을 소유하고, 같은 팩의 `assembly/resources.tres`가 공유 재질·MultiMesh를, `assembly/part_*.tscn`이 24개 이하의 저장 노드를 소유합니다. [분할 도구](../tools/split_world_scene.py)는 기존 조립 씬을 백업하고 부모 경로·이름·좌표·자원 참조를 유지해 분리합니다. GLB나 노면을 수정하지 않습니다. `python3 tools/split_world_scene.py --tour`로 전체 투어를 처리하며 이미 분할한 씬은 다시 분할하지 않습니다.
 
-`WorldAssets`는 프레임 예산 안에서 작은 씬을 하나씩 원래 부모에 연결한 뒤 메시·상태·물리를 복원합니다. 큰 GLB의 `SceneState` 속성 순회도24노드·0.5ms 단위로 이어 가며 재정의된 메시와 공용 인스턴스 경로를 유지합니다. 기하 바인딩·월드 메타정보 연결은4노드, 저장 상태 디코딩은1노드씩 처리합니다. 저장 씬의 인자 없는 생성자는 기본 투어 프로필을 중복 초기화하지 않으며 트리 밖에서 프로필을 쓸 생성자는 단계를 지정하거나 명시적으로 `WorldAssets.profile()`을 호출합니다. 편집할 때는 해당 노드가 있는 `assembly/part_*.tscn` 또는 공유 자원을 수정하며 원본 GLB는 기존 위치에서 편집합니다. 새 조립 단위를 추가하면 루트의 `assembly_parts`와 프로필 읽기 의존성을 함께 갱신합니다. 충돌 검사·생성기는 모든 조립 파일과 공유 자원의 해시를 포함합니다. 직접 형상을 검사하는 `WorldAssets.geometry()`도 같은 조립 목록을 즉시 복원합니다. 도중 취소는 부분 조립 루트와 미리 읽기를 모두 해제합니다.
+`WorldAssets`는 프레임 예산 안에서 작은 씬을 하나씩 원래 부모에 연결한 뒤 메시·상태·물리를 복원합니다. 큰 GLB의 `SceneState` 속성 순회도 24노드·0.5ms 단위로 이어 가며 재정의된 메시와 공용 인스턴스 경로를 유지합니다. 기하 바인딩·월드 메타정보 연결은 4노드, 저장 상태 디코딩은 1노드씩 처리합니다. 저장 씬의 인자 없는 생성자는 기본 투어 프로필을 중복 초기화하지 않으며 트리 밖에서 프로필을 쓸 생성자는 단계를 지정하거나 명시적으로 `WorldAssets.profile()`을 호출합니다. 편집할 때는 해당 노드가 있는 `assembly/part_*.tscn` 또는 공유 자원을 수정하며 원본 GLB는 기존 위치에서 편집합니다. 새 조립 단위를 추가하면 루트의 `assembly_parts`와 프로필 읽기 의존성을 함께 갱신합니다. 충돌 검사·생성기는 모든 조립 파일과 공유 자원의 해시를 포함합니다. 직접 형상을 검사하는 `WorldAssets.geometry()`도 같은 조립 목록을 즉시 복원합니다. 도중 취소는 부분 조립 루트와 미리 읽기를 모두 해제합니다.
 
 
 ## 투어 진입 연결부와 서울 랜드마크
 
-투어의 `RouteLibrary.ENTRY_RUNUP` 기본값은0으로 지역 앞의 추가 직진 연결부를 사용하지 않습니다. [프로필 제작 도구](../tools/author_tour_entry.gd)는0일 때 조립 씬에 보존된 원래 곡선을 복구하고, 이전에 늘어난 거리만큼 기믹·터널·프로필 의존성을 되돌립니다. 같은 명령을 다시 실행해도 거리를 다시 빼지 않습니다. [공용 GLB 진입부](../models/shared/tour_entry/SOURCE.md)의 편집 원본은 보존하며 현행 프로필에서는 읽지 않습니다. `inventory.json`의 `source_only`에 남겨 원본 해시·존재 검사를 유지하고 사용하지 않는 배포용 씬·GLB·재질은 제거합니다.
+투어의 `RouteLibrary.ENTRY_RUNUP` 기본값은 0으로 지역 앞의 추가 직진 연결부를 사용하지 않습니다. [프로필 제작 도구](../tools/author_tour_entry.gd)는 0일 때 조립 씬에 보존된 원래 곡선을 복구하고, 이전에 늘어난 거리만큼 기믹·터널·프로필 의존성을 되돌립니다. 같은 명령을 다시 실행해도 거리를 다시 빼지 않습니다. [공용 GLB 진입부](../models/shared/tour_entry/SOURCE.md)의 편집 원본은 보존하며 현행 프로필에서는 읽지 않습니다. `inventory.json`의 `source_only`에 남겨 원본 해시·존재 검사를 유지하고 사용하지 않는 배포용 씬·GLB·재질은 제거합니다.
 
 연결부를 다시 저작할 경우 `entry_buffer_length`, `entry_content_transform`, `entry_scene_path`로 원래 콘텐츠와 진입 길이를 구분합니다. 기존 world GLB와 조립 씬의 좌표·거리는 원래 콘텐츠 기준을 보존하며, 프로필 도구는 기존 오프셋과 새 길이의 차이만 적용합니다. 중심선·길이를 변경하면 곡률 표와 충돌 캐시를 재생성합니다. 원래 콘텐츠 거리로 배치하는 도구는 `WorldAssets.source_pose()`를 사용합니다. 노면은 배치 전 곡선을 샘플링한 뒤 월드 변환을 적용해 먼 좌표의 재베이크 누적 오차를 피합니다. 투어 기록·고스트는 현행 중심선의 `tour_routes_v3` 키로 구분하며 차량 해금·투어 여권은 유지합니다.
 
-숭례문은 [전용 모델 팩](../models/props/sungnyemun_gate/SOURCE.md)에64×49×24m의 중층 지붕·홍예·단청을 보관합니다. 서울의 콘텐츠 거리620m에 놓이며 현재 추가 연결부가 없어 실제 주행 거리도620m입니다. 남산타워는 콘텐츠3440m·우측330m,63빌딩은3200m·좌측300m에 배치합니다. 서울만 카메라 원경을3000m로 늘리고 모델별 가시거리 제한은 유지합니다. 사용자가 폐기를 요청한 롯데 모티브 `seoul_sky_tower`는 원본·배포 팩·참조·원본 목록에서 함께 제거했습니다. 그 외 편집 원본은 계속 보존합니다.
+숭례문은 [전용 모델 팩](../models/props/sungnyemun_gate/SOURCE.md)에 64×49×24m의 중층 지붕·홍예·단청을 보관합니다. 서울의 콘텐츠 거리620m에 놓이며 현재 추가 연결부가 없어 실제 주행 거리도 620m입니다. 남산타워는 콘텐츠3440m·우측330m,63빌딩은 3200m·좌측300m에 배치합니다. 서울만 카메라 원경을 3000m로 늘리고 모델별 가시거리 제한은 유지합니다. 사용자가 폐기를 요청한 롯데 모티브 `seoul_sky_tower`는 원본·배포 팩·참조·원본 목록에서 함께 제거했습니다. 그 외 편집 원본은 계속 보존합니다.
 
 야간 가로등·광고 투광등은 [오프라인 제작 도구](../tools/author_night_fixtures.py)의 GLB 원본을 최적화해 사용합니다. [코스 배치 도구](../tools/author_course_lighting.gd)가 코스별 `night_lighting.tscn`과 실제 노면 조명 위치 조회 텍스처를 만듭니다. 형상과 배치는 정적 자료이며 런타임은 제한된 실제 광원 풀과 발광 파라미터만 갱신합니다.
 

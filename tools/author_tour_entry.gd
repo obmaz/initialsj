@@ -47,7 +47,7 @@ func shift_profile(data: Dictionary, offset: float) -> void:
 			data[field][i] += Vector2.ONE * offset
 
 
-# 기본 진입 길이가0이면 원래 씬의 중심선으로 복구한다. 편집 원본·GLB는 건드리지 않는다.
+# 기본 진입 길이가 0이면 원래 씬의 중심선으로 복구한다. 편집 원본·GLB는 건드리지 않는다.
 func restore(profile: Resource, saved: Dictionary, path: String) -> void:
 	var offset: float = profile.get_meta("entry_buffer_length", 0.0)
 	if offset <= 0:

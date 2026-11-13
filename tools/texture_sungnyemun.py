@@ -25,7 +25,7 @@ def main():
             colors = list(struct.iter_unpack('<4f', accessor(doc, raw, attrs['COLOR_0'])[0]))
             uv, regions = [], []
             for (x, y, z), normal, color in zip(positions, normals, colors):
-                # UV0는 미터 단위 반복 좌표, UV1.x는0=석재·1=기와·2=단청이다.
+                # UV0는 미터 단위 반복 좌표, UV1.x는 0=석재·1=기와·2=단청이다.
                 stone = abs(color[0] - color[1]) < .09 and color[0] > .3
                 tile = color[0] < .15
                 kind = 0 if stone else (1 if tile else 2)

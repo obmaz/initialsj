@@ -4,6 +4,8 @@
 
 GDScript는 [gdformatrc](../gdformatrc)를 기준으로 `gdtoolkit==4.5.0`의 `gdformat`을 사용합니다. 탭 들여쓰기·120자 줄 길이·공백·여러 줄 배열과 사전 표기를 자동으로 맞춥니다. 포맷터의 구문 트리·주석 보존 검사를 켜고, 포맷 변경은 기능 변경과 별도 커밋으로 만듭니다. 엔진 전용 `.tscn`·`.tres`·`.import`는 Godot이 저장한 형식을 유지합니다.
 
+GDScript와 Python의 줄 길이는 120자를 목표로 합니다. 긴 조건·주석은 의미 단위로 나누고 생성용 문자열을 분리할 때는 연결한 값이 같은지 확인합니다. 포맷터가 분리하지 않는 번역 키·리소스 경로·생성용 데이터 리터럴은 값과 연결 관계를 보존하기 위해 초과를 허용합니다.
+
 ```sh
 python3 -m venv build/dev-venv
 build/dev-venv/bin/python -m pip install -r tools/requirements-dev.txt
@@ -11,7 +13,7 @@ build/dev-venv/bin/gdformat scripts models addons tests tools
 build/dev-venv/bin/gdformat --check scripts models addons tests tools
 ```
 
-파일·함수·멤버는 `snake_case`, 상수는 `UPPER_SNAKE_CASE`, 스크립트를 가리키는 지역 상수는 `RaceState`처럼 역할을 드러내는 이름을 씁니다. 외부 API·셰이더 유니폼·공통 APK JSON 필드는 해당 계약의 이름을 유지합니다. Python은4칸, JavaScript·JSON·YAML은2칸 들여쓰기를 사용하며 편집기 공통 설정은 [.editorconfig](../.editorconfig)에 있습니다.
+파일·함수·멤버는 `snake_case`, 상수는 `UPPER_SNAKE_CASE`, 스크립트를 가리키는 지역 상수는 `RaceState`처럼 역할을 드러내는 이름을 씁니다. 외부 API·셰이더 유니폼·공통 APK JSON 필드는 해당 계약의 이름을 유지합니다. Python은 4칸, JavaScript·JSON·YAML은 2칸 들여쓰기를 사용하며 편집기 공통 설정은 [.editorconfig](../.editorconfig)에 있습니다.
 
 직접 관리하는 UI 이미지도 `snake_case`로 이름을 붙이고 기능별 폴더로 나눕니다. `tuning_theme.gd`·`loading_overlay.gd`처럼 파일명에는 실제 역할을 적습니다. 글꼴·외부 에셋의 원래 이름과 모델 팩의 기존 ID는 출처·연결 계약을 따릅니다.
 
@@ -54,6 +56,8 @@ UI 이미지의 정본은 `assets/ui/` 아래 `branding/`(아이콘·로고), `b
 GLB 모델 로더와 연결 계약은 [models/shared/](../models/shared/), 공유 메시·미리 읽기·해제는 [render_resources.gd](../scripts/rendering/render_resources.gd)에 둡니다. 메시의 축·원점·UV, 재질·충돌층·캐시 소유권이 다르면 이름만 비슷하다고 합치지 않습니다. 예를 들어 구조물의 보와 놀이기구의 원통은 서로 다른 길이 축을 사용합니다.
 
 사용하지 않는 `preload`·셰이더 sampler·바인딩을 제거하고, 다른 런타임 참조가 사라진 리소스만 사이드카와 함께 삭제합니다. 자동 탐색 모델 팩, 출처·라이선스, 이전 서비스 워커 해제 파일은 일반적인 문자열 참조 수만 보고 지우지 않습니다.
+
+스크립트 상수는 `class_name` 없이도 스크립트 리소스나 인스턴스를 통해 외부에서 접근할 수 있습니다. 선언 파일의 참조 횟수와 함께 다른 스크립트·씬·메타데이터의 접근도 확인합니다. 예를 들어 `hud.AppVersion`은 메뉴 조립기가 사용하는 공개 연결점입니다.
 
 ## 주석·문서·검사
 

@@ -62,7 +62,10 @@ func run(tree: SceneTree) -> int:
 	var right := Vector3.RIGHT
 	check(
 		race.collision_camera_offset(forward, right).length() <= 1.3,
-		"Collision recoil must stay within a bounded camera displacement (hard hits punch the camera, but never leave the car)"
+		(
+			"Collision recoil must stay within a bounded camera displacement (hard hits punch the"
+			+ " camera, but never leave the car)"
+		)
 	)
 	race.impact_age = 0.43
 	check(

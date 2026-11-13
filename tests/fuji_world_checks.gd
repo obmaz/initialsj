@@ -321,7 +321,16 @@ func ramp_regressions(tree: SceneTree, race: Node3D) -> Array:
 			await quiet_race(tree, race)
 			var session: Node3D = race.world_race
 			var body: CharacterBody3D = session.player_body
-			var lead_pad: Dictionary = race.track.active.features.filter(func(f): return f.kind == "boost" and f.distance < ramp.distance and ramp.distance - f.distance < 120 and absf(f.lane - ramp.lane) < 1)[0]
+			var lead_pads: Array = race.track.active.features.filter(
+				func(f):
+					return (
+						f.kind == "boost"
+						and f.distance < ramp.distance
+						and ramp.distance - f.distance < 120
+						and absf(f.lane - ramp.lane) < 1
+					)
+			)
+			var lead_pad: Dictionary = lead_pads[0]
 			session.teleport(0, lead_pad.distance - 35, ramp.lane)
 			await tree.physics_frame
 			seed_speed(race, race.vehicle.max_speed)
@@ -483,7 +492,10 @@ func run(tree: SceneTree) -> int:
 	race.queue_free()
 	await tree.process_frame
 	print(
-		"Fuji real world driving / deck contacts / independent telemetry / pause / reverse / shoulders / traffic / recovery: ",
+		(
+			"Fuji real world driving / deck contacts / independent telemetry / pause / reverse / "
+			+ "shoulders / traffic / recovery: "
+		),
 		"PASS" if failures == 0 else "FAIL"
 	)
 	return failures

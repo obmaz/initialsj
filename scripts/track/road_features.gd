@@ -1,6 +1,4 @@
 extends RefCounted
-const PAD_SHADER = preload("res://shaders/boost_pad.gdshader")
-const WATER_SHADER = preload("res://shaders/road_puddle.gdshader")
 const Library = preload("res://scripts/track/route_library.gd")
 
 # Each region leans on different devices so every route has its own feel. Extra counts are added

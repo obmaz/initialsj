@@ -148,7 +148,7 @@ func start_fall(plan: Dictionary) -> void:
 		if scenic:
 			lane = float(plan.side) * (section.half_width(d) + section.rail_setback(d, plan.side) + 5.5 + (i % 3) * 2.4)
 		var size := Vector3(rng.randf_range(1.4, 1.9), rng.randf_range(1.1, 1.7), rng.randf_range(1.7, 2.2))
-		# 도로에 남는9개의 치수는 유지한다. 큰 낙하 조각은 추가분과 도로 밖 연출로 제한한다.
+		# 도로에 남는 9개의 치수는 유지한다. 큰 낙하 조각은 추가분과 도로 밖 연출로 제한한다.
 		if scenic:
 			size *= 1.6
 		elif i >= ROAD_REMAINS:
@@ -219,7 +219,7 @@ func advance(delta: float, distance: float, lap: int, speed: float = 70) -> void
 			var rotation_at := Vector3(t * (.3 + i * .21), t * i * .43, t * .8 * float(plan.side))
 			var pose := Transform3D(Basis.from_euler(rotation_at).scaled_local(plan.sizes[i]), position_at)
 			plan.poses[i] = pose
-			# 도로 안의 추가 낙하는 착지하면서 사라진다. 남는9개만 충돌체를 가진다.
+			# 도로 안의 추가 낙하는 착지하면서 사라진다. 남는 9개만 충돌체를 가진다.
 			if not scenic and i >= ROAD_REMAINS and t >= 1:
 				pose.basis = Basis.IDENTITY.scaled(Vector3.ZERO)
 			plan.batch.multimesh.set_instance_transform(i, pose)

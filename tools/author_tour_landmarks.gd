@@ -75,7 +75,10 @@ func run() -> void:
 				blocks.append(transform)
 		if not blocks.is_empty():
 			dependencies.append("res://models/props/skyway_abutment/model.glb")
-			resources += '[ext_resource type="Material" path="res://models/props/skyway_abutment/material.tres" id="abutment_color"]\n'
+			resources += (
+				'[ext_resource type="Material" '
+				+ 'path="res://models/props/skyway_abutment/material.tres" id="abutment_color"]\n'
+			)
 			resources += (
 				'[sub_resource type="MultiMesh" id="SkywayAbutments"]\ntransform_format = 1\ninstance_count = %d\n'
 				% blocks.size()
@@ -88,7 +91,14 @@ func run() -> void:
 					)
 			resources += "buffer = %s\n" % var_to_str(buffer)
 			nodes += (
-				'[node name="SkywayAbutments" type="MultiMeshInstance3D" parent="%s/TourLandmarks"]\nmaterial_override = ExtResource("abutment_color")\nmultimesh = SubResource("SkywayAbutments")\nmetadata/mesh_ref = "res://models/props/skyway_abutment/model.glb#Model/Visual"\nmetadata/world_barrier = true\nmetadata/collision_transforms = %s\n'
+				(
+					'[node name="SkywayAbutments" type="MultiMeshInstance3D" parent="%s/TourLandmarks"]\n'
+					+ 'material_override = ExtResource("abutment_color")\n'
+					+ 'multimesh = SubResource("SkywayAbutments")\n'
+					+ 'metadata/mesh_ref = "res://models/props/skyway_abutment/model.glb#Model/Visual"\n'
+					+ "metadata/world_barrier = true\n"
+					+ "metadata/collision_transforms = %s\n"
+				)
 				% [parent_path, var_to_str(blocks)]
 			)
 		if not nodes.is_empty():

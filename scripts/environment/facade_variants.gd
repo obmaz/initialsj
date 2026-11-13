@@ -8,7 +8,7 @@ const PROP_FRONT := "res://assets/environment/building-front-alternate.png"
 const PROP_SIDE := "res://assets/environment/building-side-alternate.png"
 
 
-# 같은 형상은 목록을 한 번 순환할 때마다 다른 스킨이 된다. 12종과3세트의 배수 중복을 피한다.
+# 같은 형상은 목록을 한 번 순환할 때마다 다른 스킨이 된다. 12종과 3세트의 배수 중복을 피한다.
 static func city_skin(instance: int, model_count: int, route: int) -> int:
 	return posmod(instance / maxi(1, model_count) + instance % maxi(1, model_count) + route, URBAN_COUNT)
 

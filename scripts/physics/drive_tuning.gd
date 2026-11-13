@@ -29,5 +29,5 @@ const LAUNCH_AWAY_SCALE := 0.85
 
 
 static func world_launch_up(road_space_up: float) -> float:
-	# 레일 형상과 차체 피치로 생기는 추가 상승을0.9배 보정한다.
+	# 레일 형상과 차체 피치로 생기는 추가 상승을 0.9배 보정한다.
 	return road_space_up * sqrt(WORLD_GRAVITY / DESIGN_GRAVITY) * 0.9

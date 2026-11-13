@@ -1,6 +1,5 @@
 extends Node3D
 # Solid landmarks can be viewed from any angle, including beside the lake.
-const Props = preload("res://scripts/environment/regional_props_3d.gd")
 const PLACEMENTS := [
 	[0.075, "torii", 1.0, 6.5],
 	[0.205, "bridge", -1.0, 4.0],

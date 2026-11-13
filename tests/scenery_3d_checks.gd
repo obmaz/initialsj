@@ -1,7 +1,6 @@
 extends RefCounted
 const Report = preload("res://tests/report.gd")
 const Props = preload("res://scripts/environment/regional_props_3d.gd")
-const Library = preload("res://scripts/track/route_library.gd")
 var failures := 0
 
 

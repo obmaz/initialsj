@@ -30,7 +30,7 @@ python3 tools/check.py --static
 python3 tools/check.py --engine
 ```
 
-`--static`은 포맷·Python 도구·원본 GLB·생성물·충돌 캐시·참조·문서 링크를 검사합니다. `--engine`은 엔진 버전·임포트·모델 계약·실제 게임 회귀·브라우저 브리지를 검사합니다. Godot가0으로 종료해도 `SCRIPT ERROR:`·`ERROR:`가 있으면 실패합니다. 단계별 제한 시간은15분이며 로그는 `build/reports/checks/`에 남습니다.
+`--static`은 포맷·Python 도구·원본 GLB·생성물·충돌 캐시·참조·문서 링크를 검사합니다. `--engine`은 엔진 버전·임포트·모델 계약·실제 게임 회귀·브라우저 브리지를 검사합니다. Godot가 0으로 종료해도 `SCRIPT ERROR:`·`ERROR:`가 있으면 실패합니다. 단계별 제한 시간은 15분이며 로그는 `build/reports/checks/`에 남습니다.
 
 포맷터는 `INITIALSJ_GDFORMAT_BIN`, 로컬 가상환경, `PATH` 순서로 찾습니다. 로컬 실행 파일은 Windows의 `build/dev-venv/Scripts/gdformat.exe`, 그 외 환경의 `build/dev-venv/bin/gdformat`입니다. 설치 버전은 [코딩 규칙](CODING_STYLE.md#포맷과-이름)을 따릅니다. 렌더·입력 변경의 실제 브라우저 검사는 아래 [선택 검사](#선택-검사와-산출물)를 함께 수행합니다. CI를 새 코드의 첫 실행·진단 장소로 사용하지 않습니다.
 

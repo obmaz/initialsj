@@ -1,5 +1,4 @@
 extends RefCounted
-const Motor = preload("res://scripts/physics/world_car.gd")
 const Recovery = preload("res://scripts/race/recovery_state.gd")
 var failures := 0
 

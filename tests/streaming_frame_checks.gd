@@ -1,7 +1,6 @@
 extends RefCounted
 const Section = preload("res://scripts/track/road_section.gd")
 const Collision = preload("res://scripts/physics/world_collision.gd")
-const Assets = preload("res://scripts/rendering/world_assets.gd")
 const Pool = preload("res://scripts/rendering/render_resources.gd")
 const Warmup = preload("res://scripts/rendering/material_warmup.gd")
 const Retirement = preload("res://scripts/rendering/scene_retirement.gd")

@@ -21,7 +21,7 @@ static func grid_lane(slot: int) -> float:
 static func begin(race: Node3D) -> void:
 	race.countdown = DURATION
 	for i in range(race.world_race.bodies.size()):
-		# 선두를0으로 세어 플레이어를9번 칸에 두고 상대 차량은 나머지 칸을 앞에서부터 채운다.
+		# 선두를 0으로 세어 플레이어를 9번 칸에 두고 상대 차량은 나머지 칸을 앞에서부터 채운다.
 		var slot := PLAYER_SLOT if i == 0 else (i - 1 if i <= PLAYER_SLOT else i)
 		var lane := grid_lane(slot)
 		var d: float = START_LINE - RUNUP + grid_offset(PLAYER_SLOT) - grid_offset(slot)

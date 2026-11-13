@@ -31,7 +31,13 @@ func mm_text(id: String, poses: Array[Transform3D]) -> String:
 
 func fixture_node(name: String, mesh_ref: String) -> String:
 	return (
-		'[node name="%s" type="MultiMeshInstance3D" parent="."]\ncast_shadow = 0\nmaterial_override = SubResource("FixtureMaterial")\nmultimesh = SubResource("%s")\nmetadata/mesh_ref = "%s"\n'
+		(
+			'[node name="%s" type="MultiMeshInstance3D" parent="."]\n'
+			+ "cast_shadow = 0\n"
+			+ 'material_override = SubResource("FixtureMaterial")\n'
+			+ 'multimesh = SubResource("%s")\n'
+			+ 'metadata/mesh_ref = "%s"\n'
+		)
 		% [name, name, mesh_ref]
 	)
 
@@ -123,12 +129,24 @@ func run() -> void:
 				for index in range(node.multimesh.instance_count):
 					var pose: Transform3D = node.global_transform * node.multimesh.get_instance_transform(index)
 					ad_anchors.append(light_pose(pose * Vector3(0, 15.5, 1.5), pose * Vector3(0, 11.5, .95)))
-		var text := '[gd_scene format=3]\n[ext_resource type="Script" path="res://scripts/environment/course_lighting.gd" id="controller"]\n[ext_resource type="Shader" path="res://shaders/fixture_lamp.gdshader" id="shader"]\n'
+		var text := (
+			"[gd_scene format=3]\n"
+			+ '[ext_resource type="Script" path="res://scripts/environment/course_lighting.gd" '
+			+ 'id="controller"]\n'
+			+ '[ext_resource type="Shader" path="res://shaders/fixture_lamp.gdshader" id="shader"]\n'
+		)
 		text += '[ext_resource type="Texture2D" path="%sstreet_pools.tres" id="pools"]\n' % folder
 		text += '[sub_resource type="ShaderMaterial" id="FixtureMaterial"]\nshader = ExtResource("shader")\n'
 		text += mm_text("RoadLamps", lamps) + mm_text("AdFloodlights", floods)
 		text += (
-			'[node name="CourseLighting" type="Node3D"]\nscript = ExtResource("controller")\nstreet_spacing = %s\nstreet_pools = ExtResource("pools")\nstreet_lights = %s\nbillboard_lights = %s\n'
+			(
+				'[node name="CourseLighting" type="Node3D"]\n'
+				+ 'script = ExtResource("controller")\n'
+				+ "street_spacing = %s\n"
+				+ 'street_pools = ExtResource("pools")\n'
+				+ "street_lights = %s\n"
+				+ "billboard_lights = %s\n"
+			)
 			% [str(spacing), var_to_str(street_anchors), var_to_str(ad_anchors)]
 		)
 		text += fixture_node("RoadLamps", "res://models/props/road_lamp/model.glb#Model/Visual")

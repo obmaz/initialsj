@@ -1,5 +1,5 @@
 extends RefCounted
-# 메뉴·로딩·네이티브 샵이 같은 안전 영역과1280×720 설계 좌표를 사용한다.
+# 메뉴·로딩·네이티브 샵이 같은 안전 영역과 1280×720 설계 좌표를 사용한다.
 const DESIGN := Vector2(1280, 720)
 const BACK := Rect2(60, 16, 220, 80)
 const TOUCH_HEIGHT := 80.0

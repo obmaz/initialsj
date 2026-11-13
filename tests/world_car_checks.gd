@@ -490,7 +490,10 @@ func run(tree: SceneTree) -> int:
 	scene.queue_free()
 	await tree.process_frame
 	print(
-		"World car / physical sweep / free heading / airborne momentum / banking / reverse / ramp / low steps / corner scrub / rebound / mobile steering / eight-car formation: ",
+		(
+			"World car / physical sweep / free heading / airborne momentum / banking / reverse / "
+			+ "ramp / low steps / corner scrub / rebound / mobile steering / eight-car formation: "
+		),
 		"PASS" if failures == 0 else "FAIL"
 	)
 	return failures

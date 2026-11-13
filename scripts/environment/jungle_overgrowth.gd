@@ -1,7 +1,5 @@
 extends Node3D
 # 도로 형상을 따르는 정글의 덩굴·흙덮개·두꺼운 암석 터널 입구.
-const Props = preload("res://scripts/environment/regional_props_3d.gd")
-const Library = preload("res://scripts/track/route_library.gd")
 const ROCK = "res://assets/environment/jungle-moss-stone.png"
 var scenery: Node3D
 var road: Node3D

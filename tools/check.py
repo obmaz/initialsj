@@ -34,7 +34,7 @@ def run(label, command, *, godot=False, report_dir=REPORTS, timeout=900):
     print(content, end="", flush=True)
     if result.returncode != 0:
         raise CheckFailure(f"{label}: 종료 코드 {result.returncode}. 로그: {path}")
-    # 엔진은 일부 스크립트 오류에도0으로 종료하므로 실제 오류 로그도 실패로 취급한다.
+    # 엔진은 일부 스크립트 오류에도 0으로 종료하므로 실제 오류 로그도 실패로 취급한다.
     if godot and GODOT_ERROR.search(ANSI.sub("", content)):
         raise CheckFailure(f"{label}: Godot 오류가 있습니다. 로그: {path}")
 

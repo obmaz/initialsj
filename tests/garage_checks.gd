@@ -1,6 +1,5 @@
 extends RefCounted
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
-const Library = preload("res://scripts/track/route_library.gd")
 var failures := 0
 var race: Node3D
 var root: Window

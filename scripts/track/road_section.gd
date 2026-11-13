@@ -1,12 +1,8 @@
 extends Node3D
 
-const Features = preload("res://scripts/track/road_features.gd")
-const Scenery = preload("res://scripts/environment/road_biome.gd")
 const Library = preload("res://scripts/track/route_library.gd")
 const ASPHALT = preload("res://assets/environment/asphalt.png")
-const ASPHALT_SHADER = preload("res://shaders/asphalt.gdshader")
 const PAINT_SHADER = preload("res://shaders/road_paint.gdshader")
-const SKID_SHADER = preload("res://shaders/skid_marks.gdshader")
 # Height bias, first-ridge strength, first-ridge end and second-ridge start.
 # Both overlapping raised-cosine ridges finish before the checkpoint approach.
 const TOUR_ELEVATION := {
