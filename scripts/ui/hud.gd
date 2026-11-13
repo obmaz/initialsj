@@ -931,6 +931,8 @@ func draw_nitro_ready(rect: Rect2) -> void:
 	for i in range(count):
 		var angle := TAU * i / count + time * .22
 		var height := 5 + (sin(time * 4 + i * 2.3) + 1) * 5
+		var edge := minf(minf(centre.x, HudLayout.DESIGN.x - centre.x), minf(centre.y, HudLayout.DESIGN.y - centre.y))
+		height = minf(height, maxf(0, edge - radius - 2))
 		var base := centre + Vector2.from_angle(angle) * radius
 		var tangent := Vector2.from_angle(angle + PI * .5) * 4
 		draw_colored_polygon(

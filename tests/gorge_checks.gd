@@ -107,7 +107,8 @@ func run(tree: SceneTree) -> int:
 			)
 			safe = minf(safe, sqrt(cap * cap + 2 * 25 * ahead))
 		var bend: float = absf(race.track.curvature(race.distance + 25))
-		var tap: bool = race.speed > 28 and not race.drifting and bend > 0.002
+		# 완만한 코너부터 진입해 한 번의 깨끗한 슬라이드를 충분히 유지한다.
+		var tap: bool = race.speed > 28 and not race.drifting and bend > 0.0015
 		if race.drifting and bend < 0.0008:
 			tap = true
 		await tree.physics_frame
