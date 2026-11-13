@@ -5,14 +5,14 @@ const assert = require('assert/strict');
 const shell = fs.readFileSync('web/coast-rush-shell.html', 'utf8');
 const start = shell.indexOf('(function () {', shell.indexOf('// Installation'));
 const code = shell.slice(start, shell.indexOf('}());', start) + 5);
-function harness(ua = 'Chrome', standalone = false) {
+function harness(ua = 'Chrome', standalone = false, fullscreen = false) {
   const listeners = {};
   const nodes = {};
   for (const id of ['install-dialog','install-message','install-confirm','install-close']) {
     nodes[id] = {open:false, hidden:true, textContent:'', addEventListener(type, fn) {this[type]=fn;}, showModal(){this.open=true;}, close(){this.open=false;}};
   }
   let prepared = 0;
-  const window = {addEventListener(type,fn){listeners[type]=fn;}, matchMedia(){return {matches:standalone};}};
+  const window = {addEventListener(type,fn){listeners[type]=fn;}, matchMedia(query){return {matches:query.includes('standalone') ? standalone : fullscreen};},initialsjOffline:{prepare(){prepared++;return Promise.resolve();}}};
   const context = {window, navigator:{userAgent:ua,maxTouchPoints:0,serviceWorker:{}}, document:{getElementById:id=>nodes[id]}, engine:{installServiceWorker(){prepared++; return Promise.resolve();}}, GODOT_CONFIG:{serviceWorker:'index.service.worker.js'}};
   vm.runInNewContext(code, context);
   return {window,nodes,listeners,prepared:()=>prepared};
@@ -39,5 +39,8 @@ function harness(ua = 'Chrome', standalone = false) {
   const installed = harness('Chrome',true);
   await installed.window.initialsjInstallGame();
   assert(installed.nodes['install-message'].textContent.includes('이미 앱'));
+  const fullscreen = harness('Chrome', false, true);
+  await fullscreen.window.initialsjInstallGame();
+  assert(fullscreen.nodes['install-message'].textContent.includes('이미 앱'));
   console.log('Install prompt / fallback instructions / standalone / single preparation: PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

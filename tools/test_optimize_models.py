@@ -74,6 +74,16 @@ class ModelPipelineChecks(unittest.TestCase):
         self.assertEqual(before, (self.path.read_bytes(), self.path.stat().st_mtime_ns))
         self.assertEqual(generated, (target.read_bytes(), target.stat().st_mtime_ns))
 
+    def test_root_alias_never_overwrites_original_or_inventory(self):
+        original = self.path.read_bytes()
+        inventory = (self.source / "inventory.json").read_bytes()
+        (self.root / "models").symlink_to(self.source, target_is_directory=True)
+        for accept in (False, True):
+            with self.assertRaisesRegex(ValueError, "모델 루트"):
+                pipeline.run(self.root, accept=accept)
+        self.assertEqual(self.path.read_bytes(), original)
+        self.assertEqual((self.source / "inventory.json").read_bytes(), inventory)
+
     def test_missing_original_is_rejected_even_when_accepting_changes(self):
         self.path.unlink()
         for accept in (False, True):

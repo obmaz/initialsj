@@ -1,0 +1,122 @@
+// 내보내기 플러그인이 실제 파일 목록과 내용 버전을 넣는 서비스 워커 정본.
+'use strict';
+const CONFIG = __INITIALSJ_OFFLINE_CONFIG__;
+const SCOPE = new URL(self.registration.scope);
+const PREFIX = 'initialsj-offline:' + SCOPE.pathname + ':';
+const CACHE = PREFIX + CONFIG.version;
+const FILES = [...CONFIG.coreFiles, ...CONFIG.engineFiles];
+const KEYS = new Set(FILES.map(name => new URL(name, SCOPE).href));
+const INDEX = new URL(CONFIG.index, SCOPE).href;
+const OFFLINE = new URL(CONFIG.offline, SCOPE).href;
+const pending = new Map();
+function isolated(response) {
+  if (!CONFIG.isolation || !response || !response.ok) return response;
+  const headers = new Headers(response.headers);
+  headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+  headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  return new Response(response.body, {status: response.status, statusText: response.statusText, headers});
+}
+function canonical(request) {
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== SCOPE.origin) return null;
+  if (url.pathname === SCOPE.pathname) return INDEX;
+  url.search = ''; url.hash = '';
+  return KEYS.has(url.href) ? url.href : null;
+}
+async function complete(cache) {
+  const results = await Promise.all(FILES.map(name => cache.match(new URL(name, SCOPE).href)));
+  return results.every(response => response && response.ok);
+}
+// 엔진에는 즉시 스트리밍하고 복제 응답을 저장한다. 설치 준비는 저장 완료까지 기다린다.
+async function resource(request, key, event) {
+  let cache;
+  try {
+    cache = await caches.open(CACHE);
+    let cached = await cache.match(key);
+    if (cached && cached.ok) return cached;
+    if (pending.has(key)) {
+      await pending.get(key);
+      cached = await cache.match(key);
+      if (cached && cached.ok) return cached;
+    }
+  } catch (_) { return fetch(request); }
+  let settle;
+  const done = new Promise(resolve => { settle = resolve; });
+  pending.set(key, done);
+  function finish(ok) { if (pending.get(key) === done) pending.delete(key); settle(ok); }
+  try {
+    const response = await fetch(request);
+    if (!response.ok) { finish(false); return response; }
+    const write = cache.put(key, response.clone()).then(() => finish(true), () => finish(false));
+    event.waitUntil(write);
+    return response;
+  } catch (error) { finish(false); throw error; }
+}
+self.addEventListener('install', event => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    // 대용량 본체는 엔진의 첫 요청을 저장하므로 미리 중복 다운로드하지 않는다.
+    await cache.addAll(CONFIG.coreFiles.map(name => new URL(name, SCOPE).href));
+    await self.skipWaiting();
+  })());
+});
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    // 같은 호스트의 다른 앱 캐시에는 관여하지 않는다.
+    for (const name of await caches.keys()) if (name.startsWith(PREFIX) && name !== CACHE) await caches.delete(name);
+    await self.clients.claim();
+  })());
+});
+self.addEventListener('fetch', event => {
+  const key = canonical(event.request);
+  if (!key) return;
+  event.respondWith((async () => {
+    if (event.request.mode === 'navigate') {
+      let cache;
+      try {
+        cache = await caches.open(CACHE);
+        if (await complete(cache)) return resource(event.request, key, event);
+      } catch (_) { return fetch(event.request); }
+      let response;
+      let networkError;
+      try { response = await fetch(event.request); }
+      catch (error) { networkError = error; }
+      if (response && response.ok) return response;
+      try {
+        const fallback = await cache.match(OFFLINE);
+        if (fallback) return fallback;
+      } catch (_) { /* 저장소 읽기 거부도 정상 네트워크 응답을 버리지 않는다. */ }
+      if (response) return response;
+      throw networkError;
+    }
+    return resource(event.request, key, event);
+  })().then(isolated));
+});
+self.addEventListener('message', event => {
+  const port = event.ports && event.ports[0];
+  if (!port || event.origin !== SCOPE.origin || !event.source || !event.source.id) return;
+  if (event.data && event.data.type === 'initialsj-version') {
+    port.postMessage({ok: true, version: CONFIG.version});
+    return;
+  }
+  if (!event.data || event.data.type !== 'initialsj-ensure-offline') return;
+  event.waitUntil((async () => {
+    try {
+      const client = await self.clients.get(event.source.id);
+      if (!client || !client.url.startsWith(SCOPE.href)) throw new Error('Invalid game client');
+      const cache = await caches.open(CACHE);
+      for (const name of FILES) {
+        const key = new URL(name, SCOPE).href;
+        if (pending.has(key)) await pending.get(key);
+        const cached = await cache.match(key);
+        if (cached && cached.ok) continue;
+        const response = await resource(new Request(key, {cache: 'reload'}), key, event);
+        if (!response.ok) throw new Error('Cannot download ' + name + ': HTTP ' + response.status);
+        if (pending.has(key)) await pending.get(key);
+        if (!(await cache.match(key))?.ok) throw new Error('Offline storage is unavailable or full');
+      }
+      if (!(await complete(cache))) throw new Error('Offline download is incomplete');
+      port.postMessage({ok: true, version: CONFIG.version});
+    } catch (error) { port.postMessage({ok: false, error: String(error.message || error)}); }
+  })());
+});

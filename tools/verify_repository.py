@@ -8,8 +8,8 @@ from urllib.parse import unquote
 ROOT = Path(__file__).resolve().parents[1]
 RESOURCE = re.compile(r'''["']res://([^"'\n]+)["']''')
 LINK = re.compile(r'!?\[[^\]]*\]\(\s*(<[^>\n]+>|[^\s)]+)(?:\s+"[^"]*")?\s*\)')
-# 이전 워커 주소로도 제공해야 하는 호환 리소스입니다.
-ROOTS = ("project.godot", "export_presets.cfg", "web/retire-flutter-worker.js")
+# 런타임·내보내기 진입점과 이전 워커 주소로 제공할 호환 리소스다.
+ROOTS = ("project.godot", "export_presets.cfg", "web/retire-flutter-worker.js", "addons/app_version/version_export.gd")
 MODEL_DIRECTORIES = {"models/props", "models/vehicles", "models/buildings", "models/vegetation", "models/vehicle_parts"}
 UID_SOURCES = {".gd", ".gdshader", ".gdshaderinc"}
 IMPORTED_SOURCES = {".png", ".webp", ".svg", ".wav", ".ogg", ".ttf", ".obj", ".glb"}
@@ -47,8 +47,8 @@ def live_resources():
             continue
         reached.add(name)
         path = ROOT / name
-        # 공간 셰이더 준비용 열거 경로다. 폴더만 허용하고 미사용 셰이더를 참조된 것으로 만들지 않는다.
-        if name.rstrip("/") == "shaders" and path.is_dir():
+        # 열거·내보내기 제외 조건의 경로 접두부다. 폴더 전체를 도달한 파일로 만들지는 않는다.
+        if name in ("shaders/", "shaders", "addons/app_version/") and path.is_dir():
             continue
         if name.rstrip("/") == "models/world" and path.is_dir():
             pending.extend(p.relative_to(ROOT).as_posix() for pattern in ("*/model.tscn", "*/profile.tres", "*/collision.res") for p in path.glob(pattern))

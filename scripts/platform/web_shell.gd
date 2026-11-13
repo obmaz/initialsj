@@ -1,6 +1,7 @@
 extends RefCounted
 # 브라우저·창 셸과의 연결: 전체화면, 뒤로 가기, 화면 방향. 화면 전환 규칙은 race.gd가 결정한다.
 const RaceState = preload("res://scripts/race/race_state.gd")
+var diagnostics: RefCounted
 var race: Node3D
 var portrait := false
 var orientation_callback: JavaScriptObject
@@ -22,6 +23,8 @@ func _init(owner: Node3D) -> void:
 func attach() -> void:
 	if not OS.has_feature("web"):
 		return
+	diagnostics = preload("res://scripts/platform/web_diagnostics.gd").new(race)
+	diagnostics.attach()
 	orientation_callback = JavaScriptBridge.create_callback(on_orientation)
 	JavaScriptBridge.get_interface("window").initialsjObserveOrientation(orientation_callback)
 	back_callback = JavaScriptBridge.create_callback(on_back)
@@ -31,6 +34,9 @@ func attach() -> void:
 
 
 func detach() -> void:
+	if diagnostics != null:
+		diagnostics.detach()
+		diagnostics = null
 	hide_control()
 	if not OS.has_feature("web"):
 		return

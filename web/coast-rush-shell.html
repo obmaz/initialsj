@@ -175,30 +175,47 @@ const GODOT_CONFIG = $GODOT_CONFIG;
 const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 const engine = new Engine(GODOT_CONFIG);
 
-// Installation is user-triggered. Preparing the offline cache happens in the
-// settings screen, so it does not compete with racing for CPU or disk access.
+window.INITIALSJ_OFFLINE_VERSION = "<!--offline-version-->";
+/*offline-bridge*/
+
+// Installation
+// 설치는 사용자 클릭으로 시작하고, 준비 완료는 실제 본체 캐시 저장을 확인한다.
 (function () {
   let pendingPrompt = null;
   let preparation = null;
+  let offlineReady = false;
+  let preparationError = "";
   const dialog = document.getElementById('install-dialog');
   const message = document.getElementById('install-message');
   const confirm = document.getElementById('install-confirm');
-  function standalone() { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; }
+  function standalone() { return window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true; }
   window.addEventListener('beforeinstallprompt', function (event) {
     event.preventDefault(); pendingPrompt = event;
-    if (dialog.open) { confirm.hidden = false; message.textContent = '준비가 끝났습니다. 설치 버튼을 눌러 게임을 앱으로 추가하세요.'; }
+    if (dialog.open) help();
   });
   window.addEventListener('appinstalled', function () { pendingPrompt = null; confirm.hidden = true; message.textContent = '게임이 설치되었습니다.'; });
   window.initialsjPrepareInstall = function () {
     if (!preparation && 'serviceWorker' in navigator && GODOT_CONFIG.serviceWorker) {
-      preparation = engine.installServiceWorker().catch(function () { preparation = null; return null; });
+      preparationError = '';
+      preparation = window.initialsjOffline.prepare().then(function () {
+        offlineReady = true;
+        if (dialog.open) help();
+        return true;
+      }).catch(function (error) {
+        preparation = null;
+        preparationError = '오프라인 준비 실패: ' + String(error.message || error);
+        if (dialog.open) help();
+        return false;
+      });
     }
     return preparation;
   };
   function help() {
-    confirm.hidden = !pendingPrompt || standalone();
+    confirm.hidden = !pendingPrompt || standalone() || !offlineReady;
     const ua = navigator.userAgent;
     if (standalone()) message.textContent = '이미 앱으로 설치된 게임입니다.';
+    else if (preparationError) message.textContent = preparationError;
+    else if (pendingPrompt && !offlineReady) message.textContent = '오프라인 실행 파일을 준비하고 있습니다. 완료 후 설치 버튼을 눌러주세요.';
     else if (pendingPrompt) message.textContent = '설치 버튼을 눌러 INITIAL SJ를 앱으로 추가하세요.';
     else if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) message.textContent = 'Safari의 공유 버튼을 누르고 ‘홈 화면에 추가’를 선택하세요.';
     else if (/Firefox/.test(ua)) message.textContent = '이 브라우저는 앱 설치를 지원하지 않습니다. Chrome 또는 Edge에서 같은 게임 주소를 열고 설치하세요.';
@@ -208,7 +225,7 @@ const engine = new Engine(GODOT_CONFIG);
   }
   window.initialsjInstallGame = async function () {
     window.initialsjPrepareInstall();
-    if (!pendingPrompt || standalone()) { help(); return; }
+    if (!pendingPrompt || standalone() || !offlineReady) { help(); return; }
     const prompt = pendingPrompt; pendingPrompt = null;
     try {
       await prompt.prompt();
@@ -502,44 +519,14 @@ const engine = new Engine(GODOT_CONFIG);
 		window.removeEventListener('unhandledrejection', onStartupRejection);
 	}
 
-	const missing = Engine.getMissingFeatures({
-		threads: GODOT_THREADS_ENABLED,
-	});
-
-	if (missing.length !== 0) {
-		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
-			let serviceWorkerRegistrationPromise;
-			try {
-				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
-			} catch (err) {
-				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
-			}
-			// There's a chance that installing the service worker would fix the issue
-			Promise.race([
-				serviceWorkerRegistrationPromise.then((registration) => {
-					if (registration != null) {
-						return Promise.reject(new Error('Service worker already exists.'));
-					}
-					return registration;
-				}).then(() => engine.installServiceWorker()),
-				// For some reason, `getRegistration()` can stall
-				new Promise((resolve) => {
-					setTimeout(() => resolve(), 2000);
-				}),
-			]).then(() => {
-				// Reload if there was no error.
-				window.location.reload();
-			}).catch((err) => {
-				console.error('Error while registering service worker:', err);
-			});
-		} else {
-			// Display the message as usual
-			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
-			displayFailureNotice(missingMsg + missing.join('\n'));
-		}
-	} else {
-		setStatusMode('progress');
-		engine.startGame({
+	setStatusMode('progress');
+	(async function () {
+		// 워커 저장소가 제한돼도 온라인 게임은 실행하고 설치 시 실패 원인을 알린다.
+		try { await window.initialsjOffline.control(); }
+		catch (error) { console.warn('Offline cache unavailable:', error); }
+		const missing = Engine.getMissingFeatures({threads: GODOT_THREADS_ENABLED});
+		if (missing.length) throw new Error('Error\nThe following features required to run Godot projects on the Web are missing:\n' + missing.join('\n'));
+		const starting = engine.startGame({
 			'onProgress': function (current, total) {
 				if (current > 0 && total > 0) {
 					statusProgress.value = current;
@@ -554,8 +541,11 @@ const engine = new Engine(GODOT_CONFIG);
 					loadingLabel.textContent = 'LOADING YOUR NEXT DRIVE';
 				}
 			},
-		}).then(engineDone, displayFailureNotice);
-	}
+		});
+		window.initialsjOffline.gameStarting(starting);
+		await starting;
+		engineDone();
+	}()).catch(displayFailureNotice);
 }());
 		</script>
 	</body>

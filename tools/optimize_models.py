@@ -21,6 +21,14 @@ def encoded(value):
     return (json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode()
 
 
+def validate_roots(root):
+    canonical = root.resolve()
+    for name in ("models", "model_sources"):
+        path = root / name
+        if path.is_symlink() or path.resolve() != canonical / name:
+            raise ValueError("모델 루트의 심볼릭 링크·별칭 금지: " + name)
+
+
 def source_path(root, name):
     base = (root / "model_sources").resolve()
     path = base / name
@@ -145,6 +153,7 @@ def state(root, records, recipe, outputs, source_only=()):
 
 
 def run(root=ROOT, check=False, accept=False):
+    validate_roots(root)
     records, recipe, source_only = inputs(root, accept)
     stamp_path = root / "models/shared/world_vegetation/generated.json"
     if check:

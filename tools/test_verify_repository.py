@@ -16,7 +16,7 @@ class RepositoryChecks(unittest.TestCase):
         self.patch.start()
         self.addCleanup(self.patch.stop)
         verify.errors.clear()
-        for name in ("README.md", "AGENTS.md", "CLAUDE.md", "GEMINI.md"):
+        for name in ("README.md", "AGENTS.md", "CLAUDE.md", "GEMINI.md", "addons/app_version/version_export.gd"):
             self.write(name, "")
 
     def write(self, name, source):

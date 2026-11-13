@@ -49,6 +49,7 @@ jobs:
           touch build/site/.nojekyll
       - name: Verify root deployment
         run: |
+          python3 tools/verify_web_export.py build/site/index.html
           test -f build/site/index.html
           test -f build/site/index.wasm
           test -f build/site/index.pck

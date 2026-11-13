@@ -68,6 +68,7 @@ python3 tools/optimize_models.py --check
 ./tools/setup_env.sh --templates web
 mkdir -p build/site
 ./tools/godot --headless --path . --export-release Web build/site/index.html
+python3 tools/verify_web_export.py build/site/index.html
 cp web/retire-flutter-worker.js build/site/flutter_service_worker.js
 touch build/site/.nojekyll
 ```
@@ -83,3 +84,11 @@ Web 프리셋은 단일 스레드·가로 PWA이며 PC용 S3TC와 모바일용 E
 대상 없는 “배포”는 Dropbox APK 전달이며, 웹은 명시 요청 시에만 `deploy-pages`를 workflow_dispatch로 실행합니다. 수동 웹 배포도 같은 공통 검사를 통과한 뒤 내보내기·게시합니다. 두 워크플로 모두 `setup_env.sh`로 환경을 준비합니다. main 푸시는 웹을 자동 게시하지 않습니다. 빌드와 게시 단계의 성공을 각각 확인하고 배포된 커밋·아티팩트를 대조합니다. 공개 URL 접근이 가능하면 앱 버전 또는 `index.pck`의 새 리소스 경로까지 확인합니다. 네트워크 제한 등으로 직접 접속하지 못한 경우 확인 범위를 보고합니다.
 
 Android와 Dropbox 전달은 [ANDROID.md](ANDROID.md)와 [APK 스킬](../.agents/skills/dropbox-apk/SKILL.md)을 따릅니다. 일반 개발·검사·웹 배포에 APK 빌드를 추가하지 않습니다.
+
+## 웹 오프라인·터치 확인
+
+웹 내보내기는 [버전 플러그인](../addons/app_version/version_export.gd)이 [워커 정본](../web/offline_worker.js.in)과 [연결 코드](../web/offline_bridge.js)에서 실제 파일 목록·내용 해시가 같은 셸과 워커를 생성합니다. 첫 엔진 다운로드 전에 현재 워커의 제어를 확인해 WASM/PCK 요청을 한 번만 저장합니다. 설치 준비는 등록 완료가 아니라 본체 저장 완료를 확인하며 실패 응답은 캐시하지 않습니다. 공개 디렉터리 주소와 `index.html` 모두 오프라인 진입을 지원합니다. 저장소가 제한된 브라우저에서는 온라인 게임을 실행하고 설치 요청 시 오류를 안내합니다.
+
+`python3 tools/verify_web_export.py build/site/index.html`은 기본 엔진 워커가 실수로 남거나 셸·워커 버전이 어긋난 산출물을 거부합니다. 수동 Pages 배포도 이 검사를 실행하며 자동 배포 범위는 바뀌지 않습니다.
+
+실제 브라우저 터치 검사는 `INITIALSJ_TEST_URL=http://127.0.0.1:8787/ node tests/touch_checks.cjs`로 실행합니다. 하네스가 붙이는 `?diagnostics=1`에서만 [읽기 전용 진단](../scripts/platform/web_diagnostics.gd)을 연결합니다. 메뉴·선택·속도·페달·니트로·일시정지 상태를 관찰하며 상태 변경은 실제 터치로만 수행합니다. 일반 실행 URL에는 진단 API를 등록하지 않고 씬 종료 때 콜백을 해제합니다. 이 무거운 브라우저 검사는 선택 검사로 유지하며 push CI에 추가하지 않습니다.
