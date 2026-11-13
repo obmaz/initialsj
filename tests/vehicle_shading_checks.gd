@@ -19,6 +19,7 @@ func run(tree: SceneTree) -> int:
 	var a := Store.defaults(0)
 	var b := Store.defaults(1)
 	a.shading = 0
+	b.shading = 1
 	b.toon_strength = 100
 	Custom.apply(normal, a, 0)
 	Custom.apply(toon, b, 1)
@@ -67,7 +68,7 @@ func run(tree: SceneTree) -> int:
 	)
 	check(
 		(
-			Store.sanitize({"shading": "bad", "toon_strength": -10}, 0).shading == 1
+			Store.sanitize({"shading": "bad", "toon_strength": -10}, 0).shading == 0
 			and Store.sanitize({"toon_strength": -10}, 0).toon_strength == 0
 		),
 		"손상된 스타일은 기본값, 강도는 범위 안으로 복구한다"

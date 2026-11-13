@@ -2,8 +2,6 @@ extends RefCounted
 # 자유 배치 대신 겹치지 않는 검증된 프리셋을 제공한다. 설계 좌표는 1280×720이다.
 const SIZES := [.9, 1.0, 1.08]
 const BASE := {
-	"left": Rect2(28, 566, 136, 136),
-	"right": Rect2(184, 566, 136, 136),
 	"drift": Rect2(964, 408, 136, 136),
 	"cell": Rect2(840, 430, 108, 108),
 	"nitro": Rect2(1124, 408, 136, 136),
@@ -45,8 +43,6 @@ func rectangles(auto_accelerate: bool) -> Dictionary:
 			continue
 		var rect: Rect2 = BASE[action]
 		if mirrored:
-			if action in ["left", "right"]:
-				rect = BASE["right" if action == "left" else "left"]
 			rect.position.x = 1280 - rect.end.x
 		var size: Vector2 = (rect.size * SIZES[size_index]).max(Vector2(96, 96))
 		cached[action] = Rect2(rect.get_center() - size * .5, size)

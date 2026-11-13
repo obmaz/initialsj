@@ -31,6 +31,6 @@ void fragment() {
 void light() {
 	float ndotl = dot(NORMAL, LIGHT);
 	float ndoth = max(dot(NORMAL, normalize(VIEW + LIGHT)), 0.);
-	DIFFUSE_LIGHT += LIGHT_COLOR * ALBEDO * vehicle_diffuse(ndotl) * ATTENUATION;
+	DIFFUSE_LIGHT += LIGHT_COLOR * vehicle_diffuse(ndotl) * ATTENUATION;
 	SPECULAR_LIGHT += LIGHT_COLOR * vehicle_specular(ndoth, ROUGHNESS) * ATTENUATION;
 }

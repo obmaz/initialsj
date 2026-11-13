@@ -18,3 +18,11 @@ static func project_map(point: Vector2, bounds: Rect2) -> Vector2:
 	var extent := maxf((bounds.size * .5).length(), 1)
 	var offset := (point - bounds.get_center()) * (MAP_RADIUS / extent)
 	return MINIMAP.get_center() + offset.limit_length(MAP_RADIUS)
+
+
+static func steering_zone(mirrored: bool) -> Rect2:
+	return Rect2(936 if mirrored else 84, 464, 260, 178)
+
+
+static func steering_rest(mirrored: bool) -> Vector2:
+	return Vector2(1116 if mirrored else 164, 624)

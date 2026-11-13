@@ -1,11 +1,14 @@
 {
   "barrierTriangles": 10560,
-  "groundTriangles": 9076,
+  "groundTriangles": 18676,
   "inputs": {
+    "res://models/props/obelisk/model.glb": "7c01c24c3c3822c152469b740b19328d6f8c4e1f780b7d896cf36da08a7c160e",
+    "res://models/props/sandstone/model.glb": "2671330a26a0ad0d100b2fe505c88390de13a2e7b6d10109251a911aa16306e3",
     "res://models/shared/render_primitives/model.glb": "9d4e5b0f58417ab41bcc711ed6a02eed2b2303a1db8d00b5ca6f61df77b5d13b",
     "res://models/shared/scene_state.gd": "a55c54bb9a515aeb7e5c6e5ce46122c0de7f4d28b7c1fe5a66bf12ee7f40fff7",
     "res://models/shared/world_geometry_map.gd": "1d0b90917c80b5bbe4b15f61a551af38d512f5b00c7d89b326d99fa8e51d67fe",
     "res://models/shared/world_vegetation/references.json": "a92c9d4d321a64eaf8cf420f9d4210c82f05c38478ab91b0366f2252f97826b7",
+    "res://models/shared/world_vegetation/town_oak_1/model.glb": "3f11856f2e1cd6d592383cab91e2ae8d10ff3c0dec16dc8bb7eedbbe2b83cf05",
     "res://models/world/tour_2_0_1/assembly/part_000.tscn": "f0b01871789dace5b729221b42aa2d3bfee34e16313d1f1b7acef9ed58aa728c",
     "res://models/world/tour_2_0_1/assembly/part_001.tscn": "5b179a9c1eb880feadfea8c5fedfdd2651a26377e6d4d0aac1f6b9a8368ddc6e",
     "res://models/world/tour_2_0_1/assembly/part_002.tscn": "b7a89f9adfc827c2ab9d292d8b5d78d18093f711ad871c076bb2c3bbca1791a0",
@@ -33,8 +36,9 @@
     "res://models/world/tour_2_0_1/geometry.glb": "8b1922d19e70b74cb9d5ca888757235e81dffcde0a9c792ddcbb5051ede13c7b",
     "res://models/world/tour_2_0_1/model.tscn": "ce822eaa01a7d2dae3cb10ffbae85ac41049d635135bbf9a1e8042b8c2ab413e",
     "res://models/world/tour_2_0_1/profile.tres": "3e7ce8e4d65be2efc8e7deb75e06405fa4f702500e13ec1e0b8217cddf0b5f3e",
-    "res://scripts/physics/world_collision.gd": "3294f76ced9ad5508283da3ac16fddb09924996bfa922f0aac467e48e37bfd11",
-    "res://scripts/physics/world_collision_data.gd": "e68183e5a450b913c355be6f9bc05d6b68aca853aa9c5570dd0f610aa403d30a",
+    "res://scripts/physics/scenery_collision.gd": "5d884f46043da8e60180985f38fea8a049399aacba6c53c38ba02363dcfd2793",
+    "res://scripts/physics/world_collision.gd": "a078efea57a929a36f0f25bf7fa3f9ff9b77e6e7b30ed63fcee76ad649014ae0",
+    "res://scripts/physics/world_collision_data.gd": "87cf86b432803cf02e5f9a5330885720614bee93d26b1dbba338457d83502458",
     "res://scripts/rendering/world_assets.gd": "edea6234297a08e2d3c023572ee0b9c5344272e731c751b5491fe2ba51fc0309",
     "res://scripts/track/circuit_runoff.gd": "9cc305d214aed6eb0727075766fe393c291ae34cfa3db3968aeedc7491685ebc",
     "res://scripts/track/harbor_corridor.gd": "ae3c723900cbf0fc1eac94dcdf6be7d5c91dfceb3a7d61dfda96f7d37b95b502",
@@ -42,8 +46,9 @@
     "res://scripts/track/road_section.gd": "66580e1c05272436bb75f742dc645cdf311205c386caceda44336e0af6ae32f3",
     "res://scripts/track/route_library.gd": "0d78beadc80c0b2362218f32a2b089f6b8cbbae9eeea3f2485762301fd96ed01",
     "res://scripts/track/tour_entry.gd": "4fc8914715cb0abee080156fd9291619caab78402474a8ff9ffe79a31e729524",
-    "res://tools/bake_world_collisions.gd": "84b9148151f3fd35591a20c05f48701edbd399e9beba9d6d28448ebf36bd92bc"
+    "res://tools/bake_world_collisions.gd": "4b80c69f2d7457df4735a7ba6a2d7bb2f75893c07159cd150b760cc4b8d86d03"
   },
   "schema": 1,
-  "sha256": "0d1348c95492fc5435b10479fe9239f663e4398f471bf8cac0753aa22cb039f6"
+  "sha256": "2ae782a55fce1e5e153456c2d4b485260116aac161b70aaecfb61bab91236b91",
+  "solidTriangles": 11196
 }

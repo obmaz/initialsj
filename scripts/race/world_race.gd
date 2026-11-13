@@ -75,7 +75,7 @@ func reset() -> void:
 	race.protection_left = 0
 	race.player.set_protection(false)
 	player_body.collision_layer = 4
-	player_body.collision_mask = 15
+	player_body.collision_mask = WorldCar.DEFAULT_COLLISION_MASK
 	player_body.rescue_floor.clear()
 	for i in range(bodies.size()):
 		var d: float = 80 if i == 0 else race.rivals[i - 1].distance
@@ -178,7 +178,7 @@ func step(
 		var layer := 4 if race.rivals[i - 1].active else 0
 		if bodies[i].collision_layer != layer:
 			bodies[i].collision_layer = layer
-			bodies[i].collision_mask = 15 if layer else 0
+			bodies[i].collision_mask = WorldCar.DEFAULT_COLLISION_MASK if layer else 0
 	update_protection(delta)
 	race.rewards.tick(delta)
 	var old_position := Vector2(race.lane, race.distance)
@@ -1044,7 +1044,7 @@ func recover_player() -> bool:
 	race.cancel_nitro()
 	race.protection_left = 3.0
 	player_body.collision_layer = 16
-	player_body.collision_mask = 3
+	player_body.collision_mask = WorldCar.PROTECTED_COLLISION_MASK
 	race.player.set_protection(true)
 	place_cars()
 	race.camera_offset = -site.forward * 7.1 + Vector3.UP * 3
@@ -1069,7 +1069,7 @@ func update_protection(delta: float) -> void:
 				race.protection_left = .1
 	var active: bool = race.protection_left > 0
 	var layer := 16 if active else 4
-	var mask := 3 if active else 15
+	var mask := WorldCar.PROTECTED_COLLISION_MASK if active else WorldCar.DEFAULT_COLLISION_MASK
 	if player_body.collision_layer != layer:
 		player_body.collision_layer = layer
 	if player_body.collision_mask != mask:

@@ -144,7 +144,12 @@ func run(tree: SceneTree) -> int:
 	sound._process(.016)
 	var bus_name: StringName = sound.environment_audio.bus_name
 	check(
-		sound.bus == bus_name and sound.extra_loops.coast.bus == bus_name and sound.cue.bus == &"Master",
+		(
+			sound.bus == bus_name
+			and sound.extra_loops.coast.bus == bus_name
+			and sound.cue.bus == race.audio_preferences.effects_bus
+			and AudioServer.get_bus_send(AudioServer.get_bus_index(bus_name)) == race.audio_preferences.effects_bus
+		),
 		"차량 루프만 공간 버스로 보내고 보상·안내음은 분리한다"
 	)
 	check(AudioServer.bus_count == buses + 3, "공간 잔향·좌우 패닝은 총 세 고정 버스만 사용한다")

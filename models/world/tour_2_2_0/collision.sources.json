@@ -1,11 +1,17 @@
 {
   "barrierTriangles": 11808,
-  "groundTriangles": 9472,
+  "groundTriangles": 19072,
   "inputs": {
+    "res://models/props/dol_wall/model.glb": "7f9a012c4e29a39c5708fa4bcc6083c34d04844e7324e6c713fd6ac454e2a519",
+    "res://models/props/hareubang/model.glb": "9feefdf9a351332e80d43cd124d1b39b4b8522209d9f62c8f76999bbefa44052",
     "res://models/shared/render_primitives/model.glb": "9d4e5b0f58417ab41bcc711ed6a02eed2b2303a1db8d00b5ca6f61df77b5d13b",
     "res://models/shared/scene_state.gd": "a55c54bb9a515aeb7e5c6e5ce46122c0de7f4d28b7c1fe5a66bf12ee7f40fff7",
     "res://models/shared/world_geometry_map.gd": "1d0b90917c80b5bbe4b15f61a551af38d512f5b00c7d89b326d99fa8e51d67fe",
+    "res://models/shared/world_vegetation/juniper/model.glb": "39a69a0334bddb7b026c021db9f9df1db16b2c7eb2213be2926e9a1d6735c918",
     "res://models/shared/world_vegetation/references.json": "a92c9d4d321a64eaf8cf420f9d4210c82f05c38478ab91b0366f2252f97826b7",
+    "res://models/shared/world_vegetation/thorn_bramble/model.glb": "e8d3854c8bd0cd967e462b8ac1f956d44b9dc10c8a2fc281c90b274ede8edc78",
+    "res://models/shared/world_vegetation/town_oak_0/model.glb": "a8f23feeed1016e51be3b9e8061f007a463d83cb3e0edea3ea2ad43d0f32c9a5",
+    "res://models/shared/world_vegetation/town_oak_1/model.glb": "3f11856f2e1cd6d592383cab91e2ae8d10ff3c0dec16dc8bb7eedbbe2b83cf05",
     "res://models/world/tour_2_2_0/assembly/part_000.tscn": "aceb5d595667daf5986839766d6c416bc099bba332620eb838001e78ea4f06ac",
     "res://models/world/tour_2_2_0/assembly/part_001.tscn": "1ffb801e6f6393197db0f07b543247fdb9a55e6e2a8461348bcdc81da5087001",
     "res://models/world/tour_2_2_0/assembly/part_002.tscn": "d43c09c8737f61051850a6b675ee2b67a85e821311e6ff6278388c534ffd99a3",
@@ -35,8 +41,9 @@
     "res://models/world/tour_2_2_0/geometry.glb": "582e4cb33e31ccff88303b1d117c3387f2ff6aa7856c12fe798c22d7528b2618",
     "res://models/world/tour_2_2_0/model.tscn": "81a47b45e9e1196f0fc7f52001b8388b658f783e911f5fae9f9bbeb3bfedbad0",
     "res://models/world/tour_2_2_0/profile.tres": "c162a2dbf2bdbc1a93d5f161de4043f1ce95a40030788e4593d8bc73b272820b",
-    "res://scripts/physics/world_collision.gd": "3294f76ced9ad5508283da3ac16fddb09924996bfa922f0aac467e48e37bfd11",
-    "res://scripts/physics/world_collision_data.gd": "e68183e5a450b913c355be6f9bc05d6b68aca853aa9c5570dd0f610aa403d30a",
+    "res://scripts/physics/scenery_collision.gd": "5d884f46043da8e60180985f38fea8a049399aacba6c53c38ba02363dcfd2793",
+    "res://scripts/physics/world_collision.gd": "a078efea57a929a36f0f25bf7fa3f9ff9b77e6e7b30ed63fcee76ad649014ae0",
+    "res://scripts/physics/world_collision_data.gd": "87cf86b432803cf02e5f9a5330885720614bee93d26b1dbba338457d83502458",
     "res://scripts/rendering/world_assets.gd": "edea6234297a08e2d3c023572ee0b9c5344272e731c751b5491fe2ba51fc0309",
     "res://scripts/track/circuit_runoff.gd": "9cc305d214aed6eb0727075766fe393c291ae34cfa3db3968aeedc7491685ebc",
     "res://scripts/track/harbor_corridor.gd": "ae3c723900cbf0fc1eac94dcdf6be7d5c91dfceb3a7d61dfda96f7d37b95b502",
@@ -44,8 +51,9 @@
     "res://scripts/track/road_section.gd": "66580e1c05272436bb75f742dc645cdf311205c386caceda44336e0af6ae32f3",
     "res://scripts/track/route_library.gd": "0d78beadc80c0b2362218f32a2b089f6b8cbbae9eeea3f2485762301fd96ed01",
     "res://scripts/track/tour_entry.gd": "4fc8914715cb0abee080156fd9291619caab78402474a8ff9ffe79a31e729524",
-    "res://tools/bake_world_collisions.gd": "84b9148151f3fd35591a20c05f48701edbd399e9beba9d6d28448ebf36bd92bc"
+    "res://tools/bake_world_collisions.gd": "4b80c69f2d7457df4735a7ba6a2d7bb2f75893c07159cd150b760cc4b8d86d03"
   },
   "schema": 1,
-  "sha256": "7dbe6f7dc1c4613ff5cd0f5984315abcbec30075c4352fb963e66ab28c6d7e82"
+  "sha256": "a88a80509a5706da81fd8d205a5670298aa0e8a274aa7f0a9b3ca4686f32fe54",
+  "solidTriangles": 65580
 }

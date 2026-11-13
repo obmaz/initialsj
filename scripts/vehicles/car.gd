@@ -41,7 +41,7 @@ var body_motion := preload("res://scripts/effects/body_motion.gd").new()
 var shift_amount := 0.0
 var wheel_centres: Array[Vector3] = []
 var outline_near := true
-var toon_enabled := true
+var toon_enabled := false
 var toon_strength := .8
 var tuning_outline: ShaderMaterial
 

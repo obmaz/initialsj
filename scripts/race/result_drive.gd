@@ -45,7 +45,7 @@ func clearance(race: Node3D) -> float:
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = body.contact_shape.shape
 	query.margin = .15
-	query.collision_mask = 14
+	query.collision_mask = 46
 	query.exclude = [body.get_rid()]
 	var horizon := coast_speed * coast_speed / (2 * deceleration) + 16
 	for ahead in range(0, ceili(horizon) + 8, 8):

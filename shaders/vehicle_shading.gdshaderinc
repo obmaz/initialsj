@@ -1,5 +1,5 @@
 // 코드와 컴파일 결과를 공유하고, 차량별 재질 유니폼만 독립적으로 바꾼다.
-uniform bool toon_enabled = true;
+uniform bool toon_enabled = false;
 uniform float toon_strength : hint_range(0., 1.) = .8;
 
 float vehicle_flatness() {

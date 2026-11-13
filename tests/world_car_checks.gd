@@ -212,6 +212,11 @@ func run(tree: SceneTree) -> int:
 		glance.get("barrier", false) and not glance.get("severe", true) and glance.get("closing_speed", 100) < 12,
 		"고속이어도30도 미만으로 스치면 비행하지 않는다"
 	)
+	car.road_heading = Vector3.RIGHT
+	var aligned := collision_trial(car, Vector3(-10, 0, -78.2), Vector3(40, 0, -6).normalized(), 40)
+	check(not aligned.is_empty() and car.velocity.dot(Vector3.RIGHT) < 35.2, "도로 방향 보정이 레일 충돌의 감속을 덮어쓰지 않는다")
+	check(car.velocity.dot(Vector3.RIGHT) > 20 and car.velocity.y < .2, "감속 후에도 짧게 분리되어 앞으로 달릴 수 있다")
+	car.road_heading = Vector3.ZERO
 	var slow_wall := collision_trial(car, Vector3(0, 0, -65), Vector3.FORWARD, 35)
 	check(
 		slow_wall.get("barrier", false) and not slow_wall.get("severe", true),

@@ -299,6 +299,8 @@ func rebuild_options() -> void:
 		label.name = "ToonValue"
 		var slider := HSlider.new()
 		slider.name = "ToonStrength"
+		for icon in ["grabber", "grabber_highlight", "grabber_disabled"]:
+			slider.add_theme_icon_override(icon, preload("res://assets/ui/controls/slider_knob.svg"))
 		slider.position = Vector2(8, 208)
 		slider.size = Vector2(328, 80)
 		slider.min_value = 0

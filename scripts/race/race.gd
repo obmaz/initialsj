@@ -491,7 +491,7 @@ func finish_leave_results() -> void:
 
 func open_courses() -> void:
 	menu_focus = 0
-	hud.fingers.clear()
+	hud.clear_driving_input()
 	state = RaceState.COURSES
 
 
@@ -558,7 +558,7 @@ func create_world_controller() -> void:
 func open_menu() -> void:
 	menu_focus = 0
 	cancel_nitro()
-	hud.fingers.clear()
+	hud.clear_driving_input()
 	state = RaceState.MENU
 
 
@@ -566,7 +566,7 @@ func open_settings() -> void:
 	if OS.has_feature("web"):
 		JavaScriptBridge.eval("window.initialsjPrepareInstall && window.initialsjPrepareInstall()")
 	settings_return = state
-	hud.fingers.clear()
+	hud.clear_driving_input()
 	state = RaceState.SETTINGS
 
 
@@ -648,7 +648,7 @@ func toggle_music() -> void:
 
 func toggle_auto_accelerate() -> void:
 	auto_accelerate = not auto_accelerate
-	hud.fingers.clear()
+	hud.clear_driving_input()
 	save_preferences()
 
 
@@ -656,7 +656,7 @@ func toggle_passport() -> void:
 	if state != RaceState.MENU:
 		return
 	passport_open = not passport_open
-	hud.fingers.clear()
+	hud.clear_driving_input()
 	shell.sync_back()
 
 
@@ -813,7 +813,7 @@ func restart(start_countdown: bool = true) -> void:
 	drifting = false
 	boosting = false
 	reset_nitro()
-	hud.fingers.clear()
+	hud.clear_driving_input()
 	checkpoint_award = Library.CHECKPOINT_BONUS
 	drift_previous_input = false
 	drift_pending = 0
@@ -899,7 +899,7 @@ func _notification(what: int) -> void:
 			get_tree().quit()
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		if hud != null:
-			hud.fingers.clear()
+			hud.clear_driving_input()
 		pad.clear()
 		pause_tour()
 
@@ -910,7 +910,7 @@ func pause_tour() -> void:
 		resume_state = state
 		state = RaceState.PAUSED
 		if hud != null:
-			hud.fingers.clear()
+			hud.clear_driving_input()
 
 
 func resume_tour() -> void:
@@ -923,7 +923,7 @@ func resume_tour() -> void:
 
 func finish_resume_tour() -> void:
 	if state == RaceState.PAUSED and not shell.portrait:
-		hud.fingers.clear()
+		hud.clear_driving_input()
 		state = resume_state
 
 

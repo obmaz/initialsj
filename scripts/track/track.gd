@@ -175,7 +175,9 @@ func stage_world_collision(section: Section) -> void:
 		var saved := WorldCollision.saved_root(section)
 		section.add_child(saved)
 		var steps: Array[Callable] = [
-			func(): WorldCollision.add_saved_body(saved, true), func(): WorldCollision.add_saved_body(saved, false)
+			func(): WorldCollision.add_saved_body(saved, 0),
+			func(): WorldCollision.add_saved_body(saved, 1),
+			func(): WorldCollision.add_saved_body(saved, 2)
 		]
 		# 일반 교통 차량의 물리 연결을 한 프레임에 몰아서 생성하지 않는다.
 		for child in section.get_children():

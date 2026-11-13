@@ -3,12 +3,14 @@ extends SceneTree
 const Section = preload("res://scripts/track/road_section.gd")
 const Assets = preload("res://scripts/rendering/world_assets.gd")
 const Collision = preload("res://scripts/physics/world_collision.gd")
+const Scenery = preload("res://scripts/physics/scenery_collision.gd")
 const Data = preload("res://scripts/physics/world_collision_data.gd")
 const Pool = preload("res://scripts/rendering/render_resources.gd")
 const GeometryMap = preload("res://models/shared/world_geometry_map.gd")
 const INPUTS := [
 	"res://tools/bake_world_collisions.gd",
 	"res://scripts/physics/world_collision.gd",
+	"res://scripts/physics/scenery_collision.gd",
 	"res://scripts/physics/world_collision_data.gd",
 	"res://scripts/track/road_section.gd",
 	"res://scripts/track/harbor_corridor.gd",
@@ -41,6 +43,7 @@ func inputs_for(road: Node3D) -> Dictionary:
 			or node.name in ["RoadBase", "DirtShoulders"]
 			or node.get_meta("world_ground", false)
 			or node.get_meta("world_barrier", false)
+			or not Scenery.kind(node).is_empty()
 		):
 			continue
 		var ref: String = node.get_meta("mesh_ref", "")
@@ -108,6 +111,9 @@ func run() -> void:
 		var data := Data.new()
 		data.ground = collision.get_node("RoadSurfaceBody").get_child(0).shape
 		data.barriers = collision.get_node("BarrierBody").get_child(0).shape
+		if collision.has_node("SceneryBody"):
+			data.solids = collision.get_node("SceneryBody").get_child(0).shape
+		data.solid_triangles = collision.get_meta("solid_triangles")
 		data.ground_triangles = collision.get_meta("ground_triangles")
 		data.barrier_triangles = collision.get_meta("barrier_triangles")
 		assert(ResourceSaver.save(data, path, ResourceSaver.FLAG_COMPRESS) == OK)
@@ -117,6 +123,7 @@ func run() -> void:
 			"sha256": FileAccess.get_sha256(path),
 			"groundTriangles": data.ground_triangles,
 			"barrierTriangles": data.barrier_triangles,
+			"solidTriangles": data.solid_triangles,
 		}
 		var file := FileAccess.open(metadata_path, FileAccess.WRITE)
 		file.store_string(JSON.stringify(metadata, "  ", true) + "\n")

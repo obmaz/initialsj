@@ -37,7 +37,7 @@ func play(action: Callable) -> void:
 	# 대기 중 들어온 다른 요청이 진행 중인 전환의 제목을 지우지 못하게 소유한다.
 	var loading_title: String = race.loading_title
 	race.loading_title = ""
-	race.hud.fingers.clear()
+	race.hud.clear_driving_input()
 	if race.sound_enabled:
 		transition_sound.play()
 	transition_cover.visible = true

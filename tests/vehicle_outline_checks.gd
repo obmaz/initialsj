@@ -15,6 +15,8 @@ func run(tree: SceneTree) -> int:
 	for index in range(5):
 		var car := Factory.create(index)
 		tree.root.add_child(car)
+		car.toon_enabled = true
+		car.refresh_outline()
 		var shell: MeshInstance3D = car.body.get_node("PaintShell")
 		var mesh := shell.mesh
 		var overlay := shell.material_overlay

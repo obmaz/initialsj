@@ -60,7 +60,7 @@ func run(tree: SceneTree) -> int:
 	for frame in range(4):
 		world.step(1.0 / 60, 0, false, false, false, false, false)
 	check(absf(r.lane) < r.track.half_width(r.distance) + 1.0, "The returned car must be on the road, not beside it")
-	check(r.speed > 39 and r.speed < 44 and r.state == "racing", "복구한 차는 시속150km 부근에서 달리며 경기를 계속해야 한다")
+	check(r.speed > 25 and r.speed < 29 and r.state == "racing", "복구한 차는 시속100km 부근에서 달리며 경기를 계속해야 한다")
 	check(
 		absf(r.distance - 900.0) < 40.0,
 		"The car must return to its last safe stretch (got %.0f, expected near 900)" % r.distance

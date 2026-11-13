@@ -1,12 +1,19 @@
 {
   "barrierTriangles": 12432,
-  "groundTriangles": 10504,
+  "groundTriangles": 20104,
   "inputs": {
+    "res://models/props/cargo_ship/model.glb": "99ab9a975b51a00ee3de4e8bc1bdd639f212de1d1cc34cf2bb8b88b52850a0a5",
+    "res://models/props/container_stack/model.glb": "b77e66088d84b3f7d9faeb1d20ab0d67e9976590ff75e44d61df9ee20739b231",
+    "res://models/props/containers/model.glb": "2e6e1484cfba60fc0e4ad9bbc1de7f5cfa7eff1bf47a0c897fe42c7d481668c3",
+    "res://models/props/dock_crane/model.glb": "8bfe64d2d61860d1e92abe7d348c90daca7d451993fec5ad32db517cac0762d1",
+    "res://models/props/fuel_tank/model.glb": "ee4128abead1ace719c374ff12904059588f3615a35c461a79982dd2f74adf48",
     "res://models/props/skyway_abutment/model.glb": "61163b1f08fe612035a760bc98fbaeea10dfc0d49c3dea93ee258a90e2fc4ee1",
+    "res://models/props/warehouse_shed/model.glb": "98f919edb7f2f1cfe21e60837882a84c2882fbc94f6e2fe854af2a7e3833df7c",
     "res://models/shared/render_primitives/model.glb": "9d4e5b0f58417ab41bcc711ed6a02eed2b2303a1db8d00b5ca6f61df77b5d13b",
     "res://models/shared/scene_state.gd": "a55c54bb9a515aeb7e5c6e5ce46122c0de7f4d28b7c1fe5a66bf12ee7f40fff7",
     "res://models/shared/world_geometry_map.gd": "1d0b90917c80b5bbe4b15f61a551af38d512f5b00c7d89b326d99fa8e51d67fe",
     "res://models/shared/world_vegetation/references.json": "a92c9d4d321a64eaf8cf420f9d4210c82f05c38478ab91b0366f2252f97826b7",
+    "res://models/shared/world_vegetation/town_oak_0/model.glb": "a8f23feeed1016e51be3b9e8061f007a463d83cb3e0edea3ea2ad43d0f32c9a5",
     "res://models/world/tour_4_1_1/assembly/part_000.tscn": "7a723e59fcf98b34bcddea698e0b17cb35b4ad9ef999824c17c7b1beb41222fc",
     "res://models/world/tour_4_1_1/assembly/part_001.tscn": "ab302722ac520a77da670417364d8ebbd2f7ff517a4dcf3a99e40ad01f9ce33e",
     "res://models/world/tour_4_1_1/assembly/part_002.tscn": "f79c5aeb7979f059dc2a1afc6fcfd652e8e92909e47e4a9ad52f850dba9ae5f6",
@@ -29,8 +36,9 @@
     "res://models/world/tour_4_1_1/geometry.glb": "549d55c2220ac244e6c801dcec44562681bfdb142e91647ae54613447e7f2d3d",
     "res://models/world/tour_4_1_1/model.tscn": "2699d4ab535614c683c0bdfeaae8b61d26067cec40681f86e11ff37187cd7e58",
     "res://models/world/tour_4_1_1/profile.tres": "f3048a2c7fb587a5896f403fcea58cbbd50e848f02b6ea946417420e6cb4ab4f",
-    "res://scripts/physics/world_collision.gd": "3294f76ced9ad5508283da3ac16fddb09924996bfa922f0aac467e48e37bfd11",
-    "res://scripts/physics/world_collision_data.gd": "e68183e5a450b913c355be6f9bc05d6b68aca853aa9c5570dd0f610aa403d30a",
+    "res://scripts/physics/scenery_collision.gd": "5d884f46043da8e60180985f38fea8a049399aacba6c53c38ba02363dcfd2793",
+    "res://scripts/physics/world_collision.gd": "a078efea57a929a36f0f25bf7fa3f9ff9b77e6e7b30ed63fcee76ad649014ae0",
+    "res://scripts/physics/world_collision_data.gd": "87cf86b432803cf02e5f9a5330885720614bee93d26b1dbba338457d83502458",
     "res://scripts/rendering/world_assets.gd": "edea6234297a08e2d3c023572ee0b9c5344272e731c751b5491fe2ba51fc0309",
     "res://scripts/track/circuit_runoff.gd": "9cc305d214aed6eb0727075766fe393c291ae34cfa3db3968aeedc7491685ebc",
     "res://scripts/track/harbor_corridor.gd": "ae3c723900cbf0fc1eac94dcdf6be7d5c91dfceb3a7d61dfda96f7d37b95b502",
@@ -38,8 +46,9 @@
     "res://scripts/track/road_section.gd": "66580e1c05272436bb75f742dc645cdf311205c386caceda44336e0af6ae32f3",
     "res://scripts/track/route_library.gd": "0d78beadc80c0b2362218f32a2b089f6b8cbbae9eeea3f2485762301fd96ed01",
     "res://scripts/track/tour_entry.gd": "4fc8914715cb0abee080156fd9291619caab78402474a8ff9ffe79a31e729524",
-    "res://tools/bake_world_collisions.gd": "84b9148151f3fd35591a20c05f48701edbd399e9beba9d6d28448ebf36bd92bc"
+    "res://tools/bake_world_collisions.gd": "4b80c69f2d7457df4735a7ba6a2d7bb2f75893c07159cd150b760cc4b8d86d03"
   },
   "schema": 1,
-  "sha256": "3852e1de513e53dae7ae7e6fedc96617c96a1bf8f0fd00db7703b4d941fc07f0"
+  "sha256": "0d243e8eafe305217f9e5f64197c7bf7c8ee64190ebddc24269d576a4c3cd53a",
+  "solidTriangles": 73204
 }

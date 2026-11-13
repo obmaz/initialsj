@@ -2366,10 +2366,12 @@ metadata/mesh_ref = "res://models/world/track_1/geometry.glb#Geometry0112"
 [node name="SpeedwaySafetyWalls" type="MeshInstance3D" parent="Part0062" unique_id=1309967632]
 material_override = SubResource("ShaderMaterial_i7hys")
 metadata/mesh_ref = "res://models/world/track_1/geometry.glb#Geometry0113"
+metadata/world_barrier = true
 
 [node name="PitSafetyWall" type="MeshInstance3D" parent="Part0062" unique_id=1516763123]
 material_override = SubResource("ShaderMaterial_i7hys")
 metadata/mesh_ref = "res://models/world/track_1/geometry.glb#Geometry0114"
+metadata/world_barrier = true
 
 [node name="CatchFence" type="MeshInstance3D" parent="Part0062" unique_id=639926889]
 material_override = SubResource("ShaderMaterial_0s7i1")

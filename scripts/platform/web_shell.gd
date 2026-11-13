@@ -156,5 +156,5 @@ func on_back(_args: Array) -> void:
 func on_orientation(args: Array) -> void:
 	portrait = bool(args[0])
 	if portrait:
-		race.hud.fingers.clear()
+		race.hud.clear_driving_input()
 		race.pause_tour()

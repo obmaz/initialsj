@@ -65,6 +65,7 @@ var controls_open := false
 var audio_drags: Dictionary = {}
 var modal_motion := preload("res://scripts/ui/modal_motion.gd").new()
 var fingers: Dictionary = {}
+var joystick := preload("res://scripts/input/floating_joystick.gd").new()
 var recovery_touches: Dictionary = {}
 var bottle_texture: Texture2D
 var drift_texture: Texture2D
@@ -188,7 +189,7 @@ func animate_modal_close(action: Callable) -> bool:
 	if race.screen_transition != null and race.screen_transition.busy:
 		return false
 	modal_motion.close(modal_key(), action)
-	fingers.clear()
+	clear_driving_input()
 	race.shell.hide_control()
 	return true
 
@@ -236,6 +237,7 @@ func handle_pointer(event: InputEvent) -> void:
 		return
 	var index: int = event.index if event is InputEventScreenTouch else -1
 	if not event.pressed:
+		joystick.release(index)
 		if audio_drags.has(index):
 			audio_drags.erase(index)
 			race.save_preferences()
@@ -370,6 +372,8 @@ func handle_pointer(event: InputEvent) -> void:
 			return
 	if hit_button("pause", p) and race.state in RaceState.DRIVING:
 		race.pause_tour()
+	elif steering_zone().has_point(p):
+		joystick.begin(index, p, 58 * race.touch_layout.SIZES[race.touch_layout.size_index])
 	else:
 		move_pointer(index, event.position)
 
@@ -476,6 +480,9 @@ func draw_pad_badges() -> void:
 
 
 func move_pointer(index: int, pos: Vector2) -> void:
+	if joystick.active() and joystick.pointer == index:
+		joystick.move(index, to_design(pos))
+		return
 	if audio_drags.has(index):
 		if race.state == RaceState.SETTINGS and not controls_open and not modal_motion.closing:
 			SettingsAudio.slide(self, audio_drags[index], to_design(pos))
@@ -492,8 +499,17 @@ func held(action: String) -> bool:
 	return false
 
 
+func clear_driving_input() -> void:
+	fingers.clear()
+	joystick.reset()
+
+
+func steering_zone() -> Rect2:
+	return HudLayout.steering_zone(race.touch_layout.mirrored)
+
+
 func touch_axis() -> float:
-	return float(held("right")) - float(held("left"))
+	return joystick.axis()
 
 
 func show_garage_notice(value: String) -> void:
@@ -510,6 +526,8 @@ func _process(delta: float) -> void:
 	)
 	garage_notice_left = maxf(0, garage_notice_left - delta) if race.state == RaceState.READY else 0
 	menus.sync_menu_art()
+	if race.state not in RaceState.DRIVING:
+		joystick.reset()
 	if (race.state != RaceState.SETTINGS or controls_open or modal_motion.closing) and not audio_drags.is_empty():
 		audio_drags.clear()
 		race.save_preferences()
@@ -887,6 +905,42 @@ func draw_drift_score() -> void:
 	glow_line(PackedVector2Array([Vector2(1138, 333), Vector2(1279, 323)]), Color(CYAN, alpha), 2)
 
 
+func draw_joystick() -> void:
+	var size_factor: float = race.touch_layout.SIZES[race.touch_layout.size_index]
+	var centre: Vector2 = joystick.origin if joystick.active() else HudLayout.steering_rest(race.touch_layout.mirrored)
+	var radius := 72 * size_factor
+	draw_circle(centre, radius, Color("0b1829ba") if joystick.active() else Color("0b182978"))
+	draw_arc(centre, radius, 0, TAU, 64, Color("74cadcbb") if joystick.active() else Color("adc1ce77"), 1.5, true)
+	var knob: Vector2 = centre + joystick.offset
+	draw_circle(knob, 24 * size_factor, Color("ecfaff") if joystick.active() else Color("adc1ceaa"))
+
+
+func nitro_ready() -> bool:
+	return race.nitro_ratio() >= .999 and not race.nitro_active and race.nitro_burst_left <= 0
+
+
+func draw_nitro_ready(rect: Rect2) -> void:
+	var centre := rect.get_center()
+	var radius := rect.size.x * .5 + 3
+	var animate: bool = not race.motion_reduced and race.state == RaceState.RACING
+	var time := Time.get_ticks_msec() * .001 if animate else 0.0
+	draw_arc(centre, radius, 0, TAU, 64, Color("ffca67b0"), 2, true)
+	if not animate:
+		return
+	var count := 8 if race.lite_graphics else 12
+	for i in range(count):
+		var angle := TAU * i / count + time * .22
+		var height := 5 + (sin(time * 4 + i * 2.3) + 1) * 5
+		var base := centre + Vector2.from_angle(angle) * radius
+		var tangent := Vector2.from_angle(angle + PI * .5) * 4
+		draw_colored_polygon(
+			PackedVector2Array(
+				[base - tangent, centre + Vector2.from_angle(angle + .035) * (radius + height), base + tangent]
+			),
+			Color("ffb14bc0") if i % 2 == 0 else Color("ff79468c")
+		)
+
+
 func round_button(action: String, neon: bool = false) -> void:
 	var rect: Rect2 = buttons[action]
 	var c := rect.get_center()
@@ -917,14 +971,7 @@ func pedal_icon(center: Vector2, gas: bool) -> void:
 
 func draw_controls() -> void:
 	configure_pedals()
-	for action in ["left", "right"]:
-		round_button(action)
-		var c: Vector2 = buttons[action].get_center()
-		var sign_x := -1.0 if action == "left" else 1.0
-		var chevron := PackedVector2Array()
-		for p in [Vector2(-13, -27), Vector2(5, -27), Vector2(32, 0), Vector2(5, 27), Vector2(-13, 27), Vector2(13, 0)]:
-			chevron.append(c + Vector2((p.x - 8) * sign_x, p.y))
-		draw_colored_polygon(chevron, Color("ffffffe0"))
+	draw_joystick()
 	round_button("drift", true)
 	var c: Vector2 = buttons.drift.get_center()
 	var drift_radius: float = buttons.drift.size.x * .5 - 7
@@ -943,6 +990,8 @@ func draw_controls() -> void:
 	centered(c + Vector2(0, -62), drift_hint, 18, CYAN if race.speed > 25 else Color("b6c6d0"))
 
 	round_button("nitro", true)
+	if nitro_ready():
+		draw_nitro_ready(buttons.nitro)
 	var nitro_center: Vector2 = buttons.nitro.get_center()
 	var nitro_radius: float = buttons.nitro.size.x * .5 - 7
 	var n_ratio: float = race.nitro_ratio()
@@ -1688,7 +1737,7 @@ func settings_controls_rect() -> Rect2:
 func open_controls() -> void:
 	controls_open = true
 	race.settings_focus = 0
-	fingers.clear()
+	clear_driving_input()
 	race.shell.hide_control()
 
 

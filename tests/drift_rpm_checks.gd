@@ -17,8 +17,13 @@ func touch(race: Node3D, action: String, index: int, pressed: bool) -> void:
 	var event := InputEventScreenTouch.new()
 	event.index = index
 	event.pressed = pressed
-	event.position = race.hud.buttons[action].get_center() * race.hud.ui_scale() + race.hud.ui_offset()
+	var at: Vector2 = (
+		race.hud.steering_zone().get_center() if action == "right" else race.hud.buttons[action].get_center()
+	)
+	event.position = at * race.hud.ui_scale() + race.hud.ui_offset()
 	race.hud.handle_pointer(event)
+	if action == "right" and pressed:
+		race.hud.move_pointer(index, (at + Vector2(58, 0)) * race.hud.ui_scale() + race.hud.ui_offset())
 
 
 func run(tree: SceneTree) -> int:

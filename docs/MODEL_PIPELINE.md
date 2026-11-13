@@ -173,3 +173,5 @@ python3 tools/verify_repository.py
 ## 정적 조립 소품
 
 `parameters.scene_only = true`인 소품은 여러 메시와 전용 재질을 보존하는 정적 씬입니다. 일반 단일 메시 소품 풀 대신 `SceneSource.instantiate_static()`으로 조립하며5000삼각형 이하·모든 표면 UV·각 메시 재질을 검사합니다. 모델 검사와 미리보기는 같은 분기를 사용합니다. 벚꽃처럼 줄기와 수관을 구분해야 하는 경우에 사용하고, 코스 반복 배치는 같은 메시·재질을 공유하는 구간별 MultiMesh로 나눕니다.
+
+정적 충돌 분류는 도로·지형에 `metadata/world_ground = true`, 차량을 도로 방향으로 돌려 탈출시킬 가드·안전벽에 `metadata/world_barrier = true`를 사용합니다. 고정 풍경은 별도 충돌층32입니다. 시각 안전벽을 일반 건물층으로 중복 생성하지 않습니다. 이 표식·GLB·배치 변경 뒤에는 정적 충돌 캐시를 다시 생성합니다.

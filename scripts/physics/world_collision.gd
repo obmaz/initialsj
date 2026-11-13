@@ -1,6 +1,7 @@
 extends RefCounted
 const CollisionData = preload("res://scripts/physics/world_collision_data.gd")
 const Assets = preload("res://scripts/rendering/world_assets.gd")
+const Scenery = preload("res://scripts/physics/scenery_collision.gd")
 const Pool = preload("res://scripts/rendering/render_resources.gd")
 
 
@@ -40,8 +41,9 @@ static func build(section: Node3D, use_saved: bool = true) -> Node3D:
 	var path := Assets.folder(section) + "collision.res"
 	if use_saved and ResourceLoader.exists(path):
 		var root := saved_root(section)
-		add_saved_body(root, true)
-		add_saved_body(root, false)
+		add_saved_body(root, 0)
+		add_saved_body(root, 1)
+		add_saved_body(root, 2)
 		convert_traffic(section)
 		return root
 	var state := begin(section)
@@ -59,16 +61,22 @@ static func saved_root(section: Node3D) -> Node3D:
 	root.transform = Assets.placement(section)
 	root.set_meta("ground_triangles", data.ground_triangles)
 	root.set_meta("barrier_triangles", data.barrier_triangles)
+	root.set_meta("solid_triangles", data.solid_triangles)
 	root.set_meta("collision_data", data)
 	return root
 
 
-static func add_saved_body(root: Node3D, ground: bool) -> void:
+static func add_saved_body(root: Node3D, part: int) -> void:
 	var data: CollisionData = root.get_meta("collision_data")
-	# 물리 백엔드가 첫 연결 때 준비하는 비용도 노면·장벽 두 프레임으로 분산한다.
-	root.add_child(
-		shape_body("RoadSurfaceBody", data.ground, 1) if ground else shape_body("BarrierBody", data.barriers, 2)
-	)
+	# 첫 물리 연결도 노면·장벽·풍경 세 프레임으로 나눈다.
+	match part:
+		0:
+			root.add_child(shape_body("RoadSurfaceBody", data.ground, 1))
+		1:
+			root.add_child(shape_body("BarrierBody", data.barriers, 2))
+		2:
+			if data.solids != null:
+				root.add_child(shape_body("SceneryBody", data.solids, 32))
 
 
 # 주행 중에 만드는 구간은 begin → walls(여러 번) → finish를 단계로 나눠 부른다.
@@ -77,28 +85,20 @@ static func begin(section: Node3D) -> Dictionary:
 	root.name = "WorldCollision"
 	var ground := PackedVector3Array()
 	var barriers := PackedVector3Array()
-	var relative: Transform3D = section.global_transform.affine_inverse()
-	# Read only authored drivable geometry. Water and decorative terrain do not
-	# create a phantom horizontal floor across the bridge or beneath a tunnel.
-	for child in section.get_children():
-		if (
-			child is MeshInstance3D
-			and (
-				child == section.road_surface
-				or child.name == "RoadBase"
-				or child.name == "DirtShoulders"
-				or child.get_meta("world_ground", false)
-			)
-		):
-			append_mesh(ground, child.mesh, relative * child.global_transform)
-	collect_scenery(section.scenery, section, ground, barriers)
-	for child in section.get_children():
-		if child.get_meta("entry_connector", false):
-			collect_scenery(child, section, ground, barriers)
+	var solids := PackedVector3Array()
+	# 실제 지형 삼각형만 읽는다. 물·하늘에는 바닥을 추가하지 않는다.
+	Scenery.collect(section, section, ground, barriers, solids)
 	convert_traffic(section)
 	var template := Pool.unit_box()
 	# 단위 상자의 삼각형은 한 번만 꺼내 모든 장벽 조각이 재사용한다.
-	return {"root": root, "ground": ground, "walls": barriers, "unit": template.get_faces(), "distance": 0.0}
+	return {
+		"root": root,
+		"ground": ground,
+		"walls": barriers,
+		"solids": solids,
+		"unit": template.get_faces(),
+		"distance": 0.0
+	}
 
 
 static func convert_traffic(section: Node3D) -> void:
@@ -156,23 +156,12 @@ static func finish(state: Dictionary) -> Node3D:
 	# 노면 충돌체는 단계로 나눠 만드는 쪽이 미리 만들어 둘 수 있다.
 	root.add_child(state.get("ground_body", null) if state.has("ground_body") else body("RoadSurfaceBody", ground, 1))
 	root.add_child(body("BarrierBody", barriers, 2))
+	if not state.solids.is_empty():
+		root.add_child(body("SceneryBody", state.solids, 32))
+	root.set_meta("solid_triangles", state.solids.size() / 3)
 	root.set_meta("ground_triangles", ground.size() / 3)
 	root.set_meta("barrier_triangles", barriers.size() / 3)
 	return root
-
-
-static func collect_scenery(node: Node, section: Node3D, ground: PackedVector3Array, walls: PackedVector3Array) -> void:
-	if node is MeshInstance3D and node.get_meta("world_ground", false):
-		append_mesh(ground, node.mesh, section.global_transform.affine_inverse() * node.global_transform)
-	if node is MultiMeshInstance3D and node.get_meta("world_barrier", false):
-		var parent_frame: Transform3D = section.global_transform.affine_inverse() * node.global_transform
-		# Keep authored transforms on the CPU. The headless rendering server
-		# returns identity for MultiMesh readback and must not define physics.
-		var transforms: Array = node.get_meta("collision_transforms", [])
-		for instance_frame: Transform3D in transforms:
-			append_mesh(walls, node.multimesh.mesh, parent_frame * instance_frame)
-	for child in node.get_children():
-		collect_scenery(child, section, ground, walls)
 
 
 # 기존 GLB 외형에 교통 차체를 연결한다. 승용차와 트럭은 크기·순항 속도만 다르다.

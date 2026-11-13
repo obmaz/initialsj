@@ -30,6 +30,11 @@ static func draw(hud: Control) -> void:
 		MenuTheme.label(
 			hud, Rect2(centre - Vector2(30, 12), Vector2(60, 24)), action.to_upper(), 12, Color.WHITE, true, 8
 		)
+	var rest: Vector2 = hud.HudLayout.steering_rest(hud.race.touch_layout.mirrored)
+	var stick: Vector2 = Vector2(350, 390) + (rest - Vector2(0, 410)) * .45
+	hud.draw_circle(stick, 32, Color("153648"))
+	hud.draw_arc(stick, 32, 0, TAU, 32, Color("00e5ff"), 1.5, true)
+	hud.draw_circle(stick, 11, Color("adc1ce"))
 	choice(hud, RESET, "RESET", false)
 	choice(hud, DONE, "DONE", true)
 	if hud.pad_on():
@@ -54,5 +59,5 @@ static func press(hud: Control, at: Vector2) -> void:
 		hud.race.touch_layout.reset()
 	if DONE.has_point(at):
 		hud.race.close_settings()
-	hud.fingers.clear()
+	hud.clear_driving_input()
 	hud.race.save_preferences()

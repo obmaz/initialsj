@@ -53,11 +53,8 @@ func run(tree: SceneTree) -> int:
 				race.auto_accelerate = auto
 				race.hud.configure_pedals()
 				var buttons: Dictionary = race.hud.buttons
-				check(buttons.left.position.x < buttons.right.position.x, "반전 후에도 좌우 화살표 순서를 유지한다")
-				check(
-					buttons.left.get_center().x > 640 if mirrored else buttons.left.get_center().x < 640,
-					"조향 그룹이 선택한 쪽에 있다"
-				)
+				var zone: Rect2 = race.hud.steering_zone()
+				check(zone.get_center().x > 640 if mirrored else zone.get_center().x < 640, "가상 조이스틱 영역이 선택한 쪽에 있다")
 				for action in buttons:
 					var rect: Rect2 = buttons[action]
 					if action != "pause":
@@ -65,11 +62,7 @@ func run(tree: SceneTree) -> int:
 					check(Rect2(0, 0, 1280, 720).encloses(rect), "커진 버튼이 안전 설계 영역을 벗어나지 않는다")
 				var at: Vector2 = buttons.gas.get_center()
 				check(race.hud.button_at(at) == ("brake" if auto else "gas"), "그려진 페달 위치의 의미가 자동 가속과 일치한다")
-				var pair: Vector2 = (buttons.left.get_center() + buttons.right.get_center()) * .5
-				check(
-					not (race.hud.hit_button("left", pair) and race.hud.hit_button("right", pair)),
-					"한 포인터가 두 조향을 누르지 않는다"
-				)
+
 	race.state = "settings"
 	race.hud.open_controls()
 	ControlsPanel.press(race.hud, ControlsPanel.SIDE[1].get_center())

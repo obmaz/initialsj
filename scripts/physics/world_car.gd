@@ -4,6 +4,8 @@ const CornerResistance = preload("res://scripts/physics/corner_resistance.gd")
 const SUPPORT_HEIGHT := 0.65
 const Crash = preload("res://scripts/physics/crash_state.gd")
 const GROUND_LAYER := 1
+const DEFAULT_COLLISION_MASK := 47
+const PROTECTED_COLLISION_MASK := 35
 const MAX_CONTACTS := 5
 const MAX_STEP_HEIGHT := 0.22
 # Grip-limited steering: ordinary steering cannot exceed this many times the
@@ -55,7 +57,7 @@ var coast_direction := 0.0
 
 func _init() -> void:
 	collision_layer = 4
-	collision_mask = 15
+	collision_mask = DEFAULT_COLLISION_MASK
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	contact_shape = CollisionShape3D.new()
 	var box := BoxShape3D.new()
@@ -394,7 +396,7 @@ func advance(
 						rail_escape = Vector3.ZERO
 						# 속도와 진입각이 모두 임계값을 넘는 충돌만 비행으로 넘긴다.
 						velocity = (
-							tangent * lerpf(0.92, 0.62, hardness)
+							tangent * lerpf(0.80, 0.50, hardness)
 							+ normal * clampf(closing * BARRIER_REBOUND, 2.0, BARRIER_REBOUND_MAX)
 						)
 						if closing > BARRIER_HOP_FROM:
@@ -416,7 +418,7 @@ func advance(
 							var escape_slope := minf(lerpf(.08, .28, low_speed), 1.8 / maxf(incoming_speed, 1))
 							rail_escape = (road + inward * escape_slope).normalized()
 							move_and_collide(inward * lerpf(.12, .24, low_speed), false, .012)
-							var pace := maxf(before.dot(road), incoming_speed * .65)
+							var pace := maxf(before.dot(road), incoming_speed * .65) * Tuning.glide_keep(hardness)
 							velocity = rail_escape * pace + inward * clampf(closing * .12, .5, 1.8)
 							yaw_rate = 0
 							steering = 0

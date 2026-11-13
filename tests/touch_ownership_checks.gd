@@ -17,7 +17,7 @@ func run(tree: SceneTree) -> int:
 	race.auto_accelerate = false
 	race.hud.configure_pedals()
 	var hud: Control = race.hud
-	for pair in [["left", "right"], ["gas", "brake"], ["drift", "nitro"]]:
+	for pair in [["gas", "brake"], ["drift", "nitro"]]:
 		var a: Vector2 = hud.buttons[pair[0]].get_center()
 		var b: Vector2 = hud.buttons[pair[1]].get_center()
 		check(hud.button_at(a.lerp(b, .49)) == pair[0], "겹친 여유 영역의 가까운 첫 버튼을 선택한다")

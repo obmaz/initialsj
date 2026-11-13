@@ -43,7 +43,9 @@ func run(tree: SceneTree) -> int:
 		race.recovery.available = false
 		check(not race.hud.recovery_visible(), "Ordinary driving must not show an unnecessary recovery control")
 		touch(race, 1, true, race.hud.buttons.gas.get_center())
-		touch(race, 2, true, race.hud.buttons.right.get_center())
+		var steering_at: Vector2 = race.hud.steering_zone().get_center()
+		touch(race, 2, true, steering_at)
+		race.hud.move_pointer(2, (steering_at + Vector2(58, 0)) * race.hud.ui_scale() + race.hud.ui_offset())
 		race.recovery.available = true
 		var edge: Vector2 = race.hud.recovery_touch_rect().position + Vector2(4, 38)
 		touch(race, 3, true, edge)
@@ -51,7 +53,7 @@ func run(tree: SceneTree) -> int:
 			not race.recovery_available, "A touch just outside the drawn recovery button must invoke real car recovery"
 		)
 		check(
-			race.hud.held("gas") and race.hud.held("right"),
+			race.hud.held("gas") and race.hud.touch_axis() > .9,
 			"Car recovery must preserve other fingers holding gas and steering"
 		)
 		check(
@@ -71,7 +73,7 @@ func run(tree: SceneTree) -> int:
 		check(not race.recovery_available, "A fresh press after release must remain usable")
 		touch(race, 3, false, edge)
 		touch(race, 1, false, race.hud.buttons.gas.get_center())
-		touch(race, 2, false, race.hud.buttons.right.get_center())
+		touch(race, 2, false, steering_at)
 	var target: Rect2 = race.hud.recovery_touch_rect()
 	for rect in [
 		race.hud.pause_touch_rect(),
@@ -84,7 +86,7 @@ func run(tree: SceneTree) -> int:
 			not target.intersects(rect),
 			"Recovery must not overlap the route choices, pause target, boost badge or minimap"
 		)
-	for action in ["gas", "brake", "left", "right", "nitro", "drift"]:
+	for action in ["gas", "brake", "nitro", "drift"]:
 		check(not target.intersects(race.hud.buttons[action]), "Recovery must stay separate from " + action)
 	check(
 		ceili(target.size.y * 414.0 / 720) >= 44,

@@ -14,7 +14,7 @@ static func defaults(vehicle: int) -> Dictionary:
 		"secondary": "24cbd6",
 		"rim": "b7bec4",
 		"finish": 0,
-		"shading": 1,
+		"shading": 0,
 		"toon_strength": 80,
 		"livery": 0,
 		"wheel": 0,

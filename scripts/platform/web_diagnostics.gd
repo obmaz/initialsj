@@ -49,6 +49,7 @@ func snapshot() -> Dictionary:
 		"garage_next": rectangle(hud.GARAGE_NEXT),
 		"garage_cards": [],
 		"pause": rectangle(hud.pause_touch_rect()),
+		"steering": rectangle(hud.steering_zone()),
 		"resume": rectangle(hud.START_BUTTON),
 	}
 	for i in range(3):
@@ -65,6 +66,8 @@ func snapshot() -> Dictionary:
 		"selected_vehicle": race.selected_vehicle,
 		"mode": race.mode,
 		"speed_mps": race.speed,
+		"steering_axis": hud.touch_axis(),
+		"joystick_active": hud.joystick.active(),
 		"auto_accelerate": race.auto_accelerate,
 		"controls_open": hud.controls_open,
 		"controls_mirrored": race.touch_layout.mirrored,

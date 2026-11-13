@@ -6,8 +6,8 @@ const LATERAL_GRIP_FACTOR := 1.8
 # 접지력 한계를 넘는 조향에서 속도를 줄이는 정도.
 const UNDERSTEER_SCRUB := 0.5
 # 비행 임계값 아래의 접촉: 전진 속도를 보존하며 노면을 따라 옆으로 짧게 튕긴다.
-const GLIDE_KEEP_SOFT := 0.97
-const GLIDE_KEEP_HARD := 0.84
+const GLIDE_KEEP_SOFT := 0.86
+const GLIDE_KEEP_HARD := 0.64
 const GLIDE_REBOUND := 0.22
 const GLIDE_REBOUND_MAX := 3.6
 const REALIGN_TIME := 0.9

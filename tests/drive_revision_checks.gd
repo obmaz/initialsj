@@ -87,9 +87,9 @@ func run(tree: SceneTree) -> int:
 	world.safe_distance = 500
 	world.safe_lane = 0
 	check(world.recover_player(), "안전한 실제 도로에 복구할 수 있어야 한다")
-	check(is_equal_approx(race.speed * 3.6, 150) and race.protection_left == 3, "복구는150km/h·3초 보호로 시작한다")
+	check(is_equal_approx(race.speed * 3.6, 100) and race.protection_left == 3, "복구는100km/h·3초 보호로 시작한다")
 	var motor: CharacterBody3D = world.player_body
-	check(motor.collision_mask == 3 and motor.collision_layer == 16, "보호 중 도로·가드와 차량·장애물 층을 구분한다")
+	check(motor.collision_mask == 35 and motor.collision_layer == 16, "보호 중 도로·가드와 차량·장애물 층을 구분한다")
 	check(race.player.protection_active, "플레이어 차체에 불투명 보호 색상을 표시한다")
 	var other: Node3D = race.rivals[0].car
 	check(not other.protection_active, "공유 재질을 바꾸어 상대 차량까지 보호 색상으로 만들면 안 된다")
@@ -97,7 +97,7 @@ func run(tree: SceneTree) -> int:
 		await tree.physics_frame
 		race.step(1.0 / 60, 0, false, true, false)
 	check(
-		race.protection_left == 0 and motor.collision_mask == 15 and not race.player.protection_active,
+		race.protection_left == 0 and motor.collision_mask == 47 and not race.player.protection_active,
 		"3초가 지나면 실제 충돌과 일반 외형으로 복귀한다"
 	)
 	var rail_d := 800.0
@@ -115,7 +115,13 @@ func run(tree: SceneTree) -> int:
 		race.step(1.0 / 60, 0, false, false, false)
 		for hit in motor.last_contacts:
 			guard_hit = guard_hit or hit.barrier
-	check(guard_hit and not race.crash.active and race.lane < edge + 1, "보호 중300km/h 이상으로 부딪혀도 가드를 관통하거나 넘어서 날아가지 않는다")
+	check(
+		guard_hit and not race.crash.active and race.lane < edge + 1,
+		(
+			"보호 중300km/h 이상으로 부딪혀도 가드를 관통하거나 넘어서 날아가지 않는다: %s/%s/%.1f/%.1f"
+			% [guard_hit, race.crash.active, race.lane, edge]
+		)
+	)
 	# 실제 바닥이 사라진 구간에서도 보호 중에만 도로 높이에 접지한다.
 	race.choose_mode("track", 4)
 	race.restart()
@@ -130,8 +136,8 @@ func run(tree: SceneTree) -> int:
 	var lane: float = race.track.active.surface_lane(6, d)
 	world.teleport(0, d, lane, false)
 	race.protection_left = 3
-	motor.velocity = motor.forward_direction() * (150.0 / 3.6)
-	race.speed = 150.0 / 3.6
+	motor.velocity = motor.forward_direction() * (100.0 / 3.6)
+	race.speed = 100.0 / 3.6
 	for frame in range(25):
 		await tree.physics_frame
 		race.step(1.0 / 60, 0, false, true, false)
@@ -144,5 +150,5 @@ func run(tree: SceneTree) -> int:
 	debris.free()
 	race.queue_free()
 	await tree.process_frame
-	print("자동 가속 페달 / 실제 랩 전광판·저장 / 150km 복구·3초 보호 / 붕괴 노면·파손 장애물: ", "PASS" if failures == 0 else "FAIL")
+	print("자동 가속 페달 / 실제 랩 전광판·저장 / 100km 복구·3초 보호 / 붕괴 노면·파손 장애물: ", "PASS" if failures == 0 else "FAIL")
 	return failures
