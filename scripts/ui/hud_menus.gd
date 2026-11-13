@@ -3,6 +3,7 @@ extends RefCounted
 const RaceState = preload("res://scripts/race/race_state.gd")
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
+const PreRaceArt = preload("res://scripts/ui/pre_race_art.gd")
 const RenderResources = preload("res://scripts/rendering/render_resources.gd")
 const COURSE_PREVIEWS := [
 	"res://assets/ui/courses/fuji.tres",
@@ -12,10 +13,12 @@ const COURSE_PREVIEWS := [
 	"res://assets/ui/courses/gorge.tres"
 ]
 const TOUR_PREVIEW := "res://assets/ui/courses/tour.tres"
-const HOME_BG := "res://assets/ui/backgrounds/home_coast.png"
-const GARAGE_BG := "res://assets/ui/backgrounds/tuning_bay.png"
+const HOME_BG := "res://assets/ui/pre_race/home.png"
+const GARAGE_BG := "res://assets/ui/pre_race/garage.png"
 var menu_art: Dictionary = {}
 var menu_art_requested := false
+var active_screen := ""
+var retired_art: Array[Texture2D] = []
 var hud: Control
 var race: Node3D:
 	get:
@@ -33,24 +36,47 @@ func art(path: String) -> Texture2D:
 
 
 func sync_menu_art() -> void:
+	# 직전 프레임의 그리기 명령을 교체한 뒤 이전 화면 참조를 해제한다.
+	retired_art.clear()
 	if race.state in RaceState.DRIVING:
 		if menu_art_requested or not menu_art.is_empty():
 			menu_art_requested = false
+			active_screen = ""
 			menu_art.clear()
 			for path in (
-				COURSE_PREVIEWS + [HOME_BG, GARAGE_BG, TOUR_PREVIEW, MenuTheme.HEADER_ART, MenuTheme.PRIMARY_ART]
+				COURSE_PREVIEWS
+				+ [HOME_BG, GARAGE_BG, TOUR_PREVIEW, MenuTheme.HEADER_ART, MenuTheme.PRIMARY_ART]
+				+ PreRaceArt.paths()
 			):
 				RenderResources.release(path)
-	elif not menu_art_requested:
+		return
+	var screen: String = (
+		{
+			RaceState.MENU: "home",
+			RaceState.COURSES: "courses",
+			RaceState.READY: "garage",
+			RaceState.SETTINGS: "settings"
+		}
+		. get(race.state, "")
+	)
+	if screen != active_screen:
+		if not active_screen.is_empty():
+			var old: String = PreRaceArt.FILES[active_screen]
+			if menu_art.has(old) and DisplayServer.get_name() != "headless":
+				retired_art.append(menu_art[old])
+			menu_art.erase(old)
+			RenderResources.release(old)
+		active_screen = screen
+		if not screen.is_empty():
+			RenderResources.warm(PreRaceArt.FILES[screen])
+	if not menu_art_requested and not screen.is_empty():
 		menu_art_requested = true
-		for path in COURSE_PREVIEWS + [HOME_BG, GARAGE_BG, TOUR_PREVIEW, MenuTheme.HEADER_ART, MenuTheme.PRIMARY_ART]:
+		for path in COURSE_PREVIEWS + [TOUR_PREVIEW, MenuTheme.HEADER_ART, MenuTheme.PRIMARY_ART]:
 			RenderResources.warm(path)
 
 
 func draw_home() -> void:
-	MenuTheme.canvas(hud)
-	MenuTheme.cover(hud, art(HOME_BG), Rect2(32, 118, 1216, 330))
-	hud.draw_rect(Rect2(32, 118, 1216, 330), Color(1, 1, 1, .12))
+	PreRaceArt.background(hud, "home")
 	MenuTheme.label(hud, Rect2(320, 12, 600, 82), "INITIAL SJ", 64, MenuTheme.INK, true)
 	if race.previews != null:
 		hud.draw_texture_rect(race.previews.textures[2], Rect2(40, 230, 410, 201), false)
@@ -58,11 +84,10 @@ func draw_home() -> void:
 		hud.draw_texture_rect(race.previews.textures[0], Rect2(350, 170, 580, 284), false)
 	for index in range(2):
 		var rect: Rect2 = hud.HOME_TOUR if index == 0 else hud.HOME_TRACK
-		MenuTheme.panel(hud, rect, MenuTheme.PAPER)
 		MenuTheme.cover(
 			hud,
 			art(TOUR_PREVIEW if index == 0 else COURSE_PREVIEWS[1]),
-			Rect2(rect.end.x - 164, rect.position.y + 12, 148, rect.size.y - 24)
+			Rect2(rect.end.x - 168, rect.position.y + 20, 148, rect.size.y - 40)
 		)
 		MenuTheme.label(
 			hud, Rect2(rect.position + Vector2(24, 18), Vector2(300, 64)), "TOUR" if index == 0 else "TRACK", 52
@@ -77,18 +102,17 @@ func draw_home() -> void:
 		hud.draw_line(
 			rect.position + Vector2(18, rect.size.y - 12), rect.end - Vector2(176, 12), MenuTheme.YELLOW, 6, true
 		)
-	MenuTheme.panel(hud, hud.HOME_PASSPORT, MenuTheme.SOFT)
 	MenuTheme.label(hud, Rect2(45, 32, 230, 36), "TOUR PASSPORT", 24, MenuTheme.INK, true)
 	MenuTheme.label(
 		hud, Rect2(45, 69, 230, 28), race.tr("%d / 5 GOALS") % race.passport.goals.size(), 22, MenuTheme.TEAL, true
 	)
-	MenuTheme.button(hud, hud.HOME_SETTINGS, "SETTINGS", MenuTheme.SOFT, 30)
+	PreRaceArt.button(hud, hud.HOME_SETTINGS, "SETTINGS", 30)
 	MenuTheme.label(hud, Rect2(440, 668, 400, 38), hud.AppVersion.label(), 22, MenuTheme.MUTED, true)
 
 
 func draw_courses() -> void:
-	MenuTheme.canvas(hud)
-	MenuTheme.button(hud, hud.GARAGE_BACK, "‹ BACK")
+	PreRaceArt.background(hud, "courses")
+	PreRaceArt.button(hud, hud.GARAGE_BACK, "‹ BACK")
 	MenuTheme.label(hud, Rect2(335, 20, 600, 68), "TRACKS", 40)
 	var rects := [hud.COURSE_FUJI, hud.COURSE_SPEEDWAY, hud.COURSE_NIGHT, hud.COURSE_RIVIERA, hud.COURSE_GORGE]
 	var titles := [
@@ -102,13 +126,13 @@ func draw_courses() -> void:
 	for i in range(5):
 		var rect: Rect2 = rects[i]
 		var selected: bool = i == (race.menu_focus if hud.pad_on() else race.selected_course)
-		MenuTheme.panel(hud, rect, MenuTheme.PAPER, selected)
+		PreRaceArt.panel(hud, rect, "panel", selected)
 		MenuTheme.cover(
-			hud, art(COURSE_PREVIEWS[i]), Rect2(rect.position + Vector2(8, 8), Vector2(rect.size.x - 16, 286))
+			hud, art(COURSE_PREVIEWS[i]), Rect2(rect.position + Vector2(16, 16), Vector2(rect.size.x - 32, 272))
 		)
-		var badge := Rect2(rect.position + Vector2(16, 16), Vector2(52, 46))
-		MenuTheme.panel(hud, badge, MenuTheme.YELLOW, false, 5)
-		MenuTheme.label(hud, badge, "%02d" % (i + 1), 26, MenuTheme.INK, true)
+		var badge := Rect2(rect.position + Vector2(16, 16), Vector2(72, 48))
+		PreRaceArt.draw_frame(hud, badge, "primary")
+		MenuTheme.label(hud, badge, "%02d" % (i + 1), 22, MenuTheme.INK, true)
 		MenuTheme.label(hud, Rect2(rect.position + Vector2(18, 302), Vector2(rect.size.x - 36, 34)), titles[i][0], 27)
 		MenuTheme.label(hud, Rect2(rect.position + Vector2(18, 338), Vector2(rect.size.x - 36, 40)), titles[i][1], 29)
 		MenuTheme.label(
@@ -132,7 +156,6 @@ func draw_courses() -> void:
 		[hud.COURSE_PERIOD, "TIME OF DAY", race.track_environment.time_of_day.to_upper()]
 	]:
 		var rect: Rect2 = item[0]
-		MenuTheme.panel(hud, rect, MenuTheme.SOFT)
 		MenuTheme.label(
 			hud, Rect2(rect.position + Vector2(20, 7), Vector2(rect.size.x - 40, 30)), item[1], 22, MenuTheme.MUTED
 		)
@@ -147,62 +170,52 @@ func draw_courses() -> void:
 
 func draw_toggle_switch(row_rect: Rect2, is_on: bool) -> void:
 	var switch_rect := Rect2(row_rect.end.x - 110, row_rect.get_center().y - 24, 96, 48)
-	var accent := Color("45f3ff") if is_on else Color("9cabb3")
-	hud.glass_box(switch_rect, 24, Color("08bdcf") if is_on else Color("34434c"), accent, 1.8)
+	var accent := MenuTheme.TEAL if is_on else MenuTheme.BORDER
+	hud.glass_box(switch_rect, 24, MenuTheme.AQUA if is_on else MenuTheme.SOFT, accent, 1.8)
 	var knob := Vector2(switch_rect.end.x - 24 if is_on else switch_rect.position.x + 24, switch_rect.get_center().y)
 	hud.draw_circle(knob + Vector2(0, 2), 20, Color("020a1399"))
 	hud.draw_circle(knob, 19, Color("f3fcff") if is_on else Color("c9d4dc"))
 	hud.draw_arc(knob, 19, 0, TAU, 32, Color("ffffffdd"), 1.2, true)
 	hud.draw_circle(knob + Vector2(-5, -6), 4, Color("ffffffa8"))
 	var text_rect := Rect2(switch_rect.position + Vector2(3 if is_on else 47, 0), Vector2(44, 48))
-	MenuTheme.label(hud, text_rect, "ON" if is_on else "OFF", 20, Color("063443") if is_on else Color.WHITE, true, 20)
+	MenuTheme.label(hud, text_rect, "ON" if is_on else "OFF", 20, MenuTheme.INK, true, 20)
 
 
 func draw_segmented_selector(row_rect: Rect2, options: Array, current_idx: int) -> void:
 	var seg_rect := graphics_segment(0, row_rect).merge(graphics_segment(2, row_rect))
-	hud.glass_box(seg_rect, 10, Color("06131f"), Color("6399ae"), 1.4)
+	hud.glass_box(seg_rect, 10, MenuTheme.SOFT, MenuTheme.BORDER, 1.4)
 	for i in range(options.size()):
 		var sub_rect := graphics_segment(i, row_rect).grow(-3)
 		var selected := i == current_idx
 		hud.glass_box(
 			sub_rect,
 			8,
-			Color("00c5d5") if selected else Color("0a2130"),
-			Color("c0ffff") if selected else Color("49788e"),
+			MenuTheme.AQUA if selected else MenuTheme.PAPER,
+			MenuTheme.TEAL if selected else MenuTheme.BORDER,
 			2.4 if selected else 1.2
 		)
 		if selected:
 			hud.draw_line(
 				sub_rect.position + Vector2(8, 5),
 				Vector2(sub_rect.end.x - 8, sub_rect.position.y + 5),
-				Color("caffffb0"),
+				Color("ffffffb0"),
 				2,
 				true
 			)
-		MenuTheme.label(
-			hud, sub_rect.grow(-4), options[i], 24, Color("063442") if selected else Color("b8d3df"), true, 22
-		)
+		MenuTheme.label(hud, sub_rect.grow(-4), options[i], 24, MenuTheme.INK, true, 22)
 
 
 func draw_settings() -> void:
 	if hud.controls_open:
 		preload("res://scripts/ui/touch_layout_panel.gd").draw(hud)
 		return
-	const Chrome = preload("res://scripts/ui/neon_chrome.gd")
 	hud.menu_text.begin()
-	# 기준 원화의 푸른 외곽 광원과 남색 바탕을 텍스처 없이 2D로 그린다.
-	hud.draw_polygon(
-		PackedVector2Array([Vector2.ZERO, Vector2(1280, 0), Vector2(1280, 720), Vector2(0, 720)]),
-		PackedColorArray([Color("063747"), Color("061b2d"), Color("020b17"), Color("032b39")])
-	)
+	PreRaceArt.backdrop(hud)
 	hud.modal_begin()
-	var modal_rect: Rect2 = hud.SETTINGS_PANEL
-	Chrome.panel(hud, modal_rect, Color("3feaff"), 22, Color("061826fc"), 2.8)
-	MenuTheme.label(hud, Rect2(250, 38, 460, 44), "SETTINGS", 36, Color.WHITE)
+	PreRaceArt.background(hud, "settings", false)
+	MenuTheme.label(hud, Rect2(250, 38, 460, 44), "SETTINGS", 36, MenuTheme.INK)
 	var version := Rect2(850, 42, 200, 32)
-	hud.glass_box(version, 17, Color("073a4d"), Color("47edff"), 1.6)
-	MenuTheme.label(hud, version.grow(-5), hud.AppVersion.label(), 18, Color("b9faff"), true, 13)
-	hud.draw_line(Vector2(216, 91), Vector2(1064, 91), Color("58c3d68c"), 1.3, true)
+	MenuTheme.label(hud, version.grow(-5), hud.AppVersion.label(), 18, MenuTheme.MUTED, true, 13)
 
 	var rows: Array = [
 		[hud.SETTINGS_SOUND, "SOUND", race.sound_enabled],
@@ -214,12 +227,11 @@ func draw_settings() -> void:
 	]
 	for item in rows:
 		var rect: Rect2 = item[0]
-		hud.glass_box(rect, 12, Color("061a28f2"), Color("73b9d3"), 1.5)
 		var audio_row: bool = item[1] in ["SOUND", "MUSIC"]
 		if audio_row:
 			rect = hud.SettingsAudio.toggle_rect(hud, item[1] == "MUSIC")
 		var icon := rect.position + Vector2(24, rect.size.y * .5)
-		var white := Color("e1f5fb")
+		var white := MenuTheme.INK
 		match item[1]:
 			"SOUND":
 				hud.draw_colored_polygon(
@@ -279,27 +291,26 @@ func draw_settings() -> void:
 				hud.SettingsAudio.draw_slider(hud, item[1] == "MUSIC")
 
 	if OS.has_feature("web"):
-		Chrome.panel(hud, hud.SETTINGS_FULLSCREEN, Color("35e4f3"), 12, Color("073342"), 2)
+		PreRaceArt.draw_frame(hud, hud.SETTINGS_FULLSCREEN, "button")
+		PreRaceArt.draw_frame(hud, hud.SETTINGS_INSTALL, "button")
 		MenuTheme.label(
-			hud, hud.SETTINGS_FULLSCREEN.grow(-10), race.shell.fullscreen_label(), 23, Color("b8fbff"), true, 20
+			hud, hud.SETTINGS_FULLSCREEN.grow(-10), race.shell.fullscreen_label(), 23, MenuTheme.INK, true, 20
 		)
-		Chrome.panel(hud, hud.SETTINGS_INSTALL, Color("35e4f3"), 12, Color("082e3e"), 2)
-		MenuTheme.label(hud, hud.SETTINGS_INSTALL, "INSTALL", 24, Color("b8fbff"), true)
+		MenuTheme.label(hud, hud.SETTINGS_INSTALL, "INSTALL", 24, MenuTheme.INK, true)
 		MenuTheme.label(
 			hud,
 			Rect2(hud.SETTINGS_MOTION.position.x, 552, hud.SETTINGS_MOTION.size.x, 24),
 			hud.install_note,
 			18,
-			Color("8caec0"),
+			MenuTheme.MUTED,
 			true,
 			12
 		)
 
 	var done_rect: Rect2 = hud.settings_close_rect()
-	Chrome.panel(hud, hud.settings_controls_rect(), Color("35e4f3"), 12, Color("073342"), 2)
-	MenuTheme.label(hud, hud.settings_controls_rect(), "CONTROLS", 24, Color("b8fbff"), true)
-	Chrome.panel(hud, done_rect, Color("6cffff"), 14, Color("086979"), 3)
-	MenuTheme.label(hud, done_rect, "DONE", 30, Color.WHITE, true)
+	PreRaceArt.draw_frame(hud, done_rect, "primary")
+	MenuTheme.label(hud, hud.settings_controls_rect(), "CONTROLS", 24, MenuTheme.INK, true)
+	MenuTheme.label(hud, done_rect, "DONE", 30, MenuTheme.INK, true)
 
 	if hud.pad_on():
 		var targets: Array[Rect2] = [
@@ -314,7 +325,7 @@ func draw_settings() -> void:
 		if OS.has_feature("web"):
 			targets.append_array([hud.SETTINGS_FULLSCREEN, hud.SETTINGS_INSTALL])
 		targets.append(hud.settings_close_rect())
-		hud.draw_rect(targets[clampi(race.settings_focus, 0, targets.size() - 1)].grow(3), Color("e3ffff"), false, 3)
+		hud.draw_rect(targets[clampi(race.settings_focus, 0, targets.size() - 1)].grow(3), MenuTheme.TEAL, false, 3)
 	if OS.has_feature("web"):
 		if hud.modal_motion.closing:
 			race.shell.hide_control()
@@ -341,15 +352,11 @@ func graphics_index(pos: Vector2) -> int:
 
 
 func draw_garage() -> void:
-	MenuTheme.canvas(hud)
-	MenuTheme.button(hud, hud.GARAGE_BACK, "‹ BACK")
+	PreRaceArt.background(hud, "garage")
+	PreRaceArt.button(hud, hud.GARAGE_BACK, "‹ BACK")
 	MenuTheme.label(hud, Rect2(330, 18, 560, 66), "SELECT CAR", 40)
-	MenuTheme.panel(hud, hud.GARAGE_GHOST, MenuTheme.SOFT)
 	MenuTheme.label(hud, Rect2(950, 29, 260, 30), "PERSONAL GHOST", 22, MenuTheme.INK, true)
 	MenuTheme.label(hud, Rect2(950, 62, 260, 32), "ON" if race.show_ghost else "OFF", 23, MenuTheme.TEAL, true)
-	MenuTheme.cover(hud, art(GARAGE_BG), Rect2(48, 122, 735, 346))
-	hud.draw_rect(Rect2(48, 122, 735, 346), Color(1, 1, 1, .6))
-	hud.draw_rect(Rect2(48, 122, 735, 88), Color(1, 1, 1, .9))
 	MenuTheme.label(hud, Rect2(76, 129, 650, 47), race.vehicle.name, 39)
 	MenuTheme.label(hud, Rect2(78, 176, 600, 34), race.vehicle["class"], 24, MenuTheme.TEAL)
 	if race.previews != null:
@@ -367,7 +374,7 @@ func draw_garage() -> void:
 			Rect2(66 + 28 * (1 - blend), 194, 690, 270),
 			Color(1, 1, 1, blend)
 		)
-	MenuTheme.panel(hud, Rect2(800, 122, 400, 346), MenuTheme.PAPER, true)
+	PreRaceArt.panel(hud, Rect2(800, 122, 400, 346))
 	MenuTheme.label(hud, Rect2(824, 135, 350, 30), "PERFORMANCE", 23, MenuTheme.MUTED)
 	var abilities := Catalog.abilities(race.selected_vehicle)
 	for i in range(4):
@@ -394,7 +401,7 @@ func draw_garage() -> void:
 		var rect: Rect2 = hud.garage_card(i)
 		if not rect.has_area():
 			continue
-		MenuTheme.panel(hud, rect, MenuTheme.PAPER, i == race.selected_vehicle)
+		PreRaceArt.panel(hud, rect, "panel", i == race.selected_vehicle)
 		if race.previews != null:
 			MenuTheme.cover(
 				hud, race.previews.textures[i], Rect2(rect.position + Vector2(52, 0), Vector2(rect.size.x - 104, 74))
@@ -414,8 +421,8 @@ func draw_garage() -> void:
 			4,
 			true
 		)
-	MenuTheme.button(hud, hud.GARAGE_PREVIOUS, "‹", MenuTheme.SOFT, 48)
-	MenuTheme.button(hud, hud.GARAGE_NEXT, "›", MenuTheme.SOFT, 48)
+	PreRaceArt.button(hud, hud.GARAGE_PREVIOUS, "‹", 48)
+	PreRaceArt.button(hud, hud.GARAGE_NEXT, "›", 48)
 	var note: String = (
 		hud.garage_notice
 		if hud.garage_notice_left > 0
@@ -432,7 +439,6 @@ func draw_garage() -> void:
 		[hud.GARAGE_PLATE, "PLATE", "STANDARD" if plate == 0 else str(race.passport.PLATES[plate])]
 	]:
 		var rect: Rect2 = item[0]
-		MenuTheme.panel(hud, rect, MenuTheme.SOFT)
 		MenuTheme.label(
 			hud,
 			Rect2(rect.position + Vector2(14, 6), Vector2(rect.size.x - 28, 28)),
@@ -444,8 +450,8 @@ func draw_garage() -> void:
 		MenuTheme.label(
 			hud, Rect2(rect.position + Vector2(14, 34), Vector2(rect.size.x - 28, 36)), item[2], 25, MenuTheme.INK, true
 		)
-	MenuTheme.button(hud, hud.GARAGE_TUNING, "TUNING", MenuTheme.SOFT, 28)
-	MenuTheme.button(hud, hud.GARAGE_START, "DRIVE  ›", MenuTheme.YELLOW, 34)
+	PreRaceArt.button(hud, hud.GARAGE_TUNING, "TUNING", 28)
+	PreRaceArt.button(hud, hud.GARAGE_START, "DRIVE  ›", 34)
 
 
 func garage_paint_label() -> String:

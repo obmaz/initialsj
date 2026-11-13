@@ -10,8 +10,8 @@ const PAPER := Color("fffdf7")
 const CANVAS := Color("edf7fa")
 const SOFT := Color("e1f5f5")
 const BORDER := Color("406b89")
-const HEADER_ART := "res://assets/ui/controls/menu_header.png"
-const PRIMARY_ART := "res://assets/ui/controls/menu_primary.png"
+const HEADER_ART := "res://assets/ui/pre_race/header.png"
+const PRIMARY_ART := "res://assets/ui/pre_race/primary.png"
 
 
 static func points(rect: Rect2, cut: float) -> PackedVector2Array:
@@ -30,11 +30,11 @@ static func points(rect: Rect2, cut: float) -> PackedVector2Array:
 
 
 static func panel(hud: Control, rect: Rect2, fill: Color = PAPER, selected: bool = false, cut: float = 12.0) -> void:
-	hud.draw_colored_polygon(points(Rect2(rect.position + Vector2(0, 5), rect.size), cut), Color("142b4924"))
-	var outline := points(rect, cut)
-	hud.draw_colored_polygon(outline, fill)
-	outline.append(outline[0])
-	hud.draw_polyline(outline, AQUA if selected else BORDER, 4 if selected else 2.0, true)
+	preload("res://scripts/ui/pre_race_art.gd").draw_frame(hud, rect, "panel")
+	if selected:
+		var outline := points(rect.grow(-3), minf(cut, 10))
+		outline.append(outline[0])
+		hud.draw_polyline(outline, AQUA, 3, true)
 
 
 static func fit_size(hud: Control, value: String, width: float, preferred: int, minimum: int = 22) -> int:
@@ -74,10 +74,7 @@ static func label(
 
 
 static func button(hud: Control, rect: Rect2, key: String, fill: Color = SOFT, font_size: int = 28) -> void:
-	if fill == YELLOW:
-		hud.draw_texture_rect(hud.menus.art(PRIMARY_ART), rect.grow(4), false)
-	else:
-		panel(hud, rect, fill)
+	preload("res://scripts/ui/pre_race_art.gd").draw_frame(hud, rect, "primary" if fill == YELLOW else "button")
 	label(hud, rect.grow(-12), key, font_size, INK, true)
 
 

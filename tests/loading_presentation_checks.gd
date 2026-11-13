@@ -17,15 +17,16 @@ func run(tree: SceneTree) -> int:
 	overlay._process(0)
 	check(overlay.show_illustration, "예상보다 긴 전환은650ms 뒤 이미지로 전환한다")
 	overlay.finish()
-	check(not overlay.visible, "준비가 끝나면 로딩을 즉시 닫는다")
+	check(not overlay.visible and overlay.background_art == null, "준비가 끝나면 로딩을 즉시 닫는다")
 	overlay.begin("NEW TRACK", true)
 	check(overlay.show_illustration and overlay.load_progress < 1, "무거운 코스는 작업 전에 이미지부터 표시한다")
 	overlay.begin("SHORT AGAIN")
 	check(not overlay.show_illustration, "다음 짧은 전환에는 이전 이미지 상태가 남지 않는다")
+	var background: Texture2D = load(overlay.BACKGROUND_PATH)
 	check(
 		(
-			overlay.BACKGROUND_ART.get_width() > 1000
-			and absf(overlay.BACKGROUND_ART.get_width() / float(overlay.BACKGROUND_ART.get_height()) - 16.0 / 9) < .02
+			background.get_width() > 1000
+			and absf(background.get_width() / float(background.get_height()) - 16.0 / 9) < .02
 		),
 		"스플래시 이미지의 해상도와 가로 비율을 유지한다"
 	)

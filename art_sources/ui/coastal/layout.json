@@ -1,0 +1,489 @@
+{
+  "schema": 1,
+  "designSize": [
+    1280,
+    720
+  ],
+  "nineSliceMargin": 20,
+  "sources": {
+    "master.png": "d10535d75c9f067778418bfb58545d504ab9d816528ec11c05c3dd17faddf020",
+    "backdrop.png": "044b48c8d663bdcd7bdaa2cae9d598d6d2ff3bd6b8850969fd4f2928ec7f1288"
+  },
+  "crops": {
+    "button": {
+      "bounds": [
+        43,
+        24,
+        312,
+        115
+      ],
+      "size": [
+        256,
+        96
+      ],
+      "cornerMask": 17
+    },
+    "panel": {
+      "bounds": [
+        40,
+        165,
+        460,
+        585
+      ],
+      "size": [
+        192,
+        192
+      ],
+      "cornerMask": 40
+    },
+    "primary": {
+      "bounds": [
+        1010,
+        786,
+        1632,
+        902
+      ],
+      "size": [
+        512,
+        96
+      ],
+      "cornerMask": 25
+    },
+    "header": {
+      "bounds": [
+        462,
+        16,
+        1385,
+        124
+      ],
+      "size": [
+        768,
+        96
+      ],
+      "cornerMask": 25
+    }
+  },
+  "screens": {
+    "start": [
+      {
+        "id": "brand",
+        "rect": [
+          680,
+          64,
+          540,
+          170
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "loading",
+        "rect": [
+          180,
+          548,
+          920,
+          154
+        ],
+        "role": "panel"
+      }
+    ],
+    "home": [
+      {
+        "id": "title",
+        "rect": [
+          310,
+          16,
+          615,
+          80
+        ],
+        "role": "header"
+      },
+      {
+        "id": "HOME_PASSPORT",
+        "rect": [
+          30,
+          24,
+          260,
+          84
+        ],
+        "role": "button"
+      },
+      {
+        "id": "HOME_SETTINGS",
+        "rect": [
+          1000,
+          24,
+          250,
+          84
+        ],
+        "role": "button"
+      },
+      {
+        "id": "HOME_TOUR",
+        "rect": [
+          100,
+          470,
+          520,
+          170
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "HOME_TRACK",
+        "rect": [
+          660,
+          470,
+          520,
+          170
+        ],
+        "role": "panel"
+      }
+    ],
+    "courses": [
+      {
+        "id": "GARAGE_BACK",
+        "rect": [
+          60,
+          16,
+          220,
+          80
+        ],
+        "role": "button"
+      },
+      {
+        "id": "title",
+        "rect": [
+          310,
+          16,
+          615,
+          80
+        ],
+        "role": "header"
+      },
+      {
+        "id": "COURSE_FUJI",
+        "rect": [
+          24,
+          136,
+          236,
+          430
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "COURSE_SPEEDWAY",
+        "rect": [
+          272,
+          136,
+          236,
+          430
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "COURSE_NIGHT",
+        "rect": [
+          520,
+          136,
+          236,
+          430
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "COURSE_RIVIERA",
+        "rect": [
+          768,
+          136,
+          236,
+          430
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "COURSE_GORGE",
+        "rect": [
+          1016,
+          136,
+          236,
+          430
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "COURSE_WEATHER",
+        "rect": [
+          330,
+          602,
+          345,
+          84
+        ],
+        "role": "button"
+      },
+      {
+        "id": "COURSE_PERIOD",
+        "rect": [
+          700,
+          602,
+          440,
+          84
+        ],
+        "role": "button"
+      },
+      {
+        "id": "summary",
+        "rect": [
+          24,
+          594,
+          284,
+          102
+        ],
+        "role": "button"
+      }
+    ],
+    "garage": [
+      {
+        "id": "GARAGE_BACK",
+        "rect": [
+          60,
+          16,
+          220,
+          80
+        ],
+        "role": "button"
+      },
+      {
+        "id": "title",
+        "rect": [
+          310,
+          16,
+          615,
+          80
+        ],
+        "role": "header"
+      },
+      {
+        "id": "GARAGE_GHOST",
+        "rect": [
+          940,
+          24,
+          280,
+          84
+        ],
+        "role": "button"
+      },
+      {
+        "id": "vehicle_name",
+        "rect": [
+          60,
+          122,
+          720,
+          88
+        ],
+        "role": "header"
+      },
+      {
+        "id": "performance",
+        "rect": [
+          800,
+          122,
+          400,
+          346
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "car_0",
+        "rect": [
+          144,
+          480,
+          236,
+          106
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "car_1",
+        "rect": [
+          396,
+          480,
+          236,
+          106
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "car_2",
+        "rect": [
+          648,
+          480,
+          236,
+          106
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "car_3",
+        "rect": [
+          900,
+          480,
+          236,
+          106
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "GARAGE_PREVIOUS",
+        "rect": [
+          32,
+          480,
+          92,
+          106
+        ],
+        "role": "button"
+      },
+      {
+        "id": "GARAGE_NEXT",
+        "rect": [
+          1156,
+          480,
+          92,
+          106
+        ],
+        "role": "button"
+      },
+      {
+        "id": "GARAGE_PAINT",
+        "rect": [
+          80,
+          630,
+          225,
+          80
+        ],
+        "role": "button"
+      },
+      {
+        "id": "GARAGE_PLATE",
+        "rect": [
+          325,
+          630,
+          245,
+          80
+        ],
+        "role": "button"
+      },
+      {
+        "id": "GARAGE_TUNING",
+        "rect": [
+          590,
+          630,
+          245,
+          80
+        ],
+        "role": "button"
+      },
+      {
+        "id": "GARAGE_START",
+        "rect": [
+          855,
+          630,
+          345,
+          80
+        ],
+        "role": "primary"
+      }
+    ],
+    "settings": [
+      {
+        "id": "SETTINGS_PANEL",
+        "rect": [
+          180,
+          24,
+          920,
+          672
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "SETTINGS_SOUND",
+        "rect": [
+          228,
+          104,
+          402,
+          160
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "SETTINGS_MUSIC",
+        "rect": [
+          650,
+          104,
+          402,
+          160
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "SETTINGS_MOTION",
+        "rect": [
+          228,
+          276,
+          402,
+          80
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "SETTINGS_FPS",
+        "rect": [
+          650,
+          276,
+          402,
+          80
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "SETTINGS_GRAPHICS",
+        "rect": [
+          228,
+          368,
+          824,
+          80
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "SETTINGS_AUTO",
+        "rect": [
+          228,
+          460,
+          402,
+          80
+        ],
+        "role": "panel"
+      },
+      {
+        "id": "controls",
+        "rect": [
+          650,
+          460,
+          402,
+          80
+        ],
+        "role": "button"
+      }
+    ]
+  },
+  "outputs": {
+    "button.png": "7466bf53b7768a6a770af8f918be8ddd5a5e1ac314d811822f945432237b0261",
+    "courses.png": "457ed298b1bbd4b65971fcd3343549f0a18c9bc0cd5c112642e03a0caa02cb9a",
+    "garage.png": "ff9259d521d2696f696792e19418dc45fdd6b8397b199dbcb0dc949fd87167ac",
+    "header.png": "2c1d6f767ad7c746c45b86b2edff6c8e714b8901f910aaeb25245b95a0e38298",
+    "home.png": "49ccbe82508352bf58b5e1936afd43f764304a0df7a18223f1ad345825ad8301",
+    "panel.png": "220c31462300db072214013f175723942a367fdb5884cfe653e54f837ca9b80d",
+    "primary.png": "f727c5a556cacb35b91a823d20262a1e42818ad221cfb9399870b4b5ca550186",
+    "settings.png": "3f12456ba422bd86cec657a3355c3ea3e87ed394370ba9cf74d5527a4de02fb9",
+    "start.png": "391f052e8b6ebd856e4b4f117df3b41eb3c6ef44560840744c795b0bd005168c"
+  }
+}

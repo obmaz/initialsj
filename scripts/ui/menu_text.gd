@@ -42,7 +42,12 @@ func draw(rect: Rect2, value: String, font_size: int, color: Color, centered: bo
 		label.add_theme_font_size_override("font_size", font_size)
 	if label.get_theme_color("font_color") != color:
 		label.add_theme_color_override("font_color", color)
-	label.position = hud.ui_offset() + (content_transform * rect.position) * hud.ui_scale()
+	var press_offset: Vector2 = (
+		hud.menu_feedback.offset_for(rect, hud.race.motion_reduced)
+		if hud.menu_feedback.state == hud.race.state
+		else Vector2.ZERO
+	)
+	label.position = hud.ui_offset() + (content_transform * (rect.position + press_offset)) * hud.ui_scale()
 	label.size = rect.size
 	label.scale = content_transform.get_scale() * hud.ui_scale()
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if centered else HORIZONTAL_ALIGNMENT_LEFT

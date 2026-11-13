@@ -1,8 +1,9 @@
 extends Control
 # 코스 준비는 메인 스레드에서 수행하므로 시작 전에 화면을 그리고 준비 단계 사이에 갱신한다.
 const AppVersion = preload("res://scripts/platform/app_version.gd")
-const GAME_LOGO = preload("res://assets/ui/branding/initialsj_logo.svg")
-const BACKGROUND_ART = preload("res://assets/ui/backgrounds/loading_coast.png")
+const BACKGROUND_PATH := "res://assets/ui/pre_race/start.png"
+const Pool = preload("res://scripts/rendering/render_resources.gd")
+var background_art: Texture2D
 const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
 const MenuLayout = preload("res://scripts/ui/menu_layout.gd")
 const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
@@ -33,6 +34,7 @@ func _ready() -> void:
 
 func begin(value: String, long_load: bool = false) -> void:
 	started_at_msec = Time.get_ticks_msec()
+	background_art = Pool.fetch(BACKGROUND_PATH) if long_load else null
 	show_illustration = long_load
 	loading_title = value
 	load_progress = 0.08
@@ -50,31 +52,30 @@ func advance(to_step: int, to_progress: float) -> void:
 
 func finish() -> void:
 	visible = false
+	background_art = null
+	Pool.release(BACKGROUND_PATH)
 
 
 func _process(delta: float) -> void:
 	if not visible:
 		return
 	spinner_angle_rad += delta * 4
-	if Time.get_ticks_msec() - started_at_msec >= 650:
+	if not show_illustration and Time.get_ticks_msec() - started_at_msec >= 650:
+		background_art = Pool.fetch(BACKGROUND_PATH)
 		show_illustration = true
 	queue_redraw()
 
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color("e8f7fc"))
-	if show_illustration:
-		var factor := maxf(size.x / BACKGROUND_ART.get_width(), size.y / BACKGROUND_ART.get_height())
-		var art_size := BACKGROUND_ART.get_size() * factor
-		draw_texture_rect(BACKGROUND_ART, Rect2((size - art_size) * .5, art_size), false)
 	var safe := MenuLayout.safe_rect(size)
 	var scale_factor := MenuLayout.scale_for(safe)
 	var origin := MenuLayout.origin_for(safe)
 	draw_set_transform(origin, 0, Vector2.ONE * scale_factor)
-	if show_illustration:
-		draw_rect(Rect2(0, 540, 1280, 180), Color(.97, 1, 1, .93))
-		draw_line(Vector2(0, 540), Vector2(1280, 540), Color("20cbd0"), 3)
-		draw_texture_rect(GAME_LOGO, Rect2(720, 85, 480, GAME_LOGO.get_height() * 480.0 / GAME_LOGO.get_width()), false)
+	if show_illustration and background_art != null:
+		draw_texture_rect(background_art, Rect2(0, 0, 1280, 720), false)
+		_centered(Vector2(950, 136), "INITIAL SJ", 54, INK, FONT)
+		_centered(Vector2(950, 188), "COAST RUSH", 28, MenuTheme.TEAL, FONT)
 	else:
 		draw_arc(Vector2(640, 285), 26, spinner_angle_rad, spinner_angle_rad + TAU * .72, 40, CYAN, 4, true)
 	if loading_title != "":

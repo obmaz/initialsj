@@ -37,6 +37,7 @@ const COURSE_SPEEDWAY := Rect2(272, 136, 236, 430)
 const COURSE_NIGHT := Rect2(520, 136, 236, 430)
 const COURSE_RIVIERA := Rect2(768, 136, 236, 430)
 const COURSE_GORGE := Rect2(1016, 136, 236, 430)
+var menu_feedback := preload("res://scripts/ui/menu_feedback.gd").new()
 var menu_text := preload("res://scripts/ui/menu_text.gd").new(self)
 var menus := preload("res://scripts/ui/hud_menus.gd").new(self)
 const GARAGE_GHOST := Rect2(940, 24, 280, 84)
@@ -249,6 +250,7 @@ func handle_pointer(event: InputEvent) -> void:
 	if recovery_touches.has(index):
 		return
 	var p := to_design(event.position)
+	register_menu_press(p)
 	if race.passport_open:
 		if PASSPORT_CLOSE.has_point(p):
 			race.toggle_passport()
@@ -533,6 +535,7 @@ func _process(delta: float) -> void:
 		race.save_preferences()
 	if race.state != RaceState.RACING:
 		recovery_touches.clear()
+	menu_feedback.advance(delta, race.state)
 	selection_blend = minf(1, selection_blend + delta * 5)
 	var target: Dictionary = Catalog.abilities(race.selected_vehicle)
 	if shown_abilities.size() != 4:
@@ -713,10 +716,11 @@ func time_label(seconds: float) -> String:
 func _draw() -> void:
 	menu_text.begin()
 	draw_content()
+	draw_menu_press()
 	if (
 		race != null
 		and not race.passport_open
-		and (race.state in [RaceState.SETTINGS, RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED])
+		and (race.state in [RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED])
 	):
 		draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
 		preload("res://scripts/ui/neon_chrome.gd").panel(
@@ -1730,3 +1734,84 @@ func open_controls() -> void:
 func result_continue_rect() -> Rect2:
 	var panel: Rect2 = preload("res://scripts/ui/result_panel.gd").PANEL
 	return Rect2(panel.position.x + 24, 608, panel.size.x - 48, 80)
+
+
+func menu_press_rects() -> Array[Rect2]:
+	var result: Array[Rect2] = []
+	if race.passport_open or controls_open or is_instance_valid(race.tuning_shop):
+		return result
+	match race.state:
+		RaceState.MENU:
+			result.assign([HOME_TOUR, HOME_TRACK, HOME_PASSPORT, HOME_SETTINGS])
+		RaceState.COURSES:
+			result.assign(
+				[
+					COURSE_FUJI,
+					COURSE_SPEEDWAY,
+					COURSE_NIGHT,
+					COURSE_RIVIERA,
+					COURSE_GORGE,
+					COURSE_WEATHER,
+					COURSE_PERIOD,
+					GARAGE_BACK
+				]
+			)
+		RaceState.READY:
+			result.assign(
+				[
+					GARAGE_BACK,
+					GARAGE_GHOST,
+					GARAGE_PREVIOUS,
+					GARAGE_NEXT,
+					GARAGE_PAINT,
+					GARAGE_PLATE,
+					GARAGE_TUNING,
+					GARAGE_START
+				]
+			)
+			for i in range(Catalog.SPECS.size()):
+				result.append(garage_card(i))
+		RaceState.SETTINGS:
+			result.assign(
+				[
+					SETTINGS_SOUND,
+					SETTINGS_MUSIC,
+					SETTINGS_MOTION,
+					SETTINGS_GRAPHICS,
+					SETTINGS_FPS,
+					SETTINGS_AUTO,
+					settings_controls_rect(),
+					settings_close_rect()
+				]
+			)
+			if OS.has_feature("web"):
+				result.append_array([SETTINGS_FULLSCREEN, SETTINGS_INSTALL])
+	return result
+
+
+func register_menu_press(at: Vector2) -> void:
+	if menu_feedback.press(at, menu_press_rects(), race.state):
+		if race.sound_enabled and is_instance_valid(race.screen_transition):
+			race.screen_transition.transition_sound.play()
+
+
+func draw_menu_press() -> void:
+	var amount := menu_feedback.amount()
+	if amount <= 0 or menu_feedback.state != race.state:
+		return
+	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
+	if race.state == RaceState.SETTINGS:
+		draw_set_transform_matrix(Transform2D(0, Vector2.ONE * ui_scale(), 0, ui_offset()) * modal_pose())
+	var rect := menu_feedback.rect.grow(-8)
+	if not race.motion_reduced:
+		rect.position.y += 2 * amount
+	draw_rect(rect, Color(.06, .5, .55, .12 * amount))
+	draw_rect(rect, Color(.08, .8, .84, .75 * amount), false, 3, true)
+	draw_line(
+		rect.position + Vector2(14, 3),
+		Vector2(rect.end.x - 14, rect.position.y + 3),
+		Color(1, 1, 1, .8 * amount),
+		2,
+		true
+	)
+	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())

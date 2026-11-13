@@ -12,7 +12,7 @@ from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / 'assets/ui/branding/initialsj_logo.svg'
+OUT = ROOT / 'art_sources/ui/coastal/retired/initialsj_logo.svg'
 SHELL = ROOT / 'web/coast-rush-shell.html'
 FONT = TTFont(ROOT / 'assets/fonts/Roboto-BoldItalic.ttf')
 GLYPHS = FONT.getGlyphSet()
