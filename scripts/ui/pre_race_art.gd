@@ -32,10 +32,13 @@ static func backdrop(hud: Control, mirrored: bool = false) -> void:
 	var cropped := fill.size * scale_factor
 	source.position = (source.size - cropped) * .5
 	source.size = cropped
+	var base := Transform2D(0, Vector2.ONE * hud.ui_scale(), 0, hud.ui_offset())
 	if mirrored:
-		fill.position.x = fill.end.x
-		fill.size.x *= -1
+		var flip := Transform2D(Vector2(-1, 0), Vector2(0, 1), Vector2(fill.position.x + fill.end.x, 0))
+		hud.draw_set_transform_matrix(base * flip)
 	hud.draw_texture_rect_region(image, fill, source)
+	if mirrored:
+		hud.draw_set_transform_matrix(base)
 
 
 static func background(hud: Control, screen: String, surround: bool = true) -> void:
