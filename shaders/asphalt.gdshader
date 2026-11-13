@@ -1,4 +1,5 @@
 shader_type spatial;
+uniform vec3 stylized_rim_tint = vec3(0.015, 0.035, 0.055);
 render_mode diffuse_burley, specular_schlick_ggx;
 uniform sampler2D asphalt_texture : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D asphalt_variants : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
@@ -79,7 +80,7 @@ void fragment() {
 	}
 	// 스타일라이즈드 2D 애니메 림 반사 (차량 셰이더와 조명 톤 일체화)
 	float track_rim = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 3.5);
-	EMISSION += vec3(0.015, 0.035, 0.055) * track_rim;
+	EMISSION += stylized_rim_tint * track_rim;
 	METALLIC = 0.0;
 	if(harbor_corridor){
 		float d=UV.y*6.0;

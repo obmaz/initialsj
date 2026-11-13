@@ -40,6 +40,7 @@ var custom_plate := "STOCK"
 var body_motion := preload("res://scripts/effects/body_motion.gd").new()
 var shift_amount := 0.0
 var wheel_centres: Array[Vector3] = []
+var outline_near := true
 
 
 func _ready() -> void:
@@ -99,6 +100,7 @@ func _ready() -> void:
 		var prototype := PackedScene.new()
 		if prototype.pack(body) == OK:
 			RenderResources.traffic_models[model] = prototype
+	refresh_outline()
 
 
 func make_drift_smoke() -> void:
@@ -195,6 +197,21 @@ func set_detail(distance_to_player: float) -> void:
 		wheel.visible = distance_to_player < 110
 	if traffic_wheels != null:
 		traffic_wheels.visible = distance_to_player >= 110
+	var near := distance_to_player < 45
+	if near != outline_near:
+		outline_near = near
+		refresh_outline()
+
+
+func refresh_outline() -> void:
+	# 유리·휠·배기구를 제외한 외피와 윙만 같은 GLB 메시로 한 번 더 그린다.
+	var enabled := outline_near and not traffic
+	var material: ShaderMaterial = (
+		preload("res://scripts/rendering/render_resources.gd").vehicle_outline_material() if enabled else null
+	)
+	for child in body.get_children():
+		if child is MeshInstance3D and child.name in ["PaintShell", "ActiveRearAero", "TuningWing"]:
+			child.material_overlay = material
 
 
 func add_boost_jet(pos: Vector3, radius: float) -> void:
@@ -290,6 +307,7 @@ func restore_paint() -> void:
 			and node.material_override.shader == material.shader
 		):
 			node.material_override = material
+	refresh_outline()
 
 
 func apply_customization(color: Color, plate: String) -> void:

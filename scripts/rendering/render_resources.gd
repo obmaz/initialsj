@@ -6,6 +6,7 @@ static var owners := 0
 static var quads: Dictionary = {}
 static var box_mesh: ArrayMesh
 static var vehicle_body: ShaderMaterial
+static var vehicle_outline: ShaderMaterial
 static var traffic_models := {}
 static var shared_world_scenes := {}
 static var shared_world_materials := {}
@@ -28,6 +29,7 @@ static func release_owner() -> bool:
 	box_mesh = null
 	preload("res://scripts/rendering/primitive_assets.gd").clear()
 	vehicle_body = null
+	vehicle_outline = null
 	traffic_models.clear()
 	shared_world_scenes.clear()
 	shared_world_materials.clear()
@@ -62,6 +64,14 @@ static func vehicle_body_material() -> ShaderMaterial:
 		vehicle_body = ShaderMaterial.new()
 		vehicle_body.shader = preload("res://shaders/vehicle_body.gdshader")
 	return vehicle_body
+
+
+# 가까운 차체가 같은 외곽선 재질을 공유한다.
+static func vehicle_outline_material() -> ShaderMaterial:
+	if vehicle_outline == null:
+		vehicle_outline = ShaderMaterial.new()
+		vehicle_outline.shader = preload("res://shaders/vehicle_outline.gdshader")
+	return vehicle_outline
 
 
 # 미리 읽기 시작했지만 쓰이지 않은 리소스를 놓는다.

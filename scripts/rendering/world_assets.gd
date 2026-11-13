@@ -377,6 +377,7 @@ static func finish(context: Dictionary, road: Node3D) -> void:
 		)
 	if not road.closed_loop:
 		preload("res://scripts/environment/advertisement_library.gd").configure_tour_section(road)
+	preload("res://scripts/rendering/neon_style.gd").apply_section(road)
 
 
 static func queue(road: Node3D) -> void:

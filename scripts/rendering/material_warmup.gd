@@ -121,6 +121,8 @@ func collect_node(node: Node) -> void:
 			multi and node.multimesh.use_colors,
 			multi and node.multimesh.use_custom_data
 		)
+		if node.material_overlay != null:
+			add_mesh(mesh, node.material_overlay, [], multi, false, false)
 
 
 func prepare_staged(source: Node) -> void:

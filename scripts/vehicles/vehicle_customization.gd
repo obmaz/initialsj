@@ -156,3 +156,4 @@ static func apply(car: Node3D, data: Dictionary, vehicle: int) -> void:
 			car.active_aero.transform = car.aero_rest
 		car.aero_blend = 0
 	car.set_meta("tuning_state", data.duplicate(true))
+	car.refresh_outline()

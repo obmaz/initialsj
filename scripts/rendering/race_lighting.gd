@@ -54,6 +54,7 @@ func apply_course() -> void:
 	race.rim_light.light_color = Color.WHITE
 	if race.track_environment.supported(race):
 		race.track_environment.apply_lighting(race)
+		preload("res://scripts/rendering/neon_style.gd").apply(race)
 		return
 	race.visual_theme = ""
 	race.sun_light.rotation_degrees = Vector3(-42, -32, 0)
@@ -77,6 +78,7 @@ func update(delta: float) -> void:
 	if race.visual_theme != mood_key:
 		race.visual_theme = mood_key
 		race.atmosphere_transition = 3.0
+		preload("res://scripts/rendering/neon_style.gd").apply(race)
 	if race.atmosphere_transition <= 0:
 		return
 	var profile := {
