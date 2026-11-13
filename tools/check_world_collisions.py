@@ -22,7 +22,10 @@ def check(root=ROOT):
 
     def digest(path):
         if path not in digests:
-            digests[path] = hashlib.sha256(path.read_bytes()).hexdigest()
+            data = path.read_bytes()
+            if path.suffix in (".gd", ".tres", ".tscn", ".json", ".cfg"):
+                data = data.replace(b"\r\n", b"\n")
+            digests[path] = hashlib.sha256(data).hexdigest()
         return digests[path]
 
     for profile in sorted((root / "models/world").glob("*/profile.tres")):
