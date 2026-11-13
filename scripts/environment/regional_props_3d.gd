@@ -84,7 +84,7 @@ func _ready() -> void:
 		var p: Dictionary = placements[i]
 		var family: Array = FAMILIES.get(theme, FAMILIES.hawaii)
 		var kind: String = p.get("kind", family[int(p.get("variant", i)) % family.size()])
-		if Models.definition(kind).tags.has("tree"):
+		if Models.definition(kind).tags.has("tree") and kind != "snow_pine":
 			var v := (2 + int(p.get("variant", i)) % 3) if "pine" in kind else int(p.get("variant", i)) % 2
 			native_trees.append(
 				{"variant": v, "position": p.position, "yaw": float(p.get("yaw", 0)), "scale": float(p.get("scale", 1))}

@@ -2,6 +2,7 @@ extends Node3D
 # 투어 교통의 저비용 외형. 물리·계측은 TourTraffic이 소유하고 모델 팩은 정적 GLB만 제공한다.
 const Catalog = preload("res://models/model_catalog.gd")
 const Pool = preload("res://scripts/rendering/render_resources.gd")
+const Library = preload("res://scripts/track/route_library.gd")
 const IDS := ["icecream_car", "bike", "dumptruck"]
 const PATHS := [
 	"res://models/props/icecream_car/model.tscn",
@@ -13,6 +14,11 @@ var ride_offset := 0.0
 
 static func choose(passenger: bool, distance: float, stage: int, route: int) -> String:
 	var slot := posmod(roundi(distance / 30.0) + stage * 7 + route * 3, 4)
+	var theme: String = Library.theme(stage, route)
+	if theme in ["city", "seoul", "neon"]:
+		if passenger:
+			return "icecream_car" if slot % 3 == 1 else ""
+		return "icecream_car" if slot % 2 == 0 else "dumptruck"
 	if passenger:
 		return "bike" if slot == 0 else ""
 	return "icecream_car" if slot % 2 == 0 else "dumptruck"

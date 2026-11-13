@@ -45,10 +45,7 @@ func _ready() -> void:
 			side = 1.0
 		var variant := i % family.size()
 		var kind: String = family[variant]
-		if (
-			not road.closed_loop
-			and kind in ["broadleaf", "pine", "snow_pine", "sakura", "plane_tree", "ginkgo", "japanese_pine"]
-		):
+		if not road.closed_loop and kind in ["broadleaf", "pine", "sakura", "plane_tree", "ginkgo", "japanese_pine"]:
 			continue
 		var scale: float = Props.placement_scale(kind, random.randf_range(0.8, 1.25))
 		var radius: float = Props.radius(kind) * scale

@@ -12,10 +12,12 @@ const RenderResources = preload("res://scripts/rendering/render_resources.gd")
 const BARE_THEMES := ["pyramid", "canyon", "volcano", "harbor"]
 # 변형별 메시·재질은 모든 구간이 공유한다. 마지막 게임 씬이 나갈 때 비운다.
 static var piece_cache := {}
+static var snow_needle_material: StandardMaterial3D = null
 
 
 static func clear_cache() -> void:
 	piece_cache.clear()
+	snow_needle_material = null
 
 
 # 이 지역의 식생이 읽을 모델과 텍스처. 주행 중에 만드는 구간이 미리 읽기 시작한다.
@@ -219,6 +221,17 @@ func build_batch(group: Dictionary, item: Resource, begin: int) -> void:
 		var node := MultiMeshInstance3D.new()
 		node.multimesh = multi
 		node.material_override = material
+		if is_instance_valid(scenery) and scenery.theme == "snow" and (begin / 12 + group.variant) % 2 == 1:
+			if snow_needle_material == null:
+				snow_needle_material = StandardMaterial3D.new()
+				snow_needle_material.albedo_texture = RenderResources.fetch(NEEDLES)
+				snow_needle_material.albedo_color = Color(1.4, 1.48, 1.58)
+				snow_needle_material.vertex_color_use_as_albedo = true
+				snow_needle_material.roughness = .96
+				snow_needle_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+				snow_needle_material.alpha_scissor_threshold = .28
+				snow_needle_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+			node.set_surface_override_material(1, snow_needle_material)
 		node.visibility_range_end = (
 			100 if group.variant >= 5 else (190 if is_instance_valid(scenery) and scenery.theme == "jungle" else 240)
 		)

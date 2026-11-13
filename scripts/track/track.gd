@@ -102,13 +102,75 @@ func reset(stage: int = 0, node_index: int = 0) -> void:
 	update_ground()
 
 
+func populate_city_traffic(section: Section) -> void:
+	if section.closed_loop:
+		return
+	var theme: String = Library.theme(section.stage, section.route_node)
+	if not theme in ["city", "seoul", "neon"]:
+		return
+	if section.has_meta(&"city_traffic_populated"):
+		return
+	section.set_meta(&"city_traffic_populated", true)
+	var Car = preload("res://scripts/vehicles/car.gd")
+	var models: Array[String] = ["hatch", "wedge", "gt", "sport", "redcar"]
+	var paints: Array[Color] = [
+		Color("f0f1ed"), Color("647e92"), Color("a24d3d"), Color("c6cbd0"), Color("248edb"), Color("e5dcc9")
+	]
+	var occupied: Array[Vector2] = []
+	for f in section.features:
+		var fd: float = float(f.get("distance", -1000.0))
+		occupied.append(Vector2(fd - 35.0, fd + 35.0))
+	for child in section.get_children():
+		if child is Node3D and (child.get_meta("parked_car", false) or child.get_meta("parked_truck", false)):
+			var cd: float = section.curve.get_closest_offset(child.position)
+			occupied.append(Vector2(cd - 35.0, cd + 35.0))
+	var spacing := 210.0
+	var start_d := 240.0
+	var end_d: float = section.length - 200.0
+	var count: int = int((end_d - start_d) / spacing)
+	for i in range(count):
+		var d: float = start_d + i * spacing + fposmod(i * 37.0, 40.0)
+		if d >= end_d:
+			break
+		if section.in_tunnel(d):
+			continue
+		if (
+			section.bridge_span.y > section.bridge_span.x
+			and d > section.bridge_span.x - 30.0
+			and d < section.bridge_span.y + 30.0
+		):
+			continue
+		if section.half_width(d) < 5.0:
+			continue
+		var blocked := false
+		for span in occupied:
+			if d >= span.x and d <= span.y:
+				blocked = true
+				break
+		if blocked:
+			continue
+		var lane: float = 3.2 if (i % 2 == 0) else -3.2
+		if absf(lane) > section.half_width(d) - 1.8:
+			lane = signf(lane) * (section.half_width(d) - 2.0)
+		var car = Car.new()
+		car.model = models[i % models.size()]
+		car.paint = paints[i % paints.size()]
+		car.traffic = true
+		car.set_meta("parked_car", true)
+		car.transform = Transform3D(Basis(Vector3.UP, section.heading(d)), section.point(d, lane))
+		section.add_child(car)
+		occupied.append(Vector2(d - 35.0, d + 35.0))
+
+
 func add_world_collision(section: Section) -> void:
+	populate_city_traffic(section)
 	section.add_child(preload("res://scripts/physics/world_collision.gd").build(section))
 	preload("res://scripts/environment/roadside_guidance.gd").attach(section)
 
 
 # 저장 충돌도 노면·장벽의 첫 물리 연결을 나눠 끝낸 뒤 구간을 보이게 한다.
 func stage_world_collision(section: Section) -> void:
+	populate_city_traffic(section)
 	if ResourceLoader.exists(preload("res://scripts/rendering/world_assets.gd").folder(section) + "collision.res"):
 		var saved := WorldCollision.saved_root(section)
 		section.add_child(saved)
