@@ -798,7 +798,7 @@ func draw_lap_time() -> void:
 	draw_line(Vector2(690, 27), Vector2(690, 73), Color("24dfff66"), 1.5, true)
 	text_at(Vector2(712, 40), "RACE TIME" if track_mode else "TOTAL TIME", 18, Color("b4d1df"))
 	text_at(Vector2(710, 74), time_label(race.elapsed), 31, CYAN, true, NUMBER_FONT)
-	if track_mode and race.circuit_checkpoint >= 0:
+	if track_mode and race.state == RaceState.RACING and race.circuit_checkpoint >= 0:
 		text_at(
 			Vector2(448, 114),
 			tr("CHECKPOINT %d / %ds") % [posmod(race.circuit_checkpoint, 2) + 1, ceili(race.time_left)],
