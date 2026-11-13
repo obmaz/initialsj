@@ -328,8 +328,8 @@ func refresh_customization() -> void:
 			TuningTheme.apply_swatch_style(child, color)
 			child.add_theme_color_override("font_color", TuningTheme.INK if color.get_luminance() > .4 else Color.WHITE)
 	refresh_effect_slot_label()
-	var data: Dictionary = saved_customization if is_comparing else draft_customization
-	Customization.apply(preview_car, data, vehicle_index)
+	var preview_customization: Dictionary = saved_customization if is_comparing else draft_customization
+	Customization.apply(preview_car, preview_customization, vehicle_index)
 	effect_preview_time = 0
 	preview_car.set_presentation_rotation(Vector3.ZERO)
 	compare_button.set_pressed_no_signal(is_comparing)
@@ -493,8 +493,8 @@ func fit_translated_text() -> void:
 
 
 func build_sheets() -> void:
-	var Sheet = preload("res://scripts/ui/tuning/tuning_sheet.gd")
-	discard_dialog = Sheet.new()
+	const TuningSheet = preload("res://scripts/ui/tuning/tuning_sheet.gd")
+	discard_dialog = TuningSheet.new()
 	content_root.add_child(discard_dialog)
 	var panel := preload("res://scripts/ui/tuning/tuning_panel.gd").new()
 	panel.position = Vector2(260, 206)
@@ -511,7 +511,7 @@ func build_sheets() -> void:
 	)
 	TuningTheme.apply_accent_style(confirm, TuningTheme.CORAL)
 	discard_dialog.confirmed.connect(discard)
-	color_sheet = Sheet.new()
+	color_sheet = TuningSheet.new()
 	content_root.add_child(color_sheet)
 	var color_panel := preload("res://scripts/ui/tuning/tuning_panel.gd").new()
 	color_panel.position = Vector2(320, 42)

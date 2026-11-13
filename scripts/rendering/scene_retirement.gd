@@ -33,8 +33,9 @@ func drain(budget_usec: int = BUDGET_USEC) -> int:
 	var started := Time.get_ticks_usec()
 	var count := 0
 	while not pending.is_empty():
-		var node = pending.pop_back()
-		if is_instance_valid(node):
+		var raw_node: Variant = pending.pop_back()
+		if is_instance_valid(raw_node):
+			var node: Node = raw_node
 			node.free()
 		count += 1
 		if count >= NODE_LIMIT or Time.get_ticks_usec() - started >= budget_usec:

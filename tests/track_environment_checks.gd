@@ -56,6 +56,11 @@ func run(tree: SceneTree) -> int:
 	config.set_value("track_environment", "time_of_day", 99)
 	climate.read(config)
 	check(climate.weather == "clear" and climate.time_of_day == "day", "손상된 공용 환경 설정은 맑은 낮으로 복구한다")
+	for malformed in [[123, []], [null, {"bad": true}]]:
+		config.set_value("track_environment", "weather", malformed[0])
+		config.set_value("track_environment", "time_of_day", malformed[1])
+		climate.read(config)
+		check(climate.weather == "clear" and climate.time_of_day == "day", "문자열이 아닌 저장값도 타입 오류 없이 기본 환경으로 복구한다")
 	race.preferences_path = "user://track_environment_checks.cfg"
 	race.save_records = true
 	race.cycle_track_weather()
@@ -126,7 +131,9 @@ func run(tree: SceneTree) -> int:
 					"젖은 반사는 현재 하늘 이미지와 실제 자원을 공유한다"
 				)
 				check(race.tour_weather.particles.emitting == (weather == "rain"), "야외 강수는 현재 설정을 따른다")
-				check(climate.headlights(race) == (period != "day" or weather == "rain"), "저녁·밤·비에서는 자동 전조등을 사용한다")
+				check(
+					climate.needs_headlights(race) == (period != "day" or weather == "rain"), "저녁·밤·비에서는 자동 전조등을 사용한다"
+				)
 				var window_materials := 0
 				for object in preload("res://scripts/rendering/world_assets.gd").nodes(race.track.active):
 					if not object is GeometryInstance3D or not object.material_override is ShaderMaterial:

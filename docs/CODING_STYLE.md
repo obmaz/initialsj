@@ -17,6 +17,12 @@ build/dev-venv/bin/gdformat --check scripts models addons tests tools
 
 같은 화면에 여러 상태가 있으면 `preview_car`·`saved_customization`·`draft_customization`처럼 대상과 수명을 구분합니다. 계산 단위가 모호하면 `track_length_m`·`last_sample_usec`·`sample_elapsed_seconds`처럼 단위를 표시하고, 상태 플래그는 `is_comparing`·`show_illustration`처럼 읽히게 짓습니다. 변수명 정리와 저장 파일의 키·모델 노드 이름·직렬화된 속성 변경을 섞지 않습니다.
 
+스크립트 참조를 재대입하지 않으면 지역 `const WorldAssets = preload(...)`처럼 선언합니다. 조건 이름은 실제 판단을 드러냅니다. 예를 들어 낮의 비·저녁까지 포함하는 전조등 조건은 `needs_headlights`로 표현하고, 모든 불리언에 `is_`를 기계적으로 붙이지 않습니다. 도·라디안이 함께 등장하는 경계는 `angle_deg`·`angle_rad`처럼 단위를 명시합니다.
+
+설정·저장 파일에서 읽은 원시 값은 `Variant`로 받고 타입과 허용값을 확인한 뒤 상태에 반영합니다. 타입 표기를 늘리기 위해 외부 값을 바로 `String`으로 강제하지 않습니다. 브라우저 객체처럼 실제 타입을 아는 경계는 `JavaScriptObject`로 표현하고, ID로 조회한 노드는 유효성과 기대 타입을 함께 확인합니다.
+
+관측 목록에는 이미 해제된 노드가 남을 수 있습니다. 이런 목록에서 꺼낸 값은 `Variant`로 받고 `is_instance_valid`를 통과한 뒤 `Node` 변수에 대입합니다. 구체 타입으로 먼저 대입하면 유효성 검사 전에 Godot 오류가 발생할 수 있습니다.
+
 공개 헬퍼는 인자·반환형을 선언하고, 이미 구체형을 아는 상태·배열은 그 형식을 사용합니다. 코스·시각 어댑터가 서로 다른 스크립트를 받을 때는 `Node3D`처럼 공통 계약을 사용합니다. 타입을 억지로 바꾸기 위해 순환 `preload`나 모든 것을 담는 전역 등록표를 만들지 않습니다.
 
 ## 런타임 폴더

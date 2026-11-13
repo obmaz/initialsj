@@ -18,8 +18,8 @@ func supported(race: Node3D) -> bool:
 
 
 func read(config: ConfigFile) -> void:
-	var saved_weather = config.get_value("track_environment", "weather", "clear")
-	var saved_period = config.get_value("track_environment", "time_of_day", "day")
+	var saved_weather: Variant = config.get_value("track_environment", "weather", "clear")
+	var saved_period: Variant = config.get_value("track_environment", "time_of_day", "day")
 	weather = saved_weather if saved_weather in WEATHER else "clear"
 	time_of_day = saved_period if saved_period in PERIODS else "day"
 
@@ -148,5 +148,5 @@ func configure_sky(race: Node3D) -> void:
 		)
 
 
-func headlights(race: Node3D) -> bool:
+func needs_headlights(race: Node3D) -> bool:
 	return supported(race) and (active_period != "day" or active_weather == "rain")

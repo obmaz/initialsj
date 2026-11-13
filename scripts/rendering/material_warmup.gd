@@ -133,8 +133,9 @@ func collect_some(budget_usec: int = 500) -> bool:
 	var started := Time.get_ticks_usec()
 	var count := 0
 	while not collection.is_empty():
-		var node = collection.pop_back()
-		if is_instance_valid(node) and node != self:
+		var raw_node: Variant = collection.pop_back()
+		if is_instance_valid(raw_node) and raw_node != self:
+			var node: Node = raw_node
 			collect_node(node)
 			var children: Array[Node] = node.get_children()
 			children.reverse()

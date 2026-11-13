@@ -42,9 +42,9 @@ func prepare(race: Node3D) -> void:
 	reference.clear()
 	var file := FileAccess.open_compressed(file_path(reference_key), FileAccess.READ, FileAccess.COMPRESSION_ZSTD)
 	if file != null and file.get_length() < 3_000_000:
-		var data: Variant = file.get_var(false)
-		if data is Dictionary and data.get("version") == 1 and data.get("key") == reference_key:
-			var poses: Variant = data.get("samples")
+		var raw_record: Variant = file.get_var(false)
+		if raw_record is Dictionary and raw_record.get("version") == 1 and raw_record.get("key") == reference_key:
+			var poses: Variant = raw_record.get("samples")
 			if valid_samples(poses):
 				reference = poses
 	if file != null:

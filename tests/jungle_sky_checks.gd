@@ -2,7 +2,7 @@ extends RefCounted
 var failures := 0
 
 
-func check(ok: bool, message: String):
+func check(ok: bool, message: String) -> void:
 	if not ok:
 		failures += 1
 		push_error(message)

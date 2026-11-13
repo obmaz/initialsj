@@ -5,7 +5,7 @@ const RaceState = preload("res://scripts/race/race_state.gd")
 const VehicleAudio = preload("res://scripts/audio/vehicle_audio.gd")
 var race: Node3D
 var gain := 0.0
-var web_audio
+var web_audio: JavaScriptObject
 var vehicle := -1
 var boost_level := 0.0
 var drift_level := 0.0

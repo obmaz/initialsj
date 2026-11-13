@@ -38,11 +38,11 @@ func _ready() -> void:
 
 func clear_of_road(d: float, lane: float, margin: float) -> bool:
 	# Props stay away from every other stretch of the circuit, not just their own.
-	var p: Vector3 = track.point(d, lane)
-	var near: float = track.curve.get_closest_offset(p)
-	var q: Vector3 = track.point(near)
-	var reach: float = track.half_width(near) + track.rail_setback(near, 1.0) + margin
-	return Vector2(p.x - q.x, p.z - q.z).length() >= reach
+	var candidate_point: Vector3 = track.point(d, lane)
+	var nearest_distance: float = track.curve.get_closest_offset(candidate_point)
+	var nearest_road_point: Vector3 = track.point(nearest_distance)
+	var reach: float = track.half_width(nearest_distance) + track.rail_setback(nearest_distance, 1.0) + margin
+	return Vector2(candidate_point.x - nearest_road_point.x, candidate_point.z - nearest_road_point.z).length() >= reach
 
 
 func cargo_material() -> Material:

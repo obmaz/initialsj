@@ -328,7 +328,7 @@ func _ready() -> void:
 		add_child(previews)
 		for index in range(Catalog.SPECS.size()):
 			previews.show_vehicle(index)
-		var audio = preload("res://scripts/audio/racing_audio.gd").new()
+		var audio := preload("res://scripts/audio/racing_audio.gd").new()
 		audio.race = self
 		add_child(audio)
 		if OS.has_feature("web"):
@@ -453,8 +453,8 @@ func start_race() -> void:
 			restart()
 			camera_intro = 0.0 if motion_reduced else 1.0
 			if camera_intro > 0:
-				var f := (track.point(distance + 3) - track.point(distance)).normalized()
-				camera_offset += -f * 3.5 + Vector3.UP * 2.0
+				var road_forward := (track.point(distance + 3) - track.point(distance)).normalized()
+				camera_offset += -road_forward * 3.5 + Vector3.UP * 2.0
 				camera.position = player.position + camera_offset
 				camera.reset_physics_interpolation()
 	)
@@ -1099,15 +1099,15 @@ func _physics_process(delta: float) -> void:
 	if offroad_amount > 0.2:
 		for particles in player.smoke:
 			particles.emitting = false
-	var night: bool = (
-		track_environment.headlights(self)
+	var use_environment_headlights: bool = (
+		track_environment.needs_headlights(self)
 		if track_environment.supported(self)
 		else track.scenery.theme in ["neon", "night"]
 	)
-	player.set_headlights(track.active.in_tunnel(distance) or night)
+	player.set_headlights(track.active.in_tunnel(distance) or use_environment_headlights)
 	for rival_index in range(rivals.size()):
 		var r: RivalState = rivals[rival_index]
-		r.car.set_headlights(r.active and (night or track.active.in_tunnel(r.distance)), false)
+		r.car.set_headlights(r.active and (use_environment_headlights or track.active.in_tunnel(r.distance)), false)
 		if not r.active or not r.car.visible or absf(relative_gap(r.distance, distance)) > 145:
 			if r.visual_running:
 				r.car.animate(0, false, false, 0)
@@ -1417,14 +1417,16 @@ func register_impact(strength: float, normal: Vector2, world_at: Vector3 = Vecto
 		interrupt_drive()
 	bump_cooldown = .45 if strength >= .15 else .08
 	if strength > 0 and DisplayServer.get_name() != "headless":
-		var f := (track.point(distance + 2) - track.point(distance)).normalized()
+		var road_forward := (track.point(distance + 2) - track.point(distance)).normalized()
 		if world_race != null:
-			f = world_race.player_body.forward_direction()
-		var right := Vector3(-f.z, 0, f.x)
-		var at := track.point(distance, lane) + Vector3.UP * 0.55 - right * normal.x * 1.25 + f * normal.y * 2.0
+			road_forward = world_race.player_body.forward_direction()
+		var right := Vector3(-road_forward.z, 0, road_forward.x)
+		var at := (
+			track.point(distance, lane) + Vector3.UP * 0.55 - right * normal.x * 1.25 + road_forward * normal.y * 2.0
+		)
 		if world_at.is_finite():
 			at = world_at
-		impacts.burst(at, -right * normal.x + f * normal.y - f * 0.7, motion_reduced, strength)
+		impacts.burst(at, -right * normal.x + road_forward * normal.y - road_forward * 0.7, motion_reduced, strength)
 
 
 func interrupt_drive() -> void:
@@ -1448,10 +1450,10 @@ func scrape(delta: float, outward: Vector3, at: Vector3) -> void:
 	scrape_timer = 0.14 if motion_reduced else 0.07
 	if DisplayServer.get_name() == "headless":
 		return
-	var f := (track.point(distance + 2) - track.point(distance)).normalized()
+	var road_forward := (track.point(distance + 2) - track.point(distance)).normalized()
 	if world_race != null:
-		f = world_race.player_body.forward_direction()
-	impacts.burst(at, -f * 0.9 - outward * 0.25, motion_reduced, 0.3)
+		road_forward = world_race.player_body.forward_direction()
+	impacts.burst(at, -road_forward * 0.9 - outward * 0.25, motion_reduced, 0.3)
 
 
 func place_cars(_delta: float = 1.0) -> void:

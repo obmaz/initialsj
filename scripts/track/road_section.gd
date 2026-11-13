@@ -419,8 +419,8 @@ func authored_half_width(distance: float) -> float:
 		return width_profile(SUNCOAST_WIDTH, fposmod(distance, length) / length)
 	if closed_loop and course_id == 2:
 		var d := fposmod(distance, length)
-		var corridor = preload("res://scripts/track/harbor_corridor.gd")
-		return lerpf(width_profile(NIGHT_WIDTH, d / length), corridor.HALF_WIDTH, corridor.weight(d))
+		const HarborCorridor = preload("res://scripts/track/harbor_corridor.gd")
+		return lerpf(width_profile(NIGHT_WIDTH, d / length), HarborCorridor.HALF_WIDTH, HarborCorridor.weight(d))
 	if closed_loop and course_id == 4:
 		return 11.6 + 1.0 * pow(sin(TAU * fposmod(distance, length) / length), 2)
 	if closed_loop and course_id == 3:
@@ -553,8 +553,8 @@ func in_tunnel(distance: float) -> bool:
 
 
 func heading(distance: float) -> float:
-	var f := point(distance + 2) - point(distance - 2)
-	return atan2(-f.x, -f.z)
+	var forward := point(distance + 2) - point(distance - 2)
+	return atan2(-forward.x, -forward.z)
 
 
 func curvature(distance: float) -> float:
@@ -627,9 +627,9 @@ func _ready() -> void:
 		region_metadata = preload("res://scripts/environment/tour_region_metadata.gd").resolve(
 			Library.theme(stage, route_node)
 		)
-	var assets := preload("res://scripts/rendering/world_assets.gd")
-	if profile_path != assets.folder(self):
-		assets.profile(self)
+	const WorldAssets = preload("res://scripts/rendering/world_assets.gd")
+	if profile_path != WorldAssets.folder(self):
+		WorldAssets.profile(self)
 	build_queue.append(func(): preload("res://scripts/rendering/world_assets.gd").queue(self))
 	if not staged:
 		build_some()

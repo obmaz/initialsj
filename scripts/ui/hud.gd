@@ -1,6 +1,7 @@
 extends Control
 const MenuLayout = preload("res://scripts/ui/menu_layout.gd")
 const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
+const WorldCar = preload("res://scripts/physics/world_car.gd")
 const RaceState = preload("res://scripts/race/race_state.gd")
 
 const AppVersion = preload("res://scripts/platform/app_version.gd")
@@ -1112,7 +1113,7 @@ func draw_fps() -> void:
 func draw_slipstream_target() -> void:
 	if race.state != RaceState.RACING or race.slipstream.charge < .1 or race.slipstream.target_id == 0:
 		return
-	var target = instance_from_id(race.slipstream.target_id)
+	var target: WorldCar = instance_from_id(race.slipstream.target_id) as WorldCar
 	if not is_instance_valid(target) or target.is_queued_for_deletion():
 		return
 	var world: Vector3 = target.global_position + Vector3.UP * 3.8

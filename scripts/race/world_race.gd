@@ -248,9 +248,9 @@ func step(
 		(race.track.point(ahead, race.lane) - race.track.point(race.distance, race.lane)).normalized()
 	)
 	var contacts: Array = player_body.advance(delta, race.steer, target, race.drifting, grip)
-	var data: Dictionary = trackers[0].update(player_body.feet_position(), delta)
-	race.distance = float(data.distance)
-	race.lane = float(data.lane)
+	var progress_sample: Dictionary = trackers[0].update(player_body.feet_position(), delta)
+	race.distance = float(progress_sample.distance)
+	race.lane = float(progress_sample.lane)
 	race.speed = speed_of(player_body)
 	race.lane_velocity = player_body.velocity.dot(player_body.global_basis.x)
 	race.slip_angle = player_body.slip_angle
@@ -270,7 +270,7 @@ func step(
 		race.impact,
 		player_body.grounded and not race.crash.active
 	)
-	if player_body.grounded and not was_airborne and data.valid:
+	if player_body.grounded and not was_airborne and progress_sample.valid:
 		for event in race.surface.contact(
 			race.track.active, old_position, Vector2(race.lane, race.distance), race.speed, brake, race.impact
 		):
@@ -344,7 +344,7 @@ func step(
 		race.score += delta * race.speed * (2 + race.drift_charge)
 	var clean_exit: bool = (
 		player_body.grounded
-		and bool(data.valid)
+		and bool(progress_sample.valid)
 		and not race.crash.active
 		and race.protection_left <= 0
 		and race.offroad_amount < 0.15
@@ -391,7 +391,9 @@ func step(
 	)
 	race.max_drift_multiplier = maxi(race.max_drift_multiplier, race.coast_drift.multiplier)
 	race.personal_run.observe(
-		race, bool(data.valid) and race.protection_left <= 0 and player_body.velocity.dot(road_forward) >= -1, delta
+		race,
+		bool(progress_sample.valid) and race.protection_left <= 0 and player_body.velocity.dot(road_forward) >= -1,
+		delta
 	)
 	if race.mode == "track":
 		race.time_left = maxf(0, race.time_left - delta)
@@ -402,18 +404,18 @@ func step(
 				0,
 				floori((gate_distance - trackers[0].start_distance) / (race.track.length / Progress.GATE_COUNT) + .0001)
 			)
-			if bool(data.valid) and race.protection_left <= 0 and trackers[0].gates_passed >= required:
+			if bool(progress_sample.valid) and race.protection_left <= 0 and trackers[0].gates_passed >= required:
 				race.checkpoint_award = race.circuit_time_bonus()
 				race.time_left += race.checkpoint_award
 				race.checkpoint_flash = 2
 			race.circuit_checkpoint += 1
-		if race.time_left <= 0 and int(data.finished_laps) < 3:
+		if race.time_left <= 0 and int(progress_sample.finished_laps) < 3:
 			race.state = RaceState.FAILED
 			race.result_age = 0
 			race.cancel_nitro()
 			race.personal_run.finish(race, false)
 			return
-	var laps: int = int(data.finished_laps)
+	var laps: int = int(progress_sample.finished_laps)
 	if laps > race.laps_completed:
 		race.laps_completed = laps
 		race.last_lap = race.elapsed - race.lap_started
@@ -425,7 +427,7 @@ func step(
 		race.nitro_charges = mini(race.vehicle.charges, race.nitro_charges + 1)
 		if laps >= 3:
 			race.finish()
-	update_recovery(delta, data)
+	update_recovery(delta, progress_sample)
 	update_corner_warning(delta)
 
 
@@ -511,11 +513,11 @@ func update_drift(delta: float, pressed: bool, brake: bool, gas: bool) -> void:
 			race.drift_latched = false
 	else:
 		race.drift_straight = 0
-	var was: bool = race.drifting
+	var was_drifting: bool = race.drifting
 	race.drifting = race.drift_latched
 	if race.drifting:
 		race.drift_charge += delta
-	elif was:
+	elif was_drifting:
 		if race.drift_charge > 0.55:
 			race.drifts_completed += 1
 		race.drift_charge = 0
@@ -949,15 +951,15 @@ func update_rivals(delta: float) -> void:
 			)
 		)
 		var old := Vector2(rival.lane, rival.distance)
-		var data: Dictionary = trackers[i].update(body.feet_position(), dt)
-		rival.distance = data.distance
-		rival.lane = data.lane
+		var progress_sample: Dictionary = trackers[i].update(body.feet_position(), dt)
+		rival.distance = progress_sample.distance
+		rival.lane = progress_sample.lane
 		rival.speed = speed_of(body)
 		rival.air.active = not body.grounded
 		rival.air.height = maxf(0, body.feet_position().y - race.track.point(rival.distance, rival.lane).y)
 		rival.air.velocity = body.velocity.y
 		rival.drifting = false
-		if body.grounded and not was_airborne and data.valid:
+		if body.grounded and not was_airborne and progress_sample.valid:
 			for event in rival.surface.contact(
 				race.track.active, old, Vector2(rival.lane, rival.distance), rival.speed
 			):
@@ -981,13 +983,13 @@ func update_outside(delta: float) -> void:
 		race.return_to_road()
 
 
-func update_recovery(delta: float, data: Dictionary) -> void:
+func update_recovery(delta: float, progress_sample: Dictionary) -> void:
 	if race.mode == "tour" and race.track.in_fork_gap(player_body.feet_position(), race.distance):
 		recovery_clock = 0
 		race.return_to_road()
 		return
 	update_outside(delta)
-	if data.valid and player_body.grounded and absf(race.lane) < race.track.half_width(race.distance) - 1:
+	if progress_sample.valid and player_body.grounded and absf(race.lane) < race.track.half_width(race.distance) - 1:
 		safe_distance = race.distance
 		safe_lane = race.lane
 	var below: float = race.track.point(race.distance, race.lane).y - player_body.feet_position().y
@@ -1053,9 +1055,9 @@ func recover_player() -> bool:
 
 
 func update_protection(delta: float) -> void:
-	var was: bool = race.protection_left > 0
+	var was_protected: bool = race.protection_left > 0
 	race.protection_left = maxf(0, race.protection_left - delta)
-	if was and race.protection_left <= 0:
+	if was_protected and race.protection_left <= 0:
 		var query := PhysicsShapeQueryParameters3D.new()
 		query.shape = player_body.contact_shape.shape
 		query.transform = player_body.global_transform

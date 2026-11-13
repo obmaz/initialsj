@@ -58,7 +58,7 @@ static func mix(race: Node3D) -> Dictionary:
 		boost_share = (
 			1.0 if race.nitro_active else (BOOST_PAD_SHARE if race.pad_active or race.reward_boost_active() else 0.0)
 		)
-	var contact: bool = not race.air.active and not race.crash.active
+	var has_surface_contact: bool = not race.air.active and not race.crash.active
 	if (
 		race.state == RaceState.RACING
 		and race.throttling
@@ -73,9 +73,9 @@ static func mix(race: Node3D) -> Dictionary:
 	var demand := 0.0
 	if race.world_race != null:
 		var body: CharacterBody3D = race.world_race.player_body
-		contact = contact and body.grounded
+		has_surface_contact = has_surface_contact and body.grounded
 		demand = body.corner_demand / maxf(body.corner_grip, 1)
-	var rolling := smoothstep(2, 25, race.speed) if contact and race.state == RaceState.RACING else 0.0
+	var rolling := smoothstep(2, 25, race.speed) if has_surface_contact and race.state == RaceState.RACING else 0.0
 	var slip := smoothstep(.035, .25, absf(race.slip_angle))
 	var edge := smoothstep(.62, 1.15, demand) * .55
 	var braking := smoothstep(12, 32, race.speed) * .55 if race.braking else 0.0

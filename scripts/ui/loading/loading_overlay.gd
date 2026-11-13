@@ -22,7 +22,7 @@ var step_index := 0
 var tip_index := 0
 var started_at_msec := 0
 var show_illustration := false
-var spinner_angle := 0.0
+var spinner_angle_rad := 0.0
 
 
 func _ready() -> void:
@@ -55,7 +55,7 @@ func finish() -> void:
 func _process(delta: float) -> void:
 	if not visible:
 		return
-	spinner_angle += delta * 4
+	spinner_angle_rad += delta * 4
 	if Time.get_ticks_msec() - started_at_msec >= 650:
 		show_illustration = true
 	queue_redraw()
@@ -76,7 +76,7 @@ func _draw() -> void:
 		draw_line(Vector2(0, 540), Vector2(1280, 540), Color("20cbd0"), 3)
 		draw_texture_rect(GAME_LOGO, Rect2(720, 85, 480, GAME_LOGO.get_height() * 480.0 / GAME_LOGO.get_width()), false)
 	else:
-		draw_arc(Vector2(640, 285), 26, spinner_angle, spinner_angle + TAU * .72, 40, CYAN, 4, true)
+		draw_arc(Vector2(640, 285), 26, spinner_angle_rad, spinner_angle_rad + TAU * .72, 40, CYAN, 4, true)
 	if loading_title != "":
 		_centered(Vector2(640, 581 if show_illustration else 356), loading_title, 30, INK, FONT)
 	var bar := Rect2(Vector2(300, 602 if show_illustration else 386), Vector2(680, 10))

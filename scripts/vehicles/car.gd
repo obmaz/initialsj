@@ -49,9 +49,9 @@ func _ready() -> void:
 	model_definition = preload("res://models/vehicle_models.gd").definition(model)
 	for field in ["wheel_radius", "wheel_half_track", "wheel_half_base", "wheel_thickness", "rim_scale", "ride_offset"]:
 		set(field, model_definition.parameters[field])
-	var resources = preload("res://scripts/rendering/render_resources.gd")
-	if traffic and resources.traffic_models.has(model):
-		body = resources.traffic_models[model].instantiate()
+	const RenderResources = preload("res://scripts/rendering/render_resources.gd")
+	if traffic and RenderResources.traffic_models.has(model):
+		body = RenderResources.traffic_models[model].instantiate()
 		add_child(body)
 		for child in body.get_children():
 			if child is SpotLight3D:
@@ -98,7 +98,7 @@ func _ready() -> void:
 				child.set_meta("traffic_brake", true)
 		var prototype := PackedScene.new()
 		if prototype.pack(body) == OK:
-			resources.traffic_models[model] = prototype
+			RenderResources.traffic_models[model] = prototype
 
 
 func make_drift_smoke() -> void:

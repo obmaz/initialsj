@@ -45,14 +45,14 @@ static func is_night(section: Node3D) -> bool:
 static func attach(section: Node3D) -> void:
 	if section.has_node(NAME):
 		return
-	var Assets = preload("res://scripts/rendering/world_assets.gd")
+	const WorldAssets = preload("res://scripts/rendering/world_assets.gd")
 	for placement in [["checkpoint.tscn", "CircuitCheckpoint"], ["seasonal_avenue.tscn", "CherryAvenue"]]:
-		var path: String = Assets.folder(section) + placement[0]
+		var path: String = WorldAssets.folder(section) + placement[0]
 		if not ResourceLoader.exists(path) or section.has_node(placement[1]):
 			continue
 		var decoration: Node3D = preload("res://scripts/rendering/render_resources.gd").fetch(path).instantiate()
-		Assets.geometry(decoration)
-		decoration.transform = Assets.content_placement(section)
+		WorldAssets.geometry(decoration)
+		decoration.transform = WorldAssets.content_placement(section)
 		section.add_child(decoration)
 	var guide: Node3D = load("res://scripts/environment/roadside_guidance.gd").new()
 	guide.name = NAME
@@ -123,11 +123,11 @@ func plan() -> void:
 		var side := signf(curvature) if absf(curvature) >= .0018 else 0.0
 		if start >= 0 and (side == 0 or side != direction):
 			if absf(turn) >= deg_to_rad(35) and peak >= .0045:
-				var angle := absf(rad_to_deg(turn))
+				var angle_deg := absf(rad_to_deg(turn))
 				corners.append(
 					{
 						"distance": start,
-						"angle": 75 if angle >= 67.5 else (60 if angle >= 52.5 else 45),
+						"angle": 75 if angle_deg >= 67.5 else (60 if angle_deg >= 52.5 else 45),
 						"side": -direction
 					}
 				)
@@ -202,9 +202,9 @@ func surface_pose(distance: float, lane: float, side: float) -> Transform3D:
 func install_markings() -> void:
 	var groups := {}
 	for corner in corners:
-		var angle: int = corner.angle
-		if not groups.has(angle):
-			groups[angle] = []
+		var angle_deg: int = corner.angle
+		if not groups.has(angle_deg):
+			groups[angle_deg] = []
 		for ahead in [240, 160, 80]:
 			var d: float = corner.distance - ahead
 			if road.closed_loop:
@@ -217,24 +217,24 @@ func install_markings() -> void:
 				continue
 			if not clear_marking(d, 0):
 				continue
-			groups[angle].append(surface_pose(d, 0, corner.side))
+			groups[angle_deg].append(surface_pose(d, 0, corner.side))
 			markings.append(
-				{"distance": d, "angle": angle, "lane": 0.0, "corner": corner.distance, "side": corner.side}
+				{"distance": d, "angle": angle_deg, "lane": 0.0, "corner": corner.distance, "side": corner.side}
 			)
 	var paint := ShaderMaterial.new()
 	paint.shader = preload("res://shaders/approach_arrow.gdshader")
 	paint.set_shader_parameter("night", is_night(road))
-	for angle: int in groups:
-		if groups[angle].is_empty():
+	for angle_deg: int in groups:
+		if groups[angle_deg].is_empty():
 			continue
 		var multi := MultiMesh.new()
 		multi.transform_format = MultiMesh.TRANSFORM_3D
-		multi.mesh = Props.model("bend_arrow_" + str(angle))
-		multi.instance_count = groups[angle].size()
-		for i in range(groups[angle].size()):
-			multi.set_instance_transform(i, groups[angle][i])
+		multi.mesh = Props.model("bend_arrow_" + str(angle_deg))
+		multi.instance_count = groups[angle_deg].size()
+		for i in range(groups[angle_deg].size()):
+			multi.set_instance_transform(i, groups[angle_deg][i])
 		var batch := MultiMeshInstance3D.new()
-		batch.name = "ApproachArrow" + str(angle)
+		batch.name = "ApproachArrow" + str(angle_deg)
 		batch.multimesh = multi
 		batch.material_override = paint
 		batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

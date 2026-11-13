@@ -178,12 +178,12 @@ static func reshuffle(tree: SceneTree) -> void:
 
 # 투어의 다음 지역도 자기 시간대로 인쇄면과 GLB 렌즈만 준비한다. 동적 광원은 늘리지 않는다.
 static func configure_tour_section(road: Node3D) -> void:
-	var night: bool = road.region_metadata.get("time_of_day", "day") in ["night", "dawn"]
+	var use_ad_lighting: bool = road.region_metadata.get("time_of_day", "day") in ["night", "dawn"]
 	for node in road.get_tree().get_nodes_in_group("racing_advertisement"):
 		if not road.is_ancestor_of(node):
 			continue
-		node.set_meta("advertisement_night", night)
+		node.set_meta("advertisement_night", use_ad_lighting)
 		if node is MultiMeshInstance3D:
-			node.material_override = prop_material(node.get_meta("ad_index", 0), night)
+			node.material_override = prop_material(node.get_meta("ad_index", 0), use_ad_lighting)
 		elif node is MeshInstance3D:
-			node.material_override = material(node.get_meta("ad_record", {}).get("ad_index", 0), night)
+			node.material_override = material(node.get_meta("ad_record", {}).get("ad_index", 0), use_ad_lighting)

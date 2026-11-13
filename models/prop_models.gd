@@ -11,28 +11,28 @@ static var ROCKS: Array[String] = ids_with_tag("lake_rock")
 
 static func ids_with_tag(tag: String) -> Array[String]:
 	var ids: Array[String] = []
-	for item in Catalog.all("props"):
-		if item.tags.has(tag):
-			ids.append(item.id)
+	for model_definition in Catalog.all("props"):
+		if model_definition.tags.has(tag):
+			ids.append(model_definition.id)
 	return ids
 
 
 static func building_dimensions() -> Dictionary:
 	var result := {}
-	for item in Catalog.all("props"):
-		if item.tags.has("building") and not item.tags.has("rural"):
-			result[item.id] = item.base_size
+	for model_definition in Catalog.all("props"):
+		if model_definition.tags.has("building") and not model_definition.tags.has("rural"):
+			result[model_definition.id] = model_definition.base_size
 	return result
 
 
 static func definition(id: String) -> Resource:
-	var item: Resource = Catalog.find("props", id)
-	return item if item != null else Catalog.find("props", "fallback")
+	var model_definition: Resource = Catalog.find("props", id)
+	return model_definition if model_definition != null else Catalog.find("props", "fallback")
 
 
 static func build(id: String) -> ArrayMesh:
-	var item: Resource = definition(id)
-	var mesh := SceneSource.prop_mesh(item.scene_path)
-	if item.parameters.get("vertex_facade", false):
+	var model_definition: Resource = definition(id)
+	var mesh := SceneSource.prop_mesh(model_definition.scene_path)
+	if model_definition.parameters.get("vertex_facade", false):
 		mesh.surface_set_material(0, null)
 	return mesh

@@ -1,6 +1,7 @@
 extends Node3D
 const Section = preload("res://scripts/track/road_section.gd")
 const Library = preload("res://scripts/track/route_library.gd")
+const WorldCollision = preload("res://scripts/physics/world_collision.gd")
 var active: Section
 var previous: Section
 var sibling: Section
@@ -108,12 +109,11 @@ func add_world_collision(section: Section) -> void:
 
 # 저장 충돌도 노면·장벽의 첫 물리 연결을 나눠 끝낸 뒤 구간을 보이게 한다.
 func stage_world_collision(section: Section) -> void:
-	var Collision := preload("res://scripts/physics/world_collision.gd")
 	if ResourceLoader.exists(preload("res://scripts/rendering/world_assets.gd").folder(section) + "collision.res"):
-		var saved := Collision.saved_root(section)
+		var saved := WorldCollision.saved_root(section)
 		section.add_child(saved)
 		var steps: Array[Callable] = [
-			func(): Collision.add_saved_body(saved, true), func(): Collision.add_saved_body(saved, false)
+			func(): WorldCollision.add_saved_body(saved, true), func(): WorldCollision.add_saved_body(saved, false)
 		]
 		# 일반 교통 차량의 물리 연결을 한 프레임에 몰아서 생성하지 않는다.
 		for child in section.get_children():
@@ -122,18 +122,18 @@ func stage_world_collision(section: Section) -> void:
 				and not child is CharacterBody3D
 				and not child.get_meta("traffic_converted", false)
 			):
-				steps.append(func(): Collision.make_traffic(section, child))
+				steps.append(func(): WorldCollision.make_traffic(section, child))
 		steps.append(func(): section.move_child(saved, section.get_child_count() - 1))
 		steps.append(func(): preload("res://scripts/environment/roadside_guidance.gd").attach(section))
 		steps.append(func(): warm_section(section))
 		section.queue_next(steps)
 		return
 	var state := {}
-	var steps: Array[Callable] = [func(): state.merge(Collision.begin(section))]
+	var steps: Array[Callable] = [func(): state.merge(WorldCollision.begin(section))]
 	for part in range(ceili(section.length / 400.0)):
-		steps.append(func(): Collision.walls(section, state, 400.0))
-	steps.append(func(): state.ground_body = Collision.body("RoadSurfaceBody", state.ground, 1))
-	steps.append(func(): section.add_child(Collision.finish(state)))
+		steps.append(func(): WorldCollision.walls(section, state, 400.0))
+	steps.append(func(): state.ground_body = WorldCollision.body("RoadSurfaceBody", state.ground, 1))
+	steps.append(func(): section.add_child(WorldCollision.finish(state)))
 	steps.append(func(): preload("res://scripts/environment/roadside_guidance.gd").attach(section))
 	steps.append(func(): warm_section(section))
 	section.queue_next(steps)
@@ -238,13 +238,13 @@ func point(distance: float, lane: float = 0) -> Vector3:
 	var d := distance - active.length
 	var center := (previews[0].point(d) + previews[1].point(d)) / 2
 	var next := (previews[0].point(d + 2) + previews[1].point(d + 2)) / 2
-	var f := (next - center).normalized()
-	return center + Vector3(-f.z, 0, f.x).normalized() * lane
+	var forward := (next - center).normalized()
+	return center + Vector3(-forward.z, 0, forward.x).normalized() * lane
 
 
 func heading(distance: float) -> float:
-	var f := point(distance + 2) - point(distance - 2)
-	return atan2(-f.x, -f.z)
+	var forward := point(distance + 2) - point(distance - 2)
+	return atan2(-forward.x, -forward.z)
 
 
 func curvature(distance: float) -> float:
@@ -339,7 +339,7 @@ func reconsider(distance: float, lane: float) -> Dictionary:
 	active.scenery.set_ground_enabled(true)
 	history[-1] = 0 if active.entry_side < 0 else 1
 	update_ground()
-	var f := (active.point(distance + 2) - active.point(distance)).normalized()
-	var d := distance + (world - active.point(distance)).dot(f)
-	var right := Vector3(-f.z, 0, f.x).normalized()
+	var forward := (active.point(distance + 2) - active.point(distance)).normalized()
+	var d := distance + (world - active.point(distance)).dot(forward)
+	var right := Vector3(-forward.z, 0, forward.x).normalized()
 	return {"distance": d, "lane": (world - active.point(d)).dot(right)}

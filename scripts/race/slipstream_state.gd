@@ -1,6 +1,7 @@
 extends RefCounted
 # 실제 앞차를 따라 충전하고 같은 차 옆으로 빠져나와 통과했을 때만 성공한다.
 # 대상은 ID로만 보유하며 점수·니트로는 기존 추월 규칙이 지급한다.
+const WorldCar = preload("res://scripts/physics/world_car.gd")
 const RaceState = preload("res://scripts/race/race_state.gd")
 var charge := 0.0
 var ready := false
@@ -107,7 +108,7 @@ func prepare(race: Node3D, delta: float) -> bool:
 		if charge <= 0:
 			cancel()
 	if target_id != 0:
-		var target = instance_from_id(target_id)
+		var target: WorldCar = instance_from_id(target_id) as WorldCar
 		if not is_instance_valid(target) or target.is_queued_for_deletion() or not target.grounded:
 			cancel()
 		else:
@@ -125,7 +126,7 @@ func finish(race: Node3D, delta: float) -> void:
 	if not clean(race):
 		cancel()
 		return
-	var target = instance_from_id(target_id)
+	var target: WorldCar = instance_from_id(target_id) as WorldCar
 	if not is_instance_valid(target) or target.is_queued_for_deletion() or not target.grounded:
 		cancel()
 		return
