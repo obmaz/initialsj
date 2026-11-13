@@ -19,7 +19,7 @@ const Library = preload("res://scripts/track/route_library.gd")
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const ROUTE_LEFT := Rect2(280, 98, 300, 64)
 const ROUTE_RIGHT := Rect2(700, 98, 300, 64)
-const PAUSE_BUTTON := Rect2(814, 15, 66, 60)
+const PAUSE_BUTTON := Rect2(24, 16, 56, 52)
 const HOME_TOUR := Rect2(100, 470, 520, 170)
 const HOME_TRACK := Rect2(660, 470, 520, 170)
 const HOME_PASSPORT := Rect2(30, 24, 260, 84)
@@ -77,14 +77,14 @@ var last_score := 0.0
 var was_drifting := false
 # The time panel doubles as the touch pause control.
 var buttons := {
-	"left": Rect2(27, 562, 108, 108),
-	"right": Rect2(159, 562, 108, 108),
-	"drift": Rect2(1018, 436, 110, 110),
+	"left": Rect2(28, 558, 112, 112),
+	"right": Rect2(156, 558, 112, 112),
+	"drift": Rect2(1016, 428, 114, 114),
 	"cell": Rect2(905, 444, 90, 90),
-	"nitro": Rect2(1148, 436, 110, 110),
-	"gas": Rect2(1148, 562, 110, 110),
-	"brake": Rect2(1018, 562, 110, 110),
-	"pause": Rect2(894, 15, 378, 60),
+	"nitro": Rect2(1146, 428, 114, 114),
+	"gas": Rect2(1146, 558, 114, 114),
+	"brake": Rect2(1081, 558, 114, 114),
+	"pause": Rect2(24, 16, 56, 52),
 }
 
 
@@ -180,10 +180,10 @@ func pause_touch_rect() -> Rect2:
 
 func configure_pedals() -> void:
 	if race.auto_accelerate:
-		buttons.brake = Rect2(1084, 558, 120, 120)
+		buttons.brake = Rect2(1081, 558, 114, 114)
 	else:
-		buttons.brake = Rect2(1018, 562, 110, 110)
-		buttons.gas = Rect2(1148, 562, 110, 110)
+		buttons.brake = Rect2(1016, 558, 114, 114)
+		buttons.gas = Rect2(1146, 558, 114, 114)
 
 
 func hit_button(action: String, pos: Vector2) -> bool:
@@ -747,29 +747,56 @@ func comma_number(value: int) -> String:
 
 func draw_lap_time() -> void:
 	if race.state in [RaceState.RACING, RaceState.COUNTDOWN, RaceState.PAUSED]:
-		glass_box(PAUSE_BUTTON, 10.0, Color("0b1526d8"), Color("19dcff44"), 1.2)
-		for x in [838, 851]:
-			draw_rect(Rect2(x, 33, 5, 24), WHITE)
-	if race.mode == "track":
-		glass_box(Rect2(886, 15, 382, 60), 12.0, Color("0b1526d8"), Color("19dcff44"), 1.2)
-		text_at(Vector2(908, 43), "LAP", 22, Color("a0bed0"))
-		text_at(Vector2(965, 61), "%d / 3" % mini(3, race.laps_completed + 1), 38, GOLD, true, NUMBER_FONT)
-		text_at(Vector2(1085, 35), "RACE TIME", 11, Color("b9d1df"))
-		text_at(Vector2(1080, 62), time_label(race.elapsed), 26)
-		text_at(
-			Vector2(385, 91),
-			tr("CHECKPOINT %d / %ds") % [posmod(race.circuit_checkpoint, 2) + 1, ceili(race.time_left)],
-			22,
-			GOLD
+		glass_box(PAUSE_BUTTON, 10.0, Color("081220ee"), Color("19dcff44"), 1.2)
+		for x in [44, 56]:
+			draw_rect(Rect2(x, 28, 4, 26), WHITE)
+		var course_name: String = (
+			race.course_title if race.mode == "track" else Library.title(race.stage_index, race.route_node)
 		)
+		glass_box(Rect2(88, 16, 230, 52), 10.0, Color("081220ee"), Color("19dcff44"), 1.2)
+		text_at(Vector2(102, 36), course_name, 13, CYAN)
+		var course_sub := (
+			"CIRCUIT %02d" % (race.selected_course + 1) if race.mode == "track" else "STAGE %d" % (race.stage_index + 1)
+		)
+		text_at(Vector2(102, 56), course_sub, 10, Color("8caec0"))
+
+	if race.mode == "track":
+		glass_box(Rect2(360, 14, 560, 56), 14.0, Color("081220ee"), Color("19dcff55"), 1.4)
+		text_at(Vector2(382, 33), "POS", 11, Color("8caec0"))
+		var pos_num := race.race_position()
+		var pos_suffix := "TH"
+		if pos_num == 1:
+			pos_suffix = "ST"
+		elif pos_num == 2:
+			pos_suffix = "ND"
+		elif pos_num == 3:
+			pos_suffix = "RD"
+		text_at(Vector2(380, 60), "%d%s" % [pos_num, pos_suffix], 32, GOLD, true, NUMBER_FONT)
+		draw_line(Vector2(488, 22), Vector2(488, 62), Color("19dcff33"), 1.2, true)
+		text_at(Vector2(516, 33), "LAP", 11, Color("8caec0"))
+		text_at(Vector2(514, 60), "%d / 3" % mini(3, race.laps_completed + 1), 34, WHITE, true, NUMBER_FONT)
+		draw_line(Vector2(676, 22), Vector2(676, 62), Color("19dcff33"), 1.2, true)
+		text_at(Vector2(706, 33), "RACE TIME", 11, Color("8caec0"))
+		text_at(Vector2(704, 60), time_label(race.elapsed), 26, CYAN, true, NUMBER_FONT)
+		if race.circuit_checkpoint >= 0:
+			text_at(
+				Vector2(460, 94),
+				tr("CHECKPOINT %d / %ds") % [posmod(race.circuit_checkpoint, 2) + 1, ceili(race.time_left)],
+				18,
+				GOLD
+			)
 		return
-	glass_box(Rect2(886, 15, 382, 60), 12.0, Color("0b1526d8"), Color("19dcff44"), 1.2)
-	text_at(Vector2(908, 43), "TIME", 22, Color("a0bed0"))
-	var color := Color("ff785e") if race.time_left < 10 else GOLD
-	text_at(Vector2(985, 61), str(maxi(0, ceili(race.time_left))), 48, color, true, NUMBER_FONT)
-	draw_line(Vector2(1063, 22), Vector2(1054, 69), Color("e4e5e866"), 1.2, true)
-	text_at(Vector2(1080, 35), "TOTAL TIME", 13, Color("b9d1df"))
-	text_at(Vector2(1080, 62), time_label(race.elapsed), 28)
+
+	glass_box(Rect2(360, 14, 560, 56), 14.0, Color("081220ee"), Color("19dcff55"), 1.4)
+	text_at(Vector2(382, 33), "STAGE", 11, Color("8caec0"))
+	text_at(Vector2(380, 60), "%d / 5" % (race.stage_index + 1), 32, CYAN, true, NUMBER_FONT)
+	draw_line(Vector2(488, 22), Vector2(488, 62), Color("19dcff33"), 1.2, true)
+	text_at(Vector2(516, 33), "TIME REMAINING", 11, Color("8caec0"))
+	var time_color := Color("ff785e") if race.time_left < 10 else GOLD
+	text_at(Vector2(514, 60), str(maxi(0, ceili(race.time_left))), 36, time_color, true, NUMBER_FONT)
+	draw_line(Vector2(676, 22), Vector2(676, 62), Color("19dcff33"), 1.2, true)
+	text_at(Vector2(706, 33), "TOTAL TIME", 11, Color("8caec0"))
+	text_at(Vector2(704, 60), time_label(race.elapsed), 26, WHITE, true, NUMBER_FONT)
 
 
 func route_map_point(row: int, node: int) -> Vector2:
@@ -811,13 +838,13 @@ var map_outline_key := ""
 func circuit_map_point(d: float) -> Vector2:
 	var p: Vector3 = race.track.point(d)
 	var bounds: Rect2 = race.track.map_bounds
-	var scale_factor := minf(152 / maxf(bounds.size.x, 1), 100 / maxf(bounds.size.y, 1))
-	return Vector2(1180, 143) + (Vector2(p.x, p.z) - bounds.get_center()) * scale_factor
+	var scale_factor := minf(160 / maxf(bounds.size.x, 1), 105 / maxf(bounds.size.y, 1))
+	return Vector2(1162, 92) + (Vector2(p.x, p.z) - bounds.get_center()) * scale_factor
 
 
 func draw_circuit_map() -> void:
-	var map_rect := Rect2(1072, 80, 196, 142)
-	glass_box(map_rect, 12.0, Color("0b1526d8"), Color("19dcff44"), 1.2)
+	var map_rect := Rect2(1060, 14, 204, 150)
+	glass_box(map_rect, 14.0, Color("081220ee"), Color("19dcff44"), 1.2)
 	# The outline only changes with the course, so it is built once.
 	var key := (
 		"%s:%d:%d:%d"
@@ -833,29 +860,31 @@ func draw_circuit_map() -> void:
 		map_outline = PackedVector2Array()
 		for i in range(101):
 			map_outline.append(circuit_map_point(race.track.length * i / 100.0))
-	draw_polyline(map_outline, Color("d1e2ee"), 3.5, true)
+	glow_line(map_outline, Color("00e5ff66"), 3.5)
+	draw_polyline(map_outline, Color("e6f4fb"), 2.2, true)
 	for r in race.rivals:
 		if r.active:
-			draw_circle(circuit_map_point(r.distance), 3.0, Color("ff9f68"))
+			draw_circle(circuit_map_point(r.distance), 3.5, Color("ff785e"))
 	if race.world_race != null:
 		var body: CharacterBody3D = race.world_race.player_body
 		var bounds: Rect2 = race.track.map_bounds
-		var factor := minf(152 / maxf(bounds.size.x, 1), 100 / maxf(bounds.size.y, 1))
-		var p := Vector2(1180, 143) + (Vector2(body.position.x, body.position.z) - bounds.get_center()) * factor
+		var factor := minf(160 / maxf(bounds.size.x, 1), 105 / maxf(bounds.size.y, 1))
+		var p := Vector2(1162, 92) + (Vector2(body.position.x, body.position.z) - bounds.get_center()) * factor
 		var forward: Vector3 = body.forward_direction()
 		var direction := Vector2(forward.x, forward.z).normalized()
 		var side := Vector2(-direction.y, direction.x)
 		draw_colored_polygon(
 			PackedVector2Array([p + direction * 8, p - direction * 5 + side * 5, p - direction * 5 - side * 5]), GOLD
 		)
+		draw_circle(p, 2.5, WHITE)
 	else:
 		draw_circle(circuit_map_point(race.distance), 5, CYAN)
-	draw_rect(Rect2(circuit_map_point(80) - Vector2(3, 3), Vector2(6, 6)), WHITE)
-	text_at(Vector2(1086, 99), race.course_title, 13, CYAN)
+	draw_rect(Rect2(circuit_map_point(80) - Vector2(3, 3), Vector2(6, 6)), GOLD)
+	text_at(Vector2(1074, 32), race.course_title, 12, CYAN)
 	var lap_tag := (
 		"%d / 3 LAPS" % mini(3, race.laps_completed + 1) if race.state == RaceState.RACING else "3 LAPS / S.GRID"
 	)
-	text_at(Vector2(1086, 114), lap_tag, 10, Color("b4d1df"))
+	text_at(Vector2(1074, 46), lap_tag, 10, Color("8caec0"))
 
 
 func draw_drift_score() -> void:
@@ -886,10 +915,10 @@ func round_button(action: String, neon: bool = false) -> void:
 		Color("ff7a66") if action == "brake" else (Color(race.vehicle.accent) if action in ["nitro", "cell"] else CYAN)
 	)
 	# 모던 글래스모피즘 원형 버튼 베이스
-	draw_circle(c, radius, Color("1c3d5cd9") if active else Color("0a1424b8"))
+	draw_circle(c, radius, Color("1c3d5cee") if active else Color("081220ee"))
 	draw_arc(c, radius - 4, 0, TAU, 70, Color("ffffff18"), 1, true)
 	if neon:
-		glow_line(arc_points(c, radius - 1, 0, TAU), Color(accent, 1.0 if active else 0.8), 3.0 if active else 1.8)
+		glow_line(arc_points(c, radius - 1, 0, TAU), Color(accent, 1.0 if active else 0.8), 3.2 if active else 2.0)
 	else:
 		draw_arc(
 			c, radius - 1, 0, TAU, 70, Color("19dcff66") if active else Color("e6f3ff88"), 2.0 if active else 1.5, true
@@ -1030,22 +1059,25 @@ func bottle(center: Vector2, scale_factor: float = 1) -> void:
 
 
 func draw_speedometer() -> void:
-	# 조작 버튼 상단에 슬림하고 세련된 미니 계기판을 배치하여 전방 주행 시야를 넓게 확보한다.
-	var bar_rect := Rect2(1018, 380, 240, 44)
-	glass_box(bar_rect, 10.0, Color("0b1526d8"), Color("19dcff44"), 1.2)
+	# 우하단 조작 버튼 바로 위에 컴팩트하고 미래지향적인 디지털 계기판 클러스터 배치
+	var bar_rect := Rect2(1014, 368, 246, 50)
+	glass_box(bar_rect, 12.0, Color("081220ee"), Color("19dcff55"), 1.4)
 	var speed_kmh := int(race.speed * 3.6)
 	var speed_text := str(speed_kmh)
-	text_at(Vector2(1032, 412), speed_text, 30, WHITE, true, NUMBER_FONT)
-	var speed_w: float = NUMBER_FONT.get_string_size(speed_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 30).x
-	text_at(Vector2(1032 + speed_w + 5, 410), "KM/H", 11, CYAN)
-	draw_line(Vector2(1150, 387), Vector2(1150, 417), Color("19dcff33"), 1.2, true)
+	text_at(Vector2(1028, 403), speed_text, 34, WHITE, true, NUMBER_FONT)
+	var speed_w: float = NUMBER_FONT.get_string_size(speed_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 34).x
+	text_at(Vector2(1028 + speed_w + 6, 396), "KM/H", 11, CYAN)
+	draw_line(Vector2(1152, 375), Vector2(1152, 411), Color("19dcff33"), 1.2, true)
 	var gear := "N" if race.gear_number() == 0 else ("R" if race.gear_number() < 0 else str(race.gear_number()))
-	text_at(Vector2(1164, 403), "GEAR", 10, Color("a6c2d1"))
-	text_at(Vector2(1166, 420), gear, 20, GOLD, true, NUMBER_FONT)
-	# 슬림 RPM 라인 인디케이터
+	text_at(Vector2(1166, 390), "GEAR", 10, Color("8caec0"))
+	text_at(Vector2(1170, 411), gear, 22, GOLD, true, NUMBER_FONT)
+	# 멀티 세그먼트 RPM 라인 인디케이터
 	var rpm_ratio := clampf(race.engine_rpm() / 7500.0, 0.0, 1.0)
-	var rpm_color := CYAN if rpm_ratio < 0.85 else Color("ff4d5a")
-	draw_line(Vector2(1026, 421), Vector2(1026 + 110 * rpm_ratio, 421), rpm_color, 2.0, true)
+	var rpm_w := 112.0
+	draw_line(Vector2(1024, 412), Vector2(1024 + rpm_w, 412), Color("19dcff22"), 2.5, true)
+	if rpm_ratio > 0.01:
+		var fill_color := CYAN if rpm_ratio < 0.75 else (GOLD if rpm_ratio < 0.90 else Color("ff3b4e"))
+		draw_line(Vector2(1024, 412), Vector2(1024 + rpm_w * rpm_ratio, 412), fill_color, 2.5, true)
 
 
 func draw_nitro() -> void:
