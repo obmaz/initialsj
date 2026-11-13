@@ -8,6 +8,15 @@
   - 기존 UI의 투박한 사각 버튼 나열 형태와 표준 PBR 3D 렌더링 룩을 2D 애니메/카툰 레이싱 콘셉트(생성형 레퍼런스 4종: 설정, 카운트다운, 주행 HUD, 레이스 결과)에 부합하도록 전면 개편.
   - 사용자 피드백을 반영하여 12회차 감독자(Supervisor) 하네스 체계를 수립하고 점진적으로 비주얼 격차를 좁힘.
 
+## 2. 레퍼런스 원화 이미지 및 상세 계획서 위치
+- **상세 12회차 작업 계획서**: [UI_OVERHAUL_PLAN.md](UI_OVERHAUL_PLAN.md)
+- **로컬 레퍼런스 콘셉트 원화 이미지 4종 (`generated_images/`)**:
+  - `generated_images/concept_hud.jpg`: 슬림 디지털 계기판, 17-LED 세그먼트 RPM 바, 대형 원형 네온 니트로 & 드리프트 버튼, 상단 플로팅 정보 바
+  - `generated_images/concept_countdown.jpg`: 오버헤드 메탈 트러스 갠트리 신호등(3구 대형 램프 Red-Yellow-Green), 48눈금 타코미터 펄스 아크 링
+  - `generated_images/concept_settings.jpg`: 둥근 다크 글래스 카드, 슬라이딩 네온 토글 스위치(Pill Switch), 3단 세그먼트 셀렉터, 네온 캡슐 DONE 버튼
+  - `generated_images/concept_results.jpg`: 골드 1ST PLACE 엠블럼, 다크 글래스 빅토리 카드 상단 네온 라인, 2x2 통계 타일 그리드
+  - `generated_images/legacy_settings_screenshot.png`: 개편 전 구형 사각 버튼 방식 캡처 (비교용)
+
 ## 2. 초기 계획과 12회차 진행 현황
 - **1차 블록: 핵심 비주얼 & UI 전면 개편 (Round 1 ~ 3)**:
   - **Round 1 (`07a3eb0`)**: 설정(Settings) 화면 전면 리뉴얼. 사각 버튼 제거 후 캡슐형 슬라이딩 네온 토글 스위치(`draw_toggle_switch`), 3단 세그먼트 셀렉터(`draw_segmented_selector`), 둥근 다크 글래스 카드 및 네온 DONE 버튼 구현.
