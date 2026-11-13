@@ -1,5 +1,6 @@
 extends RefCounted
 const Layout = preload("res://scripts/input/touch_layout.gd")
+const HudLayout = preload("res://scripts/ui/race_hud_layout.gd")
 const ControlsPanel = preload("res://scripts/ui/touch_layout_panel.gd")
 var failures := 0
 
@@ -11,6 +12,29 @@ func check(ok: bool, message: String) -> void:
 
 
 func run(tree: SceneTree) -> int:
+	check(HudLayout.PAUSE.position == Vector2.ONE * HudLayout.EDGE, "좌상단은 위·왼쪽 여백이 같다")
+	check(
+		(
+			HudLayout.MINIMAP.position.y == HudLayout.EDGE
+			and HudLayout.DESIGN.x - HudLayout.MINIMAP.end.x == HudLayout.EDGE
+		),
+		"투어·트랙 공통 미니맵은 위·오른쪽 여백이 같다"
+	)
+	for bounds in [Rect2(-80, 20, 160, 300), Rect2(30, -50, 1200, 80), Rect2()]:
+		for point in [bounds.position, bounds.end, bounds.get_center(), Vector2(100000, -100000)]:
+			check(
+				(
+					HudLayout.project_map(point, bounds).distance_to(HudLayout.MINIMAP.get_center())
+					<= HudLayout.MAP_RADIUS + .001
+				),
+				"코스와 도로 밖 차량 표시가 원형 미니맵 내부에 남는다"
+			)
+	for row in range(5):
+		for node in range(row + 1):
+			check(
+				HudLayout.route_point(row, node).distance_to(HudLayout.MINIMAP.get_center()) <= HudLayout.MAP_RADIUS,
+				"투어 15개 지역이 트랙과 같은 원형 프레임 안에 들어간다"
+			)
 	var layout := Layout.new()
 	var config := ConfigFile.new()
 	for value in ["bad", true, -1, 3, 100]:

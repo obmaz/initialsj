@@ -1,4 +1,5 @@
 extends Control
+const HudLayout = preload("res://scripts/ui/race_hud_layout.gd")
 const MenuLayout = preload("res://scripts/ui/menu_layout.gd")
 const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
 const WorldCar = preload("res://scripts/physics/world_car.gd")
@@ -19,7 +20,7 @@ const Library = preload("res://scripts/track/route_library.gd")
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const ROUTE_LEFT := Rect2(280, 98, 300, 64)
 const ROUTE_RIGHT := Rect2(700, 98, 300, 64)
-const PAUSE_BUTTON := Rect2(24, 16, 72, 64)
+const PAUSE_BUTTON := HudLayout.PAUSE
 const HOME_TOUR := Rect2(100, 470, 520, 170)
 const HOME_TRACK := Rect2(660, 470, 520, 170)
 const HOME_PASSPORT := Rect2(30, 24, 260, 84)
@@ -58,6 +59,7 @@ const START_BUTTON := Rect2(390, 483, 500, 82)
 const MOTION_BUTTON := Rect2(307, 386, 300, 78)
 const SOUND_BUTTON := Rect2(630, 386, 330, 78)
 var race: Node3D
+var hud_card_style := StyleBoxFlat.new()
 var controls_open := false
 var modal_motion := preload("res://scripts/ui/modal_motion.gd").new()
 var fingers: Dictionary = {}
@@ -78,6 +80,10 @@ var buttons: Dictionary = preload("res://scripts/input/touch_layout.gd").BASE.du
 
 
 func _ready() -> void:
+	hud_card_style.bg_color = Color("0b1829d9")
+	hud_card_style.border_color = Color("82a4b56e")
+	hud_card_style.set_border_width_all(1)
+	hud_card_style.set_corner_radius_all(10)
 	menu_text.prepare()
 	bottle_texture = load_icon("res://assets/ui/controls/nitro_bottle.png")
 	drift_texture = load_icon("res://assets/ui/controls/drift_car.png")
@@ -672,27 +678,13 @@ func time_label(seconds: float) -> String:
 	return "%02d:%02d.%03d" % [ticks / 60000, (ticks / 1000) % 60, ticks % 1000]
 
 
-func standings() -> Array[Dictionary]:
-	return []
-
-
 func _draw() -> void:
 	menu_text.begin()
 	draw_content()
 	if (
 		race != null
 		and not race.passport_open
-		and (
-			race.state
-			in [
-				RaceState.RACING,
-				RaceState.COUNTDOWN,
-				RaceState.SETTINGS,
-				RaceState.PAUSED,
-				RaceState.FINISHED,
-				RaceState.FAILED
-			]
-		)
+		and (race.state in [RaceState.SETTINGS, RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED])
 	):
 		draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
 		preload("res://scripts/ui/neon_chrome.gd").panel(
@@ -734,10 +726,8 @@ func draw_content() -> void:
 	draw_competitor_markers()
 	draw_slipstream_target()
 	draw_pace_feedback()
-	var rows := standings()
-	draw_position(rows)
 	draw_lap_time()
-	draw_minimap(rows)
+	draw_minimap()
 	draw_drift_score()
 	draw_controls()
 	draw_speedometer()
@@ -753,11 +743,6 @@ func draw_content() -> void:
 	draw_pad_badges()
 
 
-func draw_position(_rows: Array[Dictionary]) -> void:
-	# 순위(POS)와 코스 정보는 중앙 상단 플로팅 캡슐 및 좌상단 코스 배지로 일원화하여 표시한다.
-	return
-
-
 func comma_number(value: int) -> String:
 	var digits := str(maxi(0, value))
 	var result := ""
@@ -769,55 +754,59 @@ func comma_number(value: int) -> String:
 
 
 func draw_lap_time() -> void:
-	const Chrome = preload("res://scripts/ui/neon_chrome.gd")
-	Chrome.panel(self, PAUSE_BUTTON, CYAN, 10, Color("071a29f5"), 1.6)
-	for x in [47, 63]:
-		draw_rect(Rect2(x, 31, 7, 34), WHITE)
-	var name: String = race.course_title if race.mode == "track" else Library.title(race.stage_index, race.route_node)
-	Chrome.panel(self, Rect2(112, 16, 230, 64), CYAN, 12, Color("071a29f5"), 1.5)
-	text_at(Vector2(127, 42), name, 20, CYAN)
-	var sub: String = (
-		tr("CIRCUIT %02d") % (race.selected_course + 1)
-		if race.mode == "track"
-		else tr("STAGE %d") % (race.stage_index + 1)
+	draw_style_box(hud_card_style, PAUSE_BUTTON)
+	for x in [45, 59]:
+		draw_rect(Rect2(x, 43, 6, 26), WHITE)
+	draw_style_box(hud_card_style, HudLayout.COURSE)
+	var name: String = tr(
+		race.course_title if race.mode == "track" else Library.title(race.stage_index, race.route_node)
 	)
-	text_at(Vector2(127, 66), sub, 17, Color("b4d1df"))
-	Chrome.panel(self, Rect2(360, 14, 584, 72), CYAN, 22, Color("071a29f5"), 1.8)
-	Chrome.panel(self, Rect2(370, 21, 135, 58), GOLD, 12, Color("23302ff2"), 1.5)
+	var name_size := MenuTheme.fit_size(self, name, HudLayout.COURSE.size.x - 32, 20, 17)
+	text_at(HudLayout.COURSE.position + Vector2(16, 26), name, name_size, WHITE)
+	var sub: String = tr("CIRCUIT %02d") % (race.selected_course + 1) if race.mode == "track" else tr("TOUR")
+	text_at(HudLayout.COURSE.position + Vector2(16, 50), sub, 17, Color("adc1ce"))
+	draw_style_box(hud_card_style, HudLayout.STATS)
 	var track_mode: bool = race.mode == "track"
-	text_at(Vector2(386, 40), "POS" if track_mode else "STAGE", 18, Color("b4d1df"))
 	var rank: int = race.race_position() if track_mode else race.stage_index + 1
 	var suffix: String = ["TH", "ST", "ND", "RD"][rank] if rank in [1, 2, 3] else "TH"
-	text_at(Vector2(384, 74), "%d%s" % [rank, suffix] if track_mode else "%d / 5" % rank, 40, GOLD, true, NUMBER_FONT)
-	draw_line(Vector2(512, 27), Vector2(512, 73), Color("24dfff66"), 1.5, true)
-	text_at(Vector2(532, 40), "LAP" if track_mode else "TIME LEFT", 18, Color("b4d1df"))
-	var middle: String = (
-		"%d / 3" % mini(3, race.laps_completed + 1) if track_mode else str(maxi(0, ceili(race.time_left)))
-	)
-	text_at(Vector2(530, 74), middle, 38, WHITE if track_mode else GOLD, true, NUMBER_FONT)
-	draw_line(Vector2(690, 27), Vector2(690, 73), Color("24dfff66"), 1.5, true)
-	text_at(Vector2(712, 40), "RACE TIME" if track_mode else "TOTAL TIME", 18, Color("b4d1df"))
-	text_at(Vector2(710, 74), time_label(race.elapsed), 31, CYAN, true, NUMBER_FONT)
+	var values: Array[String] = [
+		"%d%s" % [rank, suffix] if track_mode else "%d / 5" % rank,
+		"%d / 3" % mini(3, race.laps_completed + 1) if track_mode else str(maxi(0, ceili(race.time_left))),
+		time_label(race.elapsed)
+	]
+	var captions: Array[String] = [
+		"POS" if track_mode else "STAGE",
+		"LAP" if track_mode else "TIME LEFT",
+		"RACE TIME" if track_mode else "TOTAL TIME"
+	]
+	var cell_width := HudLayout.STATS.size.x / 3
+	for i in range(3):
+		var at: Vector2 = HudLayout.STATS.position + Vector2(i * cell_width + 16, 0)
+		if i > 0:
+			draw_line(at + Vector2(-16, 14), at + Vector2(-16, 50), Color("82a4b53d"), 1, true)
+		var caption := MenuTheme.layout_text(self, captions[i], cell_width - 32, 17, 15)
+		text_at(at + Vector2(0, 21), caption.text, caption.size, Color("adc1ce"), false)
+		text_at(at + Vector2(0, 54), values[i], 32, GOLD if i == 0 else WHITE, false, NUMBER_FONT)
 	if track_mode and race.state == RaceState.RACING and race.circuit_checkpoint >= 0:
 		text_at(
-			Vector2(448, 114),
+			Vector2(448, 118),
 			tr("CHECKPOINT %d / %ds") % [posmod(race.circuit_checkpoint, 2) + 1, ceili(race.time_left)],
-			22,
+			20,
 			GOLD
 		)
 
 
 func route_map_point(row: int, node: int) -> Vector2:
-	return Vector2(1162 + (node - row * 0.5) * 33, 180 - row * 24)
+	return HudLayout.route_point(row, node)
 
 
-func draw_minimap(_rows: Array[Dictionary]) -> void:
+func draw_minimap() -> void:
+	var center := HudLayout.MINIMAP.get_center()
+	draw_circle(center, HudLayout.MINIMAP.size.x * .5, Color("0b1829d9"))
+	draw_arc(center, HudLayout.MINIMAP.size.x * .5 - .75, 0, TAU, 96, Color("82a4b5b0"), 1.5, true)
 	if race.mode == "track":
 		draw_circuit_map()
 		return
-	preload("res://scripts/ui/neon_chrome.gd").panel(self, Rect2(1060, 14, 204, 184), CYAN, 14)
-	text_at(Vector2(1074, 34), "TOUR ROUTE", 18, CYAN)
-	text_at(Vector2(1074, 55), tr("STAGE %d") % (race.stage_index + 1), 16, Color("b4d1df"))
 	var selected := 0
 	for row in range(5):
 		if row > 0 and row - 1 < race.track.history.size():
@@ -826,16 +815,12 @@ func draw_minimap(_rows: Array[Dictionary]) -> void:
 			var p := route_map_point(row, node)
 			if row < 4:
 				for side in [0, 1]:
-					draw_line(p, route_map_point(row + 1, node + side), Color("728ea777"), 1.2, true)
+					draw_line(p, route_map_point(row + 1, node + side), Color("91adbd66"), 1.5, true)
 			var visited: bool = row <= race.stage_index and node == selected
-			draw_circle(
-				p,
-				4.5 if visited else 3,
-				CYAN if visited else Color("7cd5bc").lerp(Color("f1755c"), float(node) / maxi(1, row))
-			)
+			draw_circle(p, 4.5 if visited else 3.5, CYAN if visited else Color("91adbd"))
 			if visited and row > 0:
 				var previous: int = selected - race.track.history[row - 1]
-				glow_line(PackedVector2Array([route_map_point(row - 1, previous), p]), CYAN, 1.8)
+				draw_line(route_map_point(row - 1, previous), p, CYAN, 2, true)
 	var current := route_map_point(race.stage_index, race.route_node)
 	draw_arc(current, 7, 0, TAU, 24, GOLD, 1.5, true)
 
@@ -846,54 +831,33 @@ var map_outline_key := ""
 
 func circuit_map_point(d: float) -> Vector2:
 	var p: Vector3 = race.track.point(d)
-	var bounds: Rect2 = race.track.map_bounds
-	var scale_factor := minf(160 / maxf(bounds.size.x, 1), 105 / maxf(bounds.size.y, 1))
-	return Vector2(1162, 128) + (Vector2(p.x, p.z) - bounds.get_center()) * scale_factor
+	return HudLayout.project_map(Vector2(p.x, p.z), race.track.map_bounds)
 
 
 func draw_circuit_map() -> void:
-	var map_rect := Rect2(1060, 14, 204, 184)
-	preload("res://scripts/ui/neon_chrome.gd").panel(self, map_rect, CYAN, 14, Color("071a29f5"), 1.8)
-	# The outline only changes with the course, so it is built once.
-	var key := (
-		"%s:%d:%d:%d"
-		% [
-			race.course_title,
-			roundi(race.track.length),
-			roundi(race.track.map_bounds.size.x),
-			roundi(race.track.map_bounds.size.y)
-		]
-	)
+	# 원형 프레임의 투영 규칙까지 키에 포함해 코스 변경 후 재사용하지 않는다.
+	var key := "%s:%s:%s" % [race.track.active.get_instance_id(), race.track.length, race.track.map_bounds]
 	if map_outline_key != key:
 		map_outline_key = key
 		map_outline = PackedVector2Array()
 		for i in range(101):
 			map_outline.append(circuit_map_point(race.track.length * i / 100.0))
-	glow_line(map_outline, Color("00e5ff66"), 3.5)
-	draw_polyline(map_outline, Color("e6f4fb"), 2.2, true)
+	draw_polyline(map_outline, Color("e6f4fb"), 2, true)
 	for r in race.rivals:
 		if r.active:
-			draw_circle(circuit_map_point(r.distance), 3.5, Color("ff785e"))
+			draw_circle(circuit_map_point(r.distance), 3, Color("f38e7c"))
 	if race.world_race != null:
 		var body: CharacterBody3D = race.world_race.player_body
-		var bounds: Rect2 = race.track.map_bounds
-		var factor := minf(160 / maxf(bounds.size.x, 1), 105 / maxf(bounds.size.y, 1))
-		var p := Vector2(1162, 128) + (Vector2(body.position.x, body.position.z) - bounds.get_center()) * factor
+		var p := HudLayout.project_map(Vector2(body.position.x, body.position.z), race.track.map_bounds)
 		var forward: Vector3 = body.forward_direction()
 		var direction := Vector2(forward.x, forward.z).normalized()
 		var side := Vector2(-direction.y, direction.x)
 		draw_colored_polygon(
-			PackedVector2Array([p + direction * 8, p - direction * 5 + side * 5, p - direction * 5 - side * 5]), GOLD
+			PackedVector2Array([p + direction * 7, p - direction * 4 + side * 4, p - direction * 4 - side * 4]), GOLD
 		)
-		draw_circle(p, 2.5, WHITE)
 	else:
 		draw_circle(circuit_map_point(race.distance), 5, CYAN)
 	draw_rect(Rect2(circuit_map_point(80) - Vector2(3, 3), Vector2(6, 6)), GOLD)
-	text_at(Vector2(1074, 34), race.course_title, 18, CYAN)
-	var lap_tag := (
-		tr("%d / 3 LAPS") % mini(3, race.laps_completed + 1) if race.state == RaceState.RACING else "3 LAPS / S.GRID"
-	)
-	text_at(Vector2(1074, 55), lap_tag, 16, Color("b4d1df"))
 
 
 func draw_drift_score() -> void:
@@ -923,15 +887,9 @@ func round_button(action: String, neon: bool = false) -> void:
 	var accent := (
 		Color("ff7a66") if action == "brake" else (Color(race.vehicle.accent) if action in ["nitro", "cell"] else CYAN)
 	)
-	# 모던 글래스모피즘 원형 버튼 베이스
-	draw_circle(c, radius, Color("1c3d5cee") if active else Color("071a29f5"))
-	draw_arc(c, radius - 4, 0, TAU, 70, Color("ffffff18"), 1, true)
-	if neon:
-		glow_line(arc_points(c, radius - 1, 0, TAU), Color(accent, 1.0 if active else 0.8), 3.2 if active else 2.0)
-	else:
-		draw_arc(
-			c, radius - 1, 0, TAU, 70, Color("19dcff66") if active else Color("e6f3ff88"), 2.0 if active else 1.5, true
-		)
+	draw_circle(c, radius, Color("173648ef") if active else Color("0b1829d9"))
+	var border: Color = accent if neon else Color("b5cbd8")
+	draw_arc(c, radius - 1, 0, TAU, 70, Color(border, .95 if active else .65), 2 if active else 1.3, true)
 
 
 func pedal_icon(center: Vector2, gas: bool) -> void:
@@ -956,7 +914,6 @@ func draw_controls() -> void:
 	round_button("drift", true)
 	var c: Vector2 = buttons.drift.get_center()
 	var drift_radius: float = buttons.drift.size.x * .5 - 7
-	draw_arc(c, drift_radius, 0, TAU, 48, Color("00e5ff44"), 2.0, true)
 	if race.drifting:
 		draw_circle(c, drift_radius - 1, Color("ff910022"))
 		glow_line(arc_points(c, drift_radius + 2, 0, TAU), Color("ff9100"), 4.0)
@@ -974,13 +931,17 @@ func draw_controls() -> void:
 	round_button("nitro", true)
 	var nitro_center: Vector2 = buttons.nitro.get_center()
 	var nitro_radius: float = buttons.nitro.size.x * .5 - 7
-	draw_arc(nitro_center, nitro_radius, 0, TAU, 48, Color("00e5ff33"), 2.0, true)
 	var n_ratio: float = race.nitro_ratio()
 	if n_ratio > 0.01:
-		glow_line(
-			arc_points(nitro_center, nitro_radius + 1, -PI / 2.0, -PI / 2.0 + TAU * n_ratio),
-			Color("ffd700") if race.nitro_active else Color("00e5ff"),
-			4.0
+		draw_arc(
+			nitro_center,
+			nitro_radius + 1,
+			-PI / 2,
+			-PI / 2 + TAU * n_ratio,
+			48,
+			GOLD if race.nitro_active else CYAN,
+			2.5,
+			true
 		)
 	if race.nitro_active:
 		draw_circle(nitro_center, nitro_radius - 2, Color("00e5ff26"))
@@ -1082,7 +1043,6 @@ func draw_speedometer() -> void:
 			Vector2(914, 294)
 		]
 	)
-	draw_polyline(outline, Color(CYAN, .12), 12, true)
 	draw_polygon(
 		PackedVector2Array(outline.slice(0, 6)),
 		PackedColorArray(
@@ -1096,9 +1056,7 @@ func draw_speedometer() -> void:
 			]
 		)
 	)
-	draw_polyline(outline, CYAN, 2.2, true)
-	draw_line(Vector2(919, 300), Vector2(1238, 300), Color("c2f7ff77"), 1, true)
-	draw_line(Vector2(892, 376), Vector2(1241, 376), Color("237392"), 1, true)
+	draw_polyline(outline, Color("82a4b5b0"), 1.5, true)
 	var speed_text := str(int(race.speed * 3.6))
 	text_at(Vector2(920, 352), speed_text, 56, WHITE, true, NUMBER_FONT)
 	var speed_width: float = NUMBER_FONT.get_string_size(speed_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 56).x
