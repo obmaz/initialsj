@@ -187,19 +187,31 @@ func configure_pedals() -> void:
 
 
 func hit_button(action: String, pos: Vector2) -> bool:
-	configure_pedals()
-	if action == "gas" and race.auto_accelerate:
-		return false
-	if action == "cell" and race.vehicle.mode != "hybrid":
-		return false
 	if not buttons.has(action):
 		return false
-	var rect: Rect2 = buttons[action]
 	if action == "pause":
-		return rect.has_point(pos) or pause_touch_rect().has_point(pos)
-	# 원형 액션 버튼 터치 여유 마진 (모바일/웹 반응성 향상)
-	var radius: float = (rect.size.x / 2.0) * (1.18 if OS.has_feature("web") or OS.has_feature("mobile") else 1.0)
-	return pos.distance_to(rect.get_center()) <= radius
+		return buttons.pause.has_point(pos) or pause_touch_rect().has_point(pos)
+	var padding := 1.18 if OS.has_feature("web") or OS.has_feature("mobile") else 1.0
+	return button_at(pos, padding) == action
+
+
+# 여유 영역이 겹쳐도 한 포인터는 가장 가까운 활성 버튼 하나만 누른다.
+func button_at(pos: Vector2, padding: float = 1.18) -> String:
+	configure_pedals()
+	var nearest := INF
+	var selected := ""
+	for action in buttons:
+		if action == "pause" or (action == "gas" and race.auto_accelerate):
+			continue
+		if action == "cell" and race.vehicle.mode != "hybrid":
+			continue
+		var rect: Rect2 = buttons[action]
+		var radius: float = rect.size.x * 0.5 * padding
+		var distance_squared := pos.distance_squared_to(rect.get_center())
+		if distance_squared <= radius * radius and distance_squared < nearest:
+			nearest = distance_squared
+			selected = action
+	return selected
 
 
 func handle_pointer(event: InputEvent) -> void:
