@@ -1,0 +1,16 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "dumptruck"
+category = "props"
+order = 92
+scene_path = "res://models/props/dumptruck/model.tscn"
+source_path = "res://models/props/dumptruck/SOURCE.md"
+base_size = Vector3(2.55, 3.1, 7.2)
+parameters = {
+"scene_only": true,
+"traffic_only": true
+}

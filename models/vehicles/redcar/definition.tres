@@ -1,0 +1,41 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://models/model_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "redcar"
+category = "vehicles"
+order = 5
+scene_path = "res://models/vehicles/redcar/model.tscn"
+source_path = "res://models/vehicles/redcar/SOURCE.md"
+base_size = Vector3(1.92, 1.42, 4.65)
+parameters = {
+"aero_drop": 0.0,
+"aero_pitch": 0.0,
+"aero_mount": Vector3(0, 1.0, 1.8),
+"brakes": ["BrakeLightsLeft", "BrakeLightsRight"],
+"effect_slots": 2,
+"open_top": false,
+"imported_texture": true,
+"exhausts": [{"position": Vector3(-0.65, 0.3, 2.28), "radius": 0.13}],
+"headlamp_positions": PackedVector3Array(-0.68, 0.52, -2.28, 0.68, 0.52, -2.28),
+"headlight_position": Vector3(0, 0.56, -2.1),
+"labels": [{
+"font_size": 36,
+"modulate": Color(0.08, 0.12, 0.16, 1),
+"outline_size": 0,
+"pixel_size": 0.0016,
+"text": "SCARLET",
+"transform": Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.43, 2.34)
+}],
+"ride_offset": 0.0,
+"rim_color": Color(0.7, 0.72, 0.74, 1),
+"rim_scale": 1.0,
+"scene_wheels": true,
+"spoke_count": 5,
+"wheel_half_base": 1.39,
+"wheel_half_track": 0.79,
+"wheel_radius": 0.34,
+"wheel_thickness": 0.24
+}
