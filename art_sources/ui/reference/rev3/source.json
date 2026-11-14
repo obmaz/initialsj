@@ -1,7 +1,7 @@
 {
   "revision": 3,
   "basedOnRevision": 2,
-  "purpose": "rev2의 구도와 차분한 색상을 유지하고 차량·풍경의 재질, 자연광, 접지 그림자를 조금 더 사실적으로 다듬은 모바일 UI 시안. 게임 미반영.",
+  "purpose": "사용자가 선호한 rev3 기본 8장에 빠진 독립 화면과 상태별 디자인 21장을 추가한 모바일 UI 시안 모음. 총 29장. 게임 미반영.",
   "textBaked": false,
   "referenceChain": {
     "start.png": [
@@ -34,6 +34,74 @@
     "race_results.png": [
       "../rev2/race_results.png",
       "car_select.png"
+    ],
+    "start_passport.png": [
+      "start.png"
+    ],
+    "loading_long.png": [
+      "start.png"
+    ],
+    "loading_short.png": [
+      "settings.png"
+    ],
+    "tour_passport.png": [
+      "settings.png"
+    ],
+    "controls_settings.png": [
+      "settings.png",
+      "race_hud.png"
+    ],
+    "tour_hud.png": [
+      "race_hud.png"
+    ],
+    "track_select_more.png": [
+      "track_select.png"
+    ],
+    "track_conditions.png": [
+      "track_select.png"
+    ],
+    "tuning_livery.png": [
+      "tuning_shop.png"
+    ],
+    "tuning_wheels.png": [
+      "tuning_shop.png"
+    ],
+    "tuning_rear_wing.png": [
+      "tuning_shop.png"
+    ],
+    "tuning_shading.png": [
+      "tuning_shop.png"
+    ],
+    "tuning_effects.png": [
+      "tuning_shop.png"
+    ],
+    "tuning_custom_color.png": [
+      "tuning_shop.png",
+      "settings.png"
+    ],
+    "tuning_discard.png": [
+      "tuning_shop.png"
+    ],
+    "start_countdown.png": [
+      "race_hud.png"
+    ],
+    "rolling_start.png": [
+      "race_hud.png",
+      "track_select.png"
+    ],
+    "driving_states.png": [
+      "race_hud.png"
+    ],
+    "result_time_over.png": [
+      "race_results.png"
+    ],
+    "result_tour.png": [
+      "race_results.png",
+      "tour_passport.png"
+    ],
+    "result_new_record.png": [
+      "race_results.png",
+      "tour_passport.png"
     ]
   },
   "images": [
@@ -132,6 +200,342 @@
         941
       ],
       "productionAsset": false
+    },
+    {
+      "file": "start_passport.png",
+      "screen": "시작·패스포트 진입",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-2378f07f-0d6c-44ea-9bd9-c9cddfb3df62.png",
+      "sha256": "7434e5b01df7a9c9f7d35ad41025cb8e9fd803d0ee6b60088277ced1c6c27e07",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "loading_long.png",
+      "screen": "스플래시·긴 로딩",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-989cd692-bda5-4449-af7a-6e049bf49a3c.png",
+      "sha256": "a11a261f88d14d22d72f45c24f919792d5e1409b771caff9a9db1c16e8653cf0",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "loading_short.png",
+      "screen": "짧은 로딩·화면 전환",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-a43c2734-710c-47ed-8e5a-6a9280ff93d6.png",
+      "sha256": "788edd748f8e886a66f155336878d14131b4cf36e230107b019e1041243283d4",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "tour_passport.png",
+      "screen": "투어 패스포트",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-04c9cf68-3651-4e12-a97d-8fe6d1e427c5.png",
+      "sha256": "02e1cd0d10e829dd7c5c842c6b8072fb9fb2d33ec59c2a267dcbf9ce74507948",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept",
+      "inputSnapshot": {
+        "sourceFile": "exec-a73de531-debe-420f-91a7-42f477ff5938.png",
+        "sha256": "9f246442cca267516b597d02a6350de44a12cba682b5df5b10285b45157fe747",
+        "note": "첫 패스포트 시안을 편집하여 최종 도착지 다섯 곳을 실제 코스에 맞췄습니다."
+      }
+    },
+    {
+      "file": "controls_settings.png",
+      "screen": "모바일 조작 설정",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-0a29d258-46e2-49e9-ad69-aac870765701.png",
+      "sha256": "97cbb8d1754ccd3f11b7c369c46b18816d2bbe3e0eb706230bf5b9c293ba6b47",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "tour_hud.png",
+      "screen": "투어 HUD·분기 선택",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-e756dbe6-f172-4cdf-8f07-1a3d8b2658e1.png",
+      "sha256": "747329ffa12c2f8c78a2c4ca978c1a8855f4159fcf8f012faa9a5a01fbb659f6",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept",
+      "inputSnapshot": {
+        "sourceFile": "exec-40df1b6f-e5e8-4852-a374-0228bac27562.png",
+        "sha256": "03e3ac181f7e93681b3df733b24cb95a95ab7dfae86b7063a3b97346dd4a2778",
+        "note": "첫 투어 HUD 시안을 편집하여 스테이지·남은 시간·경과 시간의 세 필드와 빈 지역명 영역을 맞췄습니다."
+      }
+    },
+    {
+      "file": "track_select_more.png",
+      "screen": "트랙 4·5 선택 카드",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-290fee87-7730-41a2-ae64-64f5d3975ee7.png",
+      "sha256": "e64673a53e9e6ccefdedc68181ae28c106da49d94b0862339b0bc7a11037a378",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "track_conditions.png",
+      "screen": "트랙·날씨와 시간 선택 상태",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-8f1df1e2-7585-4019-9e14-d06b67b91593.png",
+      "sha256": "215029b397461357b834e0ef8853a74748e78a059bd9aaf1842b3ead7db61609",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "tuning_livery.png",
+      "screen": "튜닝·리버리",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-568873ce-9b40-4037-8cb0-37cccc19ae0d.png",
+      "sha256": "2c143a60306c69864a0441c8f450b4272e7bf96481200759d5baa2c0ed1a74bd",
+      "size": [
+        1671,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "tuning_wheels.png",
+      "screen": "튜닝·휠",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-20211151-ef92-43a2-a319-446c69fa0bdb.png",
+      "sha256": "f66e42bc8e20d981a367d8ae203591676620986cda5e82aaa2778f29096e90bf",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "tuning_rear_wing.png",
+      "screen": "튜닝·리어윙",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-bd690058-8830-4713-b384-16aebe89b052.png",
+      "sha256": "7a4d2edef48aae9fe239495cb562674b401f07da89af1cf150daff48db70af18",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "tuning_shading.png",
+      "screen": "튜닝·셰이딩",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-5290e956-e655-4424-b0eb-4764f92c714a.png",
+      "sha256": "ca034a7291e7e21d509c9d15a5af7d19a8434f57feedfe1800be597a92f3c2a6",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "tuning_effects.png",
+      "screen": "튜닝·이펙트 슬롯",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-a493cfc7-26fa-4b28-a884-1c5c25505990.png",
+      "sha256": "043f2b0463f9ec868a4989f0db900aa2768914596d0699c9cb6689b1f722a0af",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "tuning_custom_color.png",
+      "screen": "튜닝·사용자 색상 선택",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-29b5d1a7-d36b-487b-b860-50b227a01d77.png",
+      "sha256": "bc16cfabb901508af6d12c7e811225906c2baa1446c473b36fc62aef505095e6",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "tuning_discard.png",
+      "screen": "튜닝·변경 폐기 확인",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-1c5c6cd4-e7a4-45d1-acb1-c0b64b5a71ae.png",
+      "sha256": "519317a1922aeb8fe33327959bc87f70d09eeb7cadf37ead12d9278c58e0ceb7",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "start_countdown.png",
+      "screen": "일반 출발 카운트다운",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-30e44b5c-0308-4796-8ca2-217741a10d95.png",
+      "sha256": "a9ce354bc3e7ab79f64a4c5a654db5d30150db2e48b71e72c151ff35128ea62c",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "rolling_start.png",
+      "screen": "트랙2 분산 롤링 스타트",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-df2585da-6951-447b-8c18-7fa952f89824.png",
+      "sha256": "51262545096888b41223951f3053670b5d01e7d7b5f541734c1388ad8b394a1b",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "driving_states.png",
+      "screen": "주행 상태·알림 구성표",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-9284a312-11f8-42c3-98c3-f78936b0278f.png",
+      "sha256": "516d3b4e1f82acd7f8d0167033c9b57d5b34f1e8f02da9fb92703a449dd26b1b",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "state_board"
+    },
+    {
+      "file": "result_time_over.png",
+      "screen": "시간 초과·실패 결과",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-e4865064-844a-43ca-a15d-cac160de2851.png",
+      "sha256": "abb23740bbeea0caf167b91aa265fa9f1d5facc3e139aa08005dc10240ba9dab",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "result_tour.png",
+      "screen": "투어 완주·경로 결과",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-637e5241-2707-489f-8967-5a9b7f9d15a5.png",
+      "sha256": "8db6bc475815c6a61e5462e14b2225019491f95bfa7f308eabf263c5dcd83c00",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
+    },
+    {
+      "file": "result_new_record.png",
+      "screen": "신기록·메달·해금 결과",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-687c7b3b-2fbb-47c5-9385-aaab8d91f933.png",
+      "sha256": "57024054677108a671520b5d1999256aec790fb77e2e3515f64e07a2f984371d",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false,
+      "kind": "screen_concept"
     }
-  ]
+  ],
+  "acceptedDirection": "rev3 기본 화면의 구도·색상·재질 방향에 대한 사용자 선호 확인. 추가 화면은 같은 방향의 검토 시안.",
+  "implementationStatus": "reference_only",
+  "preferredStart": "start_passport.png",
+  "coverage": {
+    "시작·모드 선택": [
+      "start_passport.png"
+    ],
+    "부팅·전환": [
+      "loading_long.png",
+      "loading_short.png"
+    ],
+    "투어 기록": [
+      "tour_passport.png"
+    ],
+    "조작 설정": [
+      "controls_settings.png"
+    ],
+    "트랙 선택·환경": [
+      "track_select.png",
+      "track_select_more.png",
+      "track_conditions.png"
+    ],
+    "차량 선택": [
+      "car_select.png"
+    ],
+    "튜닝": [
+      "tuning_shop.png",
+      "tuning_livery.png",
+      "tuning_wheels.png",
+      "tuning_rear_wing.png",
+      "tuning_shading.png",
+      "tuning_effects.png",
+      "tuning_custom_color.png",
+      "tuning_discard.png"
+    ],
+    "설정·일시정지": [
+      "settings.png",
+      "pause.png"
+    ],
+    "주행·출발": [
+      "race_hud.png",
+      "tour_hud.png",
+      "start_countdown.png",
+      "rolling_start.png",
+      "driving_states.png"
+    ],
+    "결과": [
+      "race_results.png",
+      "result_time_over.png",
+      "result_tour.png",
+      "result_new_record.png"
+    ]
+  }
 }
