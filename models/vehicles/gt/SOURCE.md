@@ -1,17 +1,14 @@
-# gt
+# gt (STRAUD 6R / Porsche 911 GT3)
 
 편집 원본은 [원본 GLB](../../../model_sources/vehicles/gt/model.glb)이며, 이 팩의 GLB는 재생성되는 배포 파일입니다. 원본을 삭제하거나 배포 GLB를 직접 수정하지 않습니다. 진입점은 [model.tscn](model.tscn)입니다. 치수·피벗·UV와 움직이는 부품의 연결점은 [모델 계약](../../../docs/MODEL_PIPELINE.md)을 따릅니다.
 
-프로젝트에서 직접 제작해 GLB로 저장한 형상입니다. 단위와 제작 인터페이스는 [모델 제작 지침](../../../docs/MODEL_PIPELINE.md)을 따릅니다.
-
-후면 덱의 저상 가동 플랩은10cm 하강·8도 회전합니다. 유지 시간·복원은 공통 차량 효과 어댑터가 담당하며 실제 차량 능력치는 변경하지 않습니다.
-
-도장면은 원본 BodyShell의 기존 면만 PaintShell로 분리했습니다. 형상·법선·비도장 UV를 보존하며 전용 UV0는 livery-uv.json의 종방향·단면 원통 전개을 사용합니다. 리버리 이미지는 models/shared/vehicle_liveries/SOURCE.md를 따릅니다.
-
-기존 BodyShell 전체 메시도 투어 교통 차량의 이전 연결 경로를 위해 읽기 전용으로 보존합니다. 플레이어 표시에는 PaintShell+TrimShell만 사용하고 전체 메시를 중복해서 그리지 않습니다.
-
-오픈카는 원본에 OpenPaintShell·OpenTrimShell·OpenCabin 변형을 추가해 제공합니다. 원래 BodyShell·PaintShell·TrimShell의 면·속성은 보존하며 지원 정의가 있는 차량만 메시 참조를 교체합니다. 실내는 두 좌석·헤드레스트·롤오버 바·센터 콘솔·대시보드·운전대를 포함합니다. 도구는 기존 원본 바이트를 해시별로 build/reports/model-backups에 먼저 백업하며 다시 실행해도 변형을 중복 생성하지 않습니다.
-
-도장면은 원본 BodyShell의 기존 면만 PaintShell로 분리했습니다. 형상·법선·비도장 UV를 보존하며 전용 UV0는 livery-uv.json의 종방향·단면 원통 전개을 사용합니다. 리버리 이미지는 models/shared/vehicle_liveries/SOURCE.md를 따릅니다.
-
-차체 판면의 모서리 반경·후드 곡면과 휠 법선은 [전용 편집 도구](../../../tools/refine_player_models.py)로 다듬습니다. 최초 편집 전 GLB는 해시별 `build/reports/model-backups/`에 보존하며, 이미 처리된 편집본은 중복 가공하지 않습니다. 도장 마스크·실척·부품 피벗·자식 순서를 유지합니다.
+Porsche 911 GT3 RS를 모티브로 한 실사 스타일 고성능 리어엔진 GT 차량 모델입니다.
+- 실척: 1.85×1.30×4.57m, 전방 -Z, 지면 피벗.
+- 외형 특징: 와이드 리어 펜더와 프론트 범퍼 에어로 벤트, 대형 카본 리어 윙 스포일러, 가로형 일체형 LED 라이트바 제동등, 센터 듀얼 스포츠 배기구 파이프, 실내 대시보드/스티어링 휠/운전자 탑승 디테일.
+- 휠: 스포츠 멀티스포크 레이싱 휠과 고성능 스포츠 래디얼 타이어, 레드 브레이크 캘리퍼(전륜 255/35R20, 후륜 315/30R21 제원 일치).
+- 도장면: `PaintShell`(4,000 tris)은 차체 패널과 도어로 구성되며 UV0는 `livery-uv.json`의 원통 전개를 따릅니다.
+- 트림: `TrimShell`(1,870 tris)은 틴티드 글래스, 실내 대시보드, 스티어링 휠, 계기판 바늘, 캘리퍼, 운전자 모델 등으로 구성됩니다.
+- 가동 에어로: `ActiveRearAero`(522 tris)는 상단 대형 레이싱 윙으로 가동 시 틸팅 및 다운포스 립 효과를 담당합니다.
+- 제동등: `BrakeLights6`는 후면 가로형 LED 테일램프 스트립으로 제동 시 공통 차량 제어기에 연동됩니다.
+- 오픈탑: `OpenPaintShell`, `OpenTrimShell`, `OpenCabin` 변형을 통해 튜닝샵 오픈탑 효과를 지원합니다.
+- 호환성: 기존 `BodyShell` 전체 메시는 `PaintShell`과 `TrimShell`의 완전한 결합(5,870 tris)으로 보존합니다.
