@@ -53,6 +53,8 @@ func draw(rect: Rect2, value: String, font_size: int, color: Color, centered: bo
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if centered else HORIZONTAL_ALIGNMENT_LEFT
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	label.max_lines_visible = 1
+	label.add_theme_constant_override("outline_size", 2 if hud.race.state in hud.RaceState.DRIVING else 0)
+	label.add_theme_color_override("font_outline_color", Color("182b3b99"))
 	label.visible = true
 
 

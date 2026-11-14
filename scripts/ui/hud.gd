@@ -9,57 +9,121 @@ const RaceState = preload("res://scripts/race/race_state.gd")
 # 메뉴 조립기도 hud.AppVersion으로 버전을 표시한다.
 const AppVersion = preload("res://scripts/platform/app_version.gd")
 const DESIGN := Vector2(1280, 720)
-const INK := Color("11121bc9")
-const CYAN := Color("19dcff")
+const INK := Color("2b506bdc")
+const CYAN := Color("a7cce0")
 const WHITE := Color("f6f7fa")
-const GOLD := Color("ffda22")
-const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
+const GOLD := Color("dfbd69")
+const FONT = preload("res://assets/ui/rev3/fonts/interface_font.tres")
 const CAPTION_FONT = preload("res://assets/fonts/LiberationSans-BoldItalic.ttf")
-const POSITION_FONT = preload("res://assets/fonts/PositionNumeral.tres")
 const NUMBER_FONT = preload("res://assets/fonts/Roboto-BlackItalic.ttf")
 const Library = preload("res://scripts/track/route_library.gd")
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
-const ROUTE_LEFT := Rect2(280, 98, 300, 64)
-const ROUTE_RIGHT := Rect2(700, 98, 300, 64)
-const PAUSE_BUTTON := HudLayout.PAUSE
-const HOME_TOUR := Rect2(100, 470, 520, 170)
-const HOME_TRACK := Rect2(660, 470, 520, 170)
-const HOME_PASSPORT := Rect2(30, 24, 260, 84)
-const PASSPORT_CLOSE := MenuLayout.BACK
-const GARAGE_PAINT := Rect2(80, 630, 225, 80)
-const GARAGE_PLATE := Rect2(325, 630, 245, 80)
-const GARAGE_TUNING := Rect2(590, 630, 245, 80)
-const HOME_SETTINGS := Rect2(1000, 24, 250, 84)
-const COURSE_WEATHER := Rect2(330, 602, 345, 84)
-const COURSE_PERIOD := Rect2(700, 602, 440, 84)
-const COURSE_FUJI := Rect2(24, 136, 236, 430)
-const COURSE_SPEEDWAY := Rect2(272, 136, 236, 430)
-const COURSE_NIGHT := Rect2(520, 136, 236, 430)
-const COURSE_RIVIERA := Rect2(768, 136, 236, 430)
-const COURSE_GORGE := Rect2(1016, 136, 236, 430)
+var ROUTE_LEFT: Rect2:
+	get:
+		return rev3.rect("route_left", "tour_hud")
+var ROUTE_RIGHT: Rect2:
+	get:
+		return rev3.rect("route_right", "tour_hud")
+var PAUSE_BUTTON: Rect2:
+	get:
+		return top_hud_rects().pause
+var HOME_TOUR: Rect2:
+	get:
+		return rev3.rect("tour", "start")
+var HOME_TRACK: Rect2:
+	get:
+		return rev3.rect("track", "start")
+var HOME_PASSPORT: Rect2:
+	get:
+		return rev3.home_passport_rect()
+var PASSPORT_CLOSE: Rect2:
+	get:
+		return rev3.rect("back", "tour_passport")
+var GARAGE_TUNING: Rect2:
+	get:
+		return rev3.rect("tuning", "car_select")
+var HOME_SETTINGS: Rect2:
+	get:
+		return rev3.rect("settings", "start")
+var COURSE_WEATHER: Rect2:
+	get:
+		return rev3.rect("weather", "track_select")
+var COURSE_PERIOD: Rect2:
+	get:
+		return rev3.rect("time", "track_select")
+var COURSE_FUJI: Rect2:
+	get:
+		rev3.sync()
+		return rev3.course_rect(0)
+var COURSE_SPEEDWAY: Rect2:
+	get:
+		rev3.sync()
+		return rev3.course_rect(1)
+var COURSE_NIGHT: Rect2:
+	get:
+		rev3.sync()
+		return rev3.course_rect(2)
+var COURSE_RIVIERA: Rect2:
+	get:
+		rev3.sync()
+		return rev3.course_rect(3)
+var COURSE_GORGE: Rect2:
+	get:
+		rev3.sync()
+		return rev3.course_rect(4)
 var menu_feedback := preload("res://scripts/ui/menu_feedback.gd").new()
 var menu_text := preload("res://scripts/ui/menu_text.gd").new(self)
 var menus := preload("res://scripts/ui/hud_menus.gd").new(self)
-const GARAGE_GHOST := Rect2(940, 24, 280, 84)
-const GARAGE_BACK := MenuLayout.BACK
-const GARAGE_PREVIOUS := Rect2(32, 480, 92, 106)
-const GARAGE_NEXT := Rect2(1156, 480, 92, 106)
-const SETTINGS_PANEL := Rect2(180, 24, 920, 672)
-const SETTINGS_SOUND := Rect2(228, 104, 402, 160)
-const SETTINGS_MUSIC := Rect2(650, 104, 402, 160)
-const SETTINGS_MOTION := Rect2(228, 276, 402, 80)
-const SETTINGS_GRAPHICS := Rect2(228, 368, 824, 80)
-const SETTINGS_FPS := Rect2(650, 276, 402, 80)
-const SETTINGS_AUTO := Rect2(228, 460, 402, 80)
-const SETTINGS_FULLSCREEN := Rect2(228, 576, 264, 80)
-const SETTINGS_INSTALL := Rect2(508, 576, 264, 80)
-const SETTINGS_CLOSE := Rect2(228, 576, 824, 80)
+var rev3 := preload("res://scripts/ui/rev3_interface.gd").new(self)
+var GARAGE_BACK: Rect2:
+	get:
+		return rev3.rect("back", "car_select")
+var GARAGE_PREVIOUS: Rect2:
+	get:
+		return rev3.rect("previous_vehicle", "car_select")
+var GARAGE_NEXT: Rect2:
+	get:
+		return rev3.rect("next_vehicle", "car_select")
+var SETTINGS_PANEL: Rect2:
+	get:
+		return top_hud_bounds()
+var SETTINGS_SOUND: Rect2:
+	get:
+		return rev3.rect("sound_panel", "settings")
+var SETTINGS_MUSIC: Rect2:
+	get:
+		return rev3.rect("music_panel", "settings")
+var SETTINGS_MOTION: Rect2:
+	get:
+		return rev3.rect("motion", "settings")
+var SETTINGS_GRAPHICS: Rect2:
+	get:
+		return rev3.rect("graphics_panel", "settings")
+var SETTINGS_FPS: Rect2:
+	get:
+		return rev3.rect("fps", "settings")
+var SETTINGS_AUTO: Rect2:
+	get:
+		return rev3.rect("auto_acceleration", "settings")
+var SETTINGS_FULLSCREEN: Rect2:
+	get:
+		return rev3.web_rect(0)
+var SETTINGS_INSTALL: Rect2:
+	get:
+		return rev3.web_rect(1)
+var SETTINGS_CLOSE: Rect2:
+	get:
+		return rev3.rect("done", "settings")
 const RECOVERY_BUTTON := Rect2(500, 176, 280, 64)
-const GARAGE_START := Rect2(855, 630, 345, 80)
-const MAIN_MENU_BUTTON := Rect2(390, 578, 500, 78)
-const START_BUTTON := Rect2(390, 483, 500, 82)
-const MOTION_BUTTON := Rect2(307, 386, 300, 78)
-const SOUND_BUTTON := Rect2(630, 386, 330, 78)
+var GARAGE_START: Rect2:
+	get:
+		return rev3.rect("start_race", "car_select")
+var MAIN_MENU_BUTTON: Rect2:
+	get:
+		return rev3.rect("home", "pause")
+var START_BUTTON: Rect2:
+	get:
+		return rev3.rect("resume", "pause")
 var race: Node3D
 var hud_card_style := StyleBoxFlat.new()
 var controls_open := false
@@ -68,8 +132,6 @@ var modal_motion := preload("res://scripts/ui/modal_motion.gd").new()
 var fingers: Dictionary = {}
 var joystick := preload("res://scripts/input/floating_joystick.gd").new()
 var recovery_touches: Dictionary = {}
-var bottle_texture: Texture2D
-var drift_texture: Texture2D
 var install_note := ""
 var garage_notice := ""
 var garage_notice_left := 0.0
@@ -89,8 +151,6 @@ func _ready() -> void:
 	hud_card_style.set_border_width_all(1)
 	hud_card_style.set_corner_radius_all(10)
 	menu_text.prepare()
-	bottle_texture = load_icon("res://assets/ui/controls/nitro_bottle.png")
-	drift_texture = load_icon("res://assets/ui/controls/drift_car.png")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
@@ -102,41 +162,6 @@ func vehicle_changed(old_index: int) -> void:
 		race.screen_transition.transition_sound.play()
 
 
-func load_icon(path: String) -> Texture2D:
-	if not ResourceLoader.exists(path):
-		return null
-	var source: Texture2D = load(path)
-	var texture := AtlasTexture.new()
-	texture.atlas = source
-	# Ignore almost invisible glow/noise when fitting generated art into a small HUD target.
-	var image := source.get_image()
-	var first := Vector2i(image.get_width(), image.get_height())
-	var last := Vector2i.ZERO
-	for y in range(image.get_height()):
-		for x in range(image.get_width()):
-			if image.get_pixel(x, y).a > 0.5:
-				first = first.min(Vector2i(x, y))
-				last = last.max(Vector2i(x, y))
-	texture.region = Rect2i(first, last - first + Vector2i.ONE).grow(2).intersection(
-		Rect2i(Vector2i.ZERO, image.get_size())
-	)
-	return texture
-
-
-func draw_icon(texture: Texture2D, center: Vector2, bounds: Vector2, rotation: float = 0) -> bool:
-	if texture == null:
-		return false
-	var size_px := texture.get_size()
-	size_px *= minf(bounds.x / size_px.x, bounds.y / size_px.y)
-	if rotation != 0:
-		draw_set_transform(ui_offset() + center * ui_scale(), rotation, Vector2.ONE * ui_scale())
-		draw_texture_rect(texture, Rect2(-size_px / 2, size_px), false)
-		draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
-	else:
-		draw_texture_rect(texture, Rect2(center - size_px / 2, size_px), false)
-	return true
-
-
 func ui_scale() -> float:
 	return MenuLayout.scale_for(MenuLayout.safe_rect(get_viewport_rect().size))
 
@@ -146,15 +171,7 @@ func ui_offset() -> Vector2:
 
 
 func to_design(pos: Vector2) -> Vector2:
-	var point := (pos - ui_offset()) / ui_scale()
-	var bounds := SETTINGS_PANEL
-	if race.state == RaceState.PAUSED:
-		bounds = Rect2(235, 100, 810, 575)
-	elif race.state in RaceState.ENDED:
-		bounds = preload("res://scripts/ui/result_panel.gd").PANEL
-	if not (modal_pose() * bounds).has_point(point):
-		return point
-	return modal_pose().affine_inverse() * point
+	return (pos - ui_offset()) / ui_scale()
 
 
 func modal_key() -> String:
@@ -168,8 +185,8 @@ func modal_key() -> String:
 
 
 func modal_pose() -> Transform2D:
-	var centre: Vector2 = preload("res://scripts/ui/result_panel.gd").PANEL.get_center()
-	return modal_motion.transform(centre) if modal_motion.key == modal_key() else Transform2D.IDENTITY
+	# 조립된 원화의 안전 영역은 고정한다. 닫기 콜백의 단일 실행은 ModalMotion이 담당한다.
+	return Transform2D.IDENTITY
 
 
 func modal_begin() -> void:
@@ -210,7 +227,17 @@ func pause_touch_rect() -> Rect2:
 
 
 func configure_pedals() -> void:
-	buttons = race.touch_layout.rectangles(race.auto_accelerate)
+	buttons = race.touch_layout.rectangles(race.auto_accelerate).duplicate()
+	buttons.pause = top_hud_rects().pause
+	var bounds := top_hud_bounds()
+	for action in buttons:
+		if action == "pause":
+			continue
+		var bounds_button: Rect2 = buttons[action]
+		bounds_button.position += Vector2(
+			bounds.position.x if bounds_button.get_center().x < 640 else bounds.end.x - 1280, bounds.end.y - 720
+		)
+		buttons[action] = bounds_button
 
 
 func hit_button(action: String, pos: Vector2) -> bool:
@@ -261,114 +288,7 @@ func handle_pointer(event: InputEvent) -> void:
 		return
 	var p := to_design(event.position)
 	register_menu_press(p)
-	if race.passport_open:
-		if PASSPORT_CLOSE.has_point(p):
-			race.toggle_passport()
-		return
-	if race.state == RaceState.MENU:
-		if HOME_PASSPORT.has_point(p):
-			race.toggle_passport()
-		elif HOME_TOUR.has_point(p):
-			race.navigate_to_mode("tour")
-		elif HOME_TRACK.has_point(p):
-			race.navigate(race.open_courses)
-		elif HOME_SETTINGS.has_point(p):
-			race.navigate(race.open_settings)
-		return
-	if race.state == RaceState.COURSES:
-		if COURSE_FUJI.has_point(p):
-			race.navigate_to_mode("track", 0)
-		elif COURSE_SPEEDWAY.has_point(p):
-			race.navigate_to_mode("track", 1)
-		elif COURSE_NIGHT.has_point(p):
-			race.navigate_to_mode("track", 2)
-		elif COURSE_RIVIERA.has_point(p):
-			race.navigate_to_mode("track", 3)
-		elif COURSE_GORGE.has_point(p):
-			race.navigate_to_mode("track", 4)
-		elif COURSE_WEATHER.has_point(p):
-			race.cycle_track_weather()
-		elif COURSE_PERIOD.has_point(p):
-			race.cycle_track_period()
-		elif GARAGE_BACK.has_point(p):
-			race.navigate(race.open_menu)
-		return
-	if race.state == RaceState.SETTINGS:
-		if controls_open:
-			preload("res://scripts/ui/touch_layout_panel.gd").press(self, p)
-			return
-		if SettingsAudio.begin_drag(self, index, p):
-			return
-		if SETTINGS_SOUND.has_point(p):
-			race.toggle_sound()
-		elif SETTINGS_MUSIC.has_point(p):
-			race.toggle_music()
-		elif SETTINGS_MOTION.has_point(p):
-			race.toggle_motion()
-		elif SETTINGS_GRAPHICS.has_point(p):
-			var quality_index: int = menus.graphics_index(p)
-			if quality_index < 0:
-				race.cycle_graphics()
-			else:
-				race.graphics_mode = quality_index
-				race.render_budget.set_mode(quality_index, race)
-				race.save_preferences()
-		elif SETTINGS_AUTO.has_point(p):
-			race.toggle_auto_accelerate()
-		elif SETTINGS_FPS.has_point(p):
-			race.toggle_fps()
-		elif settings_controls_rect().has_point(p):
-			open_controls()
-		elif OS.has_feature("web") and SETTINGS_FULLSCREEN.has_point(p):
-			if race.has_method("toggle_fullscreen"):
-				race.shell.toggle_fullscreen()
-		elif OS.has_feature("web") and SETTINGS_INSTALL.has_point(p):
-			install_game()
-		elif settings_close_rect().has_point(p):
-			race.close_settings()
-		return
-	if race.state == RaceState.READY:
-		if GARAGE_TUNING.has_point(p):
-			race.open_tuning()
-			return
-		if GARAGE_BACK.has_point(p):
-			if race.mode == "track":
-				race.navigate(race.open_courses)
-			else:
-				race.navigate(race.open_menu)
-		elif GARAGE_PAINT.has_point(p):
-			race.cycle_cosmetic()
-		elif GARAGE_PLATE.has_point(p):
-			race.cycle_cosmetic(true)
-		elif GARAGE_GHOST.has_point(p):
-			race.toggle_ghost()
-		elif GARAGE_PREVIOUS.has_point(p):
-			race.select_vehicle(posmod(race.selected_vehicle - 1, Catalog.SPECS.size()))
-		elif GARAGE_NEXT.has_point(p):
-			race.select_vehicle((race.selected_vehicle + 1) % Catalog.SPECS.size())
-		elif GARAGE_START.has_point(p):
-			race.start_race()
-		else:
-			for i in range(Catalog.SPECS.size()):
-				if garage_card(i).has_point(p):
-					race.select_vehicle(i)
-					break
-		return
-	if race.state in [RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED]:
-		if race.state == RaceState.PAUSED and SOUND_BUTTON.has_point(p):
-			race.toggle_sound()
-		elif race.state == RaceState.PAUSED and MOTION_BUTTON.has_point(p):
-			race.toggle_motion()
-		elif race.state == RaceState.PAUSED and MAIN_MENU_BUTTON.has_point(p):
-			race.navigate(race.open_menu)
-		elif (
-			(START_BUTTON if race.state == RaceState.PAUSED else result_continue_rect()).has_point(p)
-			or (race.state == RaceState.PAUSED and hit_button("pause", p))
-		):
-			if race.state == RaceState.PAUSED:
-				race.resume_tour()
-			else:
-				race.leave_results()
+	if rev3.press(p, index):
 		return
 	if recovery_visible() and recovery_touch_rect().has_point(p):
 		recovery_touches[index] = true
@@ -517,7 +437,18 @@ func clear_driving_input() -> void:
 
 
 func steering_zone() -> Rect2:
-	return HudLayout.steering_zone(race.touch_layout.mirrored)
+	var bounds := HudLayout.steering_zone(race.touch_layout.mirrored)
+	var safe := top_hud_bounds()
+	bounds.position += Vector2(safe.end.x - 1280 if race.touch_layout.mirrored else safe.position.x, safe.end.y - 720)
+	return bounds
+
+
+func steering_rest() -> Vector2:
+	var safe := top_hud_bounds()
+	return (
+		HudLayout.steering_rest(race.touch_layout.mirrored)
+		+ Vector2(safe.end.x - 1280 if race.touch_layout.mirrored else safe.position.x, safe.end.y - 720)
+	)
 
 
 func touch_axis() -> float:
@@ -540,7 +471,7 @@ func _process(delta: float) -> void:
 		modal_key(), delta, race.motion_reduced, race.screen_transition != null and race.screen_transition.busy
 	)
 	garage_notice_left = maxf(0, garage_notice_left - delta) if race.state == RaceState.READY else 0
-	menus.sync_menu_art()
+	rev3.sync()
 	if race.state not in RaceState.DRIVING:
 		joystick.reset()
 	if (race.state != RaceState.SETTINGS or controls_open or modal_motion.closing) and not audio_drags.is_empty():
@@ -730,15 +661,6 @@ func _draw() -> void:
 	menu_text.begin()
 	draw_content()
 	draw_menu_press()
-	if (
-		race != null
-		and not race.passport_open
-		and (race.state in [RaceState.PAUSED, RaceState.FINISHED, RaceState.FAILED])
-	):
-		draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
-		preload("res://scripts/ui/neon_chrome.gd").panel(
-			self, Rect2(10, 12, 1260, 696), Color("24dfff99"), 16, Color(0, 0, 0, 0), 1.2
-		)
 	menu_text.finish()
 
 
@@ -746,50 +668,7 @@ func draw_content() -> void:
 	if race == null:
 		return
 	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
-	if race.passport_open:
-		preload("res://scripts/ui/passport_ui.gd").draw(self)
-		return
-	if race.state == RaceState.COURSES:
-		menus.draw_courses()
-		draw_pad_hints()
-		return
-	if race.state in [RaceState.MENU, RaceState.SETTINGS]:
-		if race.state == RaceState.SETTINGS:
-			menus.draw_settings()
-		else:
-			menus.draw_home()
-		draw_pad_hints()
-		return
-	if race.state == RaceState.READY:
-		menus.draw_garage()
-		draw_pad_hints()
-		return
-	if race.state in RaceState.ENDED:
-		draw_menu()
-		draw_pad_hints()
-		return
-	if race.state == RaceState.COUNTDOWN:
-		draw_gantry(ceili(race.countdown))
-	draw_boost_feedback()
-	draw_fps()
-	draw_competitor_markers()
-	draw_slipstream_target()
-	draw_pace_feedback()
-	draw_lap_time()
-	draw_minimap()
-	draw_drift_score()
-	draw_controls()
-	draw_speedometer()
-	draw_nitro()
-	draw_route_choice()
-	preload("res://scripts/ui/driving_challenges_ui.gd").draw_split(self)
-	draw_recovery()
-	if race.protection_left > 0 and race.state == RaceState.RACING:
-		slant(Rect2(15, 184, 224, 40), INK, 7)
-		centered(Vector2(127, 212), "INVINCIBLE  %.1fs" % race.protection_left, 22, CYAN)
-	draw_menu()
-	draw_pad_hints()
-	draw_pad_badges()
+	rev3.draw()
 
 
 func comma_number(value: int) -> String:
@@ -800,53 +679,6 @@ func comma_number(value: int) -> String:
 			result += ","
 		result += digits[i]
 	return result
-
-
-func draw_lap_time() -> void:
-	var layout := top_hud_rects()
-	var pause: Rect2 = layout.pause
-	var course: Rect2 = layout.course
-	var stats: Rect2 = layout.stats
-	draw_style_box(hud_card_style, pause)
-	for x in [21, 35]:
-		draw_rect(Rect2(pause.position + Vector2(x, 19), Vector2(6, 26)), WHITE)
-	draw_style_box(hud_card_style, course)
-	var name: String = tr(
-		race.course_title if race.mode == "track" else Library.title(race.stage_index, race.route_node)
-	)
-	var name_size := MenuTheme.fit_size(self, name, course.size.x - 32, 20, 17)
-	text_at(course.position + Vector2(16, 26), name, name_size, WHITE)
-	var sub: String = tr("CIRCUIT %02d") % (race.selected_course + 1) if race.mode == "track" else tr("TOUR")
-	text_at(course.position + Vector2(16, 50), sub, 17, Color("adc1ce"))
-	draw_style_box(hud_card_style, stats)
-	var track_mode: bool = race.mode == "track"
-	var rank: int = race.race_position() if track_mode else race.stage_index + 1
-	var suffix: String = ["TH", "ST", "ND", "RD"][rank] if rank in [1, 2, 3] else "TH"
-	var values: Array[String] = [
-		"%d%s" % [rank, suffix] if track_mode else "%d / 5" % rank,
-		"%d / 3" % mini(3, race.laps_completed + 1) if track_mode else str(maxi(0, ceili(race.time_left))),
-		time_label(race.elapsed)
-	]
-	var captions: Array[String] = [
-		"POS" if track_mode else "STAGE",
-		"LAP" if track_mode else "TIME LEFT",
-		"RACE TIME" if track_mode else "TOTAL TIME"
-	]
-	var cell_width := stats.size.x / 3
-	for i in range(3):
-		var at: Vector2 = stats.position + Vector2(i * cell_width + 16, 0)
-		if i > 0:
-			draw_line(at + Vector2(-16, 14), at + Vector2(-16, 50), Color("82a4b53d"), 1, true)
-		var caption := MenuTheme.layout_text(self, captions[i], cell_width - 32, 17, 15)
-		text_at(at + Vector2(0, 21), caption.text, caption.size, Color("adc1ce"), false)
-		text_at(at + Vector2(0, 54), values[i], 32, GOLD if i == 0 else WHITE, false, NUMBER_FONT)
-	if track_mode and race.state == RaceState.RACING and race.circuit_checkpoint >= 0:
-		text_at(
-			Vector2(448, 118),
-			tr("CHECKPOINT %d / %ds") % [posmod(race.circuit_checkpoint, 2) + 1, ceili(race.time_left)],
-			20,
-			GOLD
-		)
 
 
 func route_map_point(row: int, node: int, rect: Rect2 = Rect2()) -> Vector2:
@@ -934,16 +766,6 @@ func draw_drift_score() -> void:
 	glow_line(PackedVector2Array([Vector2(1138, 333), Vector2(1279, 323)]), Color(CYAN, alpha), 2)
 
 
-func draw_joystick() -> void:
-	var size_factor: float = race.touch_layout.SIZES[race.touch_layout.size_index]
-	var centre: Vector2 = joystick.origin if joystick.active() else HudLayout.steering_rest(race.touch_layout.mirrored)
-	var radius := HudLayout.STICK_RADIUS * size_factor
-	draw_circle(centre, radius, Color("0b1829ba") if joystick.active() else Color("0b182978"))
-	draw_arc(centre, radius, 0, TAU, 64, Color("74cadcbb") if joystick.active() else Color("adc1ce77"), 1.5, true)
-	var knob: Vector2 = centre + joystick.offset
-	draw_circle(knob, 30 * size_factor, Color("ecfaff") if joystick.active() else Color("adc1ceaa"))
-
-
 func nitro_ready() -> bool:
 	return race.nitro_ratio() >= .999 and not race.nitro_active and race.nitro_burst_left <= 0
 
@@ -972,377 +794,10 @@ func draw_nitro_ready(rect: Rect2) -> void:
 		)
 
 
-func round_button(action: String, neon: bool = false) -> void:
-	var rect: Rect2 = buttons[action]
-	var c := rect.get_center()
-	var radius := rect.size.x / 2
-	var active: bool = (
-		held(action)
-		or (action == "gas" and race.throttling)
-		or (action == "brake" and race.braking)
-		or (action == "drift" and race.drifting)
-		or (action == "nitro" and race.nitro_active)
-	)
-	var accent := (
-		Color("ff7a66") if action == "brake" else (Color(race.vehicle.accent) if action in ["nitro", "cell"] else CYAN)
-	)
-	draw_circle(c, radius, Color("173648ef") if active else Color("0b1829d9"))
-	var border: Color = accent if neon else Color("b5cbd8")
-	draw_arc(c, radius - 1, 0, TAU, 70, Color(border, .95 if active else .65), 2 if active else 1.3, true)
-	if action == "nitro" and nitro_ready():
-		draw_nitro_ready(rect)
-
-
-func pedal_icon(center: Vector2, gas: bool) -> void:
-	var points := PackedVector2Array(
-		[center + Vector2(-13, -21), center + Vector2(11, -24), center + Vector2(18, 13), center + Vector2(-17, 13)]
-	)
-	draw_colored_polygon(points, Color("dbf7ff") if gas else Color("ffd3c7"))
-	for i in range(4):
-		draw_line(center + Vector2(-9, -14 + i * 6), center + Vector2(9, -17 + i * 6), Color("254051"), 2.5, true)
-
-
-func draw_controls() -> void:
-	configure_pedals()
-	draw_joystick()
-	round_button("drift", true)
-	var c: Vector2 = buttons.drift.get_center()
-	var drift_radius: float = buttons.drift.size.x * .5 - 7
-	if race.drifting:
-		draw_circle(c, drift_radius - 1, Color("ff910022"))
-		glow_line(arc_points(c, drift_radius + 2, 0, TAU), Color("ff9100"), 4.0)
-	if not draw_icon(drift_texture, c + Vector2(2, -8), Vector2(60, 60), .12):
-		car_icon(c + Vector2(0, -12))
-	var drift_text: String = tr("DRIFT x%d") % race.max_drift_multiplier if race.drifting else "DRIFT"
-	centered(c + Vector2(0, 36), drift_text, 21 if race.drifting else 24, Color("ff9100") if race.drifting else WHITE)
-	var drift_hint := (
-		"TAP TO END"
-		if race.drifting
-		else ("STEER NOW" if race.drift_pending > 0 else ("STEER + TAP" if race.speed > 25 else "90 km/h+"))
-	)
-	centered(c + Vector2(0, -62), drift_hint, 18, CYAN if race.speed > 25 else Color("b6c6d0"))
-
-	round_button("nitro", true)
-	if nitro_ready():
-		draw_nitro_ready(buttons.nitro)
-	var nitro_center: Vector2 = buttons.nitro.get_center()
-	var nitro_radius: float = buttons.nitro.size.x * .5 - 7
-	var n_ratio: float = race.nitro_ratio()
-	if n_ratio > 0.01:
-		draw_arc(
-			nitro_center,
-			nitro_radius + 1,
-			-PI / 2,
-			-PI / 2 + TAU * n_ratio,
-			48,
-			GOLD if race.nitro_active else CYAN,
-			2.5,
-			true
-		)
-	if race.nitro_active:
-		draw_circle(nitro_center, nitro_radius - 2, Color("00e5ff26"))
-		glow_line(arc_points(nitro_center, nitro_radius + 3, 0, TAU), Color.WHITE, 3.5)
-	preload("res://scripts/ui/neon_chrome.gd").lightning(self, nitro_center + Vector2(0, -9), 48, CYAN)
-	centered(
-		nitro_center + Vector2(0, 36),
-		"BOOST!" if race.nitro_active else "NITRO",
-		24,
-		GOLD if race.nitro_active else WHITE
-	)
-	if race.vehicle.mode == "hybrid":
-		round_button("cell", true)
-		var cell: Vector2 = buttons.cell.get_center()
-		centered(cell + Vector2(0, 1), str(race.nitro_charges), 30, Color(race.vehicle.accent))
-		centered(cell + Vector2(0, 28), "CELL", 17)
-	configure_pedals()
-	for action in ["brake", "gas"]:
-		if action == "gas" and race.auto_accelerate:
-			continue
-		round_button(action, true)
-		c = buttons[action].get_center()
-		pedal_icon(c + Vector2(0, -9), action == "gas")
-		centered(c + Vector2(0, 39), "GAS" if action == "gas" else "BRAKE", 24)
-
-
-func car_icon(center: Vector2) -> void:
-	if draw_icon(drift_texture, center + Vector2(2, 4), Vector2(51, 51), 0.12):
-		return
-	var silhouette := PackedVector2Array(
-		[
-			Vector2(-17, 12),
-			Vector2(-17, -3),
-			Vector2(-12, -13),
-			Vector2(12, -13),
-			Vector2(17, -3),
-			Vector2(17, 12),
-			Vector2(11, 12),
-			Vector2(11, 7),
-			Vector2(-11, 7),
-			Vector2(-11, 12)
-		]
-	)
-	var points := PackedVector2Array()
-	for p in silhouette:
-		points.append(center + p.rotated(0.22))
-	draw_colored_polygon(points, WHITE)
-	var windscreen := PackedVector2Array()
-	for p in [Vector2(-9, -9), Vector2(9, -9), Vector2(12, -2), Vector2(-12, -2)]:
-		windscreen.append(center + p.rotated(0.22))
-	draw_colored_polygon(windscreen, Color("30333b"))
-	for side in [-1, 1]:
-		var trail := PackedVector2Array()
-		for i in range(12):
-			trail.append(center + Vector2(side * 9 + sin(i * 0.6) * 4 - i * 0.55, 13 + i * 1.5))
-		draw_polyline(trail, WHITE, 3.2, true)
-
-
-func bottle(center: Vector2, scale_factor: float = 1) -> void:
-	if draw_icon(bottle_texture, center, Vector2(64, 80) * scale_factor):
-		return
-	var shape := [
-		Vector2(-12, 22),
-		Vector2(12, 22),
-		Vector2(14, 17),
-		Vector2(14, -14),
-		Vector2(6, -21),
-		Vector2(6, -28),
-		Vector2(-6, -28),
-		Vector2(-6, -21),
-		Vector2(-14, -14),
-		Vector2(-14, 17)
-	]
-	var points := PackedVector2Array()
-	for p in shape:
-		points.append(center + p.rotated(0.55) * scale_factor)
-	draw_colored_polygon(points, Color("0aabeb"))
-	glow_line(points + PackedVector2Array([points[0]]), CYAN, 2)
-	var bolt := PackedVector2Array()
-	for p in [Vector2(2, -14), Vector2(-9, 3), Vector2(-1, 3), Vector2(-4, 16), Vector2(10, -4), Vector2(2, -4)]:
-		bolt.append(center + p.rotated(0.55) * scale_factor)
-	draw_colored_polygon(bolt, WHITE)
-	var cap := PackedVector2Array()
-	for p in [Vector2(-8, -32), Vector2(8, -32), Vector2(8, -27), Vector2(-8, -27)]:
-		cap.append(center + p.rotated(0.55) * scale_factor)
-	draw_colored_polygon(cap, WHITE)
-
-
-func draw_speedometer() -> void:
-	# 패널 없이 숫자의 어두운 외곽선으로 노면·하늘 양쪽에서 읽히게 한다.
-	var speed_text := str(int(race.speed * 3.6))
-	text_at(Vector2(28, 351), speed_text, 44, WHITE, true, NUMBER_FONT)
-	var width: float = NUMBER_FONT.get_string_size(speed_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 44).x
-	text_at(Vector2(36 + width, 349), "KM/H", 18, CYAN, true)
-	var gear := "N" if race.gear_number() == 0 else ("R" if race.gear_number() < 0 else str(race.gear_number()))
-	text_at(Vector2(28, 378), "GEAR", 15, WHITE, true)
-	text_at(Vector2(85, 378), gear, 21, GOLD, true, NUMBER_FONT)
-	var active := int(roundf(clampf(race.engine_rpm() / 7500.0, 0, 1) * 12))
-	for i in range(12):
-		var at := Vector2(28 + i * 14, 389)
-		draw_rect(Rect2(at - Vector2.ONE, Vector2(12, 7)), Color("071323"))
-		var color := Color("7fe583") if i < 8 else (GOLD if i < 10 else Color("ff7866"))
-		draw_rect(Rect2(at, Vector2(10, 5)), color if i < active else Color("68808c"))
-
-
-func draw_nitro() -> void:
-	var color := Color(race.vehicle.accent)
-	bottle(Vector2(405, 663), 0.6)
-	text_at(Vector2(443, 651), "NITRO", 24, color)
-	text_at(Vector2(605, 650), "TAP NITRO" if race.vehicle.mode == "charges" else "HOLD NITRO", 20, Color("bad6e3"))
-	if race.vehicle.mode == "hybrid":
-		for i in range(2):
-			draw_circle(Vector2(807 + i * 22, 642), 7, color if i < race.nitro_charges else Color("304252"))
-			if i == race.nitro_charges and race.shot_recharge > 0:
-				draw_arc(
-					Vector2(807 + i * 22, 642), 8, -PI / 2, -PI / 2 + TAU * race.shot_recharge / 100, 24, color, 3, true
-				)
-	if race.state == RaceState.RACING and race.slipstream.charge > .01:
-		var charge_color: Color = GOLD if race.slipstream.ready else CYAN
-		var label := (
-			"SLIPSTREAM READY / PULL OUT & PASS"
-			if race.slipstream.ready
-			else "SLIPSTREAM  %d%%" % int(race.slipstream.charge * 100)
-		)
-		text_at(Vector2(443, 617), label, 15, charge_color)
-		draw_rect(Rect2(443, 623, 400, 5), Color("263b4c"))
-		draw_rect(Rect2(443, 623, 400 * race.slipstream.charge, 5), charge_color)
-	elif race.boosting and not race.nitro_active and not race.pad_active:
-		text_at(Vector2(443, 624), "SKILL BOOST" if race.reward_boost_active() else "SLIPSTREAM", 16, CYAN)
-	var rim := rounded_polygon(
-		PackedVector2Array([Vector2(442, 661), Vector2(847, 661), Vector2(835, 691), Vector2(430, 691)]), 4
-	)
-	draw_colored_polygon(rim, Color("0b182bdf"))
-	draw_polyline(rim + PackedVector2Array([rim[0]]), Color("8ab5cc99"), 1.5, true)
-	if race.vehicle.mode == "charges":
-		for i in range(3):
-			var rect := Rect2(445 + i * 129, 667, 120, 17)
-			draw_rect(rect, color if i < race.nitro_charges else Color("25374a"))
-			if i == race.nitro_charges and race.shot_recharge > 0:
-				draw_rect(Rect2(rect.position, Vector2(rect.size.x * race.shot_recharge / 100, rect.size.y)), color)
-			if i == race.nitro_charges and race.nitro_burst_left > 0:
-				rect.size.x *= race.nitro_burst_left / race.vehicle.burst_duration
-				draw_rect(rect, GOLD)
-	else:
-		for i in range(9):
-			var fill: float = clampf(race.nitro / 100 * 9 - i, 0, 1)
-			if fill <= 0:
-				break
-			var x := 445.0 + i * 43
-			draw_colored_polygon(
-				PackedVector2Array(
-					[Vector2(x, 667), Vector2(x + 41 * fill, 667), Vector2(x + 41 * fill - 8, 684), Vector2(x - 8, 684)]
-				),
-				GOLD if race.nitro_active else color
-			)
-
-
 func garage_card(index: int) -> Rect2:
-	# 최대4칸의 폭을 유지하고 선택을 따라 창을 옮긴다. 차량이 늘어도 버튼을 축소하지 않는다.
-	var count: int = mini(4, Catalog.SPECS.size())
-	var start: int = clampi(race.selected_vehicle - 1, 0, Catalog.SPECS.size() - count)
-	if index < start or index >= start + count:
-		return Rect2()
-	var gap := 16.0
-	var width := (992.0 - gap * (count - 1)) / count
-	return Rect2(144 + (index - start) * (width + gap), 480, width, 106)
+	return rev3.garage_card(index)
 
 
-func draw_gantry(count_step: int) -> void:
-	const Chrome = preload("res://scripts/ui/neon_chrome.gd")
-	# 도로 오브젝트가 아닌 2D 출발 UI 하우징과 트러스다.
-	for span in [Rect2(190, 128, 240, 48), Rect2(850, 128, 190, 48)]:
-		draw_rect(span, Color("132332"))
-		draw_rect(span, Color("91a9b6"), false, 5)
-		var pieces := int(span.size.x / 38)
-		for i in range(pieces):
-			var x: float = span.position.x + i * span.size.x / pieces
-			var next: float = span.position.x + (i + 1) * span.size.x / pieces
-			draw_line(Vector2(x, 132), Vector2(next, 172), Color("6c8494"), 6, true)
-			draw_line(Vector2(x, 172), Vector2(next, 132), Color("071a29"), 4, true)
-	for x in [176, 1028]:
-		Chrome.panel(self, Rect2(x, 176, 30, 218), Color("91a9b6"), 3, Color("1b2c39"), 2)
-		Chrome.panel(self, Rect2(x - 6, 230, 42, 130), Color("9d4751"), 3, Color("8c2639"), 2)
-		for y in [253, 289, 325]:
-			draw_polyline(
-				PackedVector2Array([Vector2(x + 3, y + 8), Vector2(x + 15, y - 4), Vector2(x + 27, y + 8)]),
-				WHITE,
-				5,
-				true
-			)
-	Chrome.panel(self, Rect2(420, 100, 440, 108), Color("b1c7d1"), 22, Color("101c29"), 4)
-	for i in range(3):
-		var center := Vector2(535 + i * 105, 154)
-		var on: bool = count_step <= 3 - i
-		var color: Color = [Color("ff3d64"), Color("ffc24b"), CYAN][i]
-		# 입체 베젤과 오목한 렌즈는 겹친 원과 반사광으로만 그린다.
-		draw_circle(center + Vector2(0, 3), 43, Color("02070d"))
-		draw_circle(center, 42, Color("263a49"))
-		draw_arc(center, 41, PI, TAU, 48, Color("c7dbe3"), 3, true)
-		draw_arc(center, 40, 0, PI, 48, Color("0a121d"), 4, true)
-		draw_circle(center, 37, Color("0a1723"))
-		draw_arc(center, 36, PI, TAU, 48, Color("536c7c"), 2, true)
-		draw_circle(center, 33, Color("020b14"))
-		var lens: Color = color if on else color.darkened(.85)
-		draw_circle(center, 31, lens.darkened(.54))
-		draw_circle(center + Vector2(0, -1), 28, lens.darkened(.28))
-		draw_circle(center + Vector2(0, -3), 24, lens)
-		draw_circle(center + Vector2(-3, -7), 17, lens.lightened(.14 if on else .02))
-		draw_arc(center, 29, .15, PI - .15, 32, Color(lens.darkened(.65), .9), 3, true)
-		draw_arc(
-			center + Vector2(0, -2), 23, PI + .32, TAU - .5, 32, Color("eafaff99") if on else Color("66808c66"), 3, true
-		)
-		draw_arc(
-			center + Vector2(-2, -4), 17, PI + .5, PI + 1.3, 16, Color("ffffffaa") if on else Color("66808c44"), 2, true
-		)
-		if on:
-			draw_arc(center, 34, 0, TAU, 48, Color(color, .3), 6, true)
-			draw_arc(center, 44, 0, TAU, 48, Color(color, .12), 7, true)
-
-
-func draw_countdown() -> void:
-	var step := ceili(race.countdown)
-	var go: bool = race.countdown < .4
-	var center := Vector2(640, 365)
-	draw_circle(center, 155, Color("061521f5"))
-	draw_arc(center, 155, 0, TAU, 96, CYAN, 2.5, true)
-	draw_arc(center, 125, 0, TAU, 80, Color("183b50"), 2, true)
-	for i in range(48):
-		var angle: float = -PI / 2 + i * TAU / 48.0
-		var next: float = angle + TAU / 48.0 * .69
-		var tick := PackedVector2Array(
-			[
-				center + Vector2.from_angle(angle) * 132,
-				center + Vector2.from_angle(angle) * 147,
-				center + Vector2.from_angle(next) * 147,
-				center + Vector2.from_angle(next) * 132
-			]
-		)
-		draw_colored_polygon(tick, GOLD if i in range(1, 12) else CYAN)
-	var color: Color = CYAN if go else (Color("ff456a") if step >= 3 else (GOLD if step == 2 else CYAN))
-	var number := "GO!" if go else str(maxi(1, step))
-	var pulse: float = 0.0 if race.motion_reduced else exp(-(ceili(race.countdown) - race.countdown) * 7)
-	centered(Vector2(640, 413), number, int((104 if go else 144) + pulse * 4), color)
-	preload("res://scripts/ui/neon_chrome.gd").panel(self, Rect2(430, 538, 420, 50), CYAN, 15, Color("071a29f5"), 1.7)
-	var prompt := (
-		"ROLLING START / 16 CARS"
-		if race.mode == "track" and race.selected_course == 1
-		else "REV ENGINE / PREPARE BOOST"
-	)
-	centered(Vector2(640, 571), prompt, 24, CYAN)
-
-
-func draw_menu() -> void:
-	if race.state == RaceState.READY:
-		menus.draw_garage()
-		return
-	if race.state in RaceState.ENDED:
-		preload("res://scripts/ui/result_panel.gd").draw(self)
-		return
-	if race.state == RaceState.COUNTDOWN:
-		draw_countdown()
-		return
-	if race.state == RaceState.PAUSED:
-		draw_rect(Rect2(-ui_offset() / ui_scale(), get_viewport_rect().size / ui_scale()), Color("030812b8"))
-		modal_begin()
-		var pause_modal := Rect2(235, 100, 810, 575)
-		glass_box(pause_modal, 20.0, Color("081220f4"), Color("00e5ff66"), 1.8)
-		# 상단 포인트 네온 라인
-		draw_line(
-			Vector2(pause_modal.position.x + 36, pause_modal.position.y + 3),
-			Vector2(pause_modal.end.x - 36, pause_modal.position.y + 3),
-			Color("00e5ffcc"),
-			2.0
-		)
-		text_at(
-			Vector2(307, 150),
-			"INITIAL SJ / " + race.course_title if race.mode == "track" else "INITIAL SJ / GRAND TOUR",
-			20,
-			CYAN
-		)
-		text_at(
-			Vector2(804, 150), "BEST " + (time_label(race.best_time) if race.best_time > 0 else "--:--.---"), 18, GOLD
-		)
-		text_at(Vector2(307, 224), "RACE PAUSED" if race.mode == "track" else "TOUR PAUSED", 58, WHITE)
-		text_at(Vector2(307, 290), race.vehicle.name, 26, CYAN)
-		text_at(Vector2(307, 334), time_label(race.elapsed), 34, Color("8caec0"))
-		for rect in [MOTION_BUTTON, SOUND_BUTTON]:
-			glass_box(rect, 10.0, Color("0b182bcd"), Color("00e5ff33"), 1.2)
-		centered(
-			Vector2(MOTION_BUTTON.get_center().x, 434),
-			"MOTION: LOW" if race.motion_reduced else "MOTION: FULL",
-			24,
-			CYAN
-		)
-		centered(
-			Vector2(SOUND_BUTTON.get_center().x, 434), "SOUND: ON" if race.sound_enabled else "SOUND: OFF", 24, CYAN
-		)
-		glass_box(START_BUTTON, 14.0, Color("00e5ff33"), Color("00e5ff"), 2.0)
-		centered(Vector2(640, 536), "RESUME", 32, Color("00e5ff"))
-		glass_box(MAIN_MENU_BUTTON, 10.0, Color("0b182bcd"), Color("00e5ff33"), 1.2)
-		centered(Vector2(640, 627), "MAIN MENU", 24, CYAN)
-		modal_end()
-
-
-# FPS 표시는 초당 두 번만 갱신한다.
 var fps_text := ""
 var fps_value := 0.0
 var fps_updated := 0
@@ -1643,7 +1098,7 @@ func draw_recovery() -> void:
 # Single-line route chips stay above the road view; their larger invisible
 # touch areas are separate from the visuals so a phone remains easy to use.
 func route_touch_rect(side: int) -> Rect2:
-	return (ROUTE_LEFT if side == 0 else ROUTE_RIGHT).grow(8)
+	return (ROUTE_LEFT if side == 0 else ROUTE_RIGHT).grow_individual(0, 5, 0, 5)
 
 
 func route_title_size(title: String) -> int:
@@ -1663,36 +1118,26 @@ func draw_route_choice() -> void:
 	for side in range(2):
 		var rect: Rect2 = ROUTE_LEFT if side == 0 else ROUTE_RIGHT
 		var selected: bool = race.route_preference == side
-		var accent := CYAN if side == 0 else Color("ffb95c")
-		var outline := slant(rect, Color("12384bdc") if selected else Color("0c1e2cd9"), 8)
+		rev3.panel(rect, rev3.Art.BLUE, GOLD if selected else Color.TRANSPARENT)
+		var center := rect.position + Vector2(28, rect.size.y * .5)
+		var direction := -1 if side == 0 else 1
 		draw_polyline(
-			outline + PackedVector2Array([outline[0]]),
-			Color(accent, 1 if selected else 0.45),
-			2 if selected else 1,
+			PackedVector2Array(
+				[
+					center + Vector2(-direction * 7, -12),
+					center + Vector2(direction * 7, 0),
+					center + Vector2(-direction * 7, 12)
+				]
+			),
+			WHITE,
+			4,
 			true
 		)
-		text_at(rect.position + Vector2(13, 43), "<" if side == 0 else ">", 32, accent)
-		text_at(rect.position + Vector2(44, 29), names[side], route_title_size(names[side]), WHITE)
+		rev3.label(Rect2(rect.position + Vector2(55, 2), Vector2(rect.size.x - 70, 36)), names[side], 24)
 		var info: Dictionary = race.TourChallenge.choice(race, side)
-		text_at(rect.position + Vector2(44, 51), info.hint, 12, accent)
+		rev3.label(Rect2(rect.position + Vector2(55, 38), Vector2(rect.size.x - 70, 27)), info.hint, 17, GOLD)
+		draw_rect(Rect2(rect.position + Vector2(8, rect.size.y - 3), Vector2((rect.size.x - 16) * progress, 3)), GOLD)
 		pad_badge(rect.position + Vector2(8, -2), "route_left" if side == 0 else "route_right")
-		if selected:
-			draw_polyline(
-				PackedVector2Array(
-					[
-						rect.position + Vector2(272, 31),
-						rect.position + Vector2(277, 36),
-						rect.position + Vector2(286, 24)
-					]
-				),
-				accent,
-				2.5,
-				true
-			)
-		draw_rect(
-			Rect2(rect.position + Vector2(8, rect.size.y - 3), Vector2((rect.size.x - 16) * progress, 3)),
-			Color(accent, 0.75)
-		)
 
 
 # 하트는 실제 미끄러짐으로 얻은 보상만 표시합니다. 슬롯은 일곱 개로 고정하여
@@ -1736,11 +1181,11 @@ func draw_heart(center: Vector2, size: float, color: Color) -> void:
 
 
 func settings_close_rect() -> Rect2:
-	return Rect2(788, 576, 264, 80) if OS.has_feature("web") else SETTINGS_CLOSE
+	return rev3.rect("done", "settings")
 
 
 func settings_controls_rect() -> Rect2:
-	return Rect2(650, 460, 402, 80)
+	return rev3.rect("controls", "settings")
 
 
 func open_controls() -> void:
@@ -1751,61 +1196,12 @@ func open_controls() -> void:
 
 
 func result_continue_rect() -> Rect2:
-	var panel: Rect2 = preload("res://scripts/ui/result_panel.gd").PANEL
-	return Rect2(panel.position.x + 24, 608, panel.size.x - 48, 80)
+	rev3.sync()
+	return rev3.rect("continue")
 
 
 func menu_press_rects() -> Array[Rect2]:
-	var result: Array[Rect2] = []
-	if race.passport_open or controls_open or is_instance_valid(race.tuning_shop):
-		return result
-	match race.state:
-		RaceState.MENU:
-			result.assign([HOME_TOUR, HOME_TRACK, HOME_PASSPORT, HOME_SETTINGS])
-		RaceState.COURSES:
-			result.assign(
-				[
-					COURSE_FUJI,
-					COURSE_SPEEDWAY,
-					COURSE_NIGHT,
-					COURSE_RIVIERA,
-					COURSE_GORGE,
-					COURSE_WEATHER,
-					COURSE_PERIOD,
-					GARAGE_BACK
-				]
-			)
-		RaceState.READY:
-			result.assign(
-				[
-					GARAGE_BACK,
-					GARAGE_GHOST,
-					GARAGE_PREVIOUS,
-					GARAGE_NEXT,
-					GARAGE_PAINT,
-					GARAGE_PLATE,
-					GARAGE_TUNING,
-					GARAGE_START
-				]
-			)
-			for i in range(Catalog.SPECS.size()):
-				result.append(garage_card(i))
-		RaceState.SETTINGS:
-			result.assign(
-				[
-					SETTINGS_SOUND,
-					SETTINGS_MUSIC,
-					SETTINGS_MOTION,
-					SETTINGS_GRAPHICS,
-					SETTINGS_FPS,
-					SETTINGS_AUTO,
-					settings_controls_rect(),
-					settings_close_rect()
-				]
-			)
-			if OS.has_feature("web"):
-				result.append_array([SETTINGS_FULLSCREEN, SETTINGS_INSTALL])
-	return result
+	return [] if is_instance_valid(race.tuning_shop) else rev3.press_rects()
 
 
 func menu_press_context() -> String:
@@ -1829,13 +1225,11 @@ func draw_menu_press() -> void:
 	if amount <= 0 or menu_feedback.state != menu_press_context():
 		return
 	draw_set_transform(ui_offset(), 0, Vector2.ONE * ui_scale())
-	if race.state == RaceState.SETTINGS:
-		draw_set_transform_matrix(Transform2D(0, Vector2.ONE * ui_scale(), 0, ui_offset()) * modal_pose())
 	var rect := menu_feedback.rect.grow(-8)
 	if not race.motion_reduced:
 		rect.position.y += 2 * amount
-	draw_rect(rect, Color(.06, .5, .55, .12 * amount))
-	draw_rect(rect, Color(.08, .8, .84, .75 * amount), false, 3, true)
+	draw_rect(rect, Color(.87, .74, .41, .12 * amount))
+	draw_rect(rect, Color(.87, .74, .41, .75 * amount), false, 3, true)
 	draw_line(
 		rect.position + Vector2(14, 3),
 		Vector2(rect.end.x - 14, rect.position.y + 3),

@@ -82,7 +82,7 @@ func run(tree: SceneTree) -> int:
 		"Resume must restore countdown rather than skip straight to racing"
 	)
 	race.pause_tour()
-	click(race.hud.buttons.pause.get_center())
+	click(race.hud.pause_touch_rect().get_center())
 	check(race.state == "countdown", "TIME touch panel must also resume the saved countdown phase")
 	# Portrait is a rotation notice, not an active driving layout.
 	race.hud.fingers[7] = race.hud.buttons.gas.get_center()

@@ -38,6 +38,7 @@ func run(tree: SceneTree) -> int:
 		tree.root.size = viewport
 		race.restart()
 		race.state = "racing"
+		race.hud.configure_pedals()
 		for rival in race.rivals:
 			rival.active = false
 		race.recovery.available = false

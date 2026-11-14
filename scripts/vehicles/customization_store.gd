@@ -2,7 +2,8 @@ extends RefCounted
 const Catalog = preload("res://scripts/vehicles/vehicle_catalog.gd")
 const Effects = preload("res://scripts/vehicles/effect_items.gd")
 const Custom = preload("res://scripts/vehicles/vehicle_customization.gd")
-const VERSION := 3
+const VERSION := 4
+const Passport = preload("res://scripts/race/tour_passport.gd")
 var path := "user://vehicle_customization.cfg"
 var selections: Dictionary = {}
 var read_only := false
@@ -19,7 +20,8 @@ static func defaults(vehicle: int) -> Dictionary:
 		"livery": 0,
 		"wheel": 0,
 		"wing": 0,
-		"effects": []
+		"effects": [],
+		"plate": -1
 	}
 
 
@@ -36,6 +38,8 @@ static func sanitize(value: Variant, vehicle: int) -> Dictionary:
 			result[key] = value[key]
 	if value.get("toon_strength") is int:
 		result.toon_strength = clampi(value.toon_strength, 0, 100)
+	if value.get("plate") is int and value.plate >= -1 and value.plate < Passport.PLATES.size():
+		result.plate = value.plate
 	result.effects = Effects.sanitize(value.get("effects", []), vehicle)
 	return result
 
@@ -86,5 +90,15 @@ func save(vehicle: int, value: Dictionary) -> Error:
 
 
 func apply(car: Node3D, vehicle: int, passport: RefCounted) -> void:
-	passport.apply_car(car, vehicle)
-	Custom.apply(car, selection(vehicle, passport), vehicle)
+	apply_selection(car, selection(vehicle, passport), vehicle, passport)
+
+
+static func plate_index(value: Dictionary, vehicle: int, passport: RefCounted) -> int:
+	var index: int = value.get("plate", -1)
+	return index if index in passport.unlocked_plates() else passport.plate_index(vehicle)
+
+
+static func apply_selection(car: Node3D, value: Dictionary, vehicle: int, passport: RefCounted) -> void:
+	# 도장·번호판을 먼저 복원하고 전용 재질·휠·윙을 같은 초안으로 적용한다.
+	car.apply_customization(Color(value.paint), passport.PLATES[plate_index(value, vehicle, passport)])
+	Custom.apply(car, value, vehicle)

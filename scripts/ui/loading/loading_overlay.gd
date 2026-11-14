@@ -1,12 +1,14 @@
 extends Control
 # 코스 준비는 메인 스레드에서 수행하므로 시작 전에 화면을 그리고 준비 단계 사이에 갱신한다.
 const AppVersion = preload("res://scripts/platform/app_version.gd")
-const BACKGROUND_PATH := "res://assets/ui/pre_race/start.png"
+const BACKGROUND_PATH := "res://assets/ui/rev3/backgrounds/clean_start.png"
 const Pool = preload("res://scripts/rendering/render_resources.gd")
 var background_art: Texture2D
 var surround_art: Texture2D
-const SURROUND_PATH := "res://assets/ui/pre_race/backdrop.png"
-const FONT = preload("res://assets/fonts/Roboto-BoldItalic.ttf")
+const SURROUND_PATH := "res://assets/ui/rev3/backgrounds/clean_start.png"
+const FONT = preload("res://assets/ui/rev3/fonts/interface_font.tres")
+const Art = preload("res://scripts/ui/rev3_art.gd")
+var art := Art.new()
 const MenuLayout = preload("res://scripts/ui/menu_layout.gd")
 const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
 const CYAN := MenuTheme.AQUA
@@ -59,6 +61,7 @@ func finish() -> void:
 	surround_art = null
 	Pool.release(BACKGROUND_PATH)
 	Pool.release(SURROUND_PATH)
+	art.release()
 
 
 func _process(delta: float) -> void:
@@ -73,37 +76,32 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color("e8f7fc"))
+	draw_rect(Rect2(Vector2.ZERO, size), Art.BLUE)
 	var safe := MenuLayout.safe_rect(size)
 	var scale_factor := MenuLayout.scale_for(safe)
 	var origin := MenuLayout.origin_for(safe)
 	draw_set_transform(origin, 0, Vector2.ONE * scale_factor)
-	if show_illustration and background_art != null:
-		var fill := Rect2(-origin / scale_factor, size / scale_factor)
-		var image_size: Vector2 = surround_art.get_size()
-		var source := Rect2(Vector2.ZERO, image_size)
-		var cover := maxf(fill.size.x / image_size.x, fill.size.y / image_size.y)
-		source.size = fill.size / cover
-		source.position = (image_size - source.size) * .5
-		draw_texture_rect_region(surround_art, fill, source)
-		draw_texture_rect(background_art, Rect2(0, 0, 1280, 720), false)
-		_centered(Vector2(950, 136), "INITIAL SJ", 54, INK, FONT)
-		_centered(Vector2(950, 188), "COAST RUSH", 28, MenuTheme.TEAL, FONT)
-	else:
-		draw_arc(Vector2(640, 285), 26, spinner_angle_rad, spinner_angle_rad + TAU * .72, 40, CYAN, 4, true)
-	if loading_title != "":
-		_centered(Vector2(640, 581 if show_illustration else 356), loading_title, 30, INK, FONT)
-	var bar := Rect2(Vector2(300, 602 if show_illustration else 386), Vector2(680, 10))
-	draw_rect(bar, Color("c9e3eb"))
-	draw_rect(Rect2(bar.position, Vector2(bar.size.x * load_progress, bar.size.y)), Color("17b8c7"))
-	draw_rect(
-		Rect2(bar.position + Vector2(bar.size.x * load_progress - 26, 0), Vector2(26, bar.size.y)).intersection(bar),
-		Color("ffdf45")
-	)
-	_centered(Vector2(640, 644 if show_illustration else 430), STEP_LABELS[step_index], 24, Color("187f97"), FONT)
+	var bounds := Rect2(-origin / scale_factor, size / scale_factor)
 	if show_illustration:
-		_centered(Vector2(640, 681), LOADING_TIPS[tip_index], 22, Color("536e83"), FONT)
-	_centered(Vector2(1140, 706), AppVersion.label(), 22, Color("536e83"), FONT)
+		art.background(self, "loading_long", bounds)
+		art.draw_part(self, "loading_long", "brand_header", art.rect("loading_long", "brand_header", bounds))
+		_centered(Vector2(278, bounds.position.y + 103), "INITIAL SJ", 54, Art.WHITE, FONT)
+		var footer := Rect2(bounds.position.x, bounds.end.y - 126, bounds.size.x, 126)
+		Art.draw_panel(self, footer, false, 0)
+		_centered(Vector2(640, footer.position.y + 36), loading_title, 26, Art.WHITE, FONT)
+	else:
+		art.background(self, "loading_short", bounds)
+		draw_arc(Vector2(640, 298), 30, spinner_angle_rad, spinner_angle_rad + TAU * .72, 40, Art.GOLD, 5, true)
+		_centered(Vector2(640, 374), loading_title, 28, Art.WHITE, FONT)
+	var bar := Rect2(300, bounds.end.y - 69 if show_illustration else 409, 680, 10)
+	draw_rect(bar, Art.WHITE.darkened(.4))
+	draw_rect(Rect2(bar.position, Vector2(bar.size.x * load_progress, bar.size.y)), Art.GOLD)
+	_centered(Vector2(640, bar.end.y + 29), STEP_LABELS[step_index], 22, Art.WHITE, FONT)
+	_centered(Vector2(1150, bounds.end.y - 10), AppVersion.label(), 17, Art.WHITE, FONT)
+
+
+func _exit_tree() -> void:
+	art.release()
 
 
 func _centered(pos: Vector2, value: String, size_px: int, color: Color, face: Font) -> void:

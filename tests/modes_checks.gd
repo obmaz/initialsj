@@ -71,6 +71,7 @@ func run(tree: SceneTree) -> int:
 	click(race, race.hud.HOME_TRACK)
 	check(race.state == "courses", "Track menu must offer both courses before the garage")
 	click(race, race.hud.COURSE_FUJI)
+	click(race, race.hud.rev3.rect("continue"))
 	check(race.state == "ready" and race.mode == "track", "Track selection must lead to the shared garage")
 	check(
 		race.track.previews.is_empty() and race.track.scenery.theme == "fuji",

@@ -57,7 +57,7 @@ func run(tree: SceneTree) -> int:
 	race.state = "finished"
 	race.result_age = 2
 	race.hud.modal_motion.advance("finished", .05, false)
-	var panel: Rect2 = preload("res://scripts/ui/result_panel.gd").PANEL
+	var panel: Rect2 = race.hud.rev3.rect("result_panel", "race_results")
 	var anchor: Vector2 = panel.get_center()
 	check((race.hud.modal_pose() * anchor).is_equal_approx(anchor), "결과 모달은 실제 카드 중심에 고정된다")
 	var button: Rect2 = race.hud.result_continue_rect()

@@ -6,7 +6,7 @@ const Pad = preload("res://scripts/input/gamepad_input.gd")
 # 설정 화면에서 패드로 고를 수 있는 줄 수.
 var settings_rows: int:
 	get:
-		return 4 if race.hud.controls_open else (10 if OS.has_feature("web") else 8)
+		return 5 if race.hud.controls_open else (10 if OS.has_feature("web") else 8)
 var race: Node3D
 
 
@@ -314,8 +314,10 @@ func settings_activate(index: int) -> void:
 			1:
 				race.touch_layout.size_index = (race.touch_layout.size_index + 1) % 3
 			2:
-				race.touch_layout.reset()
+				race.toggle_ghost()
 			3:
+				race.touch_layout.reset()
+			4:
 				race.close_settings()
 		race.save_preferences()
 		return

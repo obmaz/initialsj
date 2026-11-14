@@ -33,9 +33,9 @@ func snapshot() -> Dictionary:
 	var size: Vector2 = hud.get_viewport_rect().size
 	var screen: Transform2D = hud.get_viewport().get_final_transform() * hud.get_global_transform_with_canvas()
 	var targets := {
-		"home_tour": rectangle(hud.HOME_TOUR),
-		"home_settings": rectangle(hud.HOME_SETTINGS),
-		"settings_auto": rectangle(hud.SETTINGS_AUTO),
+		"home_tour": rectangle(hud.rev3.rect("tour", "start")),
+		"home_settings": rectangle(hud.rev3.rect("settings", "start")),
+		"settings_auto": rectangle(hud.rev3.rect("auto_acceleration", "settings")),
 		"settings_music": rectangle(hud.SettingsAudio.toggle_rect(hud, true)),
 		"settings_sound": rectangle(hud.SettingsAudio.toggle_rect(hud, false)),
 		"music_volume": rectangle(hud.SettingsAudio.slider_rect(hud, true)),
@@ -43,14 +43,14 @@ func snapshot() -> Dictionary:
 		"settings_graphics": [],
 		"settings_close": rectangle(hud.settings_close_rect()),
 		"settings_controls": rectangle(hud.settings_controls_rect()),
-		"controls_done": rectangle(preload("res://scripts/ui/touch_layout_panel.gd").DONE),
-		"garage_start": rectangle(hud.GARAGE_START),
-		"garage_previous": rectangle(hud.GARAGE_PREVIOUS),
-		"garage_next": rectangle(hud.GARAGE_NEXT),
+		"controls_done": rectangle(hud.rev3.rect("done", "controls_settings")),
+		"garage_start": rectangle(hud.rev3.rect("start_race", "car_select")),
+		"garage_previous": rectangle(hud.rev3.rect("previous_vehicle", "car_select")),
+		"garage_next": rectangle(hud.rev3.rect("next_vehicle", "car_select")),
 		"garage_cards": [],
 		"pause": rectangle(hud.pause_touch_rect()),
 		"steering": rectangle(hud.steering_zone()),
-		"resume": rectangle(hud.START_BUTTON),
+		"resume": rectangle(hud.rev3.rect("resume", "pause")),
 	}
 	for i in range(3):
 		targets.settings_graphics.append(rectangle(hud.menus.graphics_segment(i)))

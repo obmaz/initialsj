@@ -1,17 +1,16 @@
 extends RefCounted
 # 밝은 해안 메뉴의 공용 색·패널·번역 글자 맞춤. 주행 HUD의 대비 색과 분리한다.
-const INK := Color("142b49")
-const MUTED := Color("486378")
-const AQUA := Color("17d5d6")
-const TEAL := Color("076e79")
-const CORAL := Color("fb646b")
-const YELLOW := Color("ffdf45")
-const PAPER := Color("fffdf7")
-const CANVAS := Color("edf7fa")
-const SOFT := Color("e1f5f5")
-const BORDER := Color("406b89")
-const HEADER_ART := "res://assets/ui/pre_race/header.png"
-const PRIMARY_ART := "res://assets/ui/pre_race/primary.png"
+const INK := Color("f8fafb")
+const MUTED := Color("d1e0e9")
+const AQUA := Color("a7cce0")
+const TEAL := Color("efce82")
+const CORAL := Color("bd6e58")
+const YELLOW := Color("dfbd69")
+const PAPER := Color("2e5269")
+const CANVAS := Color("5c91af")
+const SOFT := Color("3b6781")
+const BORDER := Color("7d9cae")
+const Art = preload("res://scripts/ui/rev3_art.gd")
 
 
 static func points(rect: Rect2, cut: float) -> PackedVector2Array:
@@ -30,11 +29,14 @@ static func points(rect: Rect2, cut: float) -> PackedVector2Array:
 
 
 static func panel(hud: Control, rect: Rect2, fill: Color = PAPER, selected: bool = false, cut: float = 12.0) -> void:
-	preload("res://scripts/ui/pre_race_art.gd").draw_frame(hud, rect, "panel")
+	Art.draw_panel(hud, rect, fill == YELLOW, cut)
 	if selected:
-		var outline := points(rect.grow(-3), minf(cut, 10))
-		outline.append(outline[0])
-		hud.draw_polyline(outline, AQUA, 3, true)
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color.TRANSPARENT
+		style.border_color = YELLOW
+		style.set_border_width_all(3)
+		style.set_corner_radius_all(16)
+		hud.draw_style_box(style, rect)
 
 
 static func fit_size(hud: Control, value: String, width: float, preferred: int, minimum: int = 22) -> int:
@@ -74,22 +76,12 @@ static func label(
 
 
 static func button(hud: Control, rect: Rect2, key: String, fill: Color = SOFT, font_size: int = 28) -> void:
-	preload("res://scripts/ui/pre_race_art.gd").draw_frame(hud, rect, "primary" if fill == YELLOW else "button")
+	Art.draw_panel(hud, rect, fill == YELLOW)
 	label(hud, rect.grow(-12), key, font_size, INK, true)
 
 
 static func canvas(hud: Control) -> void:
-	hud.draw_rect(Rect2(-hud.ui_offset() / hud.ui_scale(), hud.get_viewport_rect().size / hud.ui_scale()), CANVAS)
-	hud.draw_rect(Rect2(0, 0, 1280, 106), PAPER)
-	hud.draw_texture_rect(hud.menus.art(HEADER_ART), Rect2(310, 19, 615, 76), false)
-	hud.draw_line(Vector2(32, 105), Vector2(1248, 105), BORDER, 1, true)
-	# 시안의 청록·코랄 속도 줄무늬를 벡터 장식으로 공유한다.
-	hud.draw_colored_polygon(
-		PackedVector2Array([Vector2(1080, 16), Vector2(1230, 16), Vector2(1160, 90), Vector2(1010, 90)]), AQUA
-	)
-	hud.draw_colored_polygon(
-		PackedVector2Array([Vector2(1240, 16), Vector2(1260, 16), Vector2(1260, 90), Vector2(1170, 90)]), CORAL
-	)
+	hud.rev3.art.background(hud, "start", hud.top_hud_bounds())
 
 
 static func cover(hud: Control, texture: Texture2D, rect: Rect2, tint: Color = Color.WHITE) -> void:

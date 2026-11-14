@@ -22,6 +22,12 @@ func run(tree: SceneTree) -> int:
 	race.hud.handle_pointer(tap)
 	tap.pressed = false
 	race.hud.handle_pointer(tap)
+	race.hud.rev3.sync()
+	tap.pressed = true
+	tap.position = race.hud.rev3.rect("continue").get_center() * race.hud.ui_scale() + race.hud.ui_offset()
+	race.hud.handle_pointer(tap)
+	tap.pressed = false
+	race.hud.handle_pointer(tap)
 	check(
 		race.selected_course == 1 and race.track.scenery.theme == "speedway",
 		"Second course touch must select the speedway"

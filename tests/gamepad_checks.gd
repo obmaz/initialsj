@@ -229,7 +229,7 @@ func run(tree: SceneTree) -> int:
 		"A on the second circuit card must open Suncoast"
 	)
 	race.open_courses()
-	tap(JOY_BUTTON_DPAD_RIGHT)
+	check(race.menu_focus == 1, "다시 열린 트랙 메뉴는 직전 선택을 유지한다")
 	tap(JOY_BUTTON_DPAD_RIGHT)
 	tap(JOY_BUTTON_DPAD_RIGHT)
 	check(race.menu_focus == 3, "D-pad right must reach the fourth circuit card")

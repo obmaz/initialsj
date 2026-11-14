@@ -1,7 +1,6 @@
 extends RefCounted
 const Layout = preload("res://scripts/input/touch_layout.gd")
 const HudLayout = preload("res://scripts/ui/race_hud_layout.gd")
-const ControlsPanel = preload("res://scripts/ui/touch_layout_panel.gd")
 var failures := 0
 
 
@@ -71,15 +70,14 @@ func run(tree: SceneTree) -> int:
 				var buttons: Dictionary = race.hud.buttons
 				var zone: Rect2 = race.hud.steering_zone()
 				check(
-					is_equal_approx(buttons.brake.get_center().y, HudLayout.steering_rest(mirrored).y),
-					"페달과 조이스틱의 기본 중심 높이가 같다"
+					is_equal_approx(buttons.brake.get_center().y, race.hud.steering_rest().y), "페달과 조이스틱의 기본 중심 높이가 같다"
 				)
 				check(zone.get_center().x > 640 if mirrored else zone.get_center().x < 640, "가상 조이스틱 영역이 선택한 쪽에 있다")
 				for action in buttons:
 					var rect: Rect2 = buttons[action]
 					if action != "pause":
 						check(rect.size.x >= 96 and rect.size.y >= 96, "작은 배치도 기본 액션 터치 크기를 확보한다")
-					check(Rect2(0, 0, 1280, 720).encloses(rect), "커진 버튼이 안전 설계 영역을 벗어나지 않는다")
+					check(race.hud.top_hud_bounds().encloses(rect), "커진 버튼이 안전 설계 영역을 벗어나지 않는다")
 				if size == 1 and auto:
 					var rest := HudLayout.steering_rest(mirrored)
 					var stick_margin := (
@@ -96,13 +94,14 @@ func run(tree: SceneTree) -> int:
 
 	race.state = "settings"
 	race.hud.open_controls()
-	ControlsPanel.press(race.hud, ControlsPanel.SIDE[1].get_center())
-	ControlsPanel.press(race.hud, ControlsPanel.SIZE[2].get_center())
+	race.hud.rev3.sync()
+	race.hud.rev3.press_controls(race.hud.rev3.rect("steering_right").get_center())
+	race.hud.rev3.press_controls(race.hud.rev3.rect("size_2").get_center())
 	check(race.touch_layout.mirrored and race.touch_layout.size_index == 2, "실제 설정 입력이 배치를 바꾼다")
 	race.touch_layout.write(config)
 	layout.read(config)
 	check(layout.mirrored and layout.size_index == 2, "설정 저장 형식이 배치를 보존한다")
-	ControlsPanel.press(race.hud, ControlsPanel.RESET.get_center())
+	race.hud.rev3.press_controls(race.hud.rev3.rect("reset").get_center())
 	check(not race.touch_layout.mirrored and race.touch_layout.size_index == 1, "초기화는 검증된 기본 배치로 돌아간다")
 	race.close_settings()
 	check(race.state == "settings" and not race.hud.controls_open, "뒤로 가기는 조작 설정만 닫는다")

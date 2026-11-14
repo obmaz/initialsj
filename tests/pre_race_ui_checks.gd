@@ -49,6 +49,8 @@ func run(tree: SceneTree) -> int:
 	)
 	shop.request_close()
 	check(not shop.color_sheet.visible and not shop.discard_dialog.visible, "뒤로가기는 색상 모달만 먼저 닫는다")
+	check(shop.draft_customization.paint == shop.saved_customization.paint, "색상 팝업 취소는 진입 전 색상을 복구한다")
+	shop.set_customization_value("paint", "fb686e")
 	shop.request_close()
 	check(shop.discard_keep.has_focus(), "변경 폐기 창은 계속 편집하기에 포커스를 준다")
 	check(shop.discard_dialog.visible, "편집값이 남으면 같은 배율의 변경 폐기 모달을 연다")

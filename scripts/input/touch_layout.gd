@@ -2,11 +2,11 @@ extends RefCounted
 # 자유 배치 대신 겹치지 않는 검증된 프리셋을 제공한다. 설계 좌표는 1280×720이다.
 const SIZES := [.9, 1.0, 1.08]
 const BASE := {
-	"drift": Rect2(894, 408, 136, 136),
-	"cell": Rect2(770, 430, 108, 108),
-	"nitro": Rect2(1054, 408, 136, 136),
-	"gas": Rect2(1054, 552, 136, 136),
-	"brake": Rect2(894, 552, 136, 136),
+	"drift": Rect2(964, 384, 132, 136),
+	"cell": Rect2(826, 418, 108, 108),
+	"nitro": Rect2(1110, 384, 134, 136),
+	"gas": Rect2(1067, 530, 154, 154),
+	"brake": Rect2(890, 541, 132, 132),
 	"pause": preload("res://scripts/ui/race_hud_layout.gd").PAUSE
 }
 var mirrored := false

@@ -2,7 +2,7 @@
 
 현재 게임에서 사용하는 이미지와 웹 워드마크를 재생성하기 위한 제작 자료입니다. 새 화면의 디자인 가이드는 [상위 이미지 가이드](../README.md)입니다. 이 폴더의 이미지를 새 시안의 레퍼런스로 사용하지 않습니다.
 
-- [pre_race/master.png](pre_race/master.png)·[backdrop.png](pre_race/backdrop.png)·[layout.json](pre_race/layout.json): 기존 배포 이미지의 입력과 재단·해시 기록입니다. [제작 도구](../../../tools/bake_pre_race_art.py)가 현재 `assets/ui/pre_race/`를 재생성합니다. 실행에는 Pillow가 필요하며 입력 원본을 덮어쓰지 않습니다.
+- `pre_race/`는 대체된 배포 이미지의 제작 원본·해시 보존 자료입니다. 현재 게임 UI의 실행·재생성에는 사용하지 않습니다. 현재 정본은 [rev3 에셋 팩](../kit/rev3/README.md)입니다.
 - [branding/initialsj_logo.svg](branding/initialsj_logo.svg): 웹 시작 셸에서 사용하는 워드마크 원본입니다. [제작 도구](../../../tools/bake_logo.py)는 번들 Roboto 윤곽으로 SVG와 셸 내 사본을 갱신합니다. 실행에는 fontTools가 필요하며 글꼴 라이선스를 유지합니다.
 
 폴더 이동은 원본 바이트를 보존합니다. Godot 임포트·제품 내보내기 대상이 아니며 게임 적용 이미지는 `assets/ui/`, 실제 동작은 `scripts/ui/`가 소유합니다.

@@ -47,7 +47,7 @@ build/dev-venv/bin/gdformat --check scripts models addons tests tools
 
 시작 씬은 [boot.tscn](../scenes/boot.tscn)이며 스플래시 뒤 [race.tscn](../scenes/race.tscn)을 엽니다. 상태 조정자는 [race.gd](../scripts/race/race.gd)입니다. 파일을 옮길 때는 `.uid`를 함께 보존하고 런타임·모델·검사·내보내기 도구·문서의 경로를 함께 갱신합니다. 모델별 형상·재질·출처는 기존 [models/](../models/) 팩 안에서 소유하며 [모델 제작 계약](MODEL_PIPELINE.md)을 따릅니다.
 
-UI 이미지의 정본은 `assets/ui/` 아래 `branding/`(아이콘·로고), `backgrounds/`(메인·차고·로딩·튜닝 배경), `courses/`(코스 카드·아틀라스), `controls/`(터치 조작 아이콘)에 둡니다. [이미지 출처](../assets/ui/GENERATED_ART.md)는 공통 목록을 유지합니다. 이미지를 옮길 때 `.import`도 함께 옮겨 UID를 보존하고 Godot 임포트로 캐시 경로를 갱신합니다.
+UI 이미지의 정본은 `assets/ui/` 아래 `branding/`(아이콘·로고), `rev3/`(현재 배경·코스 카드·아이콘·공통 좌표), `controls/`(터치 조작 아이콘)에 둡니다. [이미지 출처](../assets/ui/GENERATED_ART.md)는 공통 목록을 유지합니다. 이미지를 옮길 때 `.import`도 함께 옮겨 UID를 보존하고 Godot 임포트로 캐시 경로를 갱신합니다.
 
 ## 헬퍼와 수명
 

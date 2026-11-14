@@ -490,7 +490,7 @@ func finish_leave_results() -> void:
 
 
 func open_courses() -> void:
-	menu_focus = 0
+	menu_focus = selected_course
 	hud.clear_driving_input()
 	state = RaceState.COURSES
 
@@ -670,20 +670,29 @@ func cycle_cosmetic(plate: bool = false) -> void:
 			"FINISH A TOUR TO UNLOCK PLATES" if plate else "TOUR COLORS: REACH A DESTINATION / CUSTOM COLORS: TUNING"
 		)
 		return
-	var previous := passport.paints.duplicate()
-	passport.cycle(selected_vehicle, plate)
+	var previous: Dictionary = (passport.plates if plate else passport.paints).duplicate()
 	var id: String = Catalog.spec(selected_vehicle).id
-	if not plate and customization.selections.has(id):
-		var data := customization.selection(selected_vehicle, passport)
+	if plate:
+		var selected: int = customization.plate_index(current, selected_vehicle, passport)
+		passport.plates[id] = choices[(choices.find(selected) + 1) % choices.size()]
+	else:
+		passport.cycle(selected_vehicle, false)
+	var data := customization.selection(selected_vehicle, passport)
+	if plate:
+		data.plate = passport.plate_index(selected_vehicle)
+	else:
 		var color: String = passport.PAINTS[passport.paint_index(selected_vehicle)].color
 		data.paint = Color(Catalog.spec(selected_vehicle).paint if color.is_empty() else color).to_html(false)
-		if save_records:
-			if customization.save(selected_vehicle, data) != OK:
+	if save_records:
+		if customization.save(selected_vehicle, data) != OK:
+			if plate:
+				passport.plates = previous
+			else:
 				passport.paints = previous
-				hud.show_garage_notice("COULD NOT SAVE THE PAINT. PLEASE TRY AGAIN.")
-				return
-		else:
-			customization.selections[id] = data
+			hud.show_garage_notice("COULD NOT SAVE. PLEASE TRY AGAIN.")
+			return
+	else:
+		customization.selections[id] = data
 	apply_cosmetics()
 	if save_records:
 		passport.save_progress()

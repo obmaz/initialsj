@@ -20,8 +20,11 @@ func run(tree: SceneTree) -> int:
 	for pair in [["gas", "brake"], ["drift", "nitro"]]:
 		var a: Vector2 = hud.buttons[pair[0]].get_center()
 		var b: Vector2 = hud.buttons[pair[1]].get_center()
-		check(hud.button_at(a.lerp(b, .49)) == pair[0], "겹친 여유 영역의 가까운 첫 버튼을 선택한다")
-		check(hud.button_at(a.lerp(b, .51)) == pair[1], "겹친 여유 영역의 가까운 둘째 버튼을 선택한다")
+		var padding: float = maxf(
+			1.18, a.distance_to(b) * .52 / minf(hud.buttons[pair[0]].size.x, hud.buttons[pair[1]].size.x) * 2
+		)
+		check(hud.button_at(a.lerp(b, .49), padding) == pair[0], "겹친 여유 영역의 가까운 첫 버튼을 선택한다")
+		check(hud.button_at(a.lerp(b, .51), padding) == pair[1], "겹친 여유 영역의 가까운 둘째 버튼을 선택한다")
 		hud.fingers = {1: a, 2: b}
 		check(hud.held(pair[0]) and hud.held(pair[1]), "서로 다른 두 포인터의 동시 입력은 유지한다")
 		hud.fingers = {1: a.lerp(b, .5)}

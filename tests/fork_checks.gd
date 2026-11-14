@@ -65,8 +65,8 @@ func run(tree: SceneTree) -> int:
 		var visual: Rect2 = race.hud.ROUTE_LEFT if side == 0 else race.hud.ROUTE_RIGHT
 		var touch: Rect2 = race.hud.route_touch_rect(side)
 		check(
-			visual.size.y <= 64 and touch.size.y * phone_scale >= 44,
-			"Compact route chips must retain a usable phone touch height"
+			visual.size.y <= 80 and touch.encloses(visual) and touch.size.y * phone_scale >= 44,
+			"원화의 작은 분기 카드와 44픽셀 터치 높이를 유지한다"
 		)
 		check(not touch.intersects(race.hud.pause_touch_rect()), "A route choice must not overlap the pause target")
 		check(not touch.intersects(Rect2(1087, 83, 185, 132)), "Route choices must leave the minimap clear")

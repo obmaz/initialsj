@@ -42,13 +42,7 @@ func run(tree: SceneTree) -> int:
 		contrast(MenuTheme.TEAL, MenuTheme.PAPER) > 4.5 and contrast(MenuTheme.MUTED, MenuTheme.PAPER) > 4.5,
 		"정보·보조 글자도 흰 패널에서 읽을 수 있어야 한다"
 	)
-	var atlas: Texture2D
-	for path in hud.menus.COURSE_PREVIEWS + [hud.menus.TOUR_PREVIEW]:
-		var card: AtlasTexture = hud.menus.art(path)
-		check(card.region.size == Vector2(508, 508), "카드 그림은 테두리 없는 생성형 아틀라스의 안쪽을 사용한다")
-		if atlas != null:
-			check(card.atlas == atlas, "여섯 풍경은 한 이미지 자원을 공유한다")
-		atlas = card.atlas
+	check(hud.FONT.get_supported_variation_list().size() > 0, "UI 글꼴은 한글과 가변 굵기를 제공한다")
 	var old_locale := TranslationServer.get_locale()
 	var translation := Translation.new()
 	translation.locale = "de"
@@ -92,22 +86,16 @@ func run(tree: SceneTree) -> int:
 		race.open_menu()
 		tap(hud, hud.HOME_TRACK)
 		check(race.state == "courses", "모바일 화면 비율에서 트랙 선택 터치가 같은 화면으로 연결된다")
-		tap(hud, hud.COURSE_NIGHT)
+		hud.rev3.select_course(2)
+		hud.rev3.sync()
+		tap(hud, hud.rev3.rect("continue"))
 		check(race.state == "ready" and race.selected_course == 2, "코스 카드는 한 번의 터치로 실제 코스·차량 선택에 연결된다")
 		tap(hud, hud.garage_card(2))
 		check(race.selected_vehicle == 2, "이동한 차량 카드의 그림과 터치 영역이 일치한다")
-		for rect in [
-			hud.GARAGE_PAINT,
-			hud.GARAGE_PLATE,
-			hud.GARAGE_TUNING,
-			hud.GARAGE_START,
-			hud.COURSE_WEATHER,
-			hud.COURSE_PERIOD,
-			hud.MOTION_BUTTON,
-			hud.SOUND_BUTTON
-		]:
+		for rect in [hud.GARAGE_TUNING, hud.GARAGE_START, hud.COURSE_WEATHER, hud.COURSE_PERIOD]:
 			var scale_factor := minf(viewport.x / 1280.0, viewport.y / 720.0)
-			check(rect.size.y * scale_factor >= 44, "주요 메뉴 조작은 작은 가로 화면에서도44픽셀 높이를 확보한다")
+			check(rect.size.y * scale_factor >= 44, "주요 메뉴 조작은 작은 가로 화면에서도 44픽셀 높이를 확보한다")
+
 		for i in range(4):
 			for j in range(i + 1, 4):
 				check(not hud.garage_card(i).intersects(hud.garage_card(j)), "차량 카드는 서로의 터치 영역을 덮지 않는다")
@@ -115,8 +103,9 @@ func run(tree: SceneTree) -> int:
 		race.leave_results()
 		check(race.state == "courses", "트랙 결과는 밝은 트랙 선택 화면으로 돌아간다")
 	race.state = "racing"
-	hud.menus.sync_menu_art()
-	check(hud.menus.menu_art.is_empty(), "생성형 배경·장식은 주행 시작 시 메뉴 캐시에서 해제한다")
+	hud.rev3.art.begin("race_hud")
+	await tree.process_frame
+	check(hud.rev3.art.retired.is_empty(), "생성형 배경·장식은 화면 교체 뒤 이전 참조를 해제한다")
 	tree.root.size = old_size
 	race.free()
 	await tree.process_frame

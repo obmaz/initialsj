@@ -1,13 +1,15 @@
 extends RefCounted
 # 메뉴·로딩·네이티브 샵이 같은 안전 영역과 1280×720 설계 좌표를 사용한다.
 const DESIGN := Vector2(1280, 720)
-const BACK := Rect2(60, 16, 220, 80)
+const BACK := Rect2(
+	Vector2(38, 20) * Vector2(1280.0 / 1672, 720.0 / 941), Vector2(104, 106) * Vector2(1280.0 / 1672, 720.0 / 941)
+)
 const TOUCH_HEIGHT := 80.0
 
 
-static func expand_menu(window: Window, active: bool) -> void:
-	# 메뉴 배경만 기기 끝까지 채우고 주행은 기존 KEEP 비율로 복원한다.
-	var aspect := Window.CONTENT_SCALE_ASPECT_EXPAND if active else Window.CONTENT_SCALE_ASPECT_KEEP
+static func expand_menu(window: Window, _active: bool) -> void:
+	# 모든 화면에서 기기 비율을 채운다. UI는 별도로 안전 영역 안에 원화 비율을 보존한다.
+	var aspect := Window.CONTENT_SCALE_ASPECT_EXPAND
 	if window.content_scale_aspect != aspect:
 		window.content_scale_aspect = aspect
 

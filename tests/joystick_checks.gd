@@ -46,7 +46,7 @@ func run(tree: SceneTree) -> int:
 			hud.configure_pedals()
 			var zone: Rect2 = hud.steering_zone()
 			check(
-				Rect2(0, 0, 1280, 720).encloses(zone.grow(hud.HudLayout.STICK_RADIUS * race.touch_layout.SIZES[size])),
+				hud.top_hud_bounds().encloses(zone.grow(hud.HudLayout.STICK_RADIUS * race.touch_layout.SIZES[size])),
 				"모든 크기·좌우의 생성 범위가 화면 안에 남는다"
 			)
 			touch(hud, 3, true, zone.get_center())

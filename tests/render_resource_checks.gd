@@ -77,21 +77,22 @@ func run(tree: SceneTree) -> int:
 		check(race.atmosphere.sky == null, "메뉴에서는 아직 쓰지 않을 하늘의 GPU 리소스를 생성하면 안 된다")
 	check(Pool.owners == 2, "동시에 살아 있는 씬은 각자 렌더 리소스의 소유권을 가져야 한다")
 	# 메뉴 배경은 메뉴에서만 GPU에 있고 주행 중에는 참조를 놓아야 한다.
-	var home: WeakRef = weakref(a.hud.menus.art(a.hud.menus.HOME_BG))
-	check(
-		home.get_ref() is Texture2D and a.hud.menus.art(a.hud.menus.COURSE_PREVIEWS[0]) is Texture2D,
-		"메뉴 화면은 배경과 코스 미리보기를 읽을 수 있어야 한다"
-	)
-	b.hud.menus.menu_art.clear()
+	var art: RefCounted = a.hud.rev3.art
+	var background: String = art.data().screens.start.background
+	art.begin("start")
+	var home: WeakRef = weakref(art.texture(background))
+	check(home.get_ref() is Texture2D, "현재 메뉴 화면의 배경을 읽을 수 있어야 한다")
 	a.state = "racing"
-	a.hud.menus.sync_menu_art()
-	check(a.hud.menus.menu_art.is_empty() and home.get_ref() == null, "주행 중에는 메뉴 배경 텍스처를 메모리에 남기면 안 된다")
+	art.begin("race_hud")
+	await tree.process_frame
+	check(not art.textures.has(background) and art.retired.is_empty(), "주행하는 씬은 메뉴 배경의 참조를 해제한다")
+	b.state = "racing"
+	b.hud.rev3.art.begin("race_hud")
+	await tree.process_frame
+	check(home.get_ref() == null, "다른 메뉴 소유자도 떠나면 공유 배경이 실제로 해제된다")
 	a.state = "menu"
-	a.hud.menus.sync_menu_art()
-	check(
-		a.hud.menus.art(a.hud.menus.HOME_BG) is Texture2D and a.hud.menus.art(a.hud.menus.GARAGE_BG) is Texture2D,
-		"메뉴로 돌아오면 배경을 다시 읽어야 한다"
-	)
+	art.begin("start")
+	check(art.texture(background) is Texture2D, "메뉴로 돌아오면 필요한 배경만 다시 읽는다")
 	var cars: Array[Node3D] = []
 	for paint in [Color.RED, Color.BLUE]:
 		var car := preload("res://scripts/vehicles/car.gd").new()

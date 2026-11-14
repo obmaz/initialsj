@@ -4,14 +4,14 @@ const DESIGN := Vector2(1280, 720)
 const EDGE := 16.0
 const GAP := 16.0
 const PAUSE := Rect2(16, 16, 64, 64)
-const COURSE := Rect2(96, 16, 256, 64)
-const STATS := Rect2(368, 16, 696, 64)
+const COURSE := Rect2(100, 16, 292, 58)
+const STATS := Rect2(408, 16, 616, 58)
 const MINIMAP := Rect2(1080, 16, 184, 184)
 const MAP_RADIUS := 76.0
 const MAP_INSET := 7.0
 const STICK_RADIUS := 90.0
 const STICK_TRAVEL := 72.0
-const CONTROL_Y := 620.0
+const CONTROL_Y := 607.0
 
 
 static func top_rects(area: Rect2) -> Dictionary:
@@ -45,4 +45,4 @@ static func steering_zone(mirrored: bool) -> Rect2:
 
 
 static func steering_rest(mirrored: bool) -> Vector2:
-	return Vector2(1100 if mirrored else 180, CONTROL_Y)
+	return Vector2(1131 if mirrored else 149, CONTROL_Y)

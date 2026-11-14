@@ -270,6 +270,7 @@ func run() -> void:
 	failures += await preload("res://tests/tour_passport_checks.gd").new().run(self)
 	failures += await preload("res://tests/tuning_checks.gd").new().run(self)
 	failures += await preload("res://tests/tuning_ui_checks.gd").new().run(self)
+	failures += await preload("res://tests/tuning_plate_checks.gd").new().run(self)
 	failures += await preload("res://tests/loading_presentation_checks.gd").new().run(self)
 	failures += await preload("res://tests/roadside_guidance_checks.gd").new().run(self)
 	failures += await preload("res://tests/tour_landmark_checks.gd").new().run(self)
