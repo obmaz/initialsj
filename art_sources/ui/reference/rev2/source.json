@@ -1,0 +1,57 @@
+{
+  "revision": 2,
+  "basedOnRevision": 1,
+  "purpose": "배치를 유지하고 채도를 완화한 시작 전 화면 시안. 게임 미반영.",
+  "textBaked": false,
+  "referenceChain": {
+    "start.png": [
+      "../rev1/start.png"
+    ],
+    "track_select.png": [
+      "../rev1/track_select.png",
+      "start.png"
+    ],
+    "car_select.png": [
+      "../rev1/car_select.png",
+      "start.png"
+    ]
+  },
+  "images": [
+    {
+      "file": "start.png",
+      "screen": "시작",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-63b81f63-4d1e-4528-881b-a5a0c400b4f9.png",
+      "sha256": "f7f3df003e1856a795b2bbfcc6f672f68d9fa301d75943b9f8a68f6cfb49ac15",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false
+    },
+    {
+      "file": "track_select.png",
+      "screen": "트랙 선택",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-a0ec0e82-1730-4cad-945f-649f5f6963ae.png",
+      "sha256": "2fad2c07e463e1003958fe1e6a331acd8b1276777360db548132c88d86c516bc",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false
+    },
+    {
+      "file": "car_select.png",
+      "screen": "차량 선택",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-0cd54f28-3dd8-4164-bd25-56eb2fcf21ea.png",
+      "sha256": "7fad637d89ad5ca59de31e3b675190ec80c70c838373c96332f7e07b25614834",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false
+    }
+  ]
+}
