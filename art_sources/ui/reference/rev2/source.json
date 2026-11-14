@@ -1,7 +1,7 @@
 {
   "revision": 2,
   "basedOnRevision": 1,
-  "purpose": "배치를 유지하고 채도를 완화한 시작 전 화면 시안. 게임 미반영.",
+  "purpose": "사용자가 확인한 rev2 색상 계열의 메뉴·일시정지·주행 HUD 이미지 시안. 게임 미반영.",
   "textBaked": false,
   "referenceChain": {
     "start.png": [
@@ -14,6 +14,16 @@
     "car_select.png": [
       "../rev1/car_select.png",
       "start.png"
+    ],
+    "settings.png": [
+      "car_select.png"
+    ],
+    "pause.png": [
+      "race_hud.png",
+      "settings.png"
+    ],
+    "race_hud.png": [
+      "car_select.png"
     ]
   },
   "images": [
@@ -47,6 +57,42 @@
       "generator": "OpenAI image_gen",
       "sourceFile": "exec-0cd54f28-3dd8-4164-bd25-56eb2fcf21ea.png",
       "sha256": "7fad637d89ad5ca59de31e3b675190ec80c70c838373c96332f7e07b25614834",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false
+    },
+    {
+      "file": "settings.png",
+      "screen": "설정 화면",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-95eeb4c6-a7f5-4d96-b4c4-1450f594f8e1.png",
+      "sha256": "889a27aebc0d7766d0765cb441951bb08802e2d8b4559908a5684f810491b098",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false
+    },
+    {
+      "file": "pause.png",
+      "screen": "게임 중 일시정지 팝업",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-1b57ccca-cc06-498a-ae0c-d8878a771226.png",
+      "sha256": "e938c417e68d9190003170a2021333910b78de1bf5d9041fe34df5cdccaa2ab6",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false
+    },
+    {
+      "file": "race_hud.png",
+      "screen": "주행 HUD",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-17160ac5-6c10-4253-b29c-bb572bd32f28.png",
+      "sha256": "3fc0321cb65156e39efa2ce053cc9e535806eeccaffacf9a1c6c474a6d7d3daa",
       "size": [
         1672,
         941
