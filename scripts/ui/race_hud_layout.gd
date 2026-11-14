@@ -1,26 +1,43 @@
 extends RefCounted
 # 투어·트랙이 공유하는 콘텐츠 좌표. OS 안전 영역 변환은 MenuLayout이 담당한다.
 const DESIGN := Vector2(1280, 720)
-const EDGE := 24.0
-const PAUSE := Rect2(24, 24, 64, 64)
-const COURSE := Rect2(104, 24, 256, 64)
-const STATS := Rect2(376, 24, 680, 64)
-const MINIMAP := Rect2(1072, 24, 184, 184)
+const EDGE := 16.0
+const GAP := 16.0
+const PAUSE := Rect2(16, 16, 64, 64)
+const COURSE := Rect2(96, 16, 256, 64)
+const STATS := Rect2(368, 16, 696, 64)
+const MINIMAP := Rect2(1080, 16, 184, 184)
 const MAP_RADIUS := 76.0
+const MAP_INSET := 7.0
 const STICK_RADIUS := 90.0
 const STICK_TRAVEL := 72.0
 const CONTROL_Y := 620.0
 
 
-static func route_point(row: int, node: int) -> Vector2:
-	return MINIMAP.get_center() + Vector2((node - row * .5) * 28, 48 - row * 24)
+static func top_rects(area: Rect2) -> Dictionary:
+	var pause := Rect2(area.position + Vector2.ONE * EDGE, PAUSE.size)
+	var course := Rect2(pause.position + Vector2(pause.size.x + GAP, 0), COURSE.size)
+	var minimap := Rect2(Vector2(area.end.x - EDGE - MINIMAP.size.x, pause.position.y), MINIMAP.size)
+	var stats := Rect2(course.position + Vector2(course.size.x + GAP, 0), STATS.size)
+	stats.size.x = minimap.position.x - GAP - stats.position.x
+	return {"pause": pause, "course": course, "stats": stats, "minimap": minimap}
 
 
-static func project_map(point: Vector2, bounds: Rect2) -> Vector2:
-	# 직사각형의 모서리까지 원 안에 맞추고, 도로 밖 차량도 프레임을 벗어나지 않는다.
+static func route_point(row: int, node: int, rect: Rect2 = MINIMAP) -> Vector2:
+	# 보이지 않는 프레임 중심 대신 실제 경로의 위·오른쪽 외곽을 상단 HUD에 맞춘다.
+	return (
+		Vector2(rect.end.x - MAP_INSET, rect.position.y + MAP_INSET)
+		+ Vector2((node - row * .5 - 2) * 28, (4 - row) * 24)
+	)
+
+
+static func project_map(point: Vector2, bounds: Rect2, rect: Rect2 = MINIMAP) -> Vector2:
+	# 기존 축척·코스 비율을 유지하면서 실제 도로선의 위·오른쪽을 고정한다.
 	var extent := maxf((bounds.size * .5).length(), 1)
-	var offset := (point - bounds.get_center()) * (MAP_RADIUS / extent)
-	return MINIMAP.get_center() + offset.limit_length(MAP_RADIUS)
+	var scale_factor := MAP_RADIUS / extent
+	var span := bounds.size * scale_factor
+	var origin := Vector2(rect.end.x - MAP_INSET - span.x, rect.position.y + MAP_INSET)
+	return origin + (point - bounds.position).clamp(Vector2.ZERO, bounds.size) * scale_factor
 
 
 static func steering_zone(mirrored: bool) -> Rect2:

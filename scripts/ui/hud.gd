@@ -195,8 +195,18 @@ func animate_modal_close(action: Callable) -> bool:
 	return true
 
 
+func top_hud_bounds() -> Rect2:
+	var safe := MenuLayout.safe_rect(get_viewport_rect().size)
+	var scale_factor := MenuLayout.scale_for(safe)
+	return Rect2((safe.position - MenuLayout.origin_for(safe)) / scale_factor, safe.size / scale_factor)
+
+
+func top_hud_rects() -> Dictionary:
+	return HudLayout.top_rects(top_hud_bounds())
+
+
 func pause_touch_rect() -> Rect2:
-	return PAUSE_BUTTON.grow(18)
+	return top_hud_rects().pause.grow(18).intersection(top_hud_bounds())
 
 
 func configure_pedals() -> void:
@@ -207,7 +217,7 @@ func hit_button(action: String, pos: Vector2) -> bool:
 	if not buttons.has(action):
 		return false
 	if action == "pause":
-		return buttons.pause.has_point(pos) or pause_touch_rect().has_point(pos)
+		return pause_touch_rect().has_point(pos)
 	var padding := 1.18 if OS.has_feature("web") or OS.has_feature("mobile") else 1.0
 	return button_at(pos, padding) == action
 
@@ -478,7 +488,7 @@ func draw_pad_badges() -> void:
 		var cell: Rect2 = buttons.cell
 		pad_badge(cell.get_center() + Vector2(-1, -1) * cell.size.x * 0.36, "cell")
 	pad_badge(Vector2(147, 690), "steer")
-	pad_badge(PAUSE_BUTTON.get_center() + Vector2(0, 48), "pause")
+	pad_badge(top_hud_rects().pause.get_center() + Vector2(0, 48), "pause")
 
 
 func move_pointer(index: int, pos: Vector2) -> void:
@@ -793,18 +803,22 @@ func comma_number(value: int) -> String:
 
 
 func draw_lap_time() -> void:
-	draw_style_box(hud_card_style, PAUSE_BUTTON)
-	for x in [45, 59]:
-		draw_rect(Rect2(x, 43, 6, 26), WHITE)
-	draw_style_box(hud_card_style, HudLayout.COURSE)
+	var layout := top_hud_rects()
+	var pause: Rect2 = layout.pause
+	var course: Rect2 = layout.course
+	var stats: Rect2 = layout.stats
+	draw_style_box(hud_card_style, pause)
+	for x in [21, 35]:
+		draw_rect(Rect2(pause.position + Vector2(x, 19), Vector2(6, 26)), WHITE)
+	draw_style_box(hud_card_style, course)
 	var name: String = tr(
 		race.course_title if race.mode == "track" else Library.title(race.stage_index, race.route_node)
 	)
-	var name_size := MenuTheme.fit_size(self, name, HudLayout.COURSE.size.x - 32, 20, 17)
-	text_at(HudLayout.COURSE.position + Vector2(16, 26), name, name_size, WHITE)
+	var name_size := MenuTheme.fit_size(self, name, course.size.x - 32, 20, 17)
+	text_at(course.position + Vector2(16, 26), name, name_size, WHITE)
 	var sub: String = tr("CIRCUIT %02d") % (race.selected_course + 1) if race.mode == "track" else tr("TOUR")
-	text_at(HudLayout.COURSE.position + Vector2(16, 50), sub, 17, Color("adc1ce"))
-	draw_style_box(hud_card_style, HudLayout.STATS)
+	text_at(course.position + Vector2(16, 50), sub, 17, Color("adc1ce"))
+	draw_style_box(hud_card_style, stats)
 	var track_mode: bool = race.mode == "track"
 	var rank: int = race.race_position() if track_mode else race.stage_index + 1
 	var suffix: String = ["TH", "ST", "ND", "RD"][rank] if rank in [1, 2, 3] else "TH"
@@ -818,9 +832,9 @@ func draw_lap_time() -> void:
 		"LAP" if track_mode else "TIME LEFT",
 		"RACE TIME" if track_mode else "TOTAL TIME"
 	]
-	var cell_width := HudLayout.STATS.size.x / 3
+	var cell_width := stats.size.x / 3
 	for i in range(3):
-		var at: Vector2 = HudLayout.STATS.position + Vector2(i * cell_width + 16, 0)
+		var at: Vector2 = stats.position + Vector2(i * cell_width + 16, 0)
 		if i > 0:
 			draw_line(at + Vector2(-16, 14), at + Vector2(-16, 50), Color("82a4b53d"), 1, true)
 		var caption := MenuTheme.layout_text(self, captions[i], cell_width - 32, 17, 15)
@@ -835,8 +849,8 @@ func draw_lap_time() -> void:
 		)
 
 
-func route_map_point(row: int, node: int) -> Vector2:
-	return HudLayout.route_point(row, node)
+func route_map_point(row: int, node: int, rect: Rect2 = Rect2()) -> Vector2:
+	return HudLayout.route_point(row, node, rect if rect.has_area() else top_hud_rects().minimap)
 
 
 func draw_minimap() -> void:
@@ -844,22 +858,23 @@ func draw_minimap() -> void:
 		draw_circuit_map()
 		return
 	var selected := 0
+	var rect: Rect2 = top_hud_rects().minimap
 	for row in range(5):
 		if row > 0 and row - 1 < race.track.history.size():
 			selected += race.track.history[row - 1]
 		for node in range(row + 1):
-			var p := route_map_point(row, node)
+			var p := route_map_point(row, node, rect)
 			if row < 4:
 				for side in [0, 1]:
-					draw_line(p, route_map_point(row + 1, node + side), Color("071323d9"), 5, true)
-					draw_line(p, route_map_point(row + 1, node + side), Color("d0e4ed"), 2, true)
+					draw_line(p, route_map_point(row + 1, node + side, rect), Color("071323d9"), 5, true)
+					draw_line(p, route_map_point(row + 1, node + side, rect), Color("d0e4ed"), 2, true)
 			var visited: bool = row <= race.stage_index and node == selected
 			draw_circle(p, 7 if visited else 6, Color("071323"))
 			draw_circle(p, 4.5 if visited else 3.5, CYAN if visited else Color("91adbd"))
 			if visited and row > 0:
 				var previous: int = selected - race.track.history[row - 1]
-				draw_line(route_map_point(row - 1, previous), p, CYAN, 2, true)
-	var current := route_map_point(race.stage_index, race.route_node)
+				draw_line(route_map_point(row - 1, previous, rect), p, CYAN, 2, true)
+	var current := route_map_point(race.stage_index, race.route_node, rect)
 	draw_arc(current, 7, 0, TAU, 24, Color("071323"), 5, true)
 	draw_arc(current, 7, 0, TAU, 24, GOLD, 2, true)
 
@@ -868,28 +883,29 @@ var map_outline := PackedVector2Array()
 var map_outline_key := ""
 
 
-func circuit_map_point(d: float) -> Vector2:
+func circuit_map_point(d: float, rect: Rect2) -> Vector2:
 	var p: Vector3 = race.track.point(d)
-	return HudLayout.project_map(Vector2(p.x, p.z), race.track.map_bounds)
+	return HudLayout.project_map(Vector2(p.x, p.z), race.track.map_bounds, rect)
 
 
 func draw_circuit_map() -> void:
-	# 원형 프레임의 투영 규칙까지 키에 포함해 코스 변경 후 재사용하지 않는다.
-	var key := "%s:%s:%s" % [race.track.active.get_instance_id(), race.track.length, race.track.map_bounds]
+	var rect: Rect2 = top_hud_rects().minimap
+	# 화면·안전 영역 변경 시에도 지도 선을 새 기준점에 다시 맞춘다.
+	var key := "%s:%s:%s:%s" % [race.track.active.get_instance_id(), race.track.length, race.track.map_bounds, rect]
 	if map_outline_key != key:
 		map_outline_key = key
 		map_outline = PackedVector2Array()
 		for i in range(101):
-			map_outline.append(circuit_map_point(race.track.length * i / 100.0))
+			map_outline.append(circuit_map_point(race.track.length * i / 100.0, rect))
 	draw_polyline(map_outline, Color("071323e6"), 6, true)
 	draw_polyline(map_outline, Color("f3fbff"), 2.5, true)
 	for r in race.rivals:
 		if r.active:
-			draw_circle(circuit_map_point(r.distance), 5, Color("071323"))
-			draw_circle(circuit_map_point(r.distance), 3, Color("f38e7c"))
+			draw_circle(circuit_map_point(r.distance, rect), 5, Color("071323"))
+			draw_circle(circuit_map_point(r.distance, rect), 3, Color("f38e7c"))
 	if race.world_race != null:
 		var body: CharacterBody3D = race.world_race.player_body
-		var p := HudLayout.project_map(Vector2(body.position.x, body.position.z), race.track.map_bounds)
+		var p := HudLayout.project_map(Vector2(body.position.x, body.position.z), race.track.map_bounds, rect)
 		var forward: Vector3 = body.forward_direction()
 		var direction := Vector2(forward.x, forward.z).normalized()
 		var side := Vector2(-direction.y, direction.x)
@@ -901,8 +917,8 @@ func draw_circuit_map() -> void:
 			PackedVector2Array([p + direction * 7, p - direction * 4 + side * 4, p - direction * 4 - side * 4]), GOLD
 		)
 	else:
-		draw_circle(circuit_map_point(race.distance), 5, CYAN)
-	draw_rect(Rect2(circuit_map_point(80) - Vector2(3, 3), Vector2(6, 6)), GOLD)
+		draw_circle(circuit_map_point(race.distance, rect), 5, CYAN)
+	draw_rect(Rect2(circuit_map_point(80, rect) - Vector2(3, 3), Vector2(6, 6)), GOLD)
 
 
 func draw_drift_score() -> void:

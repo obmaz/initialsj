@@ -20,21 +20,37 @@ func run(tree: SceneTree) -> int:
 		),
 		"투어·트랙 공통 미니맵은 위·오른쪽 여백이 같다"
 	)
+	for area in [Rect2(0, 0, 1280, 720), Rect2(-120, 0, 1520, 720), Rect2(0, -100, 1280, 920)]:
+		var top := HudLayout.top_rects(area)
+		check(
+			(
+				is_equal_approx(top.pause.position.x - area.position.x, HudLayout.EDGE)
+				and is_equal_approx(area.end.x - top.minimap.end.x, HudLayout.EDGE)
+				and top.pause.position.y == top.minimap.position.y
+				and top.course.position.y == top.stats.position.y
+			),
+			"상단 HUD는 중앙16:9 바깥의 안전 영역 양끝에서도 같은 여백을 유지한다"
+		)
 	for bounds in [Rect2(-80, 20, 160, 300), Rect2(30, -50, 1200, 80), Rect2()]:
 		for point in [bounds.position, bounds.end, bounds.get_center(), Vector2(100000, -100000)]:
 			check(
-				(
-					HudLayout.project_map(point, bounds).distance_to(HudLayout.MINIMAP.get_center())
-					<= HudLayout.MAP_RADIUS + .001
-				),
-				"코스와 도로 밖 차량 표시가 원형 미니맵 내부에 남는다"
+				HudLayout.MINIMAP.grow(-6).has_point(HudLayout.project_map(point, bounds)),
+				"코스와 도로 밖 차량 표시는 실제 미니맵 영역 안에 남는다"
 			)
+		check(
+			is_equal_approx(HudLayout.project_map(bounds.position, bounds).y, HudLayout.MINIMAP.position.y + 7),
+			"가로로 긴 트랙도 실제 도로선의 위쪽 여백이 늘어나지 않는다"
+		)
 	for row in range(5):
 		for node in range(row + 1):
 			check(
-				HudLayout.route_point(row, node).distance_to(HudLayout.MINIMAP.get_center()) <= HudLayout.MAP_RADIUS,
-				"투어 15개 지역이 트랙과 같은 원형 프레임 안에 들어간다"
+				HudLayout.MINIMAP.grow(-6).has_point(HudLayout.route_point(row, node)),
+				"투어 15개 지역이 트랙과 같은 미니맵 영역 안에 들어간다"
 			)
+	check(
+		HudLayout.route_point(4, 4) == Vector2(HudLayout.MINIMAP.end.x - 7, HudLayout.MINIMAP.position.y + 7),
+		"투어 지도 자체의 위·오른쪽도 트랙과 같은 기준에 맞춘다"
+	)
 	var layout := Layout.new()
 	var config := ConfigFile.new()
 	for value in ["bad", true, -1, 3, 100]:
