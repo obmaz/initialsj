@@ -30,7 +30,7 @@ Godot **4.7.2 / GL Compatibility** 기반의 가로 화면 3D 아케이드 레�
 
 | 작업 | 기준 문서 |
 | --- | --- |
-| 메뉴·설정·일시정지·주행 HUD 이미지 시안 | [이미지 가이드](art_sources/ui/README.md) |
+| 메뉴·튜닝·설정·일시정지·HUD·결과 이미지 시안 | [이미지 가이드](art_sources/ui/README.md) |
 | 현재 모바일 UI 동작·번역·입력 | [MOBILE_UI.md](docs/MOBILE_UI.md) |
 | 코딩 컨벤션·폴더·헬퍼·주석 | [CODING_STYLE.md](docs/CODING_STYLE.md) |
 | 환경 구성·검사·웹 배포 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) |

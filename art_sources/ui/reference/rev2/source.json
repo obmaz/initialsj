@@ -1,7 +1,7 @@
 {
   "revision": 2,
   "basedOnRevision": 1,
-  "purpose": "사용자가 확인한 rev2 색상 계열의 메뉴·일시정지·주행 HUD 이미지 시안. 게임 미반영.",
+  "purpose": "사용자가 확인한 rev2 색상 계열의 메뉴·튜닝샵·일시정지·주행 HUD·경기 결과 이미지 시안. 게임 미반영.",
   "textBaked": false,
   "referenceChain": {
     "start.png": [
@@ -24,6 +24,14 @@
     ],
     "race_hud.png": [
       "car_select.png"
+    ],
+    "tuning_shop.png": [
+      "car_select.png",
+      "settings.png"
+    ],
+    "race_results.png": [
+      "car_select.png",
+      "pause.png"
     ]
   },
   "images": [
@@ -93,6 +101,30 @@
       "generator": "OpenAI image_gen",
       "sourceFile": "exec-17160ac5-6c10-4253-b29c-bb572bd32f28.png",
       "sha256": "3fc0321cb65156e39efa2ce053cc9e535806eeccaffacf9a1c6c474a6d7d3daa",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false
+    },
+    {
+      "file": "tuning_shop.png",
+      "screen": "튜닝샵",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-fc47433a-6930-4e1b-ad28-5b02cd156f80.png",
+      "sha256": "5ea4db9572d024729f18c2fc23564d25cc8956203eccc6f136e56966c048cbac",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false
+    },
+    {
+      "file": "race_results.png",
+      "screen": "경기 종료 결과",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-58273653-8f84-4a24-93f8-d3a6128ec927.png",
+      "sha256": "1039d2c50e43e536aba64d2fea38c9c656b3fd01804a70a52b0a1a78b166a4dd",
       "size": [
         1672,
         941
