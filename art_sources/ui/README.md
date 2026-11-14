@@ -1,19 +1,21 @@
 # 모바일 게임 UI 이미지 가이드
 
-현재 이미지 시안은 **rev2**의 여덟 장입니다. 사용자가 확인한 시작·트랙 선택·차량 선택의 색상 계열을 튜닝샵·설정·일시정지·주행 HUD·결과 화면에 확장했습니다. Horizon Chase Turbo의 경쾌한 아케이드 레이싱 분위기, 단순한 면과 밝은 풍경을 바탕으로 차분한 데님 블루·코럴·골드를 공유합니다. 흰 아이콘과 선택 표시는 배경에서 구분되도록 남깁니다.
+현재 이미지 시안은 **rev3**의 여덟 장입니다. rev2의 구도·버튼 배치·차분한 데님 블루·코럴·골드를 유지하면서 차량과 풍경을 조금 더 사실적으로 다듬었습니다. 밝고 경쾌한 아케이드 레이싱 분위기와 단순한 UI는 유지합니다. 흰 아이콘과 선택 표시는 배경에서 구분되도록 남깁니다.
+
+실사감은 차량 도장의 반사·유리의 깊이·타이어와 금속의 재질, 접지 그림자, 아스팔트·물·바위·식생의 질감과 자연광으로 보강합니다. 버튼과 패널은 같은 평면 스타일을 유지하며, 광택·입체 테두리·네온 장식을 더하지 않습니다. 어두운 영화식 색보정이나 과한 반사·흐림으로 바꾸지 않습니다.
 
 | 화면 | 이미지 | 구성 |
 | --- | --- | --- |
-| 시작 | [start.png](reference/rev2/start.png) | 주인공 차량, 제목 자리, 큰 진입 버튼 두 개 |
-| 트랙 선택 | [track_select.png](reference/rev2/track_select.png) | 큰 코스 카드 세 장을 넘기는 구성, 날씨·시간, 진행 버튼 |
-| 차량 선택 | [car_select.png](reference/rev2/car_select.png) | 차량 미리보기, 성능, 차량 카드, 튜닝·출발 버튼 |
-| 튜닝샵 | [tuning_shop.png](reference/rev2/tuning_shop.png) | 여섯 분류 탭, 도장·마감 선택, 차량 미리보기, 비교·취소·초기화·적용 |
-| 설정 | [settings.png](reference/rev2/settings.png) | 효과음·음악 독립 슬라이더, 그래픽, 동작 감소·FPS·자동 가속, 조작 설정·완료 |
-| 일시정지 | [pause.png](reference/rev2/pause.png) | 주행 화면 위 작은 창, 재개·설정·재시작·선택 화면 복귀 |
-| 주행 HUD | [race_hud.png](reference/rev2/race_hud.png) | 간결한 상단 정보, 테두리 없는 미니맵, 좌측 속도 표시, 조이스틱·드리프트·니트로·브레이크 |
-| 경기 결과 | [race_results.png](reference/rev2/race_results.png) | 차량이 보이는 중계 구도, 우측 순위·시간·베스트 랩·점수, 재시도·선택 화면 복귀 |
+| 시작 | [start.png](reference/rev3/start.png) | 주인공 차량, 제목 자리, 큰 진입 버튼 두 개 |
+| 트랙 선택 | [track_select.png](reference/rev3/track_select.png) | 큰 코스 카드 세 장을 넘기는 구성, 날씨·시간, 진행 버튼 |
+| 차량 선택 | [car_select.png](reference/rev3/car_select.png) | 차량 미리보기, 성능, 차량 카드, 튜닝·출발 버튼 |
+| 튜닝샵 | [tuning_shop.png](reference/rev3/tuning_shop.png) | 여섯 분류 탭, 도장·마감 선택, 차량 미리보기, 비교·취소·초기화·적용 |
+| 설정 | [settings.png](reference/rev3/settings.png) | 효과음·음악 독립 슬라이더, 그래픽, 동작 감소·FPS·자동 가속, 조작 설정·완료 |
+| 일시정지 | [pause.png](reference/rev3/pause.png) | 주행 화면 위 작은 창, 재개·설정·재시작·선택 화면 복귀 |
+| 주행 HUD | [race_hud.png](reference/rev3/race_hud.png) | 간결한 상단 정보, 테두리 없는 미니맵, 좌측 속도 표시, 조이스틱·드리프트·니트로·브레이크 |
+| 경기 결과 | [race_results.png](reference/rev3/race_results.png) | 차량이 보이는 중계 구도, 우측 순위·시간·베스트 랩·점수, 재시도·선택 화면 복귀 |
 
-가로형 모바일 화면을 위한 **시안**이며 게임에는 아직 적용하지 않았습니다. 시작·트랙·차량 선택의 rev2 색상은 사용자 확인을 받았고, 튜닝샵·설정·일시정지·HUD·결과 화면은 같은 계열로 추가한 검토 시안입니다.
+가로형 모바일 화면을 위한 **시안**이며 게임에는 아직 적용하지 않았습니다. 시작·트랙·차량 선택의 rev2 색상은 사용자 확인을 받았습니다. rev3는 그 색상과 화면 구도를 유지하면서 실사감을 조금 보강한 검토 시안입니다.
 
 제목·차명·코스명·버튼 문구는 번역 가능한 실제 텍스트를 얹도록 비워 두었습니다. 이미지 속 차량·코스 그림·성능 막대는 시안용이며 실제 모델·수치·트랙 중심선을 대체하지 않습니다. 구현 단계에서는 휴대폰·폴드의 안전 영역, 긴 번역, 44px 이상의 터치 영역을 별도로 확인합니다.
 
@@ -25,6 +27,8 @@ HUD의 빈 정보 영역에는 코스명·순위/스테이지·랩/남은 시간
 
 결과 화면은 중계 카메라와 차량·코스를 넓게 보여 주고 우측 패널에 실제 확정 기록을 얹는 구성입니다. 화면 전체를 불투명하게 덮거나 배경을 흐리게 만들지 않습니다. 순위·시간·베스트 랩·점수와 최고 기록 표시는 실제 결과에 따라 표시하고, 완주·실패 문구와 아이콘도 상태에 맞게 구분합니다. 기록 확정과 이후 차량 연출을 분리하며 선택 화면 복귀는 현재 모드의 기존 경로를 따릅니다.
 
-생성 파일·크기·해시·화면 간 참조 관계는 [rev2/source.json](reference/rev2/source.json)에 기록합니다. rev1은 색상 비교용으로만 보존합니다: [시작](reference/rev1/start.png)·[트랙 선택](reference/rev1/track_select.png)·[차량 선택](reference/rev1/car_select.png). 서로 다른 리비전의 부품을 섞지 않습니다.
+생성 파일·크기·해시·화면 간 참조 관계는 [rev3/source.json](reference/rev3/source.json)에 기록합니다. 차량 선택 화면의 재질과 빛을 먼저 정하고 나머지 화면에 같은 방향을 적용했습니다. 일시정지는 rev3 주행 HUD를 함께 참조합니다.
+
+[rev2](reference/rev2/source.json)는 구도·색상·재질 비교용, rev1은 색상 비교용으로만 보존합니다: [시작](reference/rev1/start.png)·[트랙 선택](reference/rev1/track_select.png)·[차량 선택](reference/rev1/car_select.png). 현재 기준은 rev3이며 서로 다른 리비전의 부품을 섞지 않습니다.
 
 이 폴더의 시안은 Godot 임포트와 제품 내보내기에서 제외합니다. 현재 게임 아트의 재생성 원본은 [runtime_sources](runtime_sources/README.md)에 분리하며 새 디자인 참고로 사용하지 않습니다.
