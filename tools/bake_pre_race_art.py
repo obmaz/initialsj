@@ -1,11 +1,11 @@
-"""생성형 원화의 프레임을 재단하고 실제 메뉴 좌표로 글자 없는 화면 정본을 만든다."""
+"""현재 배포 UI를 보존된 제작 원본에서 재생성한다. 새 화면 디자인 가이드가 아니다."""
 from pathlib import Path
 import hashlib
 import json
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "art_sources/ui/coastal"
+SOURCE = ROOT / "art_sources/ui/runtime_sources/pre_race"
 OUTPUT = ROOT / "assets/ui/pre_race"
 SIZE = (1280, 720)
 CROPS = {

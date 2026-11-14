@@ -1,4 +1,4 @@
-"""원화·생성물의 동일성과 실제 입력 좌표 계약을 검사한다. 미관 평가는 화면 검증자가 맡는다."""
+"""배포 UI 제작 원본·생성물의 동일성과 실제 입력 좌표를 검사한다. 새 시안은 별도 자료다."""
 from pathlib import Path
 import hashlib
 import json
@@ -8,7 +8,7 @@ import struct
 import bake_pre_race_art
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "art_sources/ui/coastal"
+SOURCE = ROOT / "art_sources/ui/runtime_sources/pre_race"
 OUTPUT = ROOT / "assets/ui/pre_race"
 
 

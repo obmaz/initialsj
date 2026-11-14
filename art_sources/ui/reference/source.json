@@ -1,0 +1,52 @@
+{
+  "purpose": "시작 전 화면의 신규 디자인 후보. 게임 미반영.",
+  "textBaked": false,
+  "referenceChain": {
+    "start.png": [],
+    "track_select.png": [
+      "start.png"
+    ],
+    "car_select.png": [
+      "start.png",
+      "track_select.png"
+    ]
+  },
+  "images": [
+    {
+      "file": "start.png",
+      "screen": "시작",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-872d8cea-7c32-4139-8829-98a357c65293.png",
+      "sha256": "6bb8ed209d8ef420ca759a8cde3cc9ca079f6771c24da5a2c7840282cad177f2",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false
+    },
+    {
+      "file": "track_select.png",
+      "screen": "트랙 선택",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-1a36d68a-ed1c-44b5-90ae-0805dfbf3a88.png",
+      "sha256": "18f0973ede89ff8de0dd3f1dfd9b1027987ea20d2aa286948d480885b2261853",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false
+    },
+    {
+      "file": "car_select.png",
+      "screen": "차량 선택",
+      "generator": "OpenAI image_gen",
+      "sourceFile": "exec-455a0241-28fa-4d99-8b77-7ad51c2d07b5.png",
+      "sha256": "003de281a4f148e52f2b8eb502b51e7f322d8b8ba4a8ce0028c64ac1e3f030fd",
+      "size": [
+        1672,
+        941
+      ],
+      "productionAsset": false
+    }
+  ]
+}
