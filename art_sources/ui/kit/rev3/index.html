@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Initial SJ · rev3 UI 조립 검증</title>
+  <link rel="stylesheet" href="preview/workbench.css">
+  <script src="manifest.js" defer></script>
+  <script src="preview/workbench.js" defer></script>
+</head>
+<body>
+  <header class="toolbar">
+    <strong>Initial SJ <span>rev3 UI 조립</span></strong>
+    <label>화면 <select id="screen"></select></label>
+    <label>기기 <select id="device">
+      <option value="native">원화 크기</option>
+      <option value="phone">휴대폰 844 × 390</option>
+      <option value="fold">폴드 1024 × 768</option>
+      <option value="wide">1280 × 720</option>
+    </select></label>
+    <label>문자 <select id="language"><option value="none">원화와 비교</option><option value="ko">한국어</option><option value="en">English · 긴 문구</option></select></label>
+    <label><input id="reference" type="checkbox">원화 겹치기</label>
+    <label><input id="outlines" type="checkbox">터치 영역</label>
+    <label>배경 <select id="background"><option value="scene">원화 재조립 비교</option><option value="clean">복원한 게임용 배경</option><option value="checker">투명도 확인</option><option value="alternate">다른 배경</option></select></label>
+    <button id="reset" type="button">원래 상태</button>
+  </header>
+  <main>
+    <section class="viewer">
+      <div id="viewport"><div id="stage"></div></div>
+      <div class="status"><span id="status">에셋을 불러오는 중</span><button id="difference" type="button">원화 픽셀 차이 확인</button></div>
+      <canvas id="difference_canvas" hidden></canvas>
+    </section>
+    <aside>
+      <h1>분리한 부품</h1>
+      <p>항목을 끄면 뒤의 배경·패널을 확인할 수 있습니다. 화면 안 버튼으로 메뉴를 이동하고, 설정 슬라이더를 움직일 수 있습니다.</p>
+      <div id="layers"></div>
+      <output id="interaction" aria-live="polite"></output>
+    </aside>
+  </main>
+</body>
+</html>

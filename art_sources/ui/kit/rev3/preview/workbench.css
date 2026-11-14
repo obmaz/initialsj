@@ -1,0 +1,43 @@
+@font-face { font-family: "Noto Sans KR"; src: url("../portable/fonts/noto_sans_kr.ttf") format("truetype"); font-weight: 100 900; font-display: block; }
+:root { font-family: "Noto Sans KR", system-ui, sans-serif; color: #233d51; background: #edf2f5; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; padding: 14px 18px; background: #fff; border-bottom: 1px solid #d5e0e7; }
+.toolbar strong { font-size: 19px; margin-right: 12px; }
+.toolbar strong span { color: #647c8d; font-size: 13px; }
+.toolbar label { display: flex; gap: 7px; align-items: center; font-size: 13px; }
+select, .toolbar button, .status button { min-height: 34px; border: 1px solid #bed0dc; border-radius: 7px; background: #fff; color: #294c65; padding: 5px 9px; font: inherit; }
+main { display: grid; grid-template-columns: minmax(0, 1fr) 235px; gap: 16px; padding: 16px; }
+.viewer { min-width: 0; }
+#viewport { position: relative; overflow: hidden; margin: 0 auto; background: #27485d; max-width: 100%; touch-action: none; }
+#stage { position: absolute; transform-origin: 0 0; isolation: isolate; }
+.scene-background, .source-reference { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.source-reference { z-index: 100000; opacity: .5; }
+.part { position: absolute; margin: 0; padding: 0; border: 0; background: none; border-radius: 0; color: #fff; font: inherit; text-align: left; overflow: visible; }
+button.part { cursor: pointer; }
+button.part::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, var(--minimum-target)); height: max(100%, var(--minimum-target)); transform: translate(-50%, -50%); }
+button.part:focus-visible { outline: 4px dashed #ffdc84; outline-offset: 3px; }
+.part > .asset { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.part:disabled { cursor: default; }
+.part.interacting { filter: brightness(1.08); }
+.part-label { position: absolute; left: 25%; right: 7%; top: 15%; height: 70%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; text-shadow: 0 1px 2px #16374c; pointer-events: none; white-space: pre-line; line-height: 1.1; text-align: center; overflow: hidden; }
+.text-slot { position: absolute; display: flex; align-items: center; justify-content: center; font-weight: 750; line-height: 1.13; color: #fff; text-shadow: 0 1px 2px #1c3f53; pointer-events: none; text-align: center; white-space: pre-wrap; overflow: hidden; }
+.outlines button.part { outline: 2px dashed #e1c46f; outline-offset: -1px; }
+.slider-input { appearance: none; -webkit-appearance: none; position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.live-slider { position: absolute; left: 4%; right: 4%; top: 36%; height: 28%; border-radius: 20px; background: #678ca5; border: 1px solid #c3d6df; pointer-events: none; }
+.live-slider > i { position: absolute; inset: 0 auto 0 0; background: #d7b76a; border-radius: 20px; }
+.live-slider > b { position: absolute; top: -55%; width: 40px; height: 210%; border-radius: 50%; background: #fff; box-shadow: 0 2px 5px #172e4980; transform: translateX(-50%); }
+.status { display: flex; gap: 16px; justify-content: space-between; align-items: center; font-size: 13px; padding: 12px 0; }
+aside { background: #fff; border: 1px solid #d8e2e9; border-radius: 10px; padding: 14px; max-height: 82vh; overflow-y: auto; }
+aside h1 { font-size: 15px; margin: 0 0 12px; }
+aside p { color: #617786; font-size: 12px; line-height: 1.6; }
+.layer-row { display: flex; gap: 7px; align-items: center; min-height: 31px; font-size: 12px; overflow-wrap: anywhere; }
+.layer-row small { color: #7b8f9c; }
+#interaction { display: block; font-size: 12px; color: #9b5b44; margin-top: 16px; min-height: 36px; }
+#difference_canvas { max-width: 100%; border: 1px solid #c6d7e2; }
+.checker { background-color: #eff3f5 !important; background-image: linear-gradient(45deg, #c5d1da 25%, transparent 25%), linear-gradient(-45deg, #c5d1da 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #c5d1da 75%), linear-gradient(-45deg, transparent 75%, #c5d1da 75%); background-size: 32px 32px; background-position: 0 0, 0 16px, 16px -16px, -16px 0; }
+body.render-only { background: transparent; overflow: hidden; }
+.render-only .toolbar, .render-only aside, .render-only .status { display: none; }
+.render-only main { display: block; padding: 0; }
+.render-only #viewport { margin: 0; max-width: none; }
+@media(max-width: 1000px) { main { grid-template-columns: minmax(0, 1fr); } aside { max-height: 300px; } }
